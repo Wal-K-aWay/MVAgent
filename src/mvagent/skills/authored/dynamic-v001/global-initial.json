@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-initial",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Choose initial evidence actions and parameters before usable reports exist. Before usable evidence is available, choose how to obtain the facts that distinguish the answers.",
+  "strategy": "1. Preserve the requested entities, relation direction, counting unit and time anchors in `instruction`.\n2. Use `analyze_videos` for facts or event sequences that each video can establish independently. Consider `watch_videos` when a visible relationship across videos requires joint comparison.\n3. Select videos and valid ranges from the question and available metadata. If the relevant time is unknown, preserve coverage rather than inventing a narrow interval.\n\nConstraints:\nThe word \"compare\" alone does not require joint watch. A single VideoAgent cannot inspect other videos. Do not turn an option into an assumed observation."
+}

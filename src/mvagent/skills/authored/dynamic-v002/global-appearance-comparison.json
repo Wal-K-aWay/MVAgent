@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "id": "global-appearance-comparison",
+    "role": "global",
+    "stages": [
+      "initial",
+      "evidence"
+    ]
+  },
+  "when_to_use": "Compare visible appearance or identity across videos when subtle discriminating details need joint inspection with watch_videos. The answer depends on visible differences or identity across videos, the distinguishing details are not already established, and watch_videos is available. Do not use merely because a question compares counts, event order or independently measurable facts.",
+  "strategy": "1. Identify which visible attributes distinguish the alternatives without assuming an alternative is true.\n2. Consider watch_videos over the relevant videos. Preserve the question's entities, relation and discriminating attributes in instruction.\n3. Use observed or supplied time anchors. When the relevant time is unknown, preserve coverage. Answer once the necessary distinction is supported.\n\nConstraints:\nA similar color alone need not establish identity. Do not invent a narrow interval or treat missing detail as a confirmed difference."
+}

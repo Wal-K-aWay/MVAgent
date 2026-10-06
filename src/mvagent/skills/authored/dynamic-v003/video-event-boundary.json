@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "video-event-boundary",
+    "role": "video",
+    "stages": [
+      "evidence"
+    ]
+  },
+  "when_to_use": "Refine start/end timestamps of an action already located in Memory; NOT text legibility, object detail, counts, clip ordering or an unlocated event. Instruction needs action start/end times AND Memory locates that action AND a required boundary remains uncertain. All three are necessary. Exclude OCR and spatial/appearance detail.",
+  "strategy": "1. Use observe around the known uncertain boundary, including context on both sides within the video.\n2. Ask what distinguishes before, during and after the action. Increase fps only as needed within the frame budget.\n3. Finish with source-video seconds and any remaining uncertainty once the requested boundaries are supported.\n\nConstraints:\nA crop edge is not an event boundary. Extra temporal samples do not inherently improve text resolution."
+}

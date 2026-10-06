@@ -1,0 +1,22 @@
+dataset_root: /home/kww/datasets/Multi-Video
+split_manifest: configs/skill_evolution/splits/multibench_smoke_train8_eval4_seed20260908.json
+runtime:
+  mvagent_config: configs/skill_evolution/runtime/local_qwen35_35b_a3b_glm53_flash_optimizer_gpu5_7.yaml
+  cache_dir: outputs/mvagent/skill/skill_evolution/alternating_multibench_smoke_train8_eval4_glm53_flash_20260910/cache
+optimizer:
+  model_type: glm53_flash_optimizer
+open_qa_judge:
+  enabled: true
+  model:
+    model_type: qwen35_judge_fixed
+    temperature: 0.0
+    max_tokens: 2048
+training:
+  epochs: 1
+  batch_size: 8
+  minibatch_size: 8
+  merge_size: 2
+  top_l: 1
+  seed: 20260905
+  max_changed_chars: 2000
+  max_skill_words: 1200

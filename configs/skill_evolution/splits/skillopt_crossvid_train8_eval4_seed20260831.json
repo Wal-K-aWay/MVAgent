@@ -1,0 +1,67 @@
+{
+  "version": 2,
+  "dataset": "crossvid-choice-skillopt-real-smoke-v1",
+  "seed": 20260831,
+  "samples": [
+    {
+      "sample_id": "crossvid:BU:165",
+      "split": "train",
+      "group_id": "media_6fbdf6b38da5c35cf6ae"
+    },
+    {
+      "sample_id": "crossvid:CC:594",
+      "split": "train",
+      "group_id": "media_2a04977cfd3404399a5c"
+    },
+    {
+      "sample_id": "crossvid:MOC:488",
+      "split": "train",
+      "group_id": "media_3e0e35c3eb228e181a4d"
+    },
+    {
+      "sample_id": "crossvid:MSR:531",
+      "split": "train",
+      "group_id": "media_e9dfeee12319b1afc5b5"
+    },
+    {
+      "sample_id": "crossvid:NC:968",
+      "split": "train",
+      "group_id": "media_2ae97e2589ed94a162f9"
+    },
+    {
+      "sample_id": "crossvid:PEA:784",
+      "split": "train",
+      "group_id": "media_3185c1c536570cc08b73"
+    },
+    {
+      "sample_id": "crossvid:PI:39",
+      "split": "train",
+      "group_id": "media_c92b1fa857ffaf30d29d"
+    },
+    {
+      "sample_id": "crossvid:BU:462",
+      "split": "train",
+      "group_id": "media_b7c434abf5c9300f76c8"
+    },
+    {
+      "sample_id": "crossvid:BU:317",
+      "split": "eval",
+      "group_id": "media_82e36513b90b9cb5bec0"
+    },
+    {
+      "sample_id": "crossvid:CC:601",
+      "split": "eval",
+      "group_id": "media_97b9ebd04a53d5bb301e"
+    },
+    {
+      "sample_id": "crossvid:MOC:199",
+      "split": "eval",
+      "group_id": "media_6dfbef068cdcd30ccdaf"
+    },
+    {
+      "sample_id": "crossvid:MSR:452",
+      "split": "eval",
+      "group_id": "media_de1cb5d90e75acccdf6b"
+    }
+  ]
+}

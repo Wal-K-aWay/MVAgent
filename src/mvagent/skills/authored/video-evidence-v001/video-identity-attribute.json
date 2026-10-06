@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "id": "video-identity-attribute",
+    "role": "video",
+    "stages": [
+      "initial",
+      "evidence"
+    ]
+  },
+  "when_to_use": "Identify a requested entity and its visual attributes without mixing people, object parts or times; use focused reinspection for unresolved detail. The instruction asks for a color, shape, tool, material, text or handling detail of a specific entity. The target identity or relevant object part matters more than a global scene summary.",
+  "strategy": "1. Resolve which entity and which part the instruction names. For a winning player, establish winner identity before clothing color; for a bicycle frame, distinguish frame from wheels or fork.\n2. observe the known relevant interval, or survey the full valid range to locate the target. In what name the entity, attribute, visible identification cues and uncertainty. Do not substitute a different part merely because it is easier to see.\n3. If the detail is ambiguous, use evidence-supported where ranges for a closer temporal inspection. Raise fps for brief motion, not as a substitute for spatial detail; keep context needed to identify the entity.\n4. finish with entity-to-attribute associations, source times and uncertainty. Preserve multiple colors/parts separately; do not guess a hidden label or force a single answer.\n\nConstraints:\nPen-body color is not pigment applied to a drawing. Clothing is not automatically only the shirt. Unreadable text remains unreadable; familiar brand or ingredient priors are not evidence."
+}

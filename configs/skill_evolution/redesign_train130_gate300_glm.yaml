@@ -1,0 +1,25 @@
+dataset_root: /home/kww/datasets/Multi-Video
+open_qa_judge:
+  enabled: true
+  model:
+    model_type: deepseek_judge_fixed
+    temperature: 0.0
+    max_tokens: 8192
+optimizer:
+  model_type: glm53_flash_optimizer
+runtime:
+  mvagent_config: configs/skill_evolution/runtime/strict_qwen35_glm53_deepseek.yaml
+  cache_dir: outputs/mvagent/skill/skill_evolution/redesign_train130_gate300/cache
+split_manifest: /home/kww/projects/MVAgent_API/outputs/mvagent/skill/20260916_evolution_redesign/train130_gate300.json
+training:
+  batch_size: 65
+  epochs: 3
+  max_changed_chars: 2000
+  max_skill_words: 1200
+  merge_size: 4
+  minibatch_size: 8
+  seed: 20260916
+  top_l: 1
+  use_slow_update: true
+  use_meta_skill: true
+  slow_update_samples: 20

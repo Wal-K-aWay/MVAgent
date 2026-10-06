@@ -1,0 +1,37 @@
+{
+  "protocol": "crossvid-lite2500-development-v1",
+  "purpose": "Frozen development evaluation only; not Gate, training or blind Test",
+  "seed": 20260919,
+  "quotas": {
+    "BU": 232,
+    "CC": 218,
+    "CCQA": 239,
+    "FSA": 616,
+    "MOC": 155,
+    "MSR": 163,
+    "NC": 334,
+    "PEA": 261,
+    "PI": 100,
+    "PSS": 182
+  },
+  "manifest_sha256": "5e1cf0e4a0967e365b85f3ad0f5eddb4871beaebd24f421a1b09daac62b8262f",
+  "manifest_hash": "5a301ce774468ce78f5ceffce8c68068b6796f166901373486007d0cd6bee6d6",
+  "construction_script": "scripts/prepare_crossvid_representative_subset.py",
+  "construction_script_sha256": "689110b88b266799226a9c82626423b34042671853cb102245b0859f3a25a288",
+  "exclusion_manifests": {
+    "outputs/analysis/20260916_evolution_redesign/train130_gate300.json": "fbb75ca96ebd6bdcfd31c33c14bc6684b292d6456781e4b32cfe4d93cf828c5a"
+  },
+  "artifacts_root": "outputs/analysis/20260919_crossvid_lite2500",
+  "provenance_sha256": "b15399e4495411aaa8cd9b9558a87c29da0905ac693a89507b3bfe7bec2121a4",
+  "audit_sha256": "1a06d86f58a4822cd99848525e5ec03de7049be2a6ee69e0fc677d223a79281a",
+  "source_guard": "outputs/analysis/20260919_crossvid_lite2500/future_training_source_guard.json",
+  "no_model_outcomes_used_for_selection": true,
+  "limitations": [
+    "Development panel, not an untouched test or official CrossVid release.",
+    "Isolation covers original source files, prepared clips, shared UAV vid and exact-byte duplicates against exclusions.",
+    "Different movie clips from one film, assembly recordings from one session, re-encodings and semantic near-duplicates are not proven isolated.",
+    "Connected source components can be large; row count is not independent sample size.",
+    "Unequal within-task probabilities are retained for optional population-weighted estimates; official subset scores remain unweighted within each task.",
+    "Future enlarged Train/Gate is not silently reserved: its selection must exclude this frozen panel sources."
+  ]
+}

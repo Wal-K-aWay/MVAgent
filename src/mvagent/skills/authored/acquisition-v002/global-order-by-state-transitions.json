@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-order-by-state-transitions",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Use per-segment analyze_videos to extract initial/final states, order supplied clips by prerequisites, and watch ambiguous transitions. Useful for shuffled procedures regardless of topic; not identifying a missing unobserved story segment. The task is to place all supplied segments in order. Changes in material, assembly or task state constrain which segment can precede another; file order and numbering are not chronological evidence.",
+  "strategy": "1. In one analyze_videos action, ask each segment’s VideoAgent for its initial state, main change, final state and any prerequisite visible in the segment. Keep each local instruction concise and independent.\n2. Global links compatible end/start states and checks operation prerequisites to propose an order containing each supplied ID once. Do not substitute a familiar recipe when the observed states disagree.\n3. For an uncertain adjacent pair, use watch_videos on the earlier candidate’s ending and the later candidate’s beginning. Choose source clips from observed transition locations, expanding when the boundary alone is insufficient.\n4. If more than two clips could fit, compare the ambiguous group within the watch limit rather than rewatch every segment. Resolve remaining incompatibilities, then output the required ID permutation.\n\nConstraints:\nInitial and final snapshots may omit a crucial middle operation: expand when they do not determine the transition. Watch permits one clip per video per call; beginning and ending of the same video cannot be two entries in one call."
+}

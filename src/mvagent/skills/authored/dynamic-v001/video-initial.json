@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "video-initial",
+    "role": "video",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Plan initial observation coverage and sampling for a local instruction. No usable observation is retained for this video. Follow only the local instruction and available video metadata.",
+  "strategy": "1. Set `what` to the visible facts needed by the instruction, retaining event identity, order, negation and counting unit.\n2. Use supplied time anchors when applicable. If location is unknown, inspect sufficient coverage to locate candidates before narrowing `where`.\n3. Choose `fps` for the needed detail within the frame capacity. Each range is observed independently with the same `what`.\n\nConstraints:\nDo not infer the overall question from a word such as \"sequence\". Do not assume the beginning and end contain the decisive evidence. Requested FPS can be reduced by the frame cap."
+}

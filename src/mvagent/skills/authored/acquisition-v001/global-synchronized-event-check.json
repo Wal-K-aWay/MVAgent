@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-synchronized-event-check",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Use synchronized joint watch to locate a condition event in one view and inspect a target state in another at that instant. Covers snapshot counts, positions or separation; not cumulative event totals or unsynchronized procedure comparison. Videos are explicitly synchronized and the requested state is anchored to an event such as an object appearing, leaving or crossing another. The event view, target view and referenced identities must be matched in time.",
+  "strategy": "1. Extract the anchor event, its view, target entities/view and requested unit. When labels exist only at first appearance, initialize identities from those windows before following them.\n2. Use watch_videos with both views over matching source-time intervals. Start with coverage sufficient to locate the event; never guess a narrow event time from the wording.\n3. Once History brackets the event, rewatch both views with before/after context. instruction must ask to locate the event and report the target state at that same source time, distinguishing identity loss or occlusion from absence.\n4. Count objects only for a snapshot quantity, use target-view axes for direction, and the requested reference unit for separation. If the event or identity remains ambiguous, repair that uncertainty before refining spatial precision. Answer when the simultaneous state is supported.\n\nConstraints:\nDo not substitute a convenient frame from another time. Zero seconds can be valid. Distinct cameras are not automatically synchronized. Never infer an interval event total from the snapshot."
+}

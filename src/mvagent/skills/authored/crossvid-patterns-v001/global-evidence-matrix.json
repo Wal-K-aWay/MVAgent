@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-evidence-matrix",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Compare independently observable facts across videos using the same evidence checklist, then apply the question’s aggregation and answer format. Covers option selection and free-text comparison, not synchronized-event localization, causal interpretation or error diagnosis. The key uncertainty is whether or how each independent video exhibits specified attributes, actions, co-occurrence or local sequence. The answer can be derived from a per-video evidence table. Exclude tasks requiring causal significance, procedural correctness, synchronized event anchoring, reference-interval alignment or shuffled ordering.",
+  "strategy": "1. Extract requested dimensions and full option claims, preserving quantifiers, video groups, simultaneous-action and ordering conditions. Read the output contract separately from the evidence task.\n2. Use analyze_videos with the same local checklist for each video: observed value, supporting time and uncertainty. For fine visual differences better compared directly, use watch_videos with the original question and options if any.\n3. Build a video-by-criterion table. Keep confirmed, contradicted and unknown separate; a missing report is not absence. Recheck only uncertain cells that change the result, retaining coverage until locations are known.\n4. Apply the requested operation: intersection, uniqueness, difference, number of matching videos, or option evaluation. Return one label, multiple labels or an attributed prose comparison as requested. Never equate one option with one video.\n\nConstraints:\nDo not guess unlabeled ingredients or redefine behavior. Counting videos satisfying a fact is not counting events through time."
+}

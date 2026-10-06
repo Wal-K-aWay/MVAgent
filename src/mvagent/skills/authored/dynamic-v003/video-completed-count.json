@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "id": "video-completed-count",
+    "role": "video",
+    "stages": [
+      "initial",
+      "evidence"
+    ]
+  },
+  "when_to_use": "Count repeated occurrences of a specified action, preserving completion and temporal scope; not listing distinct steps or checking ingredient presence. Instruction requests an action count or occurrence index that Memory does not settle. Exclude distinct process-step lists, static objects and resolved counts.",
+  "strategy": "1. Use observe over the requested scope. In what, repeat the action definition and completion criterion; ask for distinguishable occurrences.\n2. Choose fps for action speed within the frame budget. Do not count one occurrence twice across overlapping ranges.\n3. Reobserve only a consequential ambiguous interval; otherwise finish with the supported count and limitations.\n\nConstraints:\nDo not turn partial motions or uncertain visibility into exact completed counts."
+}

@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "video-evidence",
+    "role": "video",
+    "stages": [
+      "evidence"
+    ]
+  },
+  "when_to_use": "Use retained observations to finish or investigate a specific remaining gap. Usable observations exist. First check whether they address the current local instruction; observations from an earlier request may address a different goal.",
+  "strategy": "1. If retained observations establish the requested facts, `finish` with the evidence and material limitations.\n2. If a specific unresolved fact could change the report, use `observe` to target it. Derive `where` from existing candidates or inspect uncovered ranges if no candidate exists.\n3. For an uncertain event boundary, include surrounding context and ask `what` to distinguish the state before, during and after the event. Keep reported times in source-video seconds.\n\nConstraints:\nDo not refine an ungrounded guessed interval. A crop boundary is not necessarily an event boundary. Do not repeat an observation solely because its text mentions uncertainty."
+}

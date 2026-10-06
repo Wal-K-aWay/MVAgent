@@ -1,0 +1,532 @@
+{
+  "version": 2,
+  "dataset": "alternating-crossvid-choice-70-35",
+  "seed": 20260906,
+  "samples": [
+    {
+      "sample_id": "crossvid:BU:766",
+      "split": "train",
+      "group_id": "media_09e2c3120e97459f94a5"
+    },
+    {
+      "sample_id": "crossvid:CC:677",
+      "split": "train",
+      "group_id": "media_326c38146d90d4948864"
+    },
+    {
+      "sample_id": "crossvid:MOC:209",
+      "split": "train",
+      "group_id": "media_2c6cdd53cbeb1c2e09f2"
+    },
+    {
+      "sample_id": "crossvid:MSR:304",
+      "split": "train",
+      "group_id": "media_9ba2727d5d4f5f19f42f"
+    },
+    {
+      "sample_id": "crossvid:NC:458",
+      "split": "train",
+      "group_id": "media_c3665f560a014fe62ac5"
+    },
+    {
+      "sample_id": "crossvid:PEA:895",
+      "split": "train",
+      "group_id": "media_a9736b6cdfa0d127153f"
+    },
+    {
+      "sample_id": "crossvid:PI:48",
+      "split": "train",
+      "group_id": "media_2dd02c212427052244c7"
+    },
+    {
+      "sample_id": "crossvid:BU:218",
+      "split": "train",
+      "group_id": "media_b98455a281fc23bfe38f"
+    },
+    {
+      "sample_id": "crossvid:CC:686",
+      "split": "train",
+      "group_id": "media_f24226c68e0a6471a1df"
+    },
+    {
+      "sample_id": "crossvid:MOC:204",
+      "split": "train",
+      "group_id": "media_fcb2859c5f2ac7c42473"
+    },
+    {
+      "sample_id": "crossvid:MSR:467",
+      "split": "train",
+      "group_id": "media_1f5071ef9942e3900775"
+    },
+    {
+      "sample_id": "crossvid:NC:94",
+      "split": "train",
+      "group_id": "media_c3843c93a7c31225af4b"
+    },
+    {
+      "sample_id": "crossvid:PEA:63",
+      "split": "train",
+      "group_id": "media_f2e6c768764c67828b10"
+    },
+    {
+      "sample_id": "crossvid:PI:35",
+      "split": "train",
+      "group_id": "media_8fb8bec836440b790fa4"
+    },
+    {
+      "sample_id": "crossvid:BU:132",
+      "split": "train",
+      "group_id": "media_82027faf2213f7aeddad"
+    },
+    {
+      "sample_id": "crossvid:CC:759",
+      "split": "train",
+      "group_id": "media_bbd6a3d6be2551dff7ce"
+    },
+    {
+      "sample_id": "crossvid:MOC:277",
+      "split": "train",
+      "group_id": "media_134466b396888efd653b"
+    },
+    {
+      "sample_id": "crossvid:MSR:588",
+      "split": "train",
+      "group_id": "media_b9865b7dc0e0af6a95ee"
+    },
+    {
+      "sample_id": "crossvid:NC:1009",
+      "split": "train",
+      "group_id": "media_4ab1bcfbeab72a0c5cf5"
+    },
+    {
+      "sample_id": "crossvid:PEA:227",
+      "split": "train",
+      "group_id": "media_ac707aff7c14030a6e43"
+    },
+    {
+      "sample_id": "crossvid:PI:66",
+      "split": "train",
+      "group_id": "media_080056277d438ac2e8c2"
+    },
+    {
+      "sample_id": "crossvid:BU:334",
+      "split": "train",
+      "group_id": "media_f03f50f9bb46f22c6507"
+    },
+    {
+      "sample_id": "crossvid:CC:644",
+      "split": "train",
+      "group_id": "media_48e07b090bd6ecd89d83"
+    },
+    {
+      "sample_id": "crossvid:MOC:1",
+      "split": "train",
+      "group_id": "media_179e94d45270445ceccd"
+    },
+    {
+      "sample_id": "crossvid:MSR:586",
+      "split": "train",
+      "group_id": "media_565b076e2198f559627b"
+    },
+    {
+      "sample_id": "crossvid:NC:613",
+      "split": "train",
+      "group_id": "media_5c3d844e8a2efda209d6"
+    },
+    {
+      "sample_id": "crossvid:PEA:190",
+      "split": "train",
+      "group_id": "media_1da5fea14fc1c50fe997"
+    },
+    {
+      "sample_id": "crossvid:PI:129",
+      "split": "train",
+      "group_id": "media_7c1f9688046540bfb11f"
+    },
+    {
+      "sample_id": "crossvid:BU:247",
+      "split": "train",
+      "group_id": "media_6511de53b512286415dd"
+    },
+    {
+      "sample_id": "crossvid:CC:5",
+      "split": "train",
+      "group_id": "media_8d1e21305c4601939f06"
+    },
+    {
+      "sample_id": "crossvid:MOC:467",
+      "split": "train",
+      "group_id": "media_f6188de1ef0403305e4e"
+    },
+    {
+      "sample_id": "crossvid:MSR:70",
+      "split": "train",
+      "group_id": "media_73e2e19e98a6788726d9"
+    },
+    {
+      "sample_id": "crossvid:NC:1187",
+      "split": "train",
+      "group_id": "media_6578e4337a006939415f"
+    },
+    {
+      "sample_id": "crossvid:PEA:780",
+      "split": "train",
+      "group_id": "media_14bd808d450aec5d7bcb"
+    },
+    {
+      "sample_id": "crossvid:PI:53",
+      "split": "train",
+      "group_id": "media_1e228e46a6e956712211"
+    },
+    {
+      "sample_id": "crossvid:BU:69",
+      "split": "train",
+      "group_id": "media_41f42f0e5b6cb71e9ccf"
+    },
+    {
+      "sample_id": "crossvid:CC:502",
+      "split": "train",
+      "group_id": "media_8122130385482b10ea2e"
+    },
+    {
+      "sample_id": "crossvid:MOC:65",
+      "split": "train",
+      "group_id": "media_491be51edddd83578841"
+    },
+    {
+      "sample_id": "crossvid:MSR:567",
+      "split": "train",
+      "group_id": "media_4df283407bd18dff7765"
+    },
+    {
+      "sample_id": "crossvid:NC:189",
+      "split": "train",
+      "group_id": "media_2a785a9df7f117f59fcf"
+    },
+    {
+      "sample_id": "crossvid:PEA:104",
+      "split": "train",
+      "group_id": "media_43bb350bd8312a7091ef"
+    },
+    {
+      "sample_id": "crossvid:PI:70",
+      "split": "train",
+      "group_id": "media_6d4c877ea96424fe8672"
+    },
+    {
+      "sample_id": "crossvid:BU:371",
+      "split": "train",
+      "group_id": "media_f492339cf414d95456b9"
+    },
+    {
+      "sample_id": "crossvid:CC:408",
+      "split": "train",
+      "group_id": "media_30ea30c58f9c9da6669d"
+    },
+    {
+      "sample_id": "crossvid:MOC:338",
+      "split": "train",
+      "group_id": "media_4a7081c011fbed21c070"
+    },
+    {
+      "sample_id": "crossvid:MSR:444",
+      "split": "train",
+      "group_id": "media_87ca17ef51267b6fe56f"
+    },
+    {
+      "sample_id": "crossvid:NC:496",
+      "split": "train",
+      "group_id": "media_44f1373a6ec79d0f700f"
+    },
+    {
+      "sample_id": "crossvid:PEA:317",
+      "split": "train",
+      "group_id": "media_3d68399cbd62d844acf1"
+    },
+    {
+      "sample_id": "crossvid:PI:106",
+      "split": "train",
+      "group_id": "media_b4b9cb29bd2477cca2d1"
+    },
+    {
+      "sample_id": "crossvid:BU:130",
+      "split": "train",
+      "group_id": "media_2f6deb07d7337296ea78"
+    },
+    {
+      "sample_id": "crossvid:CC:732",
+      "split": "train",
+      "group_id": "media_f9b550c1dbe12354cd35"
+    },
+    {
+      "sample_id": "crossvid:MOC:478",
+      "split": "train",
+      "group_id": "media_4231be78592433a36fab"
+    },
+    {
+      "sample_id": "crossvid:MSR:471",
+      "split": "train",
+      "group_id": "media_189fe5c35f81690cddde"
+    },
+    {
+      "sample_id": "crossvid:NC:76",
+      "split": "train",
+      "group_id": "media_ace77ff258aead2fc764"
+    },
+    {
+      "sample_id": "crossvid:PEA:669",
+      "split": "train",
+      "group_id": "media_8ff5c1896e9596792192"
+    },
+    {
+      "sample_id": "crossvid:PI:17",
+      "split": "train",
+      "group_id": "media_48f4fdfbec0a8ae68853"
+    },
+    {
+      "sample_id": "crossvid:BU:261",
+      "split": "train",
+      "group_id": "media_2b0245f87691b89a1158"
+    },
+    {
+      "sample_id": "crossvid:CC:348",
+      "split": "train",
+      "group_id": "media_b8ead1761284726f1575"
+    },
+    {
+      "sample_id": "crossvid:MOC:452",
+      "split": "train",
+      "group_id": "media_ab1e705296e31a47ed5b"
+    },
+    {
+      "sample_id": "crossvid:MSR:538",
+      "split": "train",
+      "group_id": "media_4f4fc35281c821cd47a6"
+    },
+    {
+      "sample_id": "crossvid:NC:490",
+      "split": "train",
+      "group_id": "media_c00dc3f159817eb69d72"
+    },
+    {
+      "sample_id": "crossvid:PEA:302",
+      "split": "train",
+      "group_id": "media_4965f869ff1be61116be"
+    },
+    {
+      "sample_id": "crossvid:PI:211",
+      "split": "train",
+      "group_id": "media_043a6deb67ec29d15376"
+    },
+    {
+      "sample_id": "crossvid:BU:798",
+      "split": "train",
+      "group_id": "media_991f1b70a9263a8631b8"
+    },
+    {
+      "sample_id": "crossvid:CC:773",
+      "split": "train",
+      "group_id": "media_e6813345dacc3280ea92"
+    },
+    {
+      "sample_id": "crossvid:MOC:497",
+      "split": "train",
+      "group_id": "media_8b44e57d5e3f464ae133"
+    },
+    {
+      "sample_id": "crossvid:MSR:320",
+      "split": "train",
+      "group_id": "media_923c76dbaf2f90cecace"
+    },
+    {
+      "sample_id": "crossvid:NC:764",
+      "split": "train",
+      "group_id": "media_76c83e57d9227ebe5d5f"
+    },
+    {
+      "sample_id": "crossvid:PEA:763",
+      "split": "train",
+      "group_id": "media_8c89906f609fcd1392dd"
+    },
+    {
+      "sample_id": "crossvid:PI:193",
+      "split": "train",
+      "group_id": "media_4414648a044d2e8a2404"
+    },
+    {
+      "sample_id": "crossvid:BU:4",
+      "split": "eval",
+      "group_id": "media_d646bab011879de3a983"
+    },
+    {
+      "sample_id": "crossvid:CC:723",
+      "split": "eval",
+      "group_id": "media_31d99ba46bf672c7b209"
+    },
+    {
+      "sample_id": "crossvid:MOC:136",
+      "split": "eval",
+      "group_id": "media_3633f639ea091f62b625"
+    },
+    {
+      "sample_id": "crossvid:MSR:446",
+      "split": "eval",
+      "group_id": "media_a1a215892025d1c04bb8"
+    },
+    {
+      "sample_id": "crossvid:NC:369",
+      "split": "eval",
+      "group_id": "media_f62daf1ae646497692f7"
+    },
+    {
+      "sample_id": "crossvid:PEA:83",
+      "split": "eval",
+      "group_id": "media_652b36b3a2a253b75b0f"
+    },
+    {
+      "sample_id": "crossvid:PI:169",
+      "split": "eval",
+      "group_id": "media_7188a48af05dd4ae4673"
+    },
+    {
+      "sample_id": "crossvid:BU:197",
+      "split": "eval",
+      "group_id": "media_074e4f1148397576daba"
+    },
+    {
+      "sample_id": "crossvid:CC:122",
+      "split": "eval",
+      "group_id": "media_bdf1e9f863d8177aac91"
+    },
+    {
+      "sample_id": "crossvid:MOC:239",
+      "split": "eval",
+      "group_id": "media_f78bd1c20a53861ccc5e"
+    },
+    {
+      "sample_id": "crossvid:MSR:509",
+      "split": "eval",
+      "group_id": "media_d6047dc681706ac6cc57"
+    },
+    {
+      "sample_id": "crossvid:NC:355",
+      "split": "eval",
+      "group_id": "media_ed4486b012220e9e0f71"
+    },
+    {
+      "sample_id": "crossvid:PEA:892",
+      "split": "eval",
+      "group_id": "media_8aad2823b368cc8d1b65"
+    },
+    {
+      "sample_id": "crossvid:PI:208",
+      "split": "eval",
+      "group_id": "media_14b911ad6e791aaad80e"
+    },
+    {
+      "sample_id": "crossvid:BU:647",
+      "split": "eval",
+      "group_id": "media_bd657bb85638f8d63146"
+    },
+    {
+      "sample_id": "crossvid:CC:697",
+      "split": "eval",
+      "group_id": "media_9eac723a65175976340c"
+    },
+    {
+      "sample_id": "crossvid:MOC:6",
+      "split": "eval",
+      "group_id": "media_124c9a5e4bbda8ba2f10"
+    },
+    {
+      "sample_id": "crossvid:MSR:466",
+      "split": "eval",
+      "group_id": "media_44fb37b37b627d6cddbd"
+    },
+    {
+      "sample_id": "crossvid:NC:1179",
+      "split": "eval",
+      "group_id": "media_ed9109db2d19d483168d"
+    },
+    {
+      "sample_id": "crossvid:PEA:855",
+      "split": "eval",
+      "group_id": "media_262487fbe03971da7eda"
+    },
+    {
+      "sample_id": "crossvid:PI:148",
+      "split": "eval",
+      "group_id": "media_67182561c94997dbcb40"
+    },
+    {
+      "sample_id": "crossvid:BU:412",
+      "split": "eval",
+      "group_id": "media_78c1782d3a82e73e87e3"
+    },
+    {
+      "sample_id": "crossvid:CC:564",
+      "split": "eval",
+      "group_id": "media_5a63ca7d2459740f13f4"
+    },
+    {
+      "sample_id": "crossvid:MOC:83",
+      "split": "eval",
+      "group_id": "media_6e1f17927731f200ffae"
+    },
+    {
+      "sample_id": "crossvid:MSR:558",
+      "split": "eval",
+      "group_id": "media_28416db57cbea53a8390"
+    },
+    {
+      "sample_id": "crossvid:NC:21",
+      "split": "eval",
+      "group_id": "media_5a1d01ffac34313068e7"
+    },
+    {
+      "sample_id": "crossvid:PEA:460",
+      "split": "eval",
+      "group_id": "media_fbbc436b3fc55a5a4f39"
+    },
+    {
+      "sample_id": "crossvid:PI:59",
+      "split": "eval",
+      "group_id": "media_bcc5e296f842e730840a"
+    },
+    {
+      "sample_id": "crossvid:BU:73",
+      "split": "eval",
+      "group_id": "media_ebb8dfe5693dc59decae"
+    },
+    {
+      "sample_id": "crossvid:CC:360",
+      "split": "eval",
+      "group_id": "media_cbdfd6f57aa2389847af"
+    },
+    {
+      "sample_id": "crossvid:MOC:117",
+      "split": "eval",
+      "group_id": "media_5ca3dd2d463be65cf1b6"
+    },
+    {
+      "sample_id": "crossvid:MSR:572",
+      "split": "eval",
+      "group_id": "media_8982cb37ae16fa71b1db"
+    },
+    {
+      "sample_id": "crossvid:NC:518",
+      "split": "eval",
+      "group_id": "media_447a99b6d3c84caddd39"
+    },
+    {
+      "sample_id": "crossvid:PEA:41",
+      "split": "eval",
+      "group_id": "media_8d230ede23f6dcf90871"
+    },
+    {
+      "sample_id": "crossvid:PI:196",
+      "split": "eval",
+      "group_id": "media_7e3f1290f1a2514eb41a"
+    }
+  ]
+}

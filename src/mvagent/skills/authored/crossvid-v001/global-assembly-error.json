@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-assembly-error",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Diagnose assembly errors across demonstrations using the question-provided error taxonomy and action/part identities. Not normal cooking sequence comparisons or shuffled-clip ordering. Multiple assembly demonstrations are accompanied by candidate part-attachment/removal actions or defined procedural error types. The task asks which error occurred or which videos satisfy an error condition.",
+  "strategy": "1. Preserve the supplied error definitions, part pairs, video references and any exact-count condition; distinguish a current error from a consequence of an earlier error.\n2. Use analyze_videos for local action sequences around candidate operations. Ask for before/action/after state, connected parts, removals and timestamps; request observations before classifying correctness.\n3. Align corresponding operations across demonstrations and classify each candidate using the given taxonomy. Check counts across videos rather than treating the occurrence of an operation as an error.\n4. For unresolved order, placement or correction, use watch_videos on relevant segments or request targeted observation with neighboring context. Map the supported video/action/error combination back to the option label.\n\nConstraints:\nDetachment can be legitimate. A common sequence is not automatically the correct sequence. Do not lead a VideoAgent by asserting the candidate mistake."
+}

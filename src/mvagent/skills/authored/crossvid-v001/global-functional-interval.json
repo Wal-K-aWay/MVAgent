@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-functional-interval",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Find the time interval in a target video performing the same functional step as a supplied reference interval. Not full-video method comparisons or ordering shuffled segments. A question specifies a reference time interval in one video and asks for the corresponding functional step interval in another. The requested answer is start,end in seconds.",
+  "strategy": "1. Ask analyze_videos to inspect the exact reference interval and describe action, object, starting state and resulting state; do not identify equivalence from tools alone.\n2. Ask the target VideoAgent to locate candidate occurrences of that operation with their full start/end bounds. Preserve coverage until a candidate location is established.\n3. Check functional equivalence and distinguish repeated similar actions. If boundaries are uncertain, request finer observation around the candidate including preceding/following context; joint watch can resolve visual mismatches.\n4. Return target-video start,end in the requested coordinate system. Use reported source coordinates; do not add clip offsets again. Match action extent, not reference duration.\n\nConstraints:\nDifferent speeds can produce different lengths. An event can genuinely start at zero. Never fabricate an endpoint."
+}

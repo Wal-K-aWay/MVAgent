@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "video-boundary-refinement",
+    "role": "video",
+    "stages": [
+      "evidence"
+    ]
+  },
+  "when_to_use": "Refine an already observed event's uncertain start or end in source-video seconds using surrounding context. The instruction requires event boundaries; retained observations locate the event but leave a consequential start or end uncertain. Do not use when the event has not been located or both boundaries are already established.",
+  "strategy": "1. Anchor where to the observed candidate and include context before and after the uncertain boundary.\n2. Ask what to distinguish the state before, during and after the event. Choose fps for the required detail within frame capacity.\n3. Keep reported times in source-video seconds. Finish when evidence supports the requested boundaries, preserving any unresolved limitation.\n\nConstraints:\nA crop edge is not automatically an event boundary. Never invent precision beyond the observations or repeat refinement without a specific unresolved boundary."
+}

@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "id": "video-local-checklist",
+    "role": "video",
+    "stages": [
+      "initial",
+      "evidence"
+    ]
+  },
+  "when_to_use": "Verify named local actions or facts with explicit scope, negation and uncertainty; not numeric totals, precise boundaries or contextual interpretation. The instruction supplies a local action/fact checklist or asks whether an event occurs. Each item can be checked in this video without another video or the final QA options.",
+  "strategy": "1. Preserve each requested fact and its scope. Treat examples introduced by \"such as\" as examples, not an exhaustive definition. Distinguish object presence from the requested action.\n2. Use observe with what listing the criteria and visible support or counterevidence. Use known relevant where ranges; otherwise survey the full valid range. Choose fps for event speed within the frame budget.\n3. Before finish, check every requested item against the observation. If a decisive action is missed, ambiguous or contradicted, observe its supported interval with context; do not repeat a generic request.\n4. Report supported, contradicted or unknown per item, supporting source times when available, and coverage limits. Absence in sampled frames is not proof of absence throughout the clip.\n\nConstraints:\nAn affirmative description cannot support a blanket negative conclusion. Do not supply another video’s facts or choose the overall QA option. Never invent timestamps."
+}

@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-track-history",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Track identity and state changes through a time interval to reconstruct a trajectory or enumerate distinct events. Not a single event-anchored snapshot or counting how many independent videos satisfy a predicate. The answer requires history over an interval: total occurrences, pass/overtake events, or an object’s motion path/final trajectory. A single frame or moment cannot establish it. Exclude procedural correctness and shuffled-segment ordering.",
+  "strategy": "1. Define the target identity, event transition or path information, and interval boundaries from the question. If an anchor event starts the interval, locate it before accumulation.\n2. Use analyze_videos for independent local histories or joint watch_videos when synchronized cross-view tracking is necessary. Ask for ordered timestamps, before/after relations and identities, not an unsupported total.\n3. Build an event or state-transition ledger. Maintain coverage of the entire requested interval; track objects after label windows and avoid double counting a single event seen in multiple views.\n4. Inspect unresolved transitions, occlusions or gaps with neighboring context. For counts, enumerate distinct qualifying ledger entries; for trajectories, summarize the supported ordered path. Format the answer as requested.\n\nConstraints:\nCounting visible objects at one moment is not counting objects passed. Do not infer unseen paths across an occlusion or merge unrelated identities."
+}

@@ -1,0 +1,25 @@
+{
+  "model": "qwen3_5_27b",
+  "checkpoint": "/home/kww/models/Qwen3.5/Qwen3.5-27B",
+  "dtype": "auto",
+  "enable_thinking": false,
+  "max_model_len": 262144,
+  "gpus": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "ports": [
+    8105,
+    8106,
+    8101,
+    8102,
+    8100,
+    8001
+  ],
+  "frame_cap_per_question": 512,
+  "max_frame_side": 720
+}

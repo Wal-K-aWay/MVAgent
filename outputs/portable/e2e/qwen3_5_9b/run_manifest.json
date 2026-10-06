@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "model": {
+    "served_model_name": "qwen3_5_9b",
+    "checkpoint": "/home/kww/models/Qwen3.5/Qwen3.5-9B",
+    "architecture": "Qwen3_5ForConditionalGeneration",
+    "dtype": "auto",
+    "enable_thinking": false,
+    "max_model_len": 262144
+  },
+  "resources": {
+    "gpus": [4, 5],
+    "ports": [8101, 8102],
+    "replicas": 2,
+    "workers_per_replica": 1
+  },
+  "input": {
+    "frame_cap_per_question": 512,
+    "max_frame_side": 720,
+    "preserve_aspect_ratio": true
+  },
+  "benchmarks": ["CVBench", "MVU-Eval", "CrossVid"],
+  "execution_order": ["CVBench", "MVU-Eval", "CrossVid"],
+  "source_root": "eval/e2e_eval",
+  "launcher": "outputs/qwen3_5_9b_e2e/protocol_source/launch_e2e.sh",
+  "launched_at": "2026-08-25T08:03:49Z",
+  "estimated_total_hours": {
+    "lower": 42,
+    "central": 48,
+    "upper": 55,
+    "includes_ccqa_m3_scoring": true
+  },
+  "ccqa_m3_scoring": {
+    "status": "pending_after_crossvid_inference",
+    "credential_storage": "API key is not written to the run directory or launcher"
+  },
+  "status": "running"
+}

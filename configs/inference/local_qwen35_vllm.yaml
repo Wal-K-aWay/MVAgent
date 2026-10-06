@@ -1,0 +1,43 @@
+runtime:
+  output_dir: outputs
+  cache_dir: .cache/mvagent
+
+models:
+  qwen35_local:
+    type: local_vllm
+    model_name: /home/kww/models/Qwen3.6/Qwen3.6-27B-FP8
+    dtype: auto
+    gpu_memory_utilization: 0.9
+    max_model_len: 262144
+    reasoning_parser: qwen3
+    enable_thinking: false
+    temperature: 0.0
+    top_p: 1.0
+    max_tokens: 2048
+    max_videos_per_request: 8
+    max_video_frames_per_request: 512
+    video_mode: video_url
+    timeout_sec: 120
+    max_retries: 2
+
+agents:
+  global_agent:
+    model:
+      model_type: qwen35_local
+    max_steps: 5
+    max_videos_per_watch: 4
+    skill:
+      enabled: true
+      path: skills/skill_sets/authored-v000/global.md
+      sha256: 011da37c907427b789185ffb1628dba6dd91da0ce289ce2e3fb93f0d06c54bae
+  video_agent:
+    planner:
+      model_type: qwen35_local
+    observer:
+      model_type: qwen35_local
+    max_steps: 5
+    max_ranges_per_action: 8
+    skill:
+      enabled: true
+      path: skills/skill_sets/authored-v000/video.md
+      sha256: d559f9275b816a10e3c8fa1ad48d12485466c88308740695345dce6577fe8411

@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-reference-step-localization",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Use analyze_videos to identify a supplied reference operation, then locate its functional equivalent and refine boundaries in a target video. Use joint watch for ambiguous correspondence; not generic method comparison or copying reference timestamps to another video. The input gives a reference interval and asks where an equivalent functional step occurs in another video. The operation must be identified before the target receives a meaningful search instruction.",
+  "strategy": "1. Analyze the reference video: instruction names the supplied source-time interval and asks for the visible operation, object/material state before and after, and the functional outcome. Allow nearby context if needed to identify the operation.\n2. After receiving that report, analyze the target video with a self-contained description of the operation and outcome. Ask for candidate source-time intervals, supporting observations and uncertainty; never ask it to inspect an unseen reference video.\n3. Refine the best candidate’s start/end with before/during/after evidence through a targeted instruction. Do not copy the reference duration or align videos by their absolute timestamps.\n4. If several candidates remain, jointly watch the reference and one target candidate using independent source clips. Choose functional correspondence, then return only the target interval in the requested format.\n\nConstraints:\nReference and target analysis in the same batch cannot share newly discovered reference facts. Similar tools alone do not establish the same functional step. A zero start is not invalid by itself."
+}

@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-direct-detail-watch",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Directly compare fine visible details across videos with joint watch_videos. Use for appearance, small objects, contact or subtle motion that prose may obscure; not independent event totals, plot interpretation or synchronized event anchoring. The answer hinges on a fine visual distinction between videos, and the comparison target is already identifiable from the question. Prefer synchronized-event-check when a specific event in one view defines the instant to inspect in another.",
+  "strategy": "1. Start with watch_videos on the relevant videos. Copy their exact IDs. Use known target intervals from History; if locations are unknown, retain coverage rather than inventing timestamps. Respect the current video-count limit; for larger sets, retain a shared comparison anchor across groups.\n2. In instruction, name the comparison target and concrete discriminants: shape, material, contact, motion or other facts actually asked about. Preserve option distinctions and quantifiers, but request visual evidence and uncertainty, not an answer letter.\n3. Ask for attributed observations for each video. If a decisive detail is unresolved, rewatch the relevant shorter intervals with enough surrounding action to retain identity. Narrowing must follow observed locations.\n4. Answer once the supported differences discriminate the options. Use analyze_videos only if a remaining fact needs independent within-video tracing.\n\nConstraints:\nDo not copy the question wrapper’s final-answer command into watch. A brief snapshot cannot establish an event total. Never add fps or multiple clips for one video to a watch action."
+}

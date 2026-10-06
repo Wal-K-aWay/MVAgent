@@ -1,0 +1,300 @@
+{
+  "status": "complete",
+  "started_at_utc": "2026-09-03T14:51:22.060994+00:00",
+  "git_commit": "cfce76ce292e68762a0e392560058905bd820327",
+  "identity": {
+    "protocol": "mvagent-agent-eval-v1",
+    "runner_sha256": "33e75940362be0e4d309f3f7750c9d4124520c4f5647bdee5355f2e162fdb77b",
+    "config_sha256": "c9c44c2f4d2d653aafb8ab4f8cf87492faffd664585b27b85e277627d5c2f930",
+    "runtime_snapshot_sha256": "f3d3d595fca505f15d22d6af0f6b89c4aa8fd861ee727c7f33dda7ab36953bb7",
+    "dataset_root": "/home/kww/datasets/Multi-Video",
+    "dataset_sha256": {
+      "cvbench": "e0c2970dc5b718fcb68cc30789832c17b64d52513281205135eee72787765af2",
+      "mvu_eval": "55f1f0790c84447caa36ab6e28958197c286ec765c31e19415c96de095257172",
+      "crossvid": "2d0be4c2b444363bd6197db185ea8064dc3259c38854934b451052f5a0bd9de8"
+    },
+    "sample_ids_sha256": "ce030cbe395dc6b5e243c1d700537400cdca5bf28fa2fa9c9c005826dea36cfe",
+    "sample_count": 11839,
+    "replicas": [
+      {
+        "gpu": 4,
+        "endpoint": "http://127.0.0.1:8101/v1"
+      },
+      {
+        "gpu": 5,
+        "endpoint": "http://127.0.0.1:8102/v1"
+      },
+      {
+        "gpu": 6,
+        "endpoint": "http://127.0.0.1:8100/v1"
+      },
+      {
+        "gpu": 7,
+        "endpoint": "http://127.0.0.1:8001/v1"
+      }
+    ],
+    "workers_per_replica": 2
+  },
+  "scorer_identity": {
+    "choice": "strict-normalized-option-label-v1",
+    "ordering": "crossvid-sequence-exact-v1",
+    "temporal_localization": "crossvid-interval-iou-strict-v1",
+    "open_qa": {
+      "type": "fixed-open-qa-judge",
+      "protocol": "crossvid.ccqa_m3_coverage_correctness.v2",
+      "model": {
+        "client": "_LocalJudgeClient",
+        "name": "qwen3_5_9b_local",
+        "backend_type": "local_vllm",
+        "endpoint": "http://127.0.0.1:8101",
+        "served_model_name": "qwen3_5_9b_local",
+        "timeout_sec": 300.0
+      },
+      "system_prompt_sha256": "75357d685f238b6afd7738be9786fdafde641eb6ca9a3be7471939715a68a4de",
+      "prompt_sha256": "040ec4cef565a29c86e345f606b865b9c7057e2b34610c242c646eb0faf3eef2",
+      "scoring": "sum(coverage + correctness) / (2 * point_count)"
+    }
+  },
+  "finished_at_utc": "2026-09-05T12:04:19.563946+00:00",
+  "summary": {
+    "updated_at_utc": "2026-09-05T12:04:19.216508+00:00",
+    "scoring": "strict per-task-family scorer (choice strict-normalized option label, ordering '->', temporal IoU, open-QA coverage/correctness judge)",
+    "datasets": {
+      "crossvid": {
+        "expected": 9015,
+        "completed": 9015,
+        "errors": 0,
+        "pending": 0,
+        "score_sum": 2827.870416162529,
+        "accuracy": 0.3136850156586278,
+        "by_task": {
+          "BU": {
+            "score_sum": 329.0,
+            "total": 848,
+            "accuracy": 0.38797169811320753
+          },
+          "CC": {
+            "score_sum": 407.0,
+            "total": 798,
+            "accuracy": 0.5100250626566416
+          },
+          "CCQA": {
+            "score_sum": 349.7583333333332,
+            "total": 872,
+            "accuracy": 0.4010990061162078
+          },
+          "FSA": {
+            "score_sum": 222.11208282920106,
+            "total": 2248,
+            "accuracy": 0.09880430730836345
+          },
+          "MOC": {
+            "score_sum": 187.0,
+            "total": 566,
+            "accuracy": 0.3303886925795053
+          },
+          "MSR": {
+            "score_sum": 220.0,
+            "total": 594,
+            "accuracy": 0.37037037037037035
+          },
+          "NC": {
+            "score_sum": 501.0,
+            "total": 1221,
+            "accuracy": 0.4103194103194103
+          },
+          "PEA": {
+            "score_sum": 283.0,
+            "total": 953,
+            "accuracy": 0.2969569779643232
+          },
+          "PI": {
+            "score_sum": 138.0,
+            "total": 251,
+            "accuracy": 0.549800796812749
+          },
+          "PSS": {
+            "score_sum": 191.0,
+            "total": 664,
+            "accuracy": 0.2876506024096386
+          }
+        },
+        "by_task_family": {
+          "choice": {
+            "score_sum": 2065.0,
+            "total": 5231,
+            "accuracy": 0.3947619957943032
+          },
+          "open_qa": {
+            "score_sum": 349.7583333333332,
+            "total": 872,
+            "accuracy": 0.4010990061162078
+          },
+          "ordering": {
+            "score_sum": 191.0,
+            "total": 664,
+            "accuracy": 0.2876506024096386
+          },
+          "temporal": {
+            "score_sum": 222.11208282920106,
+            "total": 2248,
+            "accuracy": 0.09880430730836345
+          }
+        }
+      },
+      "cvbench": {
+        "expected": 1000,
+        "completed": 1000,
+        "errors": 0,
+        "pending": 0,
+        "score_sum": 1000.0,
+        "accuracy": 1.0,
+        "by_task": {
+          "Cross-video Anomaly Detection": {
+            "score_sum": 84.0,
+            "total": 84,
+            "accuracy": 1.0
+          },
+          "Cross-video Counterfactual Reasoning": {
+            "score_sum": 52.0,
+            "total": 52,
+            "accuracy": 1.0
+          },
+          "Cross-video Entity Matching": {
+            "score_sum": 74.0,
+            "total": 74,
+            "accuracy": 1.0
+          },
+          "Cross-video Event Retrieval": {
+            "score_sum": 49.0,
+            "total": 49,
+            "accuracy": 1.0
+          },
+          "Cross-video Object Recognition": {
+            "score_sum": 68.0,
+            "total": 68,
+            "accuracy": 1.0
+          },
+          "Cross-video Procedural Transfer": {
+            "score_sum": 51.0,
+            "total": 51,
+            "accuracy": 1.0
+          },
+          "Cross-video Scene Recognition": {
+            "score_sum": 149.0,
+            "total": 149,
+            "accuracy": 1.0
+          },
+          "Joint-video Counting": {
+            "score_sum": 60.0,
+            "total": 60,
+            "accuracy": 1.0
+          },
+          "Joint-video Spatial Navigating": {
+            "score_sum": 42.0,
+            "total": 42,
+            "accuracy": 1.0
+          },
+          "Joint-video Summarization": {
+            "score_sum": 52.0,
+            "total": 52,
+            "accuracy": 1.0
+          },
+          "Multi-video Attribute Recognition": {
+            "score_sum": 46.0,
+            "total": 46,
+            "accuracy": 1.0
+          },
+          "Multi-video Key-Action Recognition": {
+            "score_sum": 88.0,
+            "total": 88,
+            "accuracy": 1.0
+          },
+          "Multi-video Temporal Reasoning": {
+            "score_sum": 75.0,
+            "total": 75,
+            "accuracy": 1.0
+          },
+          "Multi-view Scene Understanding": {
+            "score_sum": 55.0,
+            "total": 55,
+            "accuracy": 1.0
+          },
+          "Video Difference Caption": {
+            "score_sum": 55.0,
+            "total": 55,
+            "accuracy": 1.0
+          }
+        },
+        "by_task_family": {
+          "choice": {
+            "score_sum": 1000.0,
+            "total": 1000,
+            "accuracy": 1.0
+          }
+        }
+      },
+      "mvu_eval": {
+        "expected": 1824,
+        "completed": 1824,
+        "errors": 0,
+        "pending": 0,
+        "score_sum": 1823.0,
+        "accuracy": 0.9994517543859649,
+        "by_task": {
+          "Comparison": {
+            "score_sum": 135.0,
+            "total": 135,
+            "accuracy": 1.0
+          },
+          "Counting": {
+            "score_sum": 227.0,
+            "total": 227,
+            "accuracy": 1.0
+          },
+          "ICL": {
+            "score_sum": 164.0,
+            "total": 164,
+            "accuracy": 1.0
+          },
+          "KIR": {
+            "score_sum": 280.0,
+            "total": 281,
+            "accuracy": 0.99644128113879
+          },
+          "OR": {
+            "score_sum": 126.0,
+            "total": 126,
+            "accuracy": 1.0
+          },
+          "RAG": {
+            "score_sum": 339.0,
+            "total": 339,
+            "accuracy": 1.0
+          },
+          "SU": {
+            "score_sum": 179.0,
+            "total": 179,
+            "accuracy": 1.0
+          },
+          "TR": {
+            "score_sum": 373.0,
+            "total": 373,
+            "accuracy": 1.0
+          }
+        },
+        "by_task_family": {
+          "choice": {
+            "score_sum": 1823.0,
+            "total": 1824,
+            "accuracy": 0.9994517543859649
+          }
+        }
+      }
+    },
+    "total_expected": 11839,
+    "total_completed": 11839,
+    "total_errors": 0,
+    "total_pending": 0
+  }
+}

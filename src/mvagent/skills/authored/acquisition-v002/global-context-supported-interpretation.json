@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-context-supported-interpretation",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Use targeted analyze_videos to establish observations and consequences before judging a behavior’s function, an event’s plot role or a thematic contrast. Compare support in Global; not mere event presence, missing-middle reconstruction or explicit procedural error diagnosis. The question asks what a behavior achieves, whether an event resolves/drives a conflict, or how scene choices support a theme. Observing the named object or action alone cannot establish the required interpretation.",
+  "strategy": "1. Translate each interpretation into local observable support and possible contradictions. For each video, request relevant behavior/events plus preceding conditions, subsequent consequences and uncertainty. Keep interpretations distinct from facts.\n2. Use analyze_videos with that local evidence request. If events are not yet located, ask for a compact relevant event map, then focus only on the unresolved context rather than a generic plot summary.\n3. Global compares how strongly observations support each explanation. For visual style, ask for recurring interior/exterior contrasts and their context, then jointly watch located examples if the visual difference is unclear.\n4. Verify only interpretations whose missing support could change the answer. Return the required video count, option or explanation without inventing unobserved motives or treating temporal succession as causality.\n\nConstraints:\nA confession appearing is not proof that it resolves the conflict. A numeric answer may still require causal interpretation. A behavior can support a cautious functional inference without an observed predator attack."
+}

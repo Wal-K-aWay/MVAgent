@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "id": "global-spatial-anchor",
+    "role": "global",
+    "stages": [
+      "initial",
+      "evidence"
+    ]
+  },
+  "when_to_use": "Resolve left/right or relative location across camera views with an explicit reference object and viewpoint; not matching sign text, colors or object identity alone. The answer depends on a spatial direction or relative position across views, and the reference frame is unresolved. Exclude mere appearance or text matching.",
+  "strategy": "1. Use analyze_videos to locate the queried object relative to the question's anchor and viewpoint. Preserve both in instruction.\n2. Map reports to the same frame before comparing. Different camera-left directions are not automatically contradictory.\n3. If an answer-changing relation remains unclear, jointly watch the relevant views with a neutral instruction naming the object, anchor and viewpoint.\n\nConstraints:\nScreen-left is not necessarily object-left or left when facing an entrance. Do not choose a frame absent from the question or evidence."
+}

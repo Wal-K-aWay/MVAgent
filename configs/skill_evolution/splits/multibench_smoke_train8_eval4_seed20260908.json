@@ -1,0 +1,67 @@
+{
+  "version": 2,
+  "dataset": "mvagent-multibench-broad-v1",
+  "seed": 20260908,
+  "samples": [
+    {
+      "sample_id": "crossvid:CC:272",
+      "split": "train",
+      "group_id": "crossvid:CC:272"
+    },
+    {
+      "sample_id": "crossvid:PSS:99",
+      "split": "train",
+      "group_id": "crossvid:PSS:99"
+    },
+    {
+      "sample_id": "crossvid:FSA:1081",
+      "split": "train",
+      "group_id": "crossvid:FSA:1081"
+    },
+    {
+      "sample_id": "crossvid:CCQA:303",
+      "split": "train",
+      "group_id": "crossvid:CCQA:303"
+    },
+    {
+      "sample_id": "cvbench:433",
+      "split": "train",
+      "group_id": "cvbench:433"
+    },
+    {
+      "sample_id": "cvbench:751",
+      "split": "train",
+      "group_id": "cvbench:751"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1668",
+      "split": "train",
+      "group_id": "mvu_eval:Comparison:1668"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:13",
+      "split": "train",
+      "group_id": "mvu_eval:Counting:128"
+    },
+    {
+      "sample_id": "crossvid:FSA:211",
+      "split": "eval",
+      "group_id": "crossvid:FSA:211"
+    },
+    {
+      "sample_id": "crossvid:CCQA:69",
+      "split": "eval",
+      "group_id": "crossvid:CCQA:69"
+    },
+    {
+      "sample_id": "cvbench:194",
+      "split": "eval",
+      "group_id": "cvbench:194"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:31",
+      "split": "eval",
+      "group_id": "mvu_eval:Counting:31"
+    }
+  ]
+}

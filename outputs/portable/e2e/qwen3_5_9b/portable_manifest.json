@@ -1,0 +1,11 @@
+{
+  "source_model": "qwen3_5_9b",
+  "source_root": "outputs/e2e/qwen3_5_9b",
+  "contents": [
+    "cvbench.jsonl.gz",
+    "mvu_eval.jsonl.gz",
+    "crossvid.jsonl.gz",
+    "crossvid_ccqa_scores.jsonl.gz"
+  ],
+  "raw_sources_preserved_locally": true
+}

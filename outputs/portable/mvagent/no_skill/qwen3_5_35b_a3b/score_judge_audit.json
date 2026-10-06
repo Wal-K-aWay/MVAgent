@@ -1,0 +1,22 @@
+{
+  "requested_model": "deepseek-v4-flash",
+  "returned_models": {
+    "deepseek-flash": 687
+  },
+  "unique_cached_response_usage": {
+    "completion_tokens": 1790642,
+    "prompt_tokens": 361855,
+    "total_tokens": 2152497,
+    "prompt_cache_hit_tokens": 20854,
+    "prompt_cache_miss_tokens": 341001
+  },
+  "unique_judge_inputs": 687,
+  "sample_count": 872,
+  "usage_note": "Unique cached responses only. Duplicate concurrent requests, failed and retried requests are not fully represented; this is not a total API bill.",
+  "prediction_hashes_verified": 872,
+  "judge_failures": 0,
+  "source_sha256": {
+    "score_crossvid_ccqa.py": "d6bdca0ebd4bf465df4ac3ef7674f89fd74442ffd633d38248c967edce199973",
+    "finalize_results.py": "26c74cf0a4d3f967d64d495302de33202a7fc9cfbbc470f2974baede24e49d52"
+  }
+}

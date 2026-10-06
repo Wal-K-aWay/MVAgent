@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-survey-then-focus",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Use a question-directed analyze_videos survey followed by focused analysis when a broad multi-part query does not yet identify which local evidence matters. Not a default extra pass for long videos or a replacement for a named comparison, count, alignment or diagnostic workflow. Several possible ingredients, stages, characters or scene features may matter, and a useful detailed local instruction depends on first mapping the content. If the question already identifies the exact predicate, event relation, error test or visual distinction, use that more specific procedure.",
+  "strategy": "1. Ask relevant VideoAgents for a short map tied to the question: candidate stages/entities/features, approximate source-time spans and unresolved facts. Request style only when the question concerns style; avoid an unrestricted narration of every video.\n2. Global selects the candidate dimensions and locations that discriminate the answers. If the survey already supplies sufficient evidence, answer immediately.\n3. Otherwise use analyze_videos on only the unresolved videos. The new instruction restates the local target, tentative survey interval and exact missing evidence, and asks the agent to verify the survey rather than accept it as fact. Allow expansion to adjacent context.\n4. Put suggested source-time ranges in instruction; VideoAgent controls observe. If fine cross-video discrimination remains, watch the located intervals jointly. Stop after the needed evidence is established, without requiring a fixed number of passes.\n\nConstraints:\nDo not narrow using invented times, treat a coarse report as verified fine detail, or repeat every video. Analyze has no clip/fps parameters. Complex-looking wording alone does not justify a survey."
+}

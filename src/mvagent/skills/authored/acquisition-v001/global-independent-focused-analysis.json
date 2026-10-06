@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-independent-focused-analysis",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Use analyze_videos when a clear question can be decomposed into facts that each video can establish independently. Give each VideoAgent a self-contained local checklist; not fine joint visual comparison or unknown-stage exploration. The needed attributes, events or temporal relations are already specified, and each can be established from one video without seeing another video or a sibling report. Suitable for per-video event histories, explicit attribute checks and known local steps.",
+  "strategy": "1. Decompose the question into the smallest local evidence requirements. Call analyze_videos for only the relevant video IDs; each videoagent_request contains its own instruction.\n2. Each instruction states the target entities/events, required attributes or temporal condition, and requested evidence: observations, supporting source times and uncertainty. Include needed definitions from the question. Ask only about that video, never which video is best or how it differs from unseen videos. Keep combined instructions within the action budget.\n3. Preserve scope: an interval total needs full interval coverage and distinct-event accounting; a known local event may be checked in an explicit source-time window with surrounding context. Put requested windows in instruction, not an invented clip parameter.\n4. Global combines the reports and applies options/quantifiers. Request a targeted follow-up only for a missing fact that changes the answer; switch to joint watch when the unresolved issue is a direct visual distinction.\n\nConstraints:\nVideoAgents do not receive the original question, sibling reports or Global History automatically. Missing information is unknown, not absence. Do not assert the expected observation in an instruction."
+}

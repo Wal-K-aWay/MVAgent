@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-missing-event-bridge",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Use analyze_videos to establish observed states around a missing middle, then test which candidate event can connect them. Use joint watch for ambiguous boundary clues; not sorting supplied clips or claiming to observe the absent event. Only the beginning and ending are supplied and the question asks what most likely happened in the omitted middle. Candidate explanations must satisfy the observed endpoint constraints.",
+  "strategy": "1. Analyze both segments independently. For the beginning, request relevant entities, goals and unresolved state at its end; for the ending, request the earliest relevant state and visible consequences. Include the question’s candidate discriminants without asserting a candidate happened.\n2. Global compares the two reports to identify what changed: location, possession, freedom, injury, alliances or knowledge. Test each candidate against both endpoints, separating necessary support from contradictions and unknowns.\n3. If a decisive identity or state is unclear, watch the end of the beginning and start of the ending together using valid source-time clips. Expand into each segment when boundary snapshots omit required context.\n4. Choose the best-supported bridge and output the requested option. Keep unobserved middle events as inference, not visual evidence.\n\nConstraints:\nA genre-plausible twist is not evidence. Do not ask one VideoAgent to explain an unseen segment, infer a full-film timeline offset, or turn repeated candidate wording into a reported observation."
+}

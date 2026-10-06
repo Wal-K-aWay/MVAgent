@@ -1,0 +1,9 @@
+question_workers: auto
+max_prepared_requests: auto
+model_pools:
+  qwen3_5_9b_local:
+    replicas:
+    - gpus:
+      - 4
+      endpoint: http://127.0.0.1:8101/v1
+      max_inflight: 2

@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-cooking-choice-compare",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Compare cooking ingredients, tools, preparation methods or order across videos for a single-choice answer, including options naming video pairs. Not narrative plots, assembly mistakes, interval alignment or open-ended explanations. A cooking comparison asks for one option label based on ingredients, tools, method or preparation order. An option may represent one video or a group. Exclude free-text comparisons and requests for a time interval.",
+  "strategy": "1. Extract the exact comparison dimension and translate each option into its full claim, including pairs, uniqueness or shared properties.\n2. For directly visible fine differences, use watch_videos with the original question and options. For extended procedures, use analyze_videos on each video with the same local evidence criteria; ask for observed steps and timestamps, not the final cross-video answer.\n3. Build a video-by-attribute table separating confirmed, contradicted and unknown claims. Do not identify unlabeled ingredients by plausibility.\n4. If an unresolved cell changes the winning option, inspect its supporting interval; without a location, first locate the relevant step. Select the supported option, not necessarily a single video.\n\nConstraints:\nOne answer label may encode two videos. Shared ingredients and unique ingredients require different set comparisons. A container nearby does not prove its contents were used."
+}

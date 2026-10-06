@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-missing-middle",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Infer the most supported omitted event connecting a supplied beginning and ending of one story. Not ordering supplied clips or comparing independent complete narratives. The task explicitly provides an earlier and a later segment of one story, omits the middle, and asks which proposed intervening event best connects them. Segment names alone are insufficient.",
+  "strategy": "1. Use analyze_videos on both segments for character identities, goals, objects and consequential state changes; obtain both broad context and states near the gap.\n2. For each option, identify the transition it would explain and what visible evidence or contradiction it predicts in the supplied segments.\n3. If decisive visual details are unresolved, watch the relevant boundary or contextual segments. Do not assume all clues occur exactly at the cut, or that full clips must always be rewatched.\n4. Choose the option best supported by the observed transition and least contradicted by either segment. Keep inferred middle events distinct from observed facts.\n\nConstraints:\nPlausibility alone is weak evidence. Do not claim the omitted event was seen or infer chronology from filenames."
+}

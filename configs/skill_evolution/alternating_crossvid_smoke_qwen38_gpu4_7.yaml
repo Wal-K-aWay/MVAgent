@@ -1,0 +1,18 @@
+dataset_root: /home/kww/datasets/Multi-Video
+split_manifest: configs/skill_evolution/splits/skillopt_crossvid_train8_eval4_seed20260831.json
+
+runtime:
+  mvagent_config: configs/skill_evolution/runtime/local_qwen35_35b_a3b_qwen38_optimizer_gpu5_7.yaml
+
+optimizer:
+  model_type: qwen3_8_27b_optimizer
+
+training:
+  epochs: 2
+  batch_size: 8
+  minibatch_size: 2
+  merge_size: 2
+  top_l: 1
+  seed: 20260905
+  max_changed_chars: 800
+  max_skill_words: 1200

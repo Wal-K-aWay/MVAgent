@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-procedure-error-check",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Use analyze_videos to record component/action state transitions, then apply the question’s error definition in Global. Use joint watch for uncertain placement/orientation; distinguish unnecessary removal from correction and required disassembly. The question asks which step/video/part exhibits an explicit procedural error, including wrong placement, unnecessary detachment or corrective rework. Mere frequency, detachment or disagreement between demonstrations does not define an error.",
+  "strategy": "1. Extract the candidate parts/actions and the error criterion from the question. Ask each relevant VideoAgent for observations around those operations: prior state, attachment/placement, subsequent removal or repositioning, and source times. Do not tell it a candidate is wrong.\n2. If locations are unknown, obtain a short relevant operation map first, then focus on the unresolved candidate spans. Put requested source windows in instruction and allow expansion to establish the prior state.\n3. Global checks whether the evidence actually meets the supplied error criterion. For an ambiguous fit or orientation, jointly watch corresponding operations; demonstrations need not perform them at the same times.\n4. Count matching videos/steps only after classification and map the supported part/action/video combination to the option. If an operation’s necessity remains unknown, do not infer error solely because it was reversed.\n\nConstraints:\nA common sequence is not automatically correct. Reattachment may fix a wrong placement, whereas another detachment may be necessary. A VideoAgent cannot know another demonstration unless Global explicitly supplies its relevant report."
+}

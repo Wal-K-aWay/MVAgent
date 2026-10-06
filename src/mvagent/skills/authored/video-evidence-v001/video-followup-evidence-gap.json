@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "id": "video-followup-evidence-gap",
+    "role": "video",
+    "stages": [
+      "initial",
+      "evidence"
+    ]
+  },
+  "when_to_use": "Handle a follow-up whose requested detail is absent or contradicted in Memory: identify the gap, acquire targeted new evidence and report what changed. A new instruction follows earlier observation and explicitly requests missing precision, verification or resolution of conflicting reports. Prefer the specialized card for a first-time count or localization task.",
+  "strategy": "1. Compare the new instruction with Memory. Identify the exact unresolved item; previous successful observation is not proof that the new request is answered.\n2. If Memory already contains sufficient source-grounded evidence, answer it directly. Otherwise use observe: what names the gap and competing interpretations; where uses observed candidate ranges, expanding if their location is unreliable.\n3. Choose fps to resolve the event, respecting duration and frame budget. If earlier evidence has impossible timestamps or conflicting identities, re-establish those anchors instead of using them as trusted clip bounds.\n4. Before finish check whether the new evidence resolves the requested gap. State newly established facts and remaining uncertainty; do not rephrase the old unsupported conclusion as a verified result.\n\nConstraints:\nDo not observe again merely because it is a new call. Conversely, do not finish merely because old observations exist. No fabricated timestamps or confidence upgrades without evidence."
+}

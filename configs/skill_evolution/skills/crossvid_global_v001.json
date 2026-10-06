@@ -1,0 +1,115 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "global-assembly-error",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Diagnose assembly errors across demonstrations using the question-provided error taxonomy and action/part identities. Not normal cooking sequence comparisons or shuffled-clip ordering. Multiple assembly demonstrations are accompanied by candidate part-attachment/removal actions or defined procedural error types. The task asks which error occurred or which videos satisfy an error condition.",
+      "strategy": "1. Preserve the supplied error definitions, part pairs, video references and any exact-count condition; distinguish a current error from a consequence of an earlier error.\n2. Use analyze_videos for local action sequences around candidate operations. Ask for before/action/after state, connected parts, removals and timestamps; request observations before classifying correctness.\n3. Align corresponding operations across demonstrations and classify each candidate using the given taxonomy. Check counts across videos rather than treating the occurrence of an operation as an error.\n4. For unresolved order, placement or correction, use watch_videos on relevant segments or request targeted observation with neighboring context. Map the supported video/action/error combination back to the option label.\n\nConstraints:\nDetachment can be legitimate. A common sequence is not automatically the correct sequence. Do not lead a VideoAgent by asserting the candidate mistake."
+    },
+    {
+      "meta": {
+        "id": "global-behavior-multiselect",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Evaluate visible behavior criteria independently across videos and return all supported option labels. Only for questions explicitly allowing multiple correct choices; not single-choice video pairs or open answers. The question explicitly permits multiple correct option labels and asks about visible behavior, interactions or conditions. Exclude single-choice questions, even when one option names several videos.",
+      "strategy": "1. Read each option as a claim; preserve simultaneous-action requirements, quantifiers and the requested number of answers without redefining behavior.\n2. Use analyze_videos for all relevant videos. Give each VideoAgent its local criteria, asking for actions, objects, posture, temporal overlap and timestamped support or uncertainty.\n3. Evaluate each option independently. If a brief event or alleged absence determines an unresolved option, request a focused re-observation through analyze_videos or inspect relevant clips with watch_videos.\n4. Return all supported option letters in the requested format. Do not force one video or one letter; do not count a near match as a match.\n\nConstraints:\nShared objects do not prove simultaneous actions. An unmentioned event is not evidence of absence. Do not invent definitions for subjective wording."
+    },
+    {
+      "meta": {
+        "id": "global-cooking-choice-compare",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Compare cooking ingredients, tools, preparation methods or order across videos for a single-choice answer, including options naming video pairs. Not narrative plots, assembly mistakes, interval alignment or open-ended explanations. A cooking comparison asks for one option label based on ingredients, tools, method or preparation order. An option may represent one video or a group. Exclude free-text comparisons and requests for a time interval.",
+      "strategy": "1. Extract the exact comparison dimension and translate each option into its full claim, including pairs, uniqueness or shared properties.\n2. For directly visible fine differences, use watch_videos with the original question and options. For extended procedures, use analyze_videos on each video with the same local evidence criteria; ask for observed steps and timestamps, not the final cross-video answer.\n3. Build a video-by-attribute table separating confirmed, contradicted and unknown claims. Do not identify unlabeled ingredients by plausibility.\n4. If an unresolved cell changes the winning option, inspect its supporting interval; without a location, first locate the relevant step. Select the supported option, not necessarily a single video.\n\nConstraints:\nOne answer label may encode two videos. Shared ingredients and unique ingredients require different set comparisons. A container nearby does not prove its contents were used."
+    },
+    {
+      "meta": {
+        "id": "global-cooking-open-compare",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Produce an evidence-grounded free-text comparison of two cooking videos. Organize differences by the dimensions asked about; not option-letter questions or temporal interval answers. Two cooking videos are compared in an open-ended question requiring an explanation, not option labels. Exclude single-choice or interval-alignment requests.",
+      "strategy": "1. Identify the requested dimensions, such as ingredient, tool, action sequence, texture or result; do not add unrelated recipe details.\n2. Use analyze_videos on both videos with the same dimension checklist. Ask for visible facts, sequence and timestamps, distinguishing explicit identification from uncertainty.\n3. Align the evidence dimension by dimension. For an important missing detail or conflicting identity, use targeted analyze_videos or joint watch_videos; absence needs adequate coverage of the relevant step.\n4. Answer in words, explicitly attributing each supported difference to its video. Preserve unknowns; do not infer unseen ingredients, quantities or motivations.\n\nConstraints:\nDo not output a letter, assume every dimension differs, or fill missing facts with common recipe knowledge."
+    },
+    {
+      "meta": {
+        "id": "global-functional-interval",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Find the time interval in a target video performing the same functional step as a supplied reference interval. Not full-video method comparisons or ordering shuffled segments. A question specifies a reference time interval in one video and asks for the corresponding functional step interval in another. The requested answer is start,end in seconds.",
+      "strategy": "1. Ask analyze_videos to inspect the exact reference interval and describe action, object, starting state and resulting state; do not identify equivalence from tools alone.\n2. Ask the target VideoAgent to locate candidate occurrences of that operation with their full start/end bounds. Preserve coverage until a candidate location is established.\n3. Check functional equivalence and distinguish repeated similar actions. If boundaries are uncertain, request finer observation around the candidate including preceding/following context; joint watch can resolve visual mismatches.\n4. Return target-video start,end in the requested coordinate system. Use reported source coordinates; do not add clip offsets again. Match action extent, not reference duration.\n\nConstraints:\nDifferent speeds can produce different lengths. An event can genuinely start at zero. Never fabricate an endpoint."
+    },
+    {
+      "meta": {
+        "id": "global-missing-middle",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Infer the most supported omitted event connecting a supplied beginning and ending of one story. Not ordering supplied clips or comparing independent complete narratives. The task explicitly provides an earlier and a later segment of one story, omits the middle, and asks which proposed intervening event best connects them. Segment names alone are insufficient.",
+      "strategy": "1. Use analyze_videos on both segments for character identities, goals, objects and consequential state changes; obtain both broad context and states near the gap.\n2. For each option, identify the transition it would explain and what visible evidence or contradiction it predicts in the supplied segments.\n3. If decisive visual details are unresolved, watch the relevant boundary or contextual segments. Do not assume all clues occur exactly at the cut, or that full clips must always be rewatched.\n4. Choose the option best supported by the observed transition and least contradicted by either segment. Keep inferred middle events distinct from observed facts.\n\nConstraints:\nPlausibility alone is weak evidence. Do not claim the omitted event was seen or infer chronology from filenames."
+    },
+    {
+      "meta": {
+        "id": "global-narrative-choice",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Compare story events, character roles, motives or causal significance across narrative clips for one option label, including video-pair options. Not cooking attributes, observable-behavior multiselect, assembly errors or missing-middle inference. A single-choice question compares narrative events or their causal role across story clips. Exclude selecting multiple labels, cooking comparisons and reconstructing an omitted middle between a beginning and ending.",
+      "strategy": "1. Decompose each option into entities, event and requested relation; distinguish an event occurring from its causing the conflict or being pivotal.\n2. Use analyze_videos per clip to obtain relevant scenes and their preceding/following consequences. Request timestamped evidence about the relation, not just whether a topic appears.\n3. Compare all videos or pairs required by the options. If several share a theme, ask only the ambiguous videos for the event-to-consequence evidence that distinguishes them.\n4. Use targeted watch_videos where reports disagree on a visible scene. Select the full supported option; do not invent motives or unseen plot developments.\n\nConstraints:\nA phone appearing is not proof that it reveals the key clue. An option letter may name multiple clips."
+    },
+    {
+      "meta": {
+        "id": "global-shuffled-sequence",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Order supplied shuffled procedure segments using action prerequisites and changes of material state. Output a permutation of segment identifiers, not a time interval or an inferred missing event. The task supplies shuffled segments of a procedure and asks for their chronological ordering. All output items must be supplied segment identifiers.",
+      "strategy": "1. Use analyze_videos on each segment to record input state, operation, output state and distinctive objects; avoid asking each isolated clip to guess its global rank.\n2. Build before/after constraints from prerequisites and state changes. Identify which clips can follow others; appearance or typical recipe order alone is insufficient.\n3. For ambiguous adjacency, watch the end of the earlier candidate and start of the later candidate using their own durations. Expand into clip interiors when boundaries lack decisive context.\n4. Check the complete ordering against all constraints and include every segment exactly once. Output only the requested identifier sequence and separator.\n\nConstraints:\nA clip can contain more than one action. Do not use filenames or hidden original timestamps as ordering evidence."
+    },
+    {
+      "meta": {
+        "id": "global-synchronized-count",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Count distinct objects at an event time or count events over an interval in synchronized views. Not position, direction, identity, or separation measured in lanes/car lengths. Time-synchronized views and labeled entities are supplied, and the question asks how many objects or events meet specified conditions. Exclude position/direction and separation measured in lanes or car lengths; those require spatial measurement rather than enumerating targets.",
+      "strategy": "1. Distinguish snapshot count from cumulative event count. Identify the reference event, counted unit, attribute filters and whether counting is in one view or across views.\n2. Use joint watch_videos to initialize referenced identities from their labeled windows and locate the anchor event. Use matching time ranges in synchronized views.\n3. For snapshot counts, inspect the target view at the anchored moment, narrowing the synchronized range if details are unresolved. For totals, cover the requested interval and build an event list with timestamps; one instant cannot establish a total.\n4. Check occlusion and double counting across views. Recheck only unresolved identities or events, then map the supported quantity to the option label.\n\nConstraints:\nCount entities/events, not appearances in two views. A valid timestamp can be zero. A number fitting an option is not independent evidence."
+    },
+    {
+      "meta": {
+        "id": "global-synchronized-relation",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Determine position, direction, visibility, motion trajectory or separation (including lanes/car lengths) across synchronized views. Not enumerating objects or events. Two synchronized views with referenced object identities are given; the required answer is location, direction, visibility, motion trajectory or separation, possibly measured in lanes/car lengths. Exclude enumeration of objects/events; numeric wording alone does not make a task counting.",
+      "strategy": "1. Identify the condition view/event, target view, target object and reference object; preserve the question’s frame-relative or motion-relative meaning and any distance unit. If no event time is specified, identify the requested motion interval or final state.\n2. Use joint watch_videos to initialize labeled identities, track them beyond the label window and locate the event time. Inspect corresponding times in both views.\n3. Observe target and reference together at that time; track the requested interval for trajectory questions. For separation, estimate in the requested unit using visible lane boundaries or a comparable vehicle length, not raw cross-view pixels. If direction, occlusion or event timing is ambiguous, re-watch a narrower synchronized range including the event transition.\n4. Compare the observed relation with the options. Choose not-visible only after checking the specified view at the relevant time; do not substitute a count or infer absence from a missing report.\n\nConstraints:\nCount visible intervening lanes only when requested; vehicle-length distance is an estimate, not a vehicle count. Left/right can change with viewpoint; do not transfer image directions between cameras. Losing a label is not losing the object."
+    }
+  ]
+}

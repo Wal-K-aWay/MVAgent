@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-synchronized-event-check",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Use joint watch to locate a condition event in synchronized views, then read another view’s state at that exact time. Shares one workflow for snapshot quantity, position and separation; excludes interval totals and unsynchronized videos. A question anchors the requested state to an object appearing, leaving, aligning or crossing in synchronized views. First solve the time/identity correspondence, then read the requested state or unit.",
+  "strategy": "1. Extract the anchor event/view, target entities/view and requested unit. Initialize referenced identities from the provided label windows rather than matching by an unsupported guess.\n2. Use watch_videos on both views with matching source-time ranges. If the event time is unknown, retain coverage until located. instruction asks to identify the event and inspect the target state at that same time.\n3. If timing or state is unresolved, rewatch a History-supported narrower interval with before/after context. If identity is lost, recover it from labeled context before refining spatial precision.\n4. For a snapshot count enumerate qualifying visible objects; for direction use the target-view axes; for distance use the requested lane or vehicle-length unit. Distinguish occlusion from absence, then answer in the requested representation.\n\nConstraints:\nA convenient frame from another time is not a substitute. Zero seconds can be valid. Car lengths measure separation, not vehicle count. Different cameras are not automatically synchronized."
+}

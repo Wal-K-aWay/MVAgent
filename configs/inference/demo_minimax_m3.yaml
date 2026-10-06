@@ -1,0 +1,45 @@
+# Complete Observe-only demo config for running MVAgent with MiniMax-M3.
+# Set MINIMAX_API_KEY in the shell before running demo.py.
+# Local video files are sent through the Anthropic-compatible video content path.
+runtime:
+  output_dir: outputs
+  cache_dir: .cache/mvagent
+
+models:
+  m3:
+    type: api_vlm
+    provider: minimax_anthropic
+    model_name: MiniMax-M3
+    api_key: MINIMAX_API_KEY
+    temperature: 0.2
+    top_p: 0.9
+    max_tokens: 4096
+    # Direct MiniMax multi-video input is not yet documented or validated.
+    max_videos_per_request: 1
+    max_video_frames_per_request: 512
+    video_mode: video_url
+    timeout_sec: 180
+    max_retries: 2
+
+agents:
+  global_agent:
+    model:
+      model_type: m3
+    max_steps: 8
+    max_videos_per_watch: 4
+    skill:
+      enabled: true
+      path: skills/skill_sets/authored-v000/global.md
+      sha256: 011da37c907427b789185ffb1628dba6dd91da0ce289ce2e3fb93f0d06c54bae
+
+  video_agent:
+    planner:
+      model_type: m3
+    observer:
+      model_type: m3
+    max_steps: 6
+    max_ranges_per_action: 8
+    skill:
+      enabled: true
+      path: skills/skill_sets/authored-v000/video.md
+      sha256: d559f9275b816a10e3c8fa1ad48d12485466c88308740695345dce6577fe8411

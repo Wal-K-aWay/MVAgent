@@ -1,0 +1,29 @@
+algorithm: global-cluster-v2
+dataset_root: /home/kww/datasets/Multi-Video
+runtime:
+  mvagent_config: configs/skill_evolution/runtime/dynamic_35b_embedding.yaml
+  cache_dir: .cache/skill_evolution/global_cluster_v2
+optimizer:
+  model_type: glm53_flash_optimizer
+open_qa_judge:
+  enabled: true
+  model:
+    model_type: deepseek_judge_fixed
+training:
+  rounds: 30
+  batch_size: 8
+  history_size: 4
+  seed: 20261006
+  max_card_words: 1200
+  max_context_chars: 100000
+  pool_size: 3
+  complement_support: 2
+  exploration_steps: 2
+  exploration_fraction: 0.25
+  error_batch_every: 4
+  candidates_per_round: 2
+  max_candidates: 60
+  max_question_evaluations: 20000
+  evaluation_repeats: 2
+  gate_every: 2
+  stagnation_rounds: 12

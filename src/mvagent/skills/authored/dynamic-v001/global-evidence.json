@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-evidence",
+    "role": "global",
+    "stages": [
+      "evidence"
+    ]
+  },
+  "when_to_use": "Decide whether a concrete missing or contradictory fact warrants more evidence. After usable reports exist, apply this procedure only if a concrete missing or contradictory fact prevents deciding the answer. Otherwise answer from the evidence.",
+  "strategy": "1. Check that competing claims concern the same entity, time and relation. Resolve wording or video-ID mismatches from existing reports first.\n2. If visual evidence is still needed, use `analyze_videos` for a fact within one video or `watch_videos` for an unresolved cross-video relationship. Ground ranges in known anchors; retain coverage if the time is unknown.\n3. Ask a neutral `instruction` that distinguishes the alternatives. Stop when the gap is resolved or the remaining budget requires answering.\n\nConstraints:\nA later report is not automatically more reliable. Different times can legitimately have different states. Generic uncertainty alone is not a reason to repeat a successful call."
+}

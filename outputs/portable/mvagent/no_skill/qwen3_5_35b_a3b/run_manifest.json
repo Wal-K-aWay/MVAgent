@@ -1,0 +1,32 @@
+{
+  "status": "completed",
+  "started_at_utc": "2026-09-15T02:39:09.828917+00:00",
+  "git_commit": "bfb6c7363e1dd42a5d1f3b951a077bcff5a740b3",
+  "identity": {
+    "protocol": "mvagent-agent-eval-v2",
+    "runner_sha256": "5e662908cdc21d4bf4f97cc4814ee7334c3c0ae73b3a90f52a382418e3a8aba3",
+    "config_sha256": "c0252d55bd0a5741f91ebc5b74dcbeac1b634ae74fac991b70b227931df0b16b",
+    "runtime_snapshot_sha256": "2546e6839455b67a20f4f9592301185f5dc5c01a24387225b7233fccdc5454bc",
+    "dataset_root": "/home/kww/datasets/Multi-Video",
+    "dataset_sha256": {
+      "cvbench": "e0c2970dc5b718fcb68cc30789832c17b64d52513281205135eee72787765af2",
+      "mvu_eval": "55f1f0790c84447caa36ab6e28958197c286ec765c31e19415c96de095257172",
+      "crossvid": "2d0be4c2b444363bd6197db185ea8064dc3259c38854934b451052f5a0bd9de8"
+    },
+    "sample_ids_sha256": "ce030cbe395dc6b5e243c1d700537400cdca5bf28fa2fa9c9c005826dea36cfe",
+    "sample_count": 11839,
+    "judge_model": null,
+    "defer_open_qa_judge": true
+  },
+  "scorer_identity": {
+    "choice": "strict-normalized-option-label-v1",
+    "ordering": "crossvid-sequence-exact-v1",
+    "temporal_localization": "crossvid-interval-iou-strict-v1",
+    "open_qa": {
+      "enabled": false,
+      "status": "deferred"
+    }
+  },
+  "error": "",
+  "finished_at_utc": "2026-09-15T19:29:33.124127+00:00"
+}

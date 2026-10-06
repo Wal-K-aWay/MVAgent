@@ -1,0 +1,25 @@
+# Local data, generated outputs, and heavyweight dependencies.
+/data/
+/outputs/
+/analysis/
+/tests/
+/references/
+/models/
+/LMMs
+/.cache/
+/.local/
+/.worktrees/
+
+# Tool setup outputs.
+/src/tools/**/.venv/
+/src/tools/**/vendor/
+/src/tools/**/checkpoints/
+/src/tools/**/*.log
+
+__pycache__/
+*.pyc
+.DS_Store
+._*
+
+# Local Python environment created by the installation guide.
+/.venv/

@@ -1,0 +1,19 @@
+# Native vLLM serve config. CUDA_VISIBLE_DEVICES=4,5,6,7; do not use GPU0/1.
+# Start after Actor services; require measured free memory on all four cards.
+model: /home/kww/models/Qwen3-Embedding/Qwen3-Embedding-8B
+served-model-name: qwen3_embedding_8b
+host: 127.0.0.1
+port: 8110
+runner: pooling
+convert: embed
+dtype: bfloat16
+tensor-parallel-size: 4
+gpu-memory-utilization: 0.05
+max-model-len: 8192
+max-num-batched-tokens: 8192
+max-num-seqs: 8
+enforce-eager: true
+pooler-config:
+  task: embed
+  seq_pooling_type: LAST
+  use_activation: true

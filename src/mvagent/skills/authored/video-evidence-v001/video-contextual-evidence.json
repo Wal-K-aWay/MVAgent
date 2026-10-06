@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "id": "video-contextual-evidence",
+    "role": "video",
+    "stages": [
+      "initial",
+      "evidence"
+    ]
+  },
+  "when_to_use": "Ground function, purpose, theme or procedural evaluation in local observable context and counterevidence, separating interpretation from facts. The instruction asks why an event matters, whether an action is erroneous, what a behavior achieves or how a scene supports an interpretation. Object/action presence alone does not decide it.",
+  "strategy": "1. Separate the requested interpretation from observable indicators. Preserve any explicit error criterion; do not assume removal, repetition or unusual behavior is an error.\n2. observe the relevant event with its preceding conditions and consequences. If unknown, first locate a question-directed event map, then inspect unresolved context in supported where ranges.\n3. Request support and possible contradictions in what. If an interpretation depends on an unseen motive or consequence, state that limitation rather than treating the interpretation as observed.\n4. finish with visible facts, source times, supported inference and remaining uncertainty separately. Conflicting facts must remain visible to the caller.\n\nConstraints:\nA confession need not resolve a conflict. Detaching a part can be necessary. A question’s candidate interpretation is a hypothesis, not visual evidence."
+}

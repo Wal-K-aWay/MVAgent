@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "id": "video-boundary-state",
+    "role": "video",
+    "stages": [
+      "initial",
+      "evidence"
+    ]
+  },
+  "when_to_use": "Describe initial state, state-changing action and final state of one segment to support ordering or missing-event reasoning elsewhere. The instruction explicitly requests segment start/end states, prerequisites, or the state at a boundary. It does not ask this agent to order unseen segments or invent missing footage.",
+  "strategy": "1. Extract the entities and state variables relevant to the boundary: possession, assembly, position, preparation stage or ongoing action.\n2. observe the segment with what requesting initial state, visible transition and final state separately. For a long segment and a boundary-only request, inspect start/end source ranges with enough context; include the middle if the change cannot otherwise be established.\n3. If an entity disappears or continuity is unclear, inspect the intervening range rather than assuming a transition. Keep video-local evidence separate from general procedural expectations.\n4. finish with Initial / Change / Final and visible prerequisites, source times and unresolved continuity. Report only this segment; the caller compares segments.\n\nConstraints:\nDo not infer order from filenames or a familiar recipe. A state at the beginning is not evidence that its preceding action occurred in this clip."
+}
