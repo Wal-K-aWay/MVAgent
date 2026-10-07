@@ -78,7 +78,7 @@ MVAgent 多智能体架构已经冻结（实现与基线实验均已完成）。
 
 `src/skill_evolution/algorithms/alternating/global/` 下已注册三个 Global 算法：`global-skilladaptor-v1`（adaptor）、
 `global-cluster-v1`（cluster）、`global-cluster-v2`（cluster_v2，显式 Train/Cal/Gate）。
-新方案 `global-scope-v1`（`scope/`，按实测净收益确定卡的适用范围）目前只有设计文档 `scope/docs/design.md`，尚未实现。
+新方案 `global-scope-v1`（`scope/`，以运行时 Selector 的选择给题目分组，按选中题上的实测净收益迭代）目前只有设计文档 `scope/docs/design.md`，尚未实现。
 `algorithms/alternating/video/` 尚未实现；目前 Video skill 冻结，Global/Video 交替调度也未实现。
 共享基础设施在 `infra/`（数据划分、rollout、评分、轨迹投影、不可变库与持久化）；Runtime 不依赖 optimizer。
 
