@@ -11,8 +11,8 @@ import base64
 import hashlib
 import json
 import os
-import tempfile
 import threading
+from fractions import Fraction
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Callable
@@ -63,12 +63,12 @@ def resized_dims(width: int, height: int, max_side: int) -> tuple[int, int]:
     return width, height
 
 
-def _jpeg_b64(frame: np.ndarray) -> str:
+def _jpeg(frame: np.ndarray) -> bytes:
     from PIL import Image
 
     output = BytesIO()
     Image.fromarray(frame).save(output, format="JPEG", quality=JPEG_QUALITY)
-    return base64.b64encode(output.getvalue()).decode("ascii")
+    return output.getvalue()
 
 
 def _sampled_batches(path: Path, *, count: int, max_side: int):
@@ -106,20 +106,23 @@ def _sampled_batches(path: Path, *, count: int, max_side: int):
     return meta, batches()
 
 
-def _mjpeg_avi(batches, *, size: list[int], fps: float) -> bytes:
-    import cv2
+def _mjpeg_avi(jpegs: list[bytes], *, size: list[int], fps: float) -> bytes:
+    """Mux already-encoded JPEGs into an MJPEG AVI unchanged, at an exact (fractional) frame rate."""
+    import av
 
-    with tempfile.TemporaryDirectory() as directory:
-        target = os.path.join(directory, "video.avi")
-        writer = cv2.VideoWriter(target, cv2.CAP_OPENCV_MJPEG, cv2.VideoWriter_fourcc(*"MJPG"), fps, tuple(size))
-        if not writer.isOpened():
-            raise RuntimeError("OpenCV MJPEG writer is unavailable")
-        writer.set(cv2.VIDEOWRITER_PROP_QUALITY, JPEG_QUALITY)
-        for batch in batches:
-            for frame in batch:
-                writer.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
-        writer.release()
-        return Path(target).read_bytes()
+    rate = Fraction(fps).limit_denominator(1_000_000)
+    buffer = BytesIO()
+    with av.open(buffer, mode="w", format="avi") as container:
+        stream = container.add_stream("mjpeg", rate=rate)
+        stream.width, stream.height = size
+        stream.pix_fmt = "yuvj420p"
+        for index, data in enumerate(jpegs):
+            packet = av.Packet(data)
+            packet.stream = stream
+            packet.pts = packet.dts = index
+            packet.time_base = 1 / rate
+            container.mux(packet)
+    return buffer.getvalue()
 
 
 def video_part(path: Path, *, count: int, max_side: int, native_video: bool) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -133,13 +136,14 @@ def video_part(path: Path, *, count: int, max_side: int, native_video: bool) -> 
 
     def compute() -> dict[str, Any]:
         meta, batches = _sampled_batches(path, count=count, max_side=max_side)
+        jpegs = [_jpeg(frame) for batch in batches for frame in batch]
         if transport == "jpeg_sequence":
-            frames = [_jpeg_b64(frame) for batch in batches for frame in batch]
-            return {"url": "data:video/jpeg;base64," + ",".join(frames), "meta": meta}
+            frames = ",".join(base64.b64encode(data).decode("ascii") for data in jpegs)
+            return {"url": f"data:video/jpeg;base64,{frames}", "meta": meta}
         span = meta["indices"][-1] - meta["indices"][0]
         fps = (meta["frames"] - 1) * meta["source_fps"] / span if span > 0 and meta["source_fps"] > 0 else 1.0
         meta["container_fps"] = fps
-        payload = base64.b64encode(_mjpeg_avi(batches, size=meta["size"], fps=fps)).decode("ascii")
+        payload = base64.b64encode(_mjpeg_avi(jpegs, size=meta["size"], fps=fps)).decode("ascii")
         return {"url": f"data:video/x-msvideo;base64,{payload}", "meta": meta}
 
     identity = {
