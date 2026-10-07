@@ -97,7 +97,7 @@ python eval/e2e_eval/run.py preview cvbench:3 mvu_eval:Counting:0 crossvid:MOC:0
 ```
 
 耗时参考（默认 `F`、`S`；Qwen3.5-9B，单张 H200，每副本一个请求；2026-10-07 冒烟实测）：每题模型调用
-CVBench 约 8.9 s（约 6.5 万 prompt token）、MVU-Eval 约 10.4 s（约 7.3 万）、CrossVid 约 8.3 s（约 6.1 万）。
+CVBench 约 8.3 s（2 个视频的题约 5.9 万 prompt token）、MVU-Eval 约 10.4 s（约 7.3 万）、CrossVid 约 8.3 s（约 6.1 万）。
 解码与编码在 CPU 上与推理重叠进行，冷缓存时 CrossVid 每题约 7.5 s CPU 时间。
 
 常用参数：
