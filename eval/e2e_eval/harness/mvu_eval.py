@@ -7,7 +7,10 @@ Changed by the unified protocol: `nframes` is the question cap split evenly over
 (official 32 per video), `max_pixels` (longest edge) is run.py's `--max-side` (official 720), and
 each official `[Video k] <file name>` label becomes `Video k:`. File names are not shown to the
 model: in 68 TR questions the clip number in the name alone gives the answer, and MVAgent only ever
-sees positional IDs.
+sees positional IDs. The official answer instruction is replaced, in the same place (between the
+question and the options), by ANSWER_INSTRUCTION: with the official wording Qwen3.5-9B explained
+instead of answering in 53/64 sampled questions, while this wording kept 99.5-99.9% of the outputs
+of three Qwen3.5 models in format over all 1824 questions.
 """
 
 from __future__ import annotations
@@ -16,7 +19,7 @@ import re
 from typing import Any
 
 from .answers import leads_with_choice, option_labels, read_choice
-from .common import MVU_SOURCE, load_official_module, read_json, video_label
+from .common import MVU_SOURCE, load_official_module, official_string, read_json, video_label
 from .media import cached, image_sizes, source_identity
 
 MAIN = MVU_SOURCE / "inference/main.py"
@@ -24,6 +27,8 @@ MAIN = MVU_SOURCE / "inference/main.py"
 # The official prompt makes models explain before answering (Qwen3.5-9B: 53/64 outputs), so the cap
 # matches CrossVid's official 8192 and only stops runaway output; it cannot change the first character.
 GENERATION = {"max_tokens": 8192, "temperature": 0.0, "top_p": 1.0}
+OFFICIAL_INSTRUCTION = official_string(MAIN, "Please select the correct answer from the options.")
+ANSWER_INSTRUCTION = "Select the correct answer from the options. Return exactly one uppercase option letter and no explanation."
 
 
 class MVUEval:
@@ -55,6 +60,7 @@ class MVUEval:
             "frames_per_video": f"min({self.frames} // number_of_videos, source frames)",
             "max_side": self.max_side,
             "video_label": "official '[Video k] <file name>' replaced by 'Video k:'",
+            "answer_instruction": f"official instruction replaced in place by {ANSWER_INSTRUCTION!r}",
             "score": "output.strip().upper()[:1] == ground_truth",
         }
 
@@ -71,6 +77,10 @@ class MVUEval:
             raise RuntimeError("official build_messages_base no longer labels videos as '[Video k] <file name>'")
         for k, index in enumerate(labels, 1):
             content[index] = {"type": "text", "text": video_label(k)}
+        instruction = [index for index, part in enumerate(content) if part.get("text") == OFFICIAL_INSTRUCTION]
+        if len(instruction) != 1:
+            raise RuntimeError("official build_messages_base no longer contains its answer instruction once")
+        content[instruction[0]] = {"type": "text", "text": ANSWER_INSTRUCTION}
         messages = [{"role": "user", "content": content}]
         text, request = backend.complete(messages, **self.generation)
         sizes = image_sizes(messages)
