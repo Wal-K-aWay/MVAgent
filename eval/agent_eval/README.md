@@ -93,3 +93,23 @@ Finalization requires every deferred answer to match its scored prediction and w
 `summary_scored.json` plus `benchmark_results.md`; raw records and `summary.json`
 retain their original deferred state. CrossVid's primary O.Avg is the ten-task mean,
 with CCQA weighted by scoring-point count within its task.
+
+## Analysis tables
+
+Raw records are about 270 KB per question, mostly request/response events kept for audit and exact replay.
+For analysis, run `python eval/agent_eval/export_results.py <run>` (standard library only, also on a
+local copy of the records). It reads `records/` and `summary.json`, never modifies them, and writes `<run>/tables/`:
+
+- `answers.jsonl`: one row per question with `sample_id`, `dataset`, `task`, `family`, `status`, `error`,
+  `prediction`, `ground_truth`, `score`, `correct`, `outcome` (pass/partial/fail by the skill-evolution
+  thresholds), `answer_valid` (prediction matches the task's answer form), `evidence_actions`,
+  `n_evidence_actions`, `first_action`, `stop` (`answered` or `forced_with_gaps`), `time_sec`,
+  `prompt_tokens`, `completion_tokens`, `global_skill` (selected card IDs, or null without a dynamic bank).
+- `cases.jsonl.gz`: public trajectories in the skill-evolution case format
+  (`src/skill_evolution/algorithms/alternating/global/scope/views.py`): question without the generic
+  benchmark wrapper, options, video durations, evidence steps with instructions and VideoAgent summaries,
+  final and correct answer, outcome.
+- `scores.json`: official score per benchmark (copied from `summary.json`) and per-task counts, mean
+  score, outcome counts and answer-validity rate.
+
+Deferred CCQA answers have `score: null` until judged; rerun the export after `score_crossvid_ccqa.py`.
