@@ -15,7 +15,7 @@ import urllib.request
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Iterator, Optional, Protocol, Set, TypeVar
+from typing import Any, Callable, Iterator, Optional, Protocol, Sequence, Set, TypeVar
 
 from packaging.version import InvalidVersion, Version
 
@@ -121,6 +121,14 @@ def read_loopback_response(
         timeout=max(0.001, float(timeout_sec)),
     ) as response:
         return response.read()
+
+
+def _cuda_visible_devices(gpus: Sequence[Any]) -> str:
+    """Physical nvidia-smi indexes for CUDA_VISIBLE_DEVICES; vLLM parses each entry with int()."""
+    from models.pool import gpu_inventory
+
+    index_by_uuid = {uuid: index for index, uuid in gpu_inventory().items()}
+    return ",".join(str(index_by_uuid.get(str(gpu), gpu)) for gpu in gpus)
 
 
 def endpoint_cache_dir(
@@ -519,7 +527,8 @@ class VLLMServiceManager:
         self.service_dir.mkdir(parents=True, exist_ok=True)
         command = self.build_start_command()
         child_env = os.environ.copy()
-        child_env["CUDA_VISIBLE_DEVICES"] = ",".join(str(gpu) for gpu in self.cfg.gpus)
+        child_env["CUDA_VISIBLE_DEVICES"] = _cuda_visible_devices(self.cfg.gpus)
+        child_env["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"  # match nvidia-smi indexes used above
         if not str(child_env.get("TMPDIR") or "").strip():
             self.temp_dir.mkdir(parents=True, exist_ok=True)
             child_env["TMPDIR"] = str(self.temp_dir)

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, Sequence
@@ -27,6 +28,7 @@ class BenchmarkRecord:
     native_task: str
     sample: EvaluationSample
     source_record: str
+    task_population: int
     reference_answer: str = ""
     judge_question: str = ""
 
@@ -43,6 +45,14 @@ class BenchmarkFoundation:
     scorer: DatasetScorer
     aggregator: HierarchicalScoreAggregator
     scorer_identity: Mapping[str, Any]
+
+
+# Dataset root layout, matching the Modal asset Volume (mounted at /assets). Each benchmark
+# directory holds its manifest; benchmark video paths are relative to that directory.
+# eval/agent_eval/run.py mirrors these names.
+CROSSVID_DIR = "crossvid"
+CVBENCH_DIR = "cvbench"
+MVU_EVAL_DIR = "mvu-eval"
 
 
 def extract_prediction(result: Mapping[str, Any]) -> str:
@@ -139,8 +149,10 @@ def load_multibench_records(
 
     records: dict[str, BenchmarkRecord] = {}
     if any(sample_id.startswith("crossvid:") for sample_id in requested):
-        source = root / "CrossVid" / "qa.jsonl"
-        for row in _jsonl_rows(source):
+        source = root / CROSSVID_DIR / "qa.jsonl"
+        rows = list(_jsonl_rows(source))
+        population = Counter(str(row.get("task") or "").strip().upper() for row in rows)
+        for row in rows:
             sample_id = str(row.get("id") or "").strip()
             if sample_id not in requested:
                 continue
@@ -152,6 +164,7 @@ def load_multibench_records(
                 native_task=native_task,
                 sample=sample,
                 source_record=str(source.resolve()),
+                task_population=population[native_task],
                 reference_answer=(
                     str(row.get("answer") or "").strip()
                     if sample.task is SampleTask.OPEN_QA
@@ -165,9 +178,11 @@ def load_multibench_records(
             )
 
     if any(sample_id.startswith("cvbench:") for sample_id in requested):
-        source = root / "CVBench" / "QAs.json"
-        media_root = source.parent / "videos"
-        for row in _json_rows(source):
+        source = root / CVBENCH_DIR / "QAs.json"
+        media_root = source.parent
+        rows = _json_rows(source)
+        population = Counter(str(row.get("task_type") or "").strip() for row in rows)
+        for row in rows:
             raw_id = str(row.get("id") if row.get("id") is not None else "").strip()
             sample_id = f"cvbench:{raw_id}"
             if sample_id not in requested:
@@ -177,18 +192,22 @@ def load_multibench_records(
                 sample,
                 _choice_question(sample.question, sample.options),
             )
+            native_task = str(row.get("task_type") or "").strip()
             records[sample_id] = BenchmarkRecord(
                 sample_id=sample_id,
                 dataset="cvbench",
-                native_task="all",
+                native_task=native_task,
                 sample=sample,
                 source_record=str(source.resolve()),
+                task_population=population[native_task],
             )
 
     if any(sample_id.startswith("mvu_eval:") for sample_id in requested):
-        source = root / "MVU-Eval" / "QAs.json"
-        media_root = source.parent / "videos"
-        for row in _json_rows(source):
+        source = root / MVU_EVAL_DIR / "QAs.json"
+        media_root = source.parent
+        rows = _json_rows(source)
+        population = Counter(str(row.get("task") or "").strip() for row in rows)
+        for row in rows:
             raw_id = str(row.get("id") if row.get("id") is not None else "").strip()
             native_task = str(row.get("task") or "").strip()
             sample_id = f"mvu_eval:{native_task}:{raw_id}"
@@ -205,6 +224,7 @@ def load_multibench_records(
                 native_task=native_task,
                 sample=sample,
                 source_record=str(source.resolve()),
+                task_population=population[native_task],
             )
 
     missing = sorted(requested - set(records))
@@ -216,6 +236,43 @@ def load_multibench_records(
     return records
 
 
+# Official option parsing per benchmark (see ChoiceScorer).
+CHOICE_PROTOCOL = {"crossvid": "exact", "cvbench": "cvbench", "mvu_eval": "first_char"}
+
+
+def build_official_scorer(
+    records: Mapping[str, BenchmarkRecord],
+    open_qa_scorers: Mapping[str, Any],
+) -> tuple[DatasetScorer, dict[str, Any]]:
+    """Closed-task scorers follow each benchmark's official protocol; open-QA scorers are supplied."""
+    choice = {
+        dataset: ChoiceScorer(protocol=protocol)
+        for dataset, protocol in CHOICE_PROTOCOL.items()
+    }
+    per_sample = dict(open_qa_scorers)
+    for sample_id, record in records.items():
+        if record.sample.task is SampleTask.CHOICE:
+            per_sample[sample_id] = choice[record.dataset]
+    scorer = DatasetScorer(
+        samples={sample_id: record.sample for sample_id, record in records.items()},
+        registry=ScorerRegistry(
+            {
+                SampleTask.ORDERING: OrderingScorer(),
+                SampleTask.TEMPORAL_LOCALIZATION: TemporalLocalizationScorer(),
+            }
+        ),
+        scorer_by_sample=per_sample,
+        prediction_getter=lambda artifact: str(artifact.get("prediction") or "").strip(),
+    )
+    identity = {
+        "type": "mvagent-multibench-official-v2",
+        "choice": dict(CHOICE_PROTOCOL),
+        "ordering": "crossvid-pss-exact-string-v2",
+        "temporal_localization": "crossvid-fsa-comma-split-iou-v2",
+    }
+    return scorer, identity
+
+
 def build_benchmark_foundation(
     records: Mapping[str, BenchmarkRecord],
     *,
@@ -223,9 +280,6 @@ def build_benchmark_foundation(
 ) -> BenchmarkFoundation:
     if not records:
         raise ValueError("Benchmark foundation requires at least one record.")
-    samples = {
-        sample_id: record.sample for sample_id, record in records.items()
-    }
     open_ids = [
         sample_id
         for sample_id, record in records.items()
@@ -265,30 +319,11 @@ def build_benchmark_foundation(
             )
             for sample_id in open_ids
         }
-
-    registry = ScorerRegistry(
-        {
-            SampleTask.CHOICE: ChoiceScorer(
-                strict_format=True,
-                separator="",
-            ),
-            SampleTask.ORDERING: OrderingScorer(
-                separator="->",
-                strict_format=True,
-            ),
-            SampleTask.TEMPORAL_LOCALIZATION: TemporalLocalizationScorer(
-                separator=",",
-                strict_format=True,
-            ),
-        }
-    )
-    scorer = DatasetScorer(
-        samples=samples,
-        registry=registry,
-        scorer_by_sample=private_scorers,
-        prediction_getter=lambda artifact: str(
-            artifact.get("prediction") or ""
-        ).strip(),
+    scorer, scorer_identity = build_official_scorer(records, private_scorers)
+    scorer_identity["open_qa"] = (
+        dict(open_qa_judge.identity)
+        if open_qa_judge is not None
+        else {"enabled": False, "protocol": PROTOCOL_VERSION}
     )
     aggregator = HierarchicalScoreAggregator(
         dataset_of={
@@ -298,22 +333,15 @@ def build_benchmark_foundation(
             sample_id: record.native_task
             for sample_id, record in records.items()
         },
+        task_population={
+            (record.dataset, record.native_task): record.task_population
+            for record in records.values()
+        },
         sample_weights={
             sample_id: record.sample_weight
             for sample_id, record in records.items()
         },
     )
-    scorer_identity: dict[str, Any] = {
-        "type": "mvagent-multibench-official-v1",
-        "choice": "strict-normalized-option-label-v1",
-        "ordering": "crossvid-sequence-exact-v1",
-        "temporal_localization": "crossvid-interval-iou-v1",
-        "open_qa": (
-            dict(open_qa_judge.identity)
-            if open_qa_judge is not None
-            else {"enabled": False, "protocol": PROTOCOL_VERSION}
-        ),
-    }
     return BenchmarkFoundation(
         records=dict(records),
         scorer=scorer,
@@ -326,6 +354,7 @@ __all__ = [
     "BenchmarkFoundation",
     "BenchmarkRecord",
     "build_benchmark_foundation",
+    "build_official_scorer",
     "extract_prediction",
     "load_multibench_records",
 ]

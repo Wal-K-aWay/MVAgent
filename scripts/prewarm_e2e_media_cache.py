@@ -47,12 +47,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--cvbench-root",
         type=Path,
-        default=Path("/home/kww/datasets/Multi-Video/CVBench"),
+        default=Path("/assets/cvbench"),
     )
     parser.add_argument(
         "--mvu-root",
         type=Path,
-        default=Path("/home/kww/datasets/Multi-Video/MVU-Eval"),
+        default=Path("/assets/mvu-eval"),
     )
     parser.add_argument(
         "--cache-dir", type=Path, default=PROJECT_ROOT / ".cache/e2e_media"
@@ -146,7 +146,7 @@ def collect_specs(args: argparse.Namespace) -> list[tuple[str, MediaSpec]]:
             row_specs(
                 benchmark="cvbench",
                 rows=read_rows(args.cvbench_root / "QAs.json", args.limit),
-                video_root=args.cvbench_root / "videos",
+                video_root=args.cvbench_root,
                 frames_per_video=args.cv_frames_per_video,
                 question_frame_cap=args.cv_question_frame_cap,
                 max_side=args.cv_max_side,
@@ -159,7 +159,7 @@ def collect_specs(args: argparse.Namespace) -> list[tuple[str, MediaSpec]]:
             row_specs(
                 benchmark="mvu-eval",
                 rows=read_rows(args.mvu_root / "QAs.json", args.limit),
-                video_root=args.mvu_root / "videos",
+                video_root=args.mvu_root,
                 frames_per_video=args.mvu_frames_per_video,
                 question_frame_cap=args.mvu_question_frame_cap,
                 max_side=args.mvu_max_side,

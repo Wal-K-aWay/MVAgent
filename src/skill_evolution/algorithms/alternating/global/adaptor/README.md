@@ -20,9 +20,9 @@ Reviser/Generator → 候选程序校验和完全重复检查 → 每候选完�
 ## 运行
 
 ```bash
-PYTHONPATH=src /home/kww/miniconda3/envs/MVAgent/bin/python scripts/run_skill_evolution.py \
+PYTHONPATH=src python scripts/run_skill_evolution.py \
   --mode train --config configs/skill_evolution/global_skilladaptor_35b.yaml \
-  --execution-config configs/inference/execution/gpu2_7_single.yaml \
+  --execution-config configs/inference/execution/modal_h200x8.yaml \
   --split-manifest /absolute/path/to/split.json \
   --output-dir /absolute/path/to/new_run
 ```

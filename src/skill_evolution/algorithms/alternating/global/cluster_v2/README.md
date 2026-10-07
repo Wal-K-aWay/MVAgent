@@ -28,9 +28,9 @@ analyzer 区分事实、原因假设和未知项，不做卡库归因；planner 
 不能把旧 Train/Gate 两分区自动拆分或让 Cal/Gate 共用题目。
 
 ```bash
-PYTHONPATH=src /home/kww/miniconda3/envs/MVAgent/bin/python scripts/run_skill_evolution.py \
+PYTHONPATH=src python scripts/run_skill_evolution.py \
   --mode train --config configs/skill_evolution/global_cluster_v2_35b.yaml \
-  --execution-config configs/inference/execution/gpu4_7.yaml \
+  --execution-config configs/inference/execution/modal_h200x8.yaml \
   --split-manifest /absolute/path/to/frozen_train_cal_gate_test.json \
   --output-dir outputs/mvagent/skill/cluster_v2_run
 ```
@@ -88,7 +88,5 @@ cluster_v2/
 
 ## 验证
 
-`tests/test_global_cluster_v2.py` 使用 CPU mock 复现设计文档五轮模拟、互补降分分支后续修复、单字段锁定、正式库/Gate隔离、transport 中断及 Gate 提交中断恢复、探索额度和诊断配置。
-这些测试验证流程正确性，不代表真实模型下能够提高回答得分。已完成旧冻结Prompt的小规模真实工程烟测，见 analysis/skill_evolution/cluster_v2_smoke_20261006.md；后续Prompt修改及动态材料提案尚未经过真实端到端验证。
-
-2026-10-06 验证：v2 与现有 cluster/adaptor/bank 基础设施针对性59项 unittest 通过，compileall 通过。全量270项中268项通过，2项失败属于既有 selector 文字断言（旧规则子串、旧候选标题）；这些 Runtime Prompt 本次未改动。
+原 CPU mock 单测（`tests/`）没有随项目迁移过来。2026-10-06 已在 Modal 上完成首次真实端到端运行（CrossVid 9 类闭式题，Train 72 / Cal 36 / Gate 36，10 轮），
+结果与发现的问题见 `.claude/status.md`。

@@ -16,7 +16,6 @@
 
 恢复必须使用原冻结源码、配置和身份；新源码不能恢复历史簇槽实验。真实 transport 错误中止，结构/长度错误记录跳过；底层模型有限 JSON 修复不变。
 
-验证：`PYTHONPATH=src:tests /home/kww/miniconda3/envs/MVAgent/bin/python -m unittest test_global_cluster -v`。受控 CPU 测试验证跨簇完整库、分开作者、字段冻结、目标真实使用、公开边界、断点恢复及 Selector 回放缓存，不作为收益证据。
 
 2026-10-05：已合并完整卡作者；旧拆分作者checkpoint只能使用原冻结源码恢复，新源码不兼容旧阶段响应。
 

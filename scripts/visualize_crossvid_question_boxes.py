@@ -42,7 +42,7 @@ from scripts.crossvid_protocol import (
 )
 
 
-DEFAULT_CROSSVID_ROOT = Path("/home/kww/datasets/Multi-Video/CrossVid")
+DEFAULT_CROSSVID_ROOT = Path("/assets/crossvid")
 SUPPORTED_TASKS = {"MOC", "MSR"}
 OBJECT_REFERENCE_RE = re.compile(
     r"\{([AB])([1-9][0-9]*)\}"

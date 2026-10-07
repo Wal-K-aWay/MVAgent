@@ -843,8 +843,11 @@ class TrajectoryProjector:
         outcome_feedback_provider: Callable[[Mapping[str, Any]], Mapping[str, Any]]
         | None = None,
         source_group_provider: Callable[[str], str] | None = None,
+        outcome_provider: Callable[[str, float], str] | None = None,
     ) -> None:
         self.case_salt = str(case_salt)
+        # (sample_id, official score) -> pass/partial/fail by the sample's scoring family.
+        self.outcome_provider = outcome_provider
         self.video_metadata_provider = video_metadata_provider
         self.outcome_feedback_provider = outcome_feedback_provider
         self.source_group_provider = source_group_provider
@@ -858,7 +861,7 @@ class TrajectoryProjector:
         outer = _mapping(artifact)
         result = _mapping(outer.get("result")) or outer
         sample_token = str(outer.get("sample_id") or result.get("sample_id") or "unknown")
-        outcome = self._outcome(official_score)
+        outcome = self._outcome(sample_token, official_score)
         outcome_feedback = (
             _compact(self.outcome_feedback_provider(outer))
             if self.outcome_feedback_provider is not None
@@ -1147,10 +1150,11 @@ class TrajectoryProjector:
             {"salt": self.case_salt, "sample": sample_token}
         )[:12]
 
-    @staticmethod
-    def _outcome(score: float | None) -> str:
+    def _outcome(self, sample_id: str, score: float | None) -> str:
         if score is None:
             return "unscored"
+        if self.outcome_provider is not None:
+            return self.outcome_provider(sample_id, float(score))
         value = float(score)
         if value >= 1.0:
             return "pass"

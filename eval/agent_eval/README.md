@@ -8,44 +8,37 @@ This entry evaluates MVAgent on CVBench, MVU-Eval and CrossVid. It uses
 Dataset/scoring adapters live in `skill_evolution/infra/benchmarks`; workers receive
 only the question and ordered videos, never reference answers.
 
-On a new server, after downloading the three benchmark directories, prepare the
-dataset root once:
+The dataset root is the Modal asset Volume mounted at `/assets`, with `crossvid/`, `cvbench/` and
+`mvu-eval/` subdirectories (names defined in `skill_evolution/infra/benchmarks/catalog.py`).
+CVBench/MVU-Eval `QAs.json` are built by `scripts/prepare_cvbench_mvu_qas.py`; their video paths
+are relative to each benchmark directory. CrossVid needs a one-time preparation that writes
+`qa.jsonl`, `qa.meta.json` and `.mvagent_media` under `crossvid/`:
 
 ```bash
-PYTHONPATH=src /home/kww/miniconda3/envs/MVAgent/bin/python \
-  scripts/prepare_all_multivideo.py --root /data/Multi-Video
+PYTHONPATH=src python scripts/prepare_all_multivideo.py --root /assets
 ```
 
-This generates CrossVid's `qa.jsonl`, `qa.meta.json` and `.mvagent_media`.
-CVBench and MVU-Eval use their raw `QAs.json` and `videos/`; MVAgent creates its
-runtime media cache on demand.
+Run inside a GPU node whose execution file lists that node's local replicas:
 
 ```bash
-PYTHONPATH=src /home/kww/miniconda3/envs/MVAgent/bin/python eval/agent_eval/run.py \
-  --config eval/agent_eval/config.yaml \
-  --execution-config configs/inference/execution/gpu5_7.yaml \
-  --benchmarks cvbench mvu_eval \
-  --output outputs/mvagent_pool_eval
+PYTHONPATH=src python eval/agent_eval/run.py \
+  --config configs/inference/modal_qwen35_35b_a3b_no_skill.yaml \
+  --execution-config configs/inference/execution/modal_h200x8.yaml \
+  --dataset-root /assets --benchmarks cvbench mvu_eval \
+  --output <fresh output dir>
 ```
 
 There is no implicit GPU selection. The execution YAML lists the allowed model
 replicas, their physical GPU indexes or UUIDs, endpoints and `max_inflight` limits.
 GPU numbers need not be consecutive. Each CPU worker owns one question at a time;
 each model call can use a different matching replica. `question_workers: auto`
-equals the healthy Agent-service capacities (6 for the supplied three-replica pool).
+equals the healthy Agent-service capacities (8 for `modal_h200x8.yaml`).
 `max_prepared_requests: auto` bounds media preparation to twice that capacity.
 `runtime.video_concurrency` in MVAgent YAML separately controls parallel VideoAgents.
 
-For all three benchmarks, include `crossvid` and explicitly name the Judge:
-
-```bash
-PYTHONPATH=src /home/kww/miniconda3/envs/MVAgent/bin/python eval/agent_eval/run.py \
-  --config configs/skill_evolution/runtime/local_qwen35_35b_a3b_qwen38_optimizer_gpu5_7.yaml \
-  --execution-config configs/inference/execution/gpu5_7.yaml \
-  --benchmarks cvbench mvu_eval crossvid \
-  --judge-model qwen3_8_27b_optimizer \
-  --output outputs/mvagent_all_benchmarks
-```
+To include CrossVid, add `crossvid` to `--benchmarks`. CCQA is open QA: either pass
+`--judge-model` naming a Judge defined in the model configuration, or pass
+`--defer-open-qa-judge` and score afterwards with `score_crossvid_ccqa.py` (see below).
 
 The Judge model must exist in the model configuration. A local Judge sharing an
 Agent endpoint shares its request admission; an explicitly configured API Judge
@@ -71,12 +64,8 @@ excluded-benchmark IDs are rejected. It cannot be combined with `--limit` or
 keep the input panel and its selection provenance with the experiment. This option
 does not change question text, video order, runtime or scoring.
 
-For four Qwen3.5-9B replicas on GPUs 4–7, use
-`--config eval/agent_eval/config_qwen3_5_9b.yaml`
-`--execution-config configs/inference/execution/qwen35_9b_gpu4_7.yaml`
-`--judge-model qwen3_5_9b_local`. This resource profile uses eight question workers
-and two admitted requests per replica. Always choose a fresh `--output` for a new
-comparison; keep historical results and their frozen source untouched.
+Always choose a fresh `--output` for a new comparison; keep historical results and
+their frozen source untouched.
 
 Append `--resume` with the same input/model/scoring configuration and output directory.
 The execution file may select different GPUs or worker counts. The original runner

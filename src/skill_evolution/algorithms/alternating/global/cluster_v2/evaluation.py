@@ -3,6 +3,7 @@
 from collections import Counter
 from dataclasses import replace
 import json
+from skill_evolution.infra.benchmarks import score_change, score_outcome
 from skill_evolution.infra.data import EvaluationRequest
 from skill_evolution.infra.evaluation import evaluate_batch, compact_report
 from skill_evolution.infra.trajectory import routing_audit, role_routing
@@ -138,8 +139,14 @@ class Evaluator:
                     s,
                 ),
             )
-            failures = [s for s in ranked if summary["scores"][s] < 1]
-            successes = [s for s in ranked if summary["scores"][s] == 1]
+            # Partial results (e.g. FSA IoU 0.1-0.5) still have headroom and count as failures;
+            # only family-level passes serve as success references.
+            outcome = {
+                s: score_outcome(self.metadata[s]["task"], summary["scores"][s])
+                for s in ranked
+            }
+            failures = [s for s in ranked if outcome[s] != "pass"]
+            successes = [s for s in ranked if outcome[s] == "pass"]
             references = []
             while (failures or successes) and len(
                 references
@@ -159,16 +166,16 @@ class Evaluator:
 
     def record_comparison(self, parent, result, path):
         parent_result = self.cal_result(parent)
-        improved = [
-            sid
+        change = {
+            sid: score_change(
+                self.metadata[sid]["task"],
+                parent_result["scores"][sid],
+                result["scores"][sid],
+            )
             for sid in self.cal.sample_ids
-            if result["scores"][sid] > parent_result["scores"][sid]
-        ]
-        regressed = [
-            sid
-            for sid in self.cal.sample_ids
-            if result["scores"][sid] < parent_result["scores"][sid]
-        ]
+        }
+        improved = [sid for sid in self.cal.sample_ids if change[sid] > 0]
+        regressed = [sid for sid in self.cal.sample_ids if change[sid] < 0]
         write_json(
             path,
             dict(

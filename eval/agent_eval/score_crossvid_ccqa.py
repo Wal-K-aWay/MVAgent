@@ -171,7 +171,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--qa-path",
         type=Path,
-        default=Path("/home/kww/datasets/Multi-Video/CrossVid/QA/CCQA.json"),
+        default=Path("/assets/crossvid/QA/CCQA.json"),
     )
     parser.add_argument("--api-base", default="https://api.deepseek.com")
     parser.add_argument("--model", default="deepseek-v4-flash")

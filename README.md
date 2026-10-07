@@ -47,24 +47,10 @@ experiment YAMLs contain the original research machine's paths and GPU numbers.
 Do not assume those paths exist on a new installation. Keep API credentials outside
 Git; `scripts/attribution_probe.py` reads `DEEPSEEK_API_KEY`.
 
-GLM-5.3-Flash is available as a text optimizer through `provider: bigmodel`.
-Use `configs/skill_evolution/runtime/local_qwen35_35b_a3b_glm53_flash_optimizer_gpu5_7.yaml` and set
-`BIGMODEL_API_KEY` in the process environment. The matching 130/70 profile is
-`configs/skill_evolution/alternating_multibench_train130_eval70_glm53_flash_gpu5_7.yaml`,
-with `configs/inference/execution/gpu2_7_single.yaml` for six replicas on GPUs2–7,
-one admitted request per endpoint;
-The recipe retains its historical training parameters; consult the
-[handoff](analysis/skill_evolution/handoff.md) before starting a new evolution run.
-Actor and Judge remain local Qwen. The fixed Judge stays on GPU5/8102. Historical
-comparisons retain their frozen `gpu5_7.yaml` execution configuration. GPU4 replacement
-and rollout readiness are recorded in
-`outputs/services/20260910_gpu4_qwen35_rollout/status.json`.
-The API uses JSON mode with local Schema validation and thinking enabled; the profile
-selects reasoning effort `high`, temperature 1, top_p 0.95, and 16384 output tokens.
-Run `python scripts/analysis/probe_bigmodel_optimizer.py --output outputs/analysis/<fresh-name>`
-for a small paid text integration check against archived optimizer inputs. It accepts
-a hidden credential prompt if the environment variable is absent. It does not train
-or establish a quality improvement, and does not test GLM image/video handling.
+GLM-5.3-Flash is the text optimizer (`provider: bigmodel`, credential `BIGMODEL_API_KEY`) and
+DeepSeek is the CCQA Judge (`DEEPSEEK_API_KEY`); both are defined in
+`configs/skill_evolution/runtime/dynamic_35b_embedding.yaml`. The optimizer uses JSON mode with local
+Schema validation, thinking enabled, reasoning effort `high`, temperature 1, top_p 0.95 and 16384 output tokens.
 
 ```bash
 python demo.py --help

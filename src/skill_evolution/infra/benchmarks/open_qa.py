@@ -10,11 +10,7 @@ from uuid import uuid4
 from models.llm import LLMClient
 
 from .contracts import EvaluationSample, SampleTask
-from .scoring import (
-    OPEN_QA_REFLECTION_SUCCESS_CORRECT_DENOMINATOR,
-    OPEN_QA_REFLECTION_SUCCESS_CORRECT_NUMERATOR,
-    ScoreResult,
-)
+from .scoring import ScoreResult
 
 
 PROTOCOL_VERSION = "crossvid.ccqa_m3_coverage_correctness.v2"
@@ -168,11 +164,7 @@ class FixedOpenQAJudge:
             f"OpenQA judge: covered {sum(coverage)}/{len(points)} scoring points; "
             f"fully correct {sum(correctness)}/{len(points)}."
         )
-        result = ScoreResult(
-            score,
-            "" if score >= 1.0 else feedback,
-            reflection_success=self._reflection_success(correctness),
-        )
+        result = ScoreResult(score, "" if score >= 1.0 else feedback)
         self._store(
             cache_key,
             request,
@@ -238,13 +230,6 @@ class FixedOpenQAJudge:
                 "OpenQA judge correctness cannot be true for an uncovered point."
             )
 
-    @staticmethod
-    def _reflection_success(correctness: Sequence[bool]) -> bool:
-        return (
-            OPEN_QA_REFLECTION_SUCCESS_CORRECT_DENOMINATOR * sum(correctness)
-            >= OPEN_QA_REFLECTION_SUCCESS_CORRECT_NUMERATOR * len(correctness)
-        )
-
     def _path(self, cache_key: str) -> Path:
         return self.cache_dir / cache_key[:2] / f"{cache_key}.json"
 
@@ -270,11 +255,7 @@ class FixedOpenQAJudge:
         stored_score = float(payload.get("score"))
         if stored_score != expected_score:
             raise RuntimeError(f"Invalid score in OpenQA judge cache: {path}")
-        return ScoreResult(
-            stored_score,
-            str(payload.get("feedback") or ""),
-            reflection_success=self._reflection_success(correctness),
-        )
+        return ScoreResult(stored_score, str(payload.get("feedback") or ""))
 
     def _store(
         self,

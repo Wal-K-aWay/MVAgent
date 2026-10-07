@@ -86,12 +86,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--cvbench-root",
         type=Path,
-        default=Path("/home/kww/datasets/Multi-Video/CVBench"),
+        default=Path("/assets/cvbench"),
     )
     parser.add_argument(
         "--mvu-root",
         type=Path,
-        default=Path("/home/kww/datasets/Multi-Video/MVU-Eval"),
+        default=Path("/assets/mvu-eval"),
     )
     parser.add_argument(
         "--cvbench-source",
@@ -605,7 +605,7 @@ def run_cvbench(args: argparse.Namespace, cv_source: Path) -> None:
         try:
             messages, frame_budget = cv_messages(
                 row,
-                args.cvbench_root / "videos",
+                args.cvbench_root,
                 cue_root,
                 frames_per_video=args.cv_frames_per_video,
                 question_frame_cap=args.cv_question_frame_cap,
@@ -795,7 +795,7 @@ def run_mvu(args: argparse.Namespace, _mvu_source: Path) -> None:
         try:
             messages, frame_budget = mvu_messages(
                 row,
-                args.mvu_root / "videos",
+                args.mvu_root,
                 frames_per_video=args.mvu_frames_per_video,
                 question_frame_cap=args.mvu_question_frame_cap,
                 max_side=args.mvu_max_side,

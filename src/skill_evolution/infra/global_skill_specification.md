@@ -25,9 +25,9 @@ Each VideoAgent receives its own instruction and retains its own previous trajec
 | Component | Skill information available |
 |---|---|
 | Runtime eligibility filter | `meta.role` and `meta.stages` |
-| BM25 and embedding retrieval | `description` and `when_to_use` |
+| BM25 and embedding retrieval | `when_to_use` |
 | Actor | `strategy` only |
-| LLM selector | Candidate `id`, `description`, and `when_to_use`, plus the selection input |
+| LLM selector | Candidate `id` and `when_to_use`, plus the selection input |
 | VideoAgent and visual Observer | No automatic inheritance of the Global skill; necessary instructions must be passed through action parameters |
 | Terminal finalizer | No injected skill; it follows its existing finalization contract |
 

@@ -41,7 +41,7 @@ optimization. Later role ablations reuse the same version directory and disable 
 role without creating another Skill copy.
 
 The shipped Skill-on YAML files currently reference `authored-v000`, while
-`configs/inference/local_qwen35_vllm_no_skill.yaml` is the explicit No-Skill control. Do not add a
+`configs/inference/modal_qwen35_35b_a3b_no_skill.yaml` is the explicit No-Skill control. Do not add a
 `zero-vNNN` runtime configuration until that exact non-empty SkillSet exists and its two
 file hashes are frozen; promotion should generate that configuration from the accepted
 candidate rather than relying on a mutable `best` path.

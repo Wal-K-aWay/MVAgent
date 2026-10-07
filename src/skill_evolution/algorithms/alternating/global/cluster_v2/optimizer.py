@@ -183,10 +183,10 @@ def validate_issue(value, cases):
     if not value["task_requirement"].strip() or not value["failure"].strip():
         raise ValueError("Issue requires task and failure")
     if not any(
-        index[r["case_id"]]["offline_feedback"]["score"] < 1
+        index[r["case_id"]]["offline_feedback"]["outcome"] != "pass"
         for r in value["evidence_refs"]
     ):
-        raise ValueError("Issue must reference a non-perfect case")
+        raise ValueError("Issue must reference a failed or partial case")
 
 
 def validate_plan(parent, plan, cases, related_ids):
@@ -203,10 +203,10 @@ def validate_plan(parent, plan, cases, related_ids):
         return
     index = validate_refs(plan["evidence_refs"], cases)
     if not any(
-        index[r["case_id"]]["offline_feedback"]["score"] < 1
+        index[r["case_id"]]["offline_feedback"]["outcome"] != "pass"
         for r in plan["evidence_refs"]
     ):
-        raise ValueError("Edit requires non-perfect evidence")
+        raise ValueError("Edit requires failed or partial evidence")
     if not plan["goal"].strip() or not plan["expected_benefit"].strip():
         raise ValueError("Edit goal and expected benefit are required")
     op = plan["operation"]

@@ -27,6 +27,12 @@ from scripts.prepare_multivideo_benchmarks import (
 )
 
 
+# Dataset root layout, matching the Modal asset Volume (mounted at /assets);
+# mirrors skill_evolution.infra.benchmarks.catalog. Benchmark videos live directly in each directory.
+CROSSVID_DIR = "crossvid"
+CVBENCH_DIR = "cvbench"
+MVU_EVAL_DIR = "mvu-eval"
+
 CROSSVID_TASKS = (
     "BU",
     "CC",
@@ -75,15 +81,15 @@ def _manifest_sha256(rows: Sequence[dict[str, Any]]) -> str:
 
 def validate_raw_dataset(root: Path) -> None:
     required_dirs = [
-        root / "CrossVid" / "videos",
-        root / "CrossVid" / "uav",
-        root / "CVBench" / "videos",
-        root / "MVU-Eval" / "videos",
+        root / CROSSVID_DIR / "videos",
+        root / CROSSVID_DIR / "uav",
+        root / CVBENCH_DIR,
+        root / MVU_EVAL_DIR,
     ]
     required_files = [
-        root / "CVBench" / "QAs.json",
-        root / "MVU-Eval" / "QAs.json",
-        *(root / "CrossVid" / "QA" / f"{task}.json" for task in CROSSVID_TASKS),
+        root / CVBENCH_DIR / "QAs.json",
+        root / MVU_EVAL_DIR / "QAs.json",
+        *(root / CROSSVID_DIR / "QA" / f"{task}.json" for task in CROSSVID_TASKS),
     ]
     missing = [path for path in required_dirs if not path.is_dir()]
     missing.extend(path for path in required_files if not path.is_file())
@@ -371,8 +377,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--root",
         type=Path,
-        default=Path("/home/kww/datasets/Multi-Video"),
-        help="Downloaded Multi-Video dataset root.",
+        default=Path("/assets"),
+        help="Dataset root holding crossvid/, cvbench/ and mvu-eval/ (Modal asset Volume mount).",
     )
     parser.add_argument("--pea-jobs", type=int, default=12)
     parser.add_argument("--uav-jobs", type=int, default=12)
@@ -418,7 +424,7 @@ def main() -> int:
     validate_raw_dataset(root)
     print(f"Raw benchmark layout OK: {root}")
     if args.check_only:
-        prepared = root / "CrossVid" / "qa.jsonl"
+        prepared = root / CROSSVID_DIR / "qa.jsonl"
         print(
             "CrossVid prepared: yes"
             if prepared.is_file()
@@ -429,9 +435,9 @@ def main() -> int:
     state_dir = (
         args.state_dir.expanduser().resolve()
         if args.state_dir is not None
-        else root / "CrossVid" / ".mvagent_prepare" / "crossvid_qa"
+        else root / CROSSVID_DIR / ".mvagent_prepare" / "crossvid_qa"
     )
-    validation = _prepare_crossvid(root / "CrossVid", args, state_dir)
+    validation = _prepare_crossvid(root / CROSSVID_DIR, args, state_dir)
     print(f"CrossVid prepared: {validation['sample_count']} questions")
     print(f"Manifest: {validation['manifest']}")
     print("CVBench/MVU-Eval need no .mvagent_media; MVAgent creates its runtime cache on demand.")

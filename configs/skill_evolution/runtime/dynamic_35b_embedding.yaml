@@ -1,7 +1,7 @@
 models:
   qwen3_5_35b_a3b_local:
     type: local_vllm
-    model_name: /home/kww/models/Qwen3.5/Qwen3.5-35B-A3B
+    model_name: /weights/Qwen3.5-35B-A3B
     temperature: 0.0
     top_p: 1.0
     max_tokens: 2048

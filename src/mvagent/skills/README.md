@@ -97,7 +97,7 @@ is never evidence. Runtime never edits Skills or imports the optimizer.
 
 ## Offline management
 
-Use `PYTHONPATH=src /home/kww/miniconda3/envs/MVAgent/bin/python`:
+Run with `PYTHONPATH=src python` in the project environment (Modal image; needs numpy):
 
 ```bash
 python scripts/manage_skills.py add --bank outputs/my-skills/author.json --file my-skill.json

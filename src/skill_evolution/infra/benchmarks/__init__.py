@@ -1,11 +1,17 @@
 """Benchmark-independent samples, answer scoring, and score aggregation."""
 
 from .adapters import choice_sample, crossvid_sample, cvbench_sample, mvu_eval_sample
-from .aggregation import HierarchicalScoreAggregator, MeanScoreAggregator, ScoreAggregation
+from .aggregation import (
+    OFFICIAL_DATASET_POLICY,
+    HierarchicalScoreAggregator,
+    MeanScoreAggregator,
+    ScoreAggregation,
+)
 from .catalog import (
     BenchmarkFoundation,
     BenchmarkRecord,
     build_benchmark_foundation,
+    build_official_scorer,
     extract_prediction,
     load_multibench_records,
 )
@@ -15,16 +21,16 @@ from .scoring import (
     AnswerScorer,
     ChoiceScorer,
     DatasetScorer,
-    OPEN_QA_REFLECTION_SUCCESS_CORRECT_DENOMINATOR,
-    OPEN_QA_REFLECTION_SUCCESS_CORRECT_NUMERATOR,
+    CHANGE_MARGINS,
+    OUTCOME_THRESHOLDS,
     OpenQAJudge,
     OpenQAScorer,
     OrderingScorer,
-    REFLECTION_SUCCESS_POLICY,
     ScoreResult,
     ScorerRegistry,
-    TEMPORAL_REFLECTION_SUCCESS_IOU,
     TemporalLocalizationScorer,
+    score_change,
+    score_outcome,
 )
 
 
@@ -36,6 +42,7 @@ __all__ = [
     "BenchmarkFoundation",
     "BenchmarkRecord",
     "build_benchmark_foundation",
+    "build_official_scorer",
     "DatasetScorer",
     "EvaluationSample",
     "extract_prediction",
@@ -43,19 +50,20 @@ __all__ = [
     "crossvid_sample",
     "cvbench_sample",
     "MeanScoreAggregator",
+    "OFFICIAL_DATASET_POLICY",
     "load_multibench_records",
     "mvu_eval_sample",
     "FixedOpenQAJudge",
-    "OPEN_QA_REFLECTION_SUCCESS_CORRECT_DENOMINATOR",
-    "OPEN_QA_REFLECTION_SUCCESS_CORRECT_NUMERATOR",
+    "CHANGE_MARGINS",
+    "OUTCOME_THRESHOLDS",
     "OpenQAJudge",
     "OpenQAScorer",
     "OrderingScorer",
-    "REFLECTION_SUCCESS_POLICY",
     "SampleTask",
     "ScoreAggregation",
     "ScoreResult",
     "ScorerRegistry",
-    "TEMPORAL_REFLECTION_SUCCESS_IOU",
     "TemporalLocalizationScorer",
+    "score_change",
+    "score_outcome",
 ]
