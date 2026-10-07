@@ -17,8 +17,6 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any, Callable
 
-import numpy as np
-
 CACHE_ENV = "MVAGENT_E2E_MEDIA_CACHE_DIR"  # also read by the vendored CrossVid preprocess cache
 JPEG_QUALITY = 95
 DECODE_BATCH = 64
@@ -63,7 +61,7 @@ def resized_dims(width: int, height: int, max_side: int) -> tuple[int, int]:
     return width, height
 
 
-def _jpeg_b64(frame: np.ndarray) -> str:
+def _jpeg_b64(frame) -> str:
     from PIL import Image
 
     output = BytesIO()
@@ -78,6 +76,7 @@ def sample_frames(path: Path, *, count: int, max_side: int) -> tuple[list[str], 
     """
 
     def compute() -> dict[str, Any]:
+        import numpy as np
         from decord import VideoReader, cpu
 
         reader = VideoReader(str(path), ctx=cpu(0), num_threads=4)

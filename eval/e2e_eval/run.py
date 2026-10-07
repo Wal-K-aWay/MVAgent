@@ -88,7 +88,7 @@ def parse_args() -> argparse.Namespace:
     infer.add_argument("--workers", type=int, help="questions prepared concurrently (default: 2 x request slots)")
     infer.add_argument("--timeout", type=float, default=900.0)
     infer.add_argument("--retries", type=int, default=3)
-    infer.add_argument("--media-cache-dir", type=Path, default=PROJECT_ROOT / ".cache/e2e_media",
+    infer.add_argument("--media-cache-dir", default=str(PROJECT_ROOT / ".cache/e2e_media"),
                        help="model-independent preprocessing cache; empty string disables it")
 
     score = commands.add_parser("score", help="score raw records with the official rules")
@@ -170,7 +170,12 @@ def source_files() -> list[Path]:
     return [E2E_ROOT / "run.py", *sorted((E2E_ROOT / "harness").glob("*.py"))]
 
 
+def source_hashes() -> dict[str, str]:
+    return {str(path.relative_to(E2E_ROOT)): sha256_file(path) for path in source_files()}
+
+
 def vendored_hashes() -> dict[str, str]:
+    """Official sources (and the shared CCQA judge) whose code decides prompts, frames or scores."""
     files = [
         "CVBench/lmms-eval/lmms_eval/tasks/mvr/utils.py",
         "CVBench/lmms-eval/lmms_eval/tasks/mvr/mvr.yaml",
@@ -178,15 +183,25 @@ def vendored_hashes() -> dict[str, str]:
         "CVBench/Video-R1/src/r1-v/Evaluation/CVBench.json",
         "MVU-Eval/inference/main.py",
         "MVU-Eval/inference/analyze.py",
-        "CrossVid/eval/score_CCQA.py",
         *(str(path.relative_to(E2E_ROOT)) for path in sorted((E2E_ROOT / "CrossVid/eval").rglob("*.py"))),
+        "../agent_eval/score_crossvid_ccqa.py",
     ]
-    return {name: sha256_file(E2E_ROOT / name) for name in dict.fromkeys(files)}
+    return {name: sha256_file(E2E_ROOT / name) for name in files}
+
+
+def media_cache_root(base: Path) -> Path:
+    """Cache directory keyed by the code that produces cached frames, so edited code never reads stale frames."""
+    producers = [
+        E2E_ROOT / "harness/media.py",
+        E2E_ROOT / "MVU-Eval/inference/main.py",
+        *sorted((E2E_ROOT / "CrossVid/eval/utils").glob("*.py")),
+    ]
+    fingerprint = hashlib.sha256("".join(sha256_file(path) for path in producers).encode()).hexdigest()
+    return base / f"code-{fingerprint[:12]}"
 
 
 def freeze_source(output: Path) -> dict[str, str]:
     """Copy the harness into DIR/source once; a resumed run must use identical code."""
-    hashes = {}
     for path in source_files():
         relative = path.relative_to(E2E_ROOT)
         target = output / "source" / relative
@@ -195,8 +210,7 @@ def freeze_source(output: Path) -> dict[str, str]:
         target.parent.mkdir(parents=True, exist_ok=True)
         if not target.exists():
             shutil.copy2(path, target)
-        hashes[str(relative)] = sha256_file(path)
-    return hashes
+    return source_hashes()
 
 
 # ---------------------------------------------------------------------------
@@ -214,8 +228,8 @@ def make_backend(args: argparse.Namespace):
 
 
 def run_infer(args: argparse.Namespace) -> None:
-    if str(args.media_cache_dir):
-        os.environ[CACHE_ENV] = str(args.media_cache_dir.resolve())
+    if args.media_cache_dir:
+        os.environ[CACHE_ENV] = str(media_cache_root(Path(args.media_cache_dir).resolve()))
     else:
         os.environ.pop(CACHE_ENV, None)
     os.environ.setdefault("DECORD_EOF_RETRY_MAX", "40960")
@@ -369,7 +383,14 @@ def run_score(args: argparse.Namespace) -> None:
         config["ids"] = {}
     benchmarks = build_benchmarks(config)
     selection = read_json(args.output / "selection.json")
-    summary: dict[str, Any] = {"scored_at": now(), "protocol": manifest["identity"]["protocol"], "model": manifest["identity"]["model"]}
+    summary: dict[str, Any] = {
+        "scored_at": now(),
+        "protocol": manifest["identity"]["protocol"],
+        "model": manifest["identity"]["model"],
+        # Scoring runs the current code; record whether it is the code that produced the raw records.
+        "scoring_code_matches_inference": source_hashes() == manifest["identity"]["source"]["files"]
+        and vendored_hashes() == manifest["identity"]["source"]["vendored"],
+    }
     failures = []
     for name, benchmark in benchmarks.items():
         items = {item["sample_id"]: item for item in benchmark.items}
