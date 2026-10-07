@@ -1,0 +1,15 @@
+# One Modal H200 for Qwen3.5-9B smoke tests: a single replica (TP=1) on a localhost endpoint.
+question_workers: auto
+max_prepared_requests: auto
+question_timeout_sec: 1800
+question_retries: 1
+media_cache:
+  root: .cache/mvagent/media
+  max_bytes: 10737418240
+model_pools:
+  qwen3_5_9b_local:
+    replicas:
+    - gpus:
+      - 0
+      endpoint: http://127.0.0.1:8100/v1
+      max_inflight: 1
