@@ -25,7 +25,8 @@ source URLs/commits are recorded in `eval/e2e_eval/README.md`.
 All end-to-end runs go through the unified harness `eval/e2e_eval/run.py` (vLLM endpoints or
 the official API profiles in `eval/e2e_eval/api/`). It executes or reads the official prompts,
 message order, sampling and scoring from the vendored sources; the only protocol parameters
-are 512 video frames per model call and a 448-pixel longest edge. See
+are the video frames per model call (`--frames`, default 512) and the longest frame edge
+(`--max-side`, default 448). See
 `eval/e2e_eval/README.md` for the alignment table, commands and output layout.
 
 ## Source provenance and scope

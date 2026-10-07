@@ -4,7 +4,7 @@ Messages come from the official `build_messages_base` (its `encode_video` does t
 resizing and JPEG encoding; the harness only caches its return value). Scoring is the
 `analyze.py` rule: first character of the stripped, upper-cased output equals `ground_truth`.
 Changed by the unified protocol: `nframes` is the question cap split evenly over the videos
-(official 32 per video) and `max_pixels` (longest edge) is 448 (official 720).
+(official 32 per video) and `max_pixels` (longest edge) is run.py's `--max-side` (official 720).
 """
 
 from __future__ import annotations

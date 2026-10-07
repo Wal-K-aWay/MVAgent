@@ -5,7 +5,8 @@ resizing, bbox/interval handling, prompt and message layout are all official. Th
 replaces the module-level `chat()` with a backend call that uses the official generation
 arguments read from `chat()` itself. Scoring mirrors each script's `main()`: exact string match
 (BU against the joined answer letters), FSA interval IoU, CCQA via the `score_CCQA.py` judge.
-Changed by the unified protocol: `--frames 512 --length 448` (official defaults 128 / 360).
+Changed by the unified protocol: the official `--frames` / `--length` take run.py's `--frames` / `--max-side`
+(official defaults 128 / 360).
 """
 
 from __future__ import annotations
