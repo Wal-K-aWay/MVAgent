@@ -3,6 +3,7 @@
 
   run.py infer --output DIR --endpoints 8100-8107 [--ids crossvid=eval/crossvid_2500.json]
   run.py score --output DIR
+  run.py preview cvbench:3 crossvid:MOC:0     # the exact messages, without calling a model
 
 `infer` sends every selected question once to the model and appends raw records to
 DIR/raw/<benchmark>.jsonl (resumable; only successful records count). `score` applies the official
@@ -97,7 +98,15 @@ def parse_args() -> argparse.Namespace:
     score.add_argument("--judge-workers", type=int, default=32)
     score.add_argument("--judge-attempts", type=int, default=3)
     score.add_argument("--judge-timeout", type=float, default=600.0)
+
+    preview = commands.add_parser("preview", help="print the messages built for some questions; no model call")
+    preview.add_argument("sample_ids", nargs="+", help="e.g. cvbench:3 mvu_eval:Counting:0 crossvid:MOC:0")
+    preview.add_argument("--frames", type=int, default=FRAMES_PER_CALL)
+    preview.add_argument("--max-side", type=int, default=MAX_SIDE)
+    preview.add_argument("--data-root", type=Path, default=Path("/assets"))
     args = parser.parse_args()
+    if args.command == "preview":
+        return args
     args.output = args.output.resolve()
     if args.command == "infer":
         args.benchmarks = tuple(dict.fromkeys(name.strip() for name in args.benchmarks.split(",") if name.strip()))
@@ -405,8 +414,74 @@ def run_score(args: argparse.Namespace) -> None:
         raise SystemExit(1)
 
 
+# ---------------------------------------------------------------------------
+# preview
+# ---------------------------------------------------------------------------
+
+class _Capture:
+    """Stands in for a backend: records the request instead of sending it."""
+
+    def complete(self, messages: list[dict[str, Any]], **generation: Any) -> tuple[str, dict[str, Any]]:
+        self.messages, self.generation = messages, generation
+        return "", {}
+
+
+def render_messages(messages: list[dict[str, Any]]) -> str:
+    """Message parts in order: text verbatim, consecutive same-size images collapsed into one line."""
+    from harness.media import image_sizes
+
+    lines: list[str] = []
+    run: list[Any] = [None, 0]
+
+    def flush() -> None:
+        if run[1]:
+            kind, (width, height) = run[0]
+            lines.append(f"[{run[1]} x {kind} {width}x{height}]")
+        run[:] = [None, 0]
+
+    for message in messages:
+        flush()
+        lines.append(f"===== role: {message['role']} =====")
+        content = message["content"]
+        for part in [{"type": "text", "text": content}] if isinstance(content, str) else content:
+            if part["type"] == "text":
+                flush()
+                lines.append("[text]")
+                lines.append(part["text"])
+            else:
+                url = part["image_url"]["url"]
+                key = (url[5 : url.index(";")], tuple(image_sizes([{"content": [part]}])[0]))
+                if key != run[0]:
+                    flush()
+                    run[0] = key
+                run[1] += 1
+    flush()
+    return "\n".join(lines)
+
+
+def run_preview(args: argparse.Namespace) -> None:
+    os.environ.pop(CACHE_ENV, None)
+    names = list(dict.fromkeys(sample_id.split(":")[0] for sample_id in args.sample_ids))
+    tasks = [sample_id.split(":")[1] for sample_id in args.sample_ids if sample_id.startswith("crossvid:")]
+    config = {"benchmarks": names, "crossvid_tasks": list(dict.fromkeys(tasks)),
+              "frames": args.frames, "max_side": args.max_side, "data_root": str(args.data_root)}
+    benchmarks = build_benchmarks(config)
+    for sample_id in args.sample_ids:
+        benchmark = benchmarks[sample_id.split(":")[0]]
+        item = next(item for item in benchmark.items if item["sample_id"] == sample_id)
+        capture = _Capture()
+        record = benchmark.infer(item, capture)
+        print(f"\n################ {sample_id} ({item['task']}) ################")
+        print("generation:", json.dumps(capture.generation))
+        print("media:", json.dumps(record["media"], ensure_ascii=False))
+        print(render_messages(capture.messages))
+
+
 def main() -> None:
     args = parse_args()
+    if args.command == "preview":
+        run_preview(args)
+        return
     args.output.mkdir(parents=True, exist_ok=True)
     run_infer(args) if args.command == "infer" else run_score(args)
 
