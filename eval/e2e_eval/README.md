@@ -101,7 +101,9 @@ PEA（28.8 → 41.8）和 27B 的 FSA（1.6 → 7.9）、PSS（3.6 → 6.8）。
 ## 运行
 
 vLLM 服务与 MVAgent 使用同一份配置（`configs/inference/modal_qwen35_*_no_skill.yaml` 及其 execution 配置，
-在 devbox 上由 `prelaunch.py` 启动）。vLLM 0.19 未指定时每种模态默认允许 999 张图；`F` 不超过 999 时不需要额外参数。
+在 devbox 上由 `prelaunch.py` 启动）。多个模型在同一个 devbox Sandbox 里依次测：`up --config/--execution/--pool`
+启动第一个模型，之后在同一个后台任务中用 `python /devtools/prelaunch.py --replace CONFIG EXECUTION POOL` 换模型
+（或在本机 `devbox.sh serve`），不要为换模型反复开关 Sandbox（使用规范见 `mvagent-environment` skill）。vLLM 0.19 未指定时每种模态默认允许 999 张图；`F` 不超过 999 时不需要额外参数。
 
 ```bash
 # 推理：可断点续跑；同一 --output 下协议、模型、题目集合或源码变化会拒绝续写
