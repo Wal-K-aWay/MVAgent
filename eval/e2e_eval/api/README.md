@@ -41,10 +41,8 @@ local vLLM runs. The selected provider configuration is recorded in `manifest.js
 ## Transport
 
 All providers receive the same sampled JPEG frames; none uploads or asks the provider to
-decode a source video. MVU-Eval and CrossVid already send ordered `image_url` parts.
-CVBench's per-video element is sent as an inline JPEG sequence that `providers/common.py`
-expands to ordered images (the vLLM backend instead sends one MJPEG AVI per video so that
-Qwen's time labels are real seconds; see `../README.md`). Qwen's endpoint rejects more
+decode a source video. All three benchmarks send ordered `image_url` parts, exactly as
+for the vLLM backend. Qwen's endpoint rejects more
 than 250 inline data URIs, so larger inputs are uploaded to DashScope's temporary OSS and
 sent as ordered `video` frame lists. DeepSeek's 48 MiB body limit is handled by keeping at
 most 24 MiB inline and replacing only the overflow frames with one-hour Files API

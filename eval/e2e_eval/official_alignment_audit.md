@@ -29,8 +29,7 @@
 | 问题 | 修复 | 验证（Qwen3.5-9B，H200，2026-10-07） |
 |---|---|---|
 | prompt、顺序、评分与官方不一致的风险 | MVU-Eval 直接调用 `build_messages_base`；CrossVid 直接调用各 task 的 `evaluate()`；CVBench 的 `mvr_doc_to_text`、`extract_characters_regex`、系统消息、提示句、yaml 生成参数按 AST 从官方文件读取；CrossVid 生成参数从官方 `chat()` 读取并校验十个脚本一致 | 本机核对 AST 读取结果与官方文件一致；冒烟 24 题全部成功 |
-| CVBench 帧截断 | 请求带 `media_io_kwargs={"video": {"num_frames": -1}}` | cvbench:0 两个视频各 256 帧全部进入模型（prompt 31,351 token） |
-| CVBench 假时间戳 | 每个视频的 JPEG 帧原样封装进 MJPEG AVI（PyAV），帧率 = `(k-1)·fps/(末帧下标-首帧下标)`；`mm_processor_kwargs={"do_sample_frames": false}` 禁止重采样 | 每视频 8 帧时读回 prompt：时间标签为 10.5/52.3/94.2/136.1 s（146.6 s 的视频），与采样帧真实时刻一致；旧帧序列方式为 0.5/2.5/4.5/6.5 |
+| CVBench 帧截断与假时间戳 | 改为逐帧图片输入（与 MVU-Eval、CrossVid 一致），不再经过 vLLM 的视频加载路径 | 曾验证 vLLM 视频路径：JPEG 帧序列不加 `num_frames=-1` 时只保留 32 帧，时间标签为帧序号（0.5/2.5/4.5/6.5）。图片输入没有这两个问题，但模型也看不到时间 |
 | 失败题被丢弃或静默改分母 | 失败记为 error，重跑同一命令补跑；全部成功才给总分；CCQA Judge 失败报错 | 冒烟中 CCQA 未配置 Judge 凭据时，score 明确报告“未评分”，CrossVid 总分为空 |
 | 帧数、分辨率无法事后核实 | 每题记录实际帧数、每帧尺寸、prompt token、finish_reason；summary 汇总最大值 | 冒烟：三个 benchmark 每次调用最多 512 帧、最长边 448 |
 | 运行参数遗失 | manifest 记录协议、模型权重、题目集合哈希、源码与官方文件哈希；`source/` 冻结代码，续跑时必须一致 | 见冒烟输出 `manifest.json` |
@@ -38,7 +37,7 @@
 ## 4. 目前不能声称的
 
 - 与论文榜单可直接比较：帧数和分辨率按统一协议改变，CCQA Judge 也不同于论文的 GPT-4.1。
-- 模型实际看到的分辨率一定是 448：Qwen3.5 处理器会把尺寸取整到 32 的倍数，并对每个视频施加约 12k token 的总像素上限。
-  CVBench 每视频 256 帧、448×252 时会被处理器再略微缩小（这是模型默认行为，按题记录了 token 数）。
+- 模型看到的每帧恰好是 448 像素：Qwen3.5 处理器会把图片尺寸取整到 32 的倍数（例如 448×252 → 448×256）。
+- CVBench 与官方输入形式相同：官方为 video 元素（带真实时间），这里是逐帧图片（无时间信息）。
 - CVBench 提示图满足 448：它们按官方原图发送（约 1192 像素宽）。
 - MVU-Eval 的生成设置与官方完全相同：官方不传生成参数，本框架固定为贪心解码、max_tokens 1024。
