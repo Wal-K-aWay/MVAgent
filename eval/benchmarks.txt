@@ -1,3 +1,0 @@
-/assets/cvbench
-/assets/mvu-eval
-/assets/crossvid

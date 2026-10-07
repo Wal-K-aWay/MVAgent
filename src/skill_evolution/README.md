@@ -26,3 +26,7 @@ body injection, actions/parameters and outcome. Missing Actor requests remain un
 selection or injection does not itself establish semantic applicability or usefulness.
 
 Cluster v2：`global-cluster-v2`；见 [cluster_v2 README](algorithms/alternating/global/cluster_v2/README.md)。使用显式 Train/Cal/Gate 分区，四阶段 optimizer、完整 Cal 搜索池及隔离的正式 Gate。配置 `configs/skill_evolution/global_cluster_v2_35b.yaml`，训练不加载 Test；独立评估可选 `--split cal` 或 `--split test`。
+
+## 数据
+
+- [CrossVid 干净训练池](crossvid_clean_pool.json)：1734 个 CrossVid 题目 ID（`crossvid:<task>:<original_id>`），其视频来源与 [Lite2500 评估集](../../eval/crossvid_2500.json) 完全不重叠，用作 Skill 进化中 optimizer 可读数据（Train）的来源。来源按录像计：Assembly101 同一次录像的不同相机视角、同一部电影的不同片段（`<TITLE>-<n>.mp4`）、MOC/MSR 的同一 UAV 序列都算同一来源。各 task 题数：BU 492、CC 36、CCQA 96、FSA 202、MOC 338、MSR 344、NC 6、PEA 45、PI 15、PSS 160。由 `python3 scripts/prepare_crossvid_clean_pool.py --qa-dir <CrossVid>/QA --output src/skill_evolution/crossvid_clean_pool.json` 生成。池内题目之间仍可能共享视频，切分 Train/Cal/Gate 时还需按来源隔离。
