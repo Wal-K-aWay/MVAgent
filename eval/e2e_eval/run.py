@@ -373,7 +373,9 @@ def run_score(args: argparse.Namespace) -> None:
             else:
                 scored[sample_id] = {"sample_id": sample_id, "task": items[sample_id]["task"],
                                      **benchmark.score(items[sample_id], raw[sample_id]["output"])}
-        if judge_pending:
+        if judge_pending and not os.environ.get("DEEPSEEK_API_KEY"):
+            failures.append(f"CCQA: {len(judge_pending)} answers not judged; set DEEPSEEK_API_KEY and rerun score")
+        elif judge_pending:
             from harness.ccqa import judge_outputs
 
             judged = judge_outputs(judge_pending, cache_dir=args.output / "judge_cache", model=args.judge_model,

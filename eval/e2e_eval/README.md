@@ -1,31 +1,119 @@
-# Vendored official benchmark evaluation sources
+# 端到端（E2E）测试
 
-Current official-API pricing and the 5324-question cost estimate are documented in
-[`API_COSTS.md`](API_COSTS.md).
+`run.py` 是 CVBench、MVU-Eval、CrossVid 三个 benchmark 的统一 E2E 入口：同一套命令行、同一个 vLLM 服务、
+同一种输出格式。prompt、输入顺序、抽帧方式、生成参数和评分都直接取自（或直接调用）本目录下的官方源码；
+协议参数只有两个：**每次模型调用最多 512 帧，每帧最长边不超过 448 像素**。
 
-These files are tracked directly by the MVAgent repository. They are reduced snapshots
-of the official repositories, not nested Git repositories.
+```
+eval/e2e_eval/
+  run.py                  统一入口：infer（推理，原始记录先落盘）/ score（官方评分 + 汇总）
+  harness/
+    common.py             路径、IO；从官方源码中按 AST 读取函数、常量和调用参数，按源码隔离加载官方脚本
+    backends.py           VLLMBackend（多副本端点池，默认）/ APIBackend（api/ 下的闭源模型）
+    media.py              CVBench 抽帧与视频封装、共享预处理缓存、逐请求图像尺寸核查
+    cvbench.py            lmms-eval mvr 任务 + Qwen2.5-VL adapter
+    mvu_eval.py           调用官方 inference/main.py 的 build_messages_base
+    crossvid.py           调用官方 eval/<TASK>.py 的 evaluate()
+    ccqa.py               CCQA Judge（官方 score_CCQA.py 的 prompt 与汇总公式）
+  api/                    闭源模型的 provider 配置（APIBackend 使用）
+  CVBench/ MVU-Eval/ CrossVid/   官方源码快照（见文末，不修改）
+```
 
-| Benchmark | Official repository | Imported commit | Retained scope |
+## 统一协议与官方对齐
+
+| | CVBench | MVU-Eval | CrossVid |
 |---|---|---|---|
-| CVBench | `https://github.com/Hokhim2/CVBench` | `f8dc8f752fb8e7a3a05ac90e9ff9b3a9e90d79ed` | CVBench/MVR evaluation data and prompts, Video-R1 evaluation entry, lmms-eval runtime, MVR task, Qwen2.5-VL/OpenAI-compatible adapters, and required cue images |
-| MVU-Eval | `https://github.com/NJU-LINK/MVU-Eval` | `a5937adea78e9649af53cd9a4e30a91ed7fd3df2` | `inference/`, root README files, and license |
-| CrossVid | `https://github.com/chuntianli666/CrossVid` | `b53ada63551f9ac4a726b381b627d17ece066281` | `eval/`, root README, and license |
+| 执行的官方代码 | `mvr_doc_to_text`、`extract_characters_regex`、adapter 的系统消息和提示句（AST 读取） | `build_messages_base`（含 `encode_video`）直接调用 | 十个 `eval/<TASK>.py` 的 `evaluate()` 直接调用 |
+| 输入形式 | 每个视频一个 video 元素（官方）。vLLM：每个视频封装为 MJPEG AVI；API：有序 JPEG 帧 | 逐帧 JPEG（质量 75）`image_url`（官方） | 逐帧 JPEG，图文交替（官方） |
+| 帧数 | 每视频 `512 // 视频数`（官方 8） | 每视频 `512 // 视频数`（官方 32） | `--frames 512`，按各 task 官方规则分配（官方默认 128） |
+| 分辨率 | 等比缩放，最长边 448（官方拉伸为 448×448） | `max_pixels=448`（官方 720） | `--length 448`（官方默认 360） |
+| 缩放与编码 | decord 按目标尺寸解码后编码 | 官方 `encode_video` | 官方 `cv2.resize(INTER_AREA)` 后 `cv2.imencode` |
+| 采样下标 | `linspace(0, n-1, k).round()`（同 `qwen_vl_utils`） | 官方 | 官方 |
+| 顺序与 prompt | system → [起始提示图, 视频, 结束提示图]×N → 提示句 → 题目（同 adapter） | 官方 | 官方 |
+| 生成参数 | temperature 0、top_p 1（yaml），max_tokens 128（adapter 硬编码） | **官方未设置**；本框架固定 temperature 0、top_p 1、max_tokens 1024 | 从官方 `chat()` 读取：max_tokens 8192、temperature 0、top_p 0.95 |
+| thinking | 请求中显式关闭（与 MVAgent 相同） | 同左 | 同左 |
+| 逐题评分 | `extract_characters_regex(out).strip().upper() == answer.strip().upper()` | `out.strip().upper()[:1] == ground_truth` | 严格相等（BU 与拼接后的答案比较）；FSA 用官方 `interval_iou`，解析失败记 0；CCQA 由 Judge 评分 |
+| 汇总 | 按题平均，分 15 个 `task_type` | 按题平均，分 task | 十类 task 等权平均（O.Avg）；CCQA 为总得分 / 总满分 |
 
-Omitted content includes documentation images, CrossVid QA-generation utilities,
-CVBench training code/configurations, saved evaluation results, unrelated lmms-eval
-tasks and model adapters, examples, documentation, and developer tools. CVBench's
-lmms-eval model registry is reduced to the two retained adapters. Dataset media remains external
-under `/home/kww/datasets/Multi-Video/`.
+有意的偏差与说明：
 
-Do not describe the reduced directory itself as a complete clone. Report the MVAgent
-commit and the imported upstream commit when publishing benchmark results.
+- **帧数与分辨率**：统一为 512 帧、448 像素，这是本协议唯一主动改动的两个参数。CVBench 官方拉伸为 448×448，这里保持宽高比。
+- **CVBench 的视频传输**：官方 adapter 把视频文件交给 `qwen_vl_utils`，后者解码成像素张量并带上真实采样帧率。
+  OpenAI 兼容请求无法传张量，所以每个视频的抽样帧被封装成一个 MJPEG AVI，帧率设为 `(k-1)·fps / (末帧下标-首帧下标)`；
+  请求中 `media_io_kwargs={"video": {"num_frames": -1}}` 保留全部帧，`mm_processor_kwargs={"do_sample_frames": false}`
+  禁止处理器重新采样。这样 Qwen3.5 插入的时间标签就等于每帧在原视频中的秒数。
+  不这样做时，vLLM 会把 JPEG 帧序列截断到 32 帧，并按 1 fps 标注时间（即帧序号）。
+- **模型自身的预处理**：Qwen3.5 处理器会把尺寸取整到 32 的倍数，并对每个视频施加总像素上限。
+  这是模型的默认行为，不额外修改；每题实际的 prompt token 数记录在原始记录中。
+- **CVBench 提示图**：`res/videoN.png`、`endN.png` 按官方原图发送（约 1192 像素宽）。它们不是视频帧，不受 448 限制。
+- **MVU-Eval 生成参数**：官方不传任何生成参数，取服务端默认（可能是随机采样）。本框架用贪心解码保证可复现；
+  1024 的 token 上限只用来截断失控输出，不影响首字符评分。
+- **失败处理**：官方 MVU-Eval 和 CrossVid 会静默丢弃失败的题。这里失败会记录为 error，重跑同一命令时会补跑；
+  只有全部题目成功才给出总分。CCQA 的 Judge 失败同样报错，不记为 0 分。
+- **CCQA Judge**：论文使用 GPT-4.1。本框架与 MVAgent 共用同一个固定 Judge（`deepseek-v4-flash`，代码在
+  `eval/agent_eval/score_crossvid_ccqa.py`），prompt 和汇总公式与 `score_CCQA.py` 逐字一致（运行时校验）。
 
-## Official multimodal API adapter
+## 运行
 
-`api/run.py` is the tracked official-API adapter for all three snapshots. It defaults
-to a 512-video-frame question cap and a 720-pixel longest edge. Provider profiles and
-credentials are centralized in `api/client.py`; benchmark prompts and scorers remain
-in their official snapshots. See `api/README.md` for the supported models, current
-ordered-image transport, commands, cache behavior and explicit native-video/Batch
-boundary.
+vLLM 服务与 MVAgent 使用同一份配置（`configs/inference/modal_qwen35_*_no_skill.yaml` 及其 execution 配置，
+在 devbox 上由 `prelaunch.py` 启动）。vLLM 0.19 未指定时每种模态默认允许 999 个输入，512 张图不需要额外参数。
+
+```bash
+# 推理：可断点续跑；同一 --output 下协议、模型、题目集合或源码变化会拒绝续写
+python eval/e2e_eval/run.py infer --output OUT \
+  --endpoints 8100-8107 \
+  --benchmarks cvbench,mvu_eval,crossvid \
+  --ids crossvid=eval/crossvid_2500.json \
+  --media-cache-dir /work/e2e_media
+
+# 评分与汇总（CCQA 需要 DEEPSEEK_API_KEY）
+python eval/e2e_eval/run.py score --output OUT
+```
+
+常用参数：
+
+| 参数 | 说明 |
+|---|---|
+| `--benchmarks` | `cvbench,mvu_eval,crossvid` 的任意子集 |
+| `--crossvid-tasks` | CrossVid task 子集，默认全部十类 |
+| `--ids BENCH=PATH` | 只测 JSON 列表中的题目（ID 格式与 MVAgent 相同：`cvbench:<id>`、`mvu_eval:<task>:<id>`、`crossvid:<TASK>:<id>`） |
+| `--limit N` | 冒烟测试：每个 benchmark 前 N 题（CrossVid 为每个 task 前 N 题） |
+| `--frames` / `--max-side` | 协议参数，默认 512 / 448；改动后应使用新的 `--output` |
+| `--endpoints` | vLLM 端点：URL、端口或端口范围（`8100-8107`）；`--model` 默认取端点唯一的模型 |
+| `--inflight` | 每个端点同时在途的请求数，默认 1（与 MVAgent 基线一致，结果逐位可复现） |
+| `--workers` | 并发准备的题数，默认为请求槽数的 2 倍，让解码与推理重叠 |
+| `--api-model` | 用 `api/` 中的闭源模型代替 vLLM（例如 `glm-5.3-flash`），凭据只从环境变量读取 |
+| `--media-cache-dir` | 与模型无关的预处理缓存，换模型时可复用；传空字符串关闭 |
+
+## 输出
+
+```
+OUT/
+  manifest.json        identity（协议、模型与权重、各 benchmark 的官方设置、题目集合哈希、源码与官方文件哈希）
+                       + runs（每次运行的端点、并发、git 版本、开始/结束时间与结果计数）
+  source/              首次运行时冻结的 run.py 与 harness/；续跑时必须一致
+  selection.json       每个 benchmark 选中的 sample_id
+  raw/<bench>.jsonl    每题一行，追加写入：status、output（模型原文）、error、media（帧数、尺寸）、
+                       request（端点、usage、finish_reason、生成参数）、seconds
+  scored/<bench>.json  逐题官方评分：prediction、answer、score（CCQA 另有 coverage/correctness/points）
+  summary.json         各 benchmark 总分（CVBench/MVU-Eval 为 accuracy，CrossVid 为 o_avg）、分 task 分数、
+                       完成度，以及核查项（每次调用最大帧数、最大边长、prompt token、finish_reason）
+  judge_cache/         CCQA Judge 响应缓存
+```
+
+逐题记录与 MVAgent 的 sample_id 相同，可以直接按题对比。
+
+## 官方源码快照
+
+这些文件是官方仓库的精简快照，直接纳入 MVAgent 的 git，不修改其中的评测逻辑
+（CrossVid 只多了一个可选的预处理缓存 `utils/preprocess_cache.py` 和进程池的 `maxtasksperchild`，
+二者不影响抽帧、prompt 或评分）。数据集在 Modal volume `/assets` 下（布局见 `mvagent-environment` skill）。
+
+| Benchmark | 官方仓库 | 导入的 commit | 保留范围 |
+|---|---|---|---|
+| CVBench | `https://github.com/Hokhim2/CVBench` | `f8dc8f752fb8e7a3a05ac90e9ff9b3a9e90d79ed` | CVBench/MVR 题目与 prompt、Video-R1 评测入口、lmms-eval 运行时、MVR task、Qwen2.5-VL/OpenAI 兼容 adapter、提示图 |
+| MVU-Eval | `https://github.com/NJU-LINK/MVU-Eval` | `a5937adea78e9649af53cd9a4e30a91ed7fd3df2` | `inference/`、README、license |
+| CrossVid | `https://github.com/chuntianli666/CrossVid` | `b53ada63551f9ac4a726b381b627d17ece066281` | `eval/`、README、license |
+
+发表结果时同时报告 MVAgent 的 commit 和上面三个上游 commit。闭源 API 的价格估算见 [`API_COSTS.md`](API_COSTS.md)，
+provider 细节见 [`api/README.md`](api/README.md)。

@@ -18,14 +18,15 @@ source URLs/commits are recorded in `eval/e2e_eval/README.md`.
 
 | Benchmark | Official test code | Assessment | Important boundary |
 |---|---|---|---|
-| CVBench | `lmms-eval/lmms_eval/tasks/mvr/` and `Video-R1/src/eval_bench.py` | Complete retained MVR task with the official Qwen2.5-VL and OpenAI-compatible adapters | The upstream generic adapter does not expose the explicit frame budgets and cue handling used for this Qwen3.6 run; use the documented local-vLLM compatibility runner and label its results accordingly. |
+| CVBench | `lmms-eval/lmms_eval/tasks/mvr/` and `Video-R1/src/eval_bench.py` | Complete retained MVR task with the official Qwen2.5-VL and OpenAI-compatible adapters | The upstream adapter runs Qwen2.5-VL in-process; `eval/e2e_eval/run.py` reproduces its message layout, prompt and scorer over an OpenAI-compatible endpoint. |
 | MVU-Eval | `inference/main.py` and `inference/analyze.py` | Functionally complete vLLM inference and aggregate analysis path | `analyze.py` hard-codes its result folder in `__main__`; configure that in an experiment-local copy and keep the upstream answer parsing unchanged for official numbers. |
 | CrossVid | ten task scripts under `eval/` plus `eval/score_CCQA.py` | Functionally complete and the clearest of the three; inference supports OpenAI-compatible APIs | `score_CCQA.py` hard-codes API placeholders and service settings. Configure an experiment-local copy, keep its scoring logic unchanged, and never write a real key into this repository or the vendored source. |
 
-The tracked `eval/e2e_eval/api/run.py` adapter adds the researched official API
-models across all three benchmarks without editing their imported task logic. Profiles
-default to 512 sampled video frames per question and a 720-pixel longest edge; see
-`eval/e2e_eval/api/README.md` for supported models, credentials and commands.
+All end-to-end runs go through the unified harness `eval/e2e_eval/run.py` (vLLM endpoints or
+the official API profiles in `eval/e2e_eval/api/`). It executes or reads the official prompts,
+message order, sampling and scoring from the vendored sources; the only protocol parameters
+are 512 video frames per model call and a 448-pixel longest edge. See
+`eval/e2e_eval/README.md` for the alignment table, commands and output layout.
 
 ## Source provenance and scope
 
@@ -58,100 +59,6 @@ the official inference/scoring logic while keeping machine-specific settings and
 secrets outside Git. A rewritten parser, metric, prompt, or request
 flow is not an official result path.
 
-## Local Qwen vLLM resource controls
-
-For the local OpenAI-compatible adapter, frame controls are explicit and keep each
-benchmark's native semantics:
-
-| Benchmark | Per-video cap | Per-question cap | Resolution control |
-|---|---|---|---|
-| CVBench | `--cv-frames-per-video` | `--cv-question-frame-cap` | `--cv-max-side` (aspect-ratio preserving) |
-| MVU-Eval | `--mvu-frames-per-video` | `--mvu-question-frame-cap` | `--mvu-max-side` (aspect-ratio preserving) |
-| CrossVid | official `--frames` (total per query) | same value | official `--length` (maximum frame side); launcher alias `MAX_FRAME_SIDE` |
-
-Example smoke run against one local Qwen vLLM endpoint:
-
-```bash
-python scripts/run_official_cvbench_mvu.py \
-  --model qwen35_local \
-  --cv-ports 8001 \
-  --mvu-ports 8001 \
-  --limit 1 \
-  --cv-frames-per-video 2 \
-  --cv-question-frame-cap 8 \
-  --cv-max-side 224 \
-  --mvu-frames-per-video 2 \
-  --mvu-question-frame-cap 8 \
-  --mvu-max-side 224 \
-  --decode-batch-frames 64 \
-  --media-cache-dir .cache/e2e_media \
-  --output outputs/local_vllm_qwen36_smoke
-```
-
-`--decode-batch-frames` bounds the number of decoded RGB frames retained at once by
-each worker. The shared `--media-cache-dir` is independent of the model name, so later
-model-size runs reuse preprocessing when source identity, effective frame allocation,
-maximum side, and JPEG quality match. Different effective frame counts for the same
-video have different cache keys. Use `--no-media-cache` for a cold-path comparison.
-
-This adapter is intended to verify and compare the local endpoint. CVBench does not
-ship a generic OpenAI-compatible official model adapter, so results from this wrapper
-must be labeled as local-vLLM compatibility results rather than unmodified official
-framework results. It snapshots only the local compatibility runner under the run
-output and references the Git-tracked reduced sources in `eval/e2e_eval/`; it does not
-copy those source trees or nested repositories into each output.
-
-The verified high-input setting is `--cv-frames-per-video 512
---cv-question-frame-cap 512 --cv-max-side 720` for CVBench and the corresponding
-`--mvu-frames-per-video 512 --mvu-question-frame-cap 512 --mvu-max-side 720` for
-MVU-Eval. The question cap is divided evenly across its videos, so the total may be
-slightly below 512 when it is not divisible by the video count or when a source video
-contains fewer frames. For CrossVid use official `--frames 512 --length 720`, or
-`FRAMES=512 MAX_FRAME_SIDE=720` with the launcher; `MODEL` selects the exact served
-model name and defaults to `qwen35_local`. Run 512-frame smoke requests
-sequentially on one endpoint unless endpoint capacity has been measured for concurrent
-requests.
-
-The CrossVid launcher exports `MVAGENT_E2E_MEDIA_CACHE_DIR` from `MEDIA_CACHE_DIR`
-(default `.cache/e2e_media`). This optional execution cache has separate whole-video,
-interval-video, and bbox-frame namespaces and stores the complete preprocessing return
-tuple, including FPS, timestamps, bbox mappings, and encoded frames. Keys contain the
-corresponding frame count, resolution, intervals, sampled source frames, and bbox input,
-but not the model name, so later model-size runs can safely reuse identical processing.
-The safe launcher also sets `DECORD_EOF_RETRY_MAX=40960` so lightly damaged H.264 files
-can still return the exact requested source-frame indices, and recycles evaluation pool
-children after `CROSSVID_MAX_TASKS_PER_CHILD` questions (default 25) to bound retained
-Base64/JPEG allocator memory. These are execution controls; they do not alter prompts,
-sampled indices, bbox/timestamp mappings, or scoring.
-
-For a live run that already has one request stream per endpoint,
-`scripts/official_crossvid/run_crossvid_accelerator_lane.sh` can own a disjoint list of
-remaining tasks. Its child-recycle default is 4 because several simultaneous 512-frame
-requests have a larger memory high-water mark. Pair it with
-`monitor_crossvid_accelerators.sh`: only accelerator process groups are stopped if
-system `MemAvailable` falls below 256 GiB or their aggregate RSS exceeds 64 GiB; the
-primary run is never terminated and task files remain resumable. Never assign the same
-task to an accelerator and the primary queue at the same time.
-
-CVBench and MVU-Eval entries can be completed independently of inference with one
-bounded-memory worker:
-
-```bash
-DECORD_EOF_RETRY_MAX=40960 nice -n 19 ionice -c3 \
-  python scripts/prewarm_e2e_media_cache.py \
-  --only cvbench \
-  --cv-frames-per-video 512 \
-  --cv-question-frame-cap 512 \
-  --cv-max-side 720 \
-  --decode-batch-frames 64 \
-  --cache-dir .cache/e2e_media \
-  --report outputs/e2e_media_cache_prewarm.json
-```
-
-The prewarmer deduplicates by the same cache key, skips hits without loading their
-Base64 payloads, processes only one missing video specification at a time, and writes an
-atomic resumable coverage report. Use `--audit-only` to measure coverage without writes.
-
 ## Run the upstream evaluations
 
 First follow each upstream README for dependencies and dataset placement. Keep large
@@ -172,8 +79,7 @@ python -m accelerate.commands.launch --num_processes=1 -m lmms_eval \
 ```
 
 The alternative official Video-R1 path is documented in
-`eval/e2e_eval/CVBench/README.md`. Do not substitute the removed MVAgent compatibility
-runner for an official CVBench score.
+`eval/e2e_eval/CVBench/README.md`.
 
 ### MVU-Eval
 
