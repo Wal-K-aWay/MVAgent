@@ -28,7 +28,7 @@
 
 | 问题 | 修复 | 验证（Qwen3.5-9B，H200，2026-10-07） |
 |---|---|---|
-| prompt、顺序、评分与官方不一致的风险 | MVU-Eval 直接调用 `build_messages_base`；CrossVid 直接调用各 task 的 `evaluate()`；CVBench 的 `mvr_doc_to_text`、`extract_characters_regex`、系统消息、提示句、yaml 生成参数按 AST 从官方文件读取；CrossVid 生成参数从官方 `chat()` 读取并校验十个脚本一致 | 本机核对 AST 读取结果与官方文件一致；冒烟 24 题全部成功 |
+| prompt、顺序、评分与官方不一致的风险 | MVU-Eval 直接调用 `build_messages_base`；CrossVid 直接调用各 task 的 `evaluate()`；CVBench 的 `mvr_doc_to_text`、`extract_characters_regex`、系统消息、提示句、yaml 生成参数按 AST 从官方文件读取；CrossVid 生成参数从官方 `chat()` 读取并校验十个脚本一致 | 本机核对 AST 读取结果与官方文件一致；图片输入版冒烟（每个 benchmark/task 3 题，共 36 题）两轮全部成功且逐题一致 |
 | CVBench 帧截断与假时间戳 | 改为逐帧图片输入（与 MVU-Eval、CrossVid 一致），不再经过 vLLM 的视频加载路径 | 曾验证 vLLM 视频路径：JPEG 帧序列不加 `num_frames=-1` 时只保留 32 帧，时间标签为帧序号（0.5/2.5/4.5/6.5）。图片输入没有这两个问题，但模型也看不到时间 |
 | 失败题被丢弃或静默改分母 | 失败记为 error，重跑同一命令补跑；全部成功才给总分；CCQA Judge 失败报错 | 冒烟中 CCQA 未配置 Judge 凭据时，score 明确报告“未评分”，CrossVid 总分为空 |
 | 帧数、分辨率无法事后核实 | 每题记录实际帧数、每帧尺寸、prompt token、finish_reason；summary 汇总最大值 | 冒烟（默认 `F`=512、`S`=448）：三个 benchmark 每次调用最多 `F` 帧、最长边 `S` |

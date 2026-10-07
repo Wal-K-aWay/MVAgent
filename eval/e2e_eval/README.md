@@ -51,7 +51,7 @@ eval/e2e_eval/
 - 所有 benchmark 都是贪心解码（temperature 0），`run.py` 启动时校验，否则拒绝运行。贪心解码下 vLLM 会把
   top_p/top_k 重置为不生效，所以 CrossVid 官方的 top_p 0.95 与 1.0 等价，保留官方取值。
 - thinking 在请求中显式关闭；服务端用 `--generation-config vllm`，不引入模型自带的采样默认值。
-- 每个 vLLM 副本同时只处理一个请求（不可配置），各次运行的 batch 组成相同。在 H200 上实测：同一批 24 题重跑，
+- 每个 vLLM 副本同时只处理一个请求（不可配置），各次运行的 batch 组成相同。在 H200 上实测：同一批 36 题重跑，
   模型输出与 prompt token 数逐题完全一致。
 - 原始记录先落盘再评分；CCQA Judge 的响应按内容缓存，重新评分不会再次调用 Judge。
 
@@ -86,6 +86,10 @@ python eval/e2e_eval/run.py infer --output OUT \
 # 评分与汇总（CCQA 需要 DEEPSEEK_API_KEY）
 python eval/e2e_eval/run.py score --output OUT
 ```
+
+耗时参考（默认 `F`、`S`；Qwen3.5-9B，单张 H200，每副本一个请求；2026-10-07 冒烟实测）：每题模型调用
+CVBench 约 8.9 s（约 6.5 万 prompt token）、MVU-Eval 约 10.4 s（约 7.3 万）、CrossVid 约 8.3 s（约 6.1 万）。
+解码与编码在 CPU 上与推理重叠进行，冷缓存时 CrossVid 每题约 7.5 s CPU 时间。
 
 常用参数：
 
