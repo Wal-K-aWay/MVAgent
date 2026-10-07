@@ -31,7 +31,7 @@ eval/e2e_eval/
 | 分辨率 | 等比缩放，最长边 `S`（官方拉伸为 448×448） | `max_pixels=S`（官方 720） | 官方 `--length` 设为 `S`（官方默认 360） |
 | 缩放与编码 | decord 按目标尺寸解码后编码 | 官方 `encode_video` | 官方 `cv2.resize(INTER_AREA)` 后 `cv2.imencode` |
 | 采样下标 | `linspace(0, n-1, k).round()`（同 `qwen_vl_utils`） | 官方 | 官方 |
-| 顺序与 prompt | system → [`Video k:`, 该视频的帧]×N → 题目（官方 prompt；去掉了解释提示图的那句话） | [`Video k:`, 该视频的帧]×N → 题目 → 指令 → 选项（官方顺序与原文）→ 一句格式提醒（新增） | 官方 |
+| 顺序与 prompt | system → [`Video k:`, 该视频的帧]×N → 题目（官方 prompt；去掉了解释提示图的那句话） | [`Video k:`, 该视频的帧]×N → 题目 → 指令 → 选项（官方顺序与原文） | 官方 |
 | 生成参数 | temperature 0、top_p 1（yaml），max_tokens 128（adapter 硬编码） | **官方未设置**；本框架固定 temperature 0、top_p 1、max_tokens 8192（与 CrossVid 相同） | 从官方 `chat()` 读取：max_tokens 8192、temperature 0、top_p 0.95 |
 | thinking | 请求中显式关闭（与 MVAgent 相同） | 同左 | 同左 |
 | 逐题评分 | `extract_characters_regex(out).strip().upper() == answer.strip().upper()` | `out.strip().upper()[:1] == ground_truth` | 严格相等（BU 与拼接后的答案比较）；FSA 用官方 `interval_iou`，解析失败记 0；CCQA 由 Judge 评分 |
@@ -91,12 +91,8 @@ PEA（28.8 → 41.8）和 27B 的 FSA（1.6 → 7.9）、PSS（3.6 → 6.8）。
   因此 E2E 也不给文件名，两者得到的信息一致。
 - **MVU-Eval 生成参数**：官方不传任何生成参数，取服务端默认（可能是随机采样）。本框架用贪心解码保证可复现；
   8192 的 token 上限只用来截断失控输出，不影响首字符评分。
-- **MVU-Eval 格式提醒**：官方把答题指令放在选项之前，消息以选项列表结尾。Qwen3.5-9B 在 64 道抽样题中有 53 道先写分析
-  而不直接作答，官方首字符评分只有 4/64。CVBench、CrossVid 都在结尾给出答题要求，偏离格式的输出很少。因此只在
-  MVU-Eval 选项之后追加一句通用提醒 `Strictly follow the required format: output only the answer, with no other text.`，
-  官方指令、题目、选项的原文与顺序不变，不针对任何题型。同样 64 题上：格式合格 11/64 → 64/64，官方分 4/64 → 23/64；
-  与“不提醒、读取分析后的答案”（26/64）相比，差异在随机波动内（各自独有答对 9 / 6 题）。
-  CVBench、CrossVid 不加提醒；其偏离格式的输出由格式稳健分处理（见下）。
+- **MVU-Eval 答题格式**：官方把答题指令放在选项之前，消息以选项列表结尾。`F`=512 时 Qwen3.5-9B 在 64 道抽样题中
+  有 53 道先写分析而不直接作答（官方首字符评分 4/64，格式稳健分 26/64）。prompt 保持官方原样，由格式稳健分反映能力。
 - **失败处理**：官方 MVU-Eval 和 CrossVid 会静默丢弃失败的题。这里失败会记录为 error，重跑同一命令时会补跑；
   只有全部题目成功才给出总分。CCQA 的 Judge 失败同样报错，不记为 0 分。
 - **CCQA Judge**：论文使用 GPT-4.1。本框架与 MVAgent 共用同一个固定 Judge（`deepseek-v4-flash`，代码在
