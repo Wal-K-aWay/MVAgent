@@ -11,9 +11,11 @@ Changed by the unified protocol: the official `--frames` / `--length` take run.p
 
 from __future__ import annotations
 
+import re
 import threading
 from typing import Any
 
+from .answers import option_labels, read_choice, read_interval, read_letters, read_order
 from .common import CROSSVID_SOURCE, load_official_module, official_call_kwargs, read_json
 from .media import image_sizes
 
@@ -87,16 +89,45 @@ class CrossVid:
         }
 
     def score(self, item: dict[str, Any], output: str) -> dict[str, Any]:
+        """Official score as in each script's main(), plus the format-robust score (harness/answers.py)."""
         task, row = item["task"], item["row"]
         if task == "CCQA":
             raise ValueError("CCQA is scored by the judge (harness.ccqa)")
         if task == "FSA":
-            try:
-                start, end = output.split(",")
-                start, end = float(start), float(end)
-                iou = self.modules["FSA"].interval_iou((start, end), (row["answer"][0], row["answer"][1]))
-                return {"prediction": [start, end], "answer": row["answer"], "score": float(iou)}
-            except Exception:  # noqa: BLE001 - FSA.py main(): any parse failure scores 0
-                return {"prediction": output, "answer": row["answer"], "score": 0.0}
-        expected = "".join(row["answer"]) if task == "BU" else row["answer"]
-        return {"prediction": output, "answer": expected, "score": float(output == expected)}
+            official = self._interval_score(output, row)
+            format_ok = official is not None
+            robust_text = output if format_ok else read_interval(output)
+            robust = self._interval_score(robust_text, row) if robust_text else None
+            return {
+                "prediction": output, "answer": row["answer"], "score": official or 0.0,
+                "format_ok": format_ok, "robust_prediction": robust_text, "robust_score": robust or 0.0,
+            }
+        labels = option_labels(row.get("options") or [])
+        if task == "BU":
+            expected = "".join(row["answer"])
+            format_ok = bool(re.fullmatch(rf"[{labels}]+", output))
+            robust = output if format_ok else read_letters(output, labels)
+            robust_score = float(robust is not None and sorted(robust) == sorted(expected))
+        elif task == "PSS":
+            expected = row["answer"]
+            format_ok = bool(re.fullmatch(r"\d+(?:->\d+)+", output))
+            robust = output if format_ok else read_order(output)
+            robust_score = float(robust == expected)
+        else:
+            expected = row["answer"]
+            format_ok = bool(re.fullmatch(rf"[{labels}]", output))
+            robust = output if format_ok else read_choice(output, labels)
+            robust_score = float(robust == expected)
+        return {
+            "prediction": output, "answer": expected, "score": float(output == expected),
+            "format_ok": format_ok, "robust_prediction": robust, "robust_score": robust_score,
+        }
+
+    def _interval_score(self, text: str, row: dict[str, Any]) -> float | None:
+        """FSA.py main(): "start,end" -> IoU with the reference; None when it does not parse."""
+        try:
+            start, end = text.split(",")
+            start, end = float(start), float(end)
+            return float(self.modules["FSA"].interval_iou((start, end), (row["answer"][0], row["answer"][1])))
+        except Exception:  # noqa: BLE001 - FSA.py main(): any parse failure scores 0
+            return None

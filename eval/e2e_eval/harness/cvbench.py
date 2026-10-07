@@ -16,6 +16,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from .answers import leads_with_choice, read_choice, read_yes_no
 from .common import CVBENCH_SOURCE, official_function, official_string, read_json, video_label
 from .media import image_sizes, sample_frames
 
@@ -88,6 +89,21 @@ class CVBench:
         }
 
     def score(self, item: dict[str, Any], output: str) -> dict[str, Any]:
+        """Official score, plus the format-robust score (see harness/answers.py)."""
+        row = item["row"]
         prediction = self.extract(output).strip().upper()
-        answer = item["row"]["answer"].strip().upper()
-        return {"prediction": prediction, "answer": answer, "score": float(prediction == answer)}
+        answer = row["answer"].strip().upper()
+        # The official regex takes the first A-D/YES/NO anywhere, so it is only meaningful when the
+        # output leads with its answer; otherwise read the answer the model committed to.
+        yes_no = all(option.strip(".").lower() in {"yes", "no"} for option in row["options"])
+        format_ok = leads_with_choice(output, "ABCD") or bool(re.match(r"\s*(?i:yes|no)\b", str(output)))
+        if format_ok:
+            robust = prediction
+        elif yes_no:
+            robust = read_yes_no(output)
+        else:
+            robust = read_choice(output, "ABCD") or read_yes_no(output)
+        return {
+            "prediction": prediction, "answer": answer, "score": float(prediction == answer),
+            "format_ok": format_ok, "robust_prediction": robust, "robust_score": float(robust == answer),
+        }

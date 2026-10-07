@@ -15,6 +15,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from .answers import leads_with_choice, option_labels, read_choice
 from .common import MVU_SOURCE, load_official_module, read_json, video_label
 from .media import cached, image_sizes, source_identity
 
@@ -79,6 +80,13 @@ class MVUEval:
         }
 
     def score(self, item: dict[str, Any], output: str) -> dict[str, Any]:
+        """Official first-character score, plus the format-robust score (see harness/answers.py)."""
         prediction = str(output).strip().upper()[:1]
         answer = item["row"]["ground_truth"]
-        return {"prediction": prediction, "answer": answer, "score": float(prediction == answer)}
+        labels = option_labels(item["row"]["options"])
+        format_ok = leads_with_choice(output, labels)
+        robust = prediction if format_ok else read_choice(output, labels)
+        return {
+            "prediction": prediction, "answer": answer, "score": float(prediction == answer),
+            "format_ok": format_ok, "robust_prediction": robust, "robust_score": float(robust == answer),
+        }

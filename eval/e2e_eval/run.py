@@ -335,36 +335,52 @@ def _mean(values: list[float]) -> float | None:
 
 
 def summarize(name: str, selected: list[str], items: dict[str, dict], raw: dict[str, dict], scored: dict[str, dict]) -> dict[str, Any]:
+    """Official headline score and the format-robust one, with the same task weighting."""
     by_task: dict[str, list[dict]] = defaultdict(list)
     for sample_id in selected:
         by_task[items[sample_id]["task"]].append(scored.get(sample_id))
     complete = all(row is not None for rows in by_task.values() for row in rows)
+
+    def task_value(task: str, rows: list[dict], key: str) -> float | None:
+        if name == "crossvid" and task == "CCQA":
+            # score_CCQA.py: total points earned / total points available
+            return sum(row[key] * row["points"] for row in rows) / sum(row["points"] for row in rows) if rows else None
+        return _mean([row[key] for row in rows])
+
     tasks = {}
     for task, rows in sorted(by_task.items()):
         done = [row for row in rows if row is not None]
-        if name == "crossvid" and task == "CCQA":
-            # score_CCQA.py: total points earned / total points available
-            value = sum(row["score"] * row["points"] for row in done) / sum(row["points"] for row in done) if done else None
-        else:
-            value = _mean([row["score"] for row in done])
-        tasks[task] = {"selected": len(rows), "scored": len(done), "score": value}
-    all_scores = [row["score"] for rows in by_task.values() for row in rows if row is not None]
-    if name == "crossvid":
-        headline = {"o_avg": _mean([task["score"] for task in tasks.values()]) if complete else None}
-    else:
-        headline = {"accuracy": _mean(all_scores) if complete else None}
+        tasks[task] = {
+            "selected": len(rows),
+            "scored": len(done),
+            "score": task_value(task, done, "score"),
+            "robust_score": task_value(task, done, "robust_score"),
+            "format_ok_rate": _mean([float(row["format_ok"]) for row in done]),
+        }
+    done_rows = [row for rows in by_task.values() for row in rows if row is not None]
+
+    def headline(key: str) -> float | None:
+        if not complete:
+            return None
+        if name == "crossvid":
+            return _mean([task[key] for task in tasks.values()])
+        return _mean([row[key] for row in done_rows])
+
     records = [raw[sample_id] for sample_id in selected if sample_id in raw]
     requests = [record.get("request") or {} for record in records]
     prompt_tokens = [request["usage"]["prompt_tokens"] for request in requests if (request.get("usage") or {}).get("prompt_tokens")]
     frames = [record["media"]["frames"] for record in records]
     sides = [record["media"]["frame_max_side"] for record in records]
+    metric = "o_avg" if name == "crossvid" else "accuracy"
     return {
-        **headline,
+        metric: headline("score"),
+        f"robust_{metric}": headline("robust_score"),
+        "format_ok_rate": _mean([float(row["format_ok"]) for row in done_rows]),
         "complete": complete,
         "selected": len(selected),
         "inferred": len(records),
-        "scored": len(all_scores),
-        "scored_mean": _mean(all_scores),
+        "scored": len(done_rows),
+        "scored_mean": _mean([row["score"] for row in done_rows]),
         "by_task": tasks,
         "audit": {
             "max_frames_per_call": max(frames, default=0),
@@ -418,7 +434,8 @@ def run_score(args: argparse.Namespace) -> None:
                                    attempts=args.judge_attempts, timeout=args.judge_timeout)
             for sample_id, row in judged.items():
                 if row["status"] == "ok":
-                    scored[sample_id] = {"task": "CCQA", **row}
+                    # the judge reads free text, so there is no answer format to miss
+                    scored[sample_id] = {"task": "CCQA", **row, "format_ok": True, "robust_score": row["score"]}
                 else:
                     failures.append(f"{sample_id}: judge failed: {row['error']}")
             summary["ccqa_judge"] = {"model": args.judge_model, "api_base": args.judge_api_base}
