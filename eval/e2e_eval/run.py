@@ -80,7 +80,6 @@ def parse_args() -> argparse.Namespace:
     infer.add_argument("--data-root", type=Path, default=Path("/assets"))
     infer.add_argument("--endpoints", default="", help="vLLM endpoints: URLs, ports or port ranges (8100-8107)")
     infer.add_argument("--model", help="served model name (default: the only model the endpoints serve)")
-    infer.add_argument("--inflight", type=int, default=1, help="concurrent requests per vLLM endpoint")
     infer.add_argument("--enable-thinking", action="store_true", help="default off, as in the MVAgent runs")
     infer.add_argument("--api-model", help="official API profile (eval/e2e_eval/api) instead of vLLM endpoints")
     infer.add_argument("--api-base-url")
@@ -110,7 +109,7 @@ def parse_args() -> argparse.Namespace:
             parser.error("--ids names a benchmark that is not selected")
         if bool(args.api_model) == bool(args.endpoints):
             parser.error("give exactly one of --endpoints (vLLM) or --api-model")
-        if min(args.frames, args.max_side, args.inflight, args.retries) <= 0 or (args.limit is not None and args.limit <= 0):
+        if min(args.frames, args.max_side, args.retries) <= 0 or (args.limit is not None and args.limit <= 0):
             parser.error("numeric options must be positive")
     return args
 
@@ -201,7 +200,7 @@ def make_backend(args: argparse.Namespace):
     if args.api_model:
         return APIBackend(args.api_model, base_url=args.api_base_url, api_key_env=args.api_key_env,
                           timeout=args.timeout, retries=args.retries)
-    return VLLMBackend(parse_endpoints(args.endpoints), model=args.model, inflight=args.inflight,
+    return VLLMBackend(parse_endpoints(args.endpoints), model=args.model,
                        timeout=args.timeout, retries=args.retries, enable_thinking=args.enable_thinking)
 
 
@@ -222,8 +221,11 @@ def run_infer(args: argparse.Namespace) -> None:
     }
     backend = make_backend(args)
     benchmarks = build_benchmarks(config)
+    sampled = {name: b.generation for name, b in benchmarks.items() if b.generation["temperature"] != 0}
+    if sampled:  # greedy decoding everywhere: the only setting that is exactly repeatable
+        raise SystemExit(f"non-greedy generation settings: {sampled}")
     selection = select(benchmarks, config)
-    model_identity = {key: value for key, value in backend.identity().items() if key not in {"endpoints", "inflight_per_endpoint"}}
+    model_identity = {key: value for key, value in backend.identity().items() if key != "endpoints"}
     identity = {
         "protocol": {"frames_per_call": args.frames, "max_side": args.max_side},
         "config": config,
@@ -331,8 +333,8 @@ def summarize(name: str, selected: list[str], items: dict[str, dict], raw: dict[
     records = [raw[sample_id] for sample_id in selected if sample_id in raw]
     requests = [record.get("request") or {} for record in records]
     prompt_tokens = [request["usage"]["prompt_tokens"] for request in requests if (request.get("usage") or {}).get("prompt_tokens")]
-    frames = [record["media"].get("video_frames", record["media"].get("images", 0)) for record in records]
-    sides = [record["media"].get("video_max_side", record["media"].get("image_max_side", 0)) for record in records]
+    frames = [record["media"]["frames"] for record in records]
+    sides = [record["media"]["frame_max_side"] for record in records]
     return {
         **headline,
         "complete": complete,

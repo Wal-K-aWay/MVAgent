@@ -81,7 +81,7 @@ class CrossVid:
         _, answer = result
         return {
             "output": answer,
-            "media": {"images": len(state.sizes), "image_max_side": max((max(size) for size in state.sizes), default=0)},
+            "media": {"frames": len(state.sizes), "frame_max_side": max((max(size) for size in state.sizes), default=0)},
             "request": state.request,
         }
 

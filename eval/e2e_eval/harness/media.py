@@ -1,8 +1,9 @@
-"""Frame sampling, video packaging, the shared preprocessing cache and the per-request media audit.
+"""CVBench frame sampling, the shared preprocessing cache and the per-request image audit.
 
-Only CVBench needs harness-side video handling: its official adapter feeds video files to
-`qwen_vl_utils`, which an OpenAI-compatible request cannot do. MVU-Eval and CrossVid frames are
-produced by their own official code; this module only caches and audits them.
+Every benchmark sends frames as ordered JPEG images. MVU-Eval and CrossVid frames come from their
+own official code (this module only caches and audits them). CVBench's official adapter hands
+video files to `qwen_vl_utils`, which an OpenAI-compatible request cannot do, so the harness samples
+the frames itself with the same indexing and sends them as images.
 """
 
 from __future__ import annotations
@@ -12,7 +13,6 @@ import hashlib
 import json
 import os
 import threading
-from fractions import Fraction
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Callable
@@ -63,101 +63,55 @@ def resized_dims(width: int, height: int, max_side: int) -> tuple[int, int]:
     return width, height
 
 
-def _jpeg(frame: np.ndarray) -> bytes:
+def _jpeg_b64(frame: np.ndarray) -> str:
     from PIL import Image
 
     output = BytesIO()
     Image.fromarray(frame).save(output, format="JPEG", quality=JPEG_QUALITY)
-    return output.getvalue()
+    return base64.b64encode(output.getvalue()).decode("ascii")
 
 
-def _sampled_batches(path: Path, *, count: int, max_side: int):
-    """Uniform `count` frames with qwen_vl_utils indexing (linspace(...).round()), resized by decord.
+def sample_frames(path: Path, *, count: int, max_side: int) -> tuple[list[str], dict[str, Any]]:
+    """`count` uniform frames (qwen_vl_utils indexing: linspace(0, n-1, count).round()) as base64 JPEGs.
 
-    Returns metadata and a generator of RGB frame batches.
+    decord decodes directly at the aspect-preserving size whose longest side is at most `max_side`.
     """
-    from decord import VideoReader, cpu
-
-    reader = VideoReader(str(path), ctx=cpu(0), num_threads=4)
-    total = len(reader)
-    if total < 1:
-        raise ValueError(f"no decodable frames: {path}")
-    source_fps = float(reader.get_avg_fps() or 0.0)
-    height, width = reader[0].asnumpy().shape[:2]
-    size = resized_dims(width, height, max_side)
-    if size != (width, height):
-        reader = VideoReader(str(path), ctx=cpu(0), num_threads=4, width=size[0], height=size[1])
-        total = len(reader)
-    count = min(count, total)
-    indices = np.linspace(0, total - 1, count).round().astype(int).tolist()
-    meta = {
-        "source_frames": total,
-        "source_fps": source_fps,
-        "original_size": [width, height],
-        "size": list(size),
-        "frames": len(indices),
-        "indices": indices,
-    }
-
-    def batches():
-        for offset in range(0, len(indices), DECODE_BATCH):
-            yield reader.get_batch(indices[offset : offset + DECODE_BATCH]).asnumpy()
-
-    return meta, batches()
-
-
-def _mjpeg_avi(jpegs: list[bytes], *, size: list[int], fps: float) -> bytes:
-    """Mux already-encoded JPEGs into an MJPEG AVI unchanged, at an exact (fractional) frame rate."""
-    import av
-
-    rate = Fraction(fps).limit_denominator(1_000_000)
-    buffer = BytesIO()
-    with av.open(buffer, mode="w", format="avi") as container:
-        stream = container.add_stream("mjpeg", rate=rate)
-        stream.width, stream.height = size
-        stream.pix_fmt = "yuvj420p"
-        for index, data in enumerate(jpegs):
-            packet = av.Packet(data)
-            packet.stream = stream
-            packet.pts = packet.dts = index
-            packet.time_base = 1 / rate
-            container.mux(packet)
-    return buffer.getvalue()
-
-
-def video_part(path: Path, *, count: int, max_side: int, native_video: bool) -> tuple[dict[str, Any], dict[str, Any]]:
-    """One video as a single `video_url` part.
-
-    native_video (vLLM): an MJPEG AVI whose frame rate makes `frame_index / fps` equal the source
-    timestamp of each sampled frame, so Qwen3.5's per-frame time labels are real seconds.
-    Otherwise (API providers): an inline JPEG sequence that the provider expands to ordered images.
-    """
-    transport = "mjpeg_avi" if native_video else "jpeg_sequence"
 
     def compute() -> dict[str, Any]:
-        meta, batches = _sampled_batches(path, count=count, max_side=max_side)
-        jpegs = [_jpeg(frame) for batch in batches for frame in batch]
-        if transport == "jpeg_sequence":
-            frames = ",".join(base64.b64encode(data).decode("ascii") for data in jpegs)
-            return {"url": f"data:video/jpeg;base64,{frames}", "meta": meta}
-        span = meta["indices"][-1] - meta["indices"][0]
-        fps = (meta["frames"] - 1) * meta["source_fps"] / span if span > 0 and meta["source_fps"] > 0 else 1.0
-        meta["container_fps"] = fps
-        payload = base64.b64encode(_mjpeg_avi(jpegs, size=meta["size"], fps=fps)).decode("ascii")
-        return {"url": f"data:video/x-msvideo;base64,{payload}", "meta": meta}
+        from decord import VideoReader, cpu
+
+        reader = VideoReader(str(path), ctx=cpu(0), num_threads=4)
+        total = len(reader)
+        if total < 1:
+            raise ValueError(f"no decodable frames: {path}")
+        height, width = reader[0].asnumpy().shape[:2]
+        size = resized_dims(width, height, max_side)
+        if size != (width, height):
+            reader = VideoReader(str(path), ctx=cpu(0), num_threads=4, width=size[0], height=size[1])
+            total = len(reader)
+        indices = np.linspace(0, total - 1, min(count, total)).round().astype(int).tolist()
+        frames = []
+        for offset in range(0, len(indices), DECODE_BATCH):
+            frames += [_jpeg_b64(frame) for frame in reader.get_batch(indices[offset : offset + DECODE_BATCH]).asnumpy()]
+        meta = {
+            "source_frames": total,
+            "source_fps": float(reader.get_avg_fps() or 0.0),
+            "original_size": [width, height],
+            "size": list(size),
+            "frames": len(frames),
+        }
+        return {"frames": frames, "meta": meta}
 
     identity = {
-        "version": 1,
+        "version": 2,
         "source": source_identity(path),
         "count": count,
         "max_side": max_side,
-        "transport": transport,
         "quality": JPEG_QUALITY,
         "indexing": "linspace-round",
     }
-    value = cached("cvbench_video", identity, compute)
-    meta = {key: item for key, item in value["meta"].items() if key != "indices"}
-    return {"type": "video_url", "video_url": {"url": value["url"]}}, meta
+    value = cached("cvbench_frames", identity, compute)
+    return value["frames"], value["meta"]
 
 
 def image_sizes(messages: list[dict[str, Any]]) -> list[list[int]]:

@@ -3,9 +3,11 @@
 Taken verbatim from the official sources at load time: the question list, `mvr_doc_to_text`
 (prompt), the yaml prompt kwargs, the adapter's system message and cue sentence, and
 `extract_characters_regex` (scoring). Kept from the adapter: video order (`video_1..video_4`),
-cue image -> video -> cue image per video, cue sentence then prompt, temperature/top_p from the
-yaml and the hard-coded `max_new_tokens=128`. Changed by the unified protocol: frames per video
-(question cap split evenly instead of 8) and an aspect-preserving longest edge instead of 448x448.
+start cue image -> the video's frames -> end cue image per video, cue sentence then prompt,
+temperature/top_p from the yaml and the hard-coded `max_new_tokens=128`.
+Changed by the unified protocol: each video's frames are sent as ordered JPEG images (the adapter
+passes a video element to qwen_vl_utils), the question's frame cap is split evenly over its videos
+(official 8 per video), and the longest edge is capped with the aspect ratio kept (official 448x448).
 """
 
 from __future__ import annotations
@@ -15,7 +17,7 @@ import re
 from typing import Any
 
 from .common import CVBENCH_SOURCE, official_function, official_string, read_json
-from .media import image_sizes, video_part
+from .media import image_sizes, sample_frames
 
 LMMS = CVBENCH_SOURCE / "lmms-eval/lmms_eval"
 ADAPTER = LMMS / "models/qwen2_5_vl.py"
@@ -34,8 +36,12 @@ def _task_spec() -> dict[str, Any]:
     return yaml.load((TASK / "mvr.yaml").read_text(encoding="utf-8"), Loader=Loader)
 
 
+def _image(url: str) -> dict[str, Any]:
+    return {"type": "image_url", "image_url": {"url": url}}
+
+
 def _png(path) -> dict[str, Any]:
-    return {"type": "image_url", "image_url": {"url": "data:image/png;base64," + base64.b64encode(path.read_bytes()).decode("ascii")}}
+    return _image("data:image/png;base64," + base64.b64encode(path.read_bytes()).decode("ascii"))
 
 
 class CVBench:
@@ -64,10 +70,9 @@ class CVBench:
         return {
             "official": "lmms-eval mvr task + qwen2_5_vl adapter",
             "generation": self.generation,
-            "frames_per_video": f"min({self.frames} // number_of_videos, source frames)",
+            "frames_per_video": f"min({self.frames} // number_of_videos, source frames), linspace(...).round()",
             "max_side": self.max_side,
-            "video_transport": "vLLM: MJPEG AVI per video whose fps maps frame i to its source timestamp; "
-            "APIs: ordered JPEG frames",
+            "frame_input": "ordered JPEG images (quality 95) between each video's start and end cue images",
             "score": "extract_characters_regex(output).strip().upper() == answer.strip().upper()",
         }
 
@@ -76,30 +81,33 @@ class CVBench:
         videos = [row[f"video_{index}"] for index in range(1, 5) if row[f"video_{index}"] is not None]
         per_video = self.frames // len(videos)
         content: list[dict[str, Any]] = []
+        frame_parts: list[dict[str, Any]] = []
+        cue_parts: list[dict[str, Any]] = []
         media = []
         for index, relative in enumerate(videos, start=1):
-            part, meta = video_part(
-                self.video_root / relative, count=per_video, max_side=self.max_side, native_video=backend.native_video
-            )
-            content += [_png(CUES / f"video{index}.png"), part, _png(CUES / f"end{index}.png")]
+            frames, meta = sample_frames(self.video_root / relative, count=per_video, max_side=self.max_side)
+            parts = [_image(f"data:image/jpeg;base64,{frame}") for frame in frames]
+            cues = [_png(CUES / f"video{index}.png"), _png(CUES / f"end{index}.png")]
+            content += [cues[0], *parts, cues[1]]
+            frame_parts += parts
+            cue_parts += cues
             media.append({"video": relative, **meta})
         content += [
             {"type": "text", "text": self.cue_text},
             {"type": "text", "text": self.doc_to_text(row, self.prompt_kwargs)},
         ]
         messages = [{"role": "system", "content": self.system}, {"role": "user", "content": content}]
-        # Keep every pre-sampled frame (vLLM otherwise keeps 32 / re-samples at 2 fps).
-        extra = {"media_io_kwargs": {"video": {"num_frames": -1}}, "mm_processor_kwargs": {"do_sample_frames": False}}
-        text, request = backend.complete(messages, **self.generation, extra_body=extra)
-        cues = image_sizes(messages)
+        text, request = backend.complete(messages, **self.generation)
+        frame_sizes = image_sizes([{"content": frame_parts}])
+        cue_sizes = image_sizes([{"content": cue_parts}])
         return {
             "output": text,
             "media": {
+                "frames": len(frame_sizes),
+                "frame_max_side": max(max(size) for size in frame_sizes),
                 "videos": media,
-                "video_frames": sum(item["frames"] for item in media),
-                "video_max_side": max(max(item["size"]) for item in media),
-                "cue_images": len(cues),
-                "cue_image_max_side": max(max(size) for size in cues),
+                "cue_images": len(cue_sizes),
+                "cue_image_max_side": max(max(size) for size in cue_sizes),
             },
             "request": request,
         }

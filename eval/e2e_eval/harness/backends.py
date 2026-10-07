@@ -26,16 +26,17 @@ def _usage(response: Any) -> dict[str, Any] | None:
 
 
 class VLLMBackend:
-    """A pool of vLLM endpoints serving one model; at most `inflight` requests per endpoint."""
+    """A pool of vLLM endpoints serving one model, one request in flight per endpoint.
 
-    native_video = True
+    One request at a time per replica keeps every batch identical across runs, so greedy outputs are
+    bit-for-bit reproducible (verified on H200); concurrent requests would change batch composition.
+    """
 
     def __init__(
         self,
         endpoints: list[str],
         *,
         model: str | None,
-        inflight: int,
         timeout: float,
         retries: int,
         enable_thinking: bool,
@@ -44,7 +45,6 @@ class VLLMBackend:
         self.timeout = timeout
         self.retries = retries
         self.enable_thinking = enable_thinking
-        self.inflight = inflight
         self._local = threading.local()
         served = {endpoint: self._served_models(endpoint) for endpoint in self.endpoints}
         names = {name for models in served.values() for name in models}
@@ -59,13 +59,12 @@ class VLLMBackend:
             raise RuntimeError(f"endpoints serve different weights or context lengths: {cards}")
         self.card = next(iter(cards.values()))
         self._slots: queue.Queue[str] = queue.Queue()
-        for _ in range(inflight):
-            for endpoint in self.endpoints:
-                self._slots.put(endpoint)
+        for endpoint in self.endpoints:
+            self._slots.put(endpoint)
 
     @property
     def slots(self) -> int:
-        return len(self.endpoints) * self.inflight
+        return len(self.endpoints)
 
     def _served_models(self, endpoint: str) -> dict[str, dict[str, Any]]:
         response = httpx.get(f"{endpoint}/models", timeout=15, trust_env=False)
@@ -91,7 +90,6 @@ class VLLMBackend:
             "weights": self.card.get("root"),
             "max_model_len": self.card.get("max_model_len"),
             "endpoints": self.endpoints,
-            "inflight_per_endpoint": self.inflight,
             "enable_thinking": self.enable_thinking,
         }
 
@@ -138,8 +136,6 @@ class VLLMBackend:
 
 class APIBackend:
     """Official closed-model APIs; the provider profile owns thinking control and frame transport."""
-
-    native_video = False
 
     def __init__(self, model: str, *, base_url: str | None, api_key_env: str | None, timeout: float, retries: int) -> None:
         import os

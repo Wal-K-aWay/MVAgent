@@ -32,6 +32,7 @@ class MVUEval:
             return cached("mvu_eval_frames", identity, lambda: official_encode(video_path, max_pixels=max_pixels, max_frames=max_frames))
 
         self.module.encode_video = encode_video  # build_messages_base resolves it from module globals
+        self.generation = GENERATION
         self.data_root = data_root / "mvu-eval"
         self.frames = frames
         self.max_side = max_side
@@ -44,7 +45,7 @@ class MVUEval:
     def protocol(self) -> dict[str, Any]:
         return {
             "official": "inference/main.py build_messages_base + analyze.py first-character score",
-            "generation": GENERATION,
+            "generation": self.generation,
             "frames_per_video": f"min({self.frames} // number_of_videos, source frames)",
             "max_side": self.max_side,
             "score": "output.strip().upper()[:1] == ground_truth",
@@ -56,11 +57,11 @@ class MVUEval:
         per_video = self.frames // len(videos)
         content = self.module.build_messages_base(str(self.data_root), row, videos, per_video, self.max_side)
         messages = [{"role": "user", "content": content}]
-        text, request = backend.complete(messages, **GENERATION)
+        text, request = backend.complete(messages, **self.generation)
         sizes = image_sizes(messages)
         return {
             "output": text,
-            "media": {"videos": len(videos), "frames_per_video": per_video, "images": len(sizes), "image_max_side": max(max(size) for size in sizes)},
+            "media": {"frames": len(sizes), "frame_max_side": max(max(size) for size in sizes), "videos": len(videos), "frames_per_video": per_video},
             "request": request,
         }
 
