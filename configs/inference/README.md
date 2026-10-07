@@ -7,6 +7,8 @@
 |---|---|
 | `modal_qwen35_35b_a3b_no_skill.yaml` | 35B-A3B 无 Skill 基线；参数与旧服务器历史基线一致，权重路径为 `/weights` |
 | `execution/modal_h200x8.yaml` | 一个 Modal `H200:8` 节点：每卡一个完整 35B 副本（TP=1），本机端点 8100–8107，每副本并发 1 |
+| `modal_qwen35_9b_no_skill.yaml`、`modal_qwen35_27b_no_skill.yaml` | 9B、27B 无 Skill 基线；除模型名、权重路径和请求超时（300 s，与旧服务器 9B 配置一致）外与 35B 配置相同 |
+| `execution/modal_h200x8_qwen35_9b.yaml`、`execution/modal_h200x8_qwen35_27b.yaml` | 对应模型的 `H200:8` 执行池：每卡一个副本（TP=1），每副本并发 1 |
 
 模型池只接受本机 `127.0.0.1` 端点，并会校验本机 vLLM 进程与 GPU 绑定，因此运行时与
 vLLM 必须在同一个容器内。在节点内运行：
