@@ -123,6 +123,9 @@ class VLLMBackend:
                 continue
             self._slots.put(endpoint)
             choice = response.choices[0]
+            # With thinking off this should stay empty; kept so an output the reasoning parser moved out of
+            # `content` is never lost from the raw record.
+            reasoning = getattr(choice.message, "reasoning_content", None) or getattr(choice.message, "reasoning", None)
             return choice.message.content or "", {
                 "endpoint": endpoint,
                 "attempts": attempt,
@@ -130,6 +133,7 @@ class VLLMBackend:
                 "finish_reason": choice.finish_reason,
                 "usage": _usage(response),
                 "generation": {"max_tokens": max_tokens, "temperature": temperature, "top_p": top_p, **body},
+                **({"reasoning_content": reasoning} if reasoning else {}),
             }
         raise RuntimeError(f"vLLM request failed after {self.retries} attempts: {last_error}") from last_error
 

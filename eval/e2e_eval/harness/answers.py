@@ -26,6 +26,12 @@ def _last(pattern: str, text: str, flags: int = 0) -> re.Match | None:
     return matches[-1] if matches else None
 
 
+def _latest(*matches: re.Match | None) -> re.Match | None:
+    """Of several candidate statements, the one made last (the model's final commitment)."""
+    found = [match for match in matches if match]
+    return max(found, key=lambda match: match.start()) if found else None
+
+
 _STATED = r"(?i:(?:final\s+)?(?:answer|option|choice)s?(?:\s+(?:is|are|would\s+be|should\s+be))?\s*[:=]?\s*(?:option\s+)?)"
 
 
@@ -51,11 +57,11 @@ def read_choice(text: str, labels: str) -> str | None:
     whole = re.fullmatch(rf"[\(\[]?({letter})[\)\]]?(?:[.):]\s*.*)?", text, re.S)
     if whole:
         return whole.group(1)
-    stated = _last(rf"{_STATED}[\(\[]?({letter})\b", text)
-    if stated:
-        return stated.group(1)
-    alone = _last(rf"(?m)^\s*[\(\[]?({letter})[\)\]]?\.?\s*$", text)
-    return alone.group(1) if alone else None
+    found = _latest(
+        _last(rf"{_STATED}[\(\[]?({letter})\b", text),  # "the answer is C", "Final answer: (C)"
+        _last(rf"(?m)^\s*[\(\[]?({letter})[\)\]]?\.?\s*$", text),  # a line holding only "C"
+    )
+    return found.group(1) if found else None
 
 
 def read_yes_no(text: str) -> str | None:
@@ -64,23 +70,25 @@ def read_yes_no(text: str) -> str | None:
     whole = re.match(r"(?i)(yes|no)\b", text)
     if whole:
         return whole.group(1).upper()
-    stated = _last(rf"{_STATED}(?i:(yes|no))\b", text)
-    if stated:
-        return stated.group(1).upper()
-    alone = _last(r"(?im)^\s*(yes|no)\.?\s*$", text)
-    return alone.group(1).upper() if alone else None
+    found = _latest(
+        _last(rf"{_STATED}(?i:(yes|no))\b", text),
+        _last(r"(?im)^\s*(yes|no)\.?\s*$", text),
+    )
+    return found.group(1).upper() if found else None
 
 
 def read_letters(text: str, labels: str) -> str | None:
     """A set of option letters (multi-select), returned sorted and joined, e.g. "BCD"."""
     text = _clean(text)
     letter = f"[{re.escape(labels)}]"
-    group = rf"[\(\[]?{letter}[\)\]]?(?:\s*(?:,|and|&)?\s*[\(\[]?{letter}[\)\]]?)*"
-    whole = re.fullmatch(rf"({group})\.?", text)
-    stated = whole or _last(rf"{_STATED}({group})(?![A-Za-z])", text)
-    if not stated:
-        return None
-    return "".join(sorted(set(re.findall(letter, stated.group(1)))))
+    one = rf"[\(\[]?{letter}[\)\]]?"
+    group = rf"{one}(?:(?:\s*(?:,|and|&))*\s*{one})*"
+    whole = re.fullmatch(rf"({group})\.?", text) or re.fullmatch(rf"({one})[.):]\s+.*", text, re.S)
+    found = whole or _latest(
+        _last(rf"{_STATED}({group})(?![A-Za-z])", text),  # "the answers are A, B, and D"
+        _last(rf"(?m)^\s*({group})\.?\s*$", text),  # a final line "BD" / "A, C"
+    )
+    return "".join(sorted(set(re.findall(letter, found.group(1))))) if found else None
 
 
 def read_order(text: str) -> str | None:

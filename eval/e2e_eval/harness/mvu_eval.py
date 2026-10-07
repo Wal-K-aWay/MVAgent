@@ -7,7 +7,9 @@ Changed by the unified protocol: `nframes` is the question cap split evenly over
 (official 32 per video), `max_pixels` (longest edge) is run.py's `--max-side` (official 720), and
 each official `[Video k] <file name>` label becomes `Video k:`. File names are not shown to the
 model: in 68 TR questions the clip number in the name alone gives the answer, and MVAgent only ever
-sees positional IDs.
+sees positional IDs. One sentence (FORMAT_REMINDER) is appended after the options: the official
+instruction sits before the options, and Qwen3.5-9B then explains instead of answering in 53/64
+questions; CVBench and CrossVid end with their answer instruction and are rarely off-format.
 """
 
 from __future__ import annotations
@@ -20,9 +22,12 @@ from .common import MVU_SOURCE, load_official_module, read_json, video_label
 from .media import cached, image_sizes, source_identity
 
 MAIN = MVU_SOURCE / "inference/main.py"
-# main.py sends no generation parameters (server defaults). Greedy decoding makes runs repeatable;
-# the token cap only stops runaway output and cannot change the first-character score.
-GENERATION = {"max_tokens": 1024, "temperature": 0.0, "top_p": 1.0}
+# main.py sends no generation parameters (server defaults). Greedy decoding makes runs repeatable.
+# The official prompt makes models explain before answering (Qwen3.5-9B: 53/64 outputs), so the cap
+# matches CrossVid's official 8192 and only stops runaway output; it cannot change the first character.
+GENERATION = {"max_tokens": 8192, "temperature": 0.0, "top_p": 1.0}
+# Appended after the options; generic on purpose (no task- or format-specific wording).
+FORMAT_REMINDER = "Strictly follow the required format: output only the answer, with no other text."
 
 
 class MVUEval:
@@ -54,6 +59,7 @@ class MVUEval:
             "frames_per_video": f"min({self.frames} // number_of_videos, source frames)",
             "max_side": self.max_side,
             "video_label": "official '[Video k] <file name>' replaced by 'Video k:'",
+            "format_reminder": f"appended after the options: {FORMAT_REMINDER!r}",
             "score": "output.strip().upper()[:1] == ground_truth",
         }
 
@@ -70,6 +76,7 @@ class MVUEval:
             raise RuntimeError("official build_messages_base no longer labels videos as '[Video k] <file name>'")
         for k, index in enumerate(labels, 1):
             content[index] = {"type": "text", "text": video_label(k)}
+        content.append({"type": "text", "text": FORMAT_REMINDER})
         messages = [{"role": "user", "content": content}]
         text, request = backend.complete(messages, **self.generation)
         sizes = image_sizes(messages)
