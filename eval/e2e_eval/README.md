@@ -31,8 +31,8 @@ eval/e2e_eval/
 | 分辨率 | 等比缩放，最长边 `S`（官方拉伸为 448×448） | `max_pixels=S`（官方 720） | 官方 `--length` 设为 `S`（官方默认 360） |
 | 缩放与编码 | decord 按目标尺寸解码后编码 | 官方 `encode_video` | 官方 `cv2.resize(INTER_AREA)` 后 `cv2.imencode` |
 | 采样下标 | `linspace(0, n-1, k).round()`（同 `qwen_vl_utils`） | 官方 | 官方 |
-| 顺序与 prompt | system → [`Video k:`, 该视频的帧]×N → 题目（官方 prompt；去掉了解释提示图的那句话） | [`Video k:`, 该视频的帧]×N → 题目 → 指令 → 选项（官方顺序与原文） | 官方 |
-| 生成参数 | temperature 0、top_p 1（yaml），max_tokens 128（adapter 硬编码） | **官方未设置**；本框架固定 temperature 0、top_p 1、max_tokens 1024 | 从官方 `chat()` 读取：max_tokens 8192、temperature 0、top_p 0.95 |
+| 顺序与 prompt | system → [`Video k:`, 该视频的帧]×N → 题目（官方 prompt；去掉了解释提示图的那句话） | [`Video k:`, 该视频的帧]×N → 题目 → 指令 → 选项（官方顺序与原文）→ 一句格式提醒（新增） | 官方 |
+| 生成参数 | temperature 0、top_p 1（yaml），max_tokens 128（adapter 硬编码） | **官方未设置**；本框架固定 temperature 0、top_p 1、max_tokens 8192（与 CrossVid 相同） | 从官方 `chat()` 读取：max_tokens 8192、temperature 0、top_p 0.95 |
 | thinking | 请求中显式关闭（与 MVAgent 相同） | 同左 | 同左 |
 | 逐题评分 | `extract_characters_regex(out).strip().upper() == answer.strip().upper()` | `out.strip().upper()[:1] == ground_truth` | 严格相等（BU 与拼接后的答案比较）；FSA 用官方 `interval_iou`，解析失败记 0；CCQA 由 Judge 评分 |
 | 汇总 | 按题平均，分 15 个 `task_type` | 按题平均，分 task | 十类 task 等权平均（O.Avg）；CCQA 为总得分 / 总满分 |
@@ -51,6 +51,21 @@ eval/e2e_eval/
   MOC/MSR 从帧目录取 `F/2` 帧时不截断，目录不足 `F/2` 张就重复取帧——66 题（Lite2500 中 22 题）受影响，
   目录最少 151 张；BU 有 194 题含短于其额度（`F // 视频数`）的视频，实际帧数少于额度（占位符按实际帧数生成，不影响运行）。
   这些都按官方逻辑保留。
+
+### 官方分与格式稳健分
+
+每题同时给出两个分数，汇总口径相同：
+
+- **官方分**（`score`）：完全按各 benchmark 官方评分规则。
+- **格式稳健分**（`robust_score`）：输出符合要求的格式时等于官方分；否则按 `harness/answers.py` 的固定规则读出模型
+  明确给出的最终答案（整段就是答案、`the answer is X`、单独一行的答案、`A, B, and D`、`2->4->1->3`、`42,50` 等，
+  多处时取最后一次），再用官方的比较方式评分；读不出就算错，不做猜测。规则与被测系统无关，MVAgent 之后用同一套。
+- **格式合格率**（`format_ok_rate`）：输出本身符合要求格式的比例。
+
+在旧服务器三个模型的全量输出上验证：格式合格的部分两种分数一致；偏离格式的输出几乎都能读出答案（读不出的是空输出、
+被截断或选项外的字母）。被格式拖低最明显的是 35B 的 CrossVid MOC（官方 13.1 → 稳健 36.0）、MSR（13.8 → 26.4）、
+PEA（28.8 → 41.8）和 27B 的 FSA（1.6 → 7.9）、PSS（3.6 → 6.8）。MVU-Eval 的稳健分略低于官方分，因为首字符规则会把
+`Based on ...` 误读成 B 而碰巧答对，稳健分不计这类巧合。
 
 ### 可复现性
 
@@ -75,7 +90,13 @@ eval/e2e_eval/
   （`CAM_FRONT_LEFT` 等）区分相机视角。MVAgent 只看到 `video_1`、`video_2` 这样的位置编号，看不到文件名，
   因此 E2E 也不给文件名，两者得到的信息一致。
 - **MVU-Eval 生成参数**：官方不传任何生成参数，取服务端默认（可能是随机采样）。本框架用贪心解码保证可复现；
-  1024 的 token 上限只用来截断失控输出，不影响首字符评分。
+  8192 的 token 上限只用来截断失控输出，不影响首字符评分。
+- **MVU-Eval 格式提醒**：官方把答题指令放在选项之前，消息以选项列表结尾。Qwen3.5-9B 在 64 道抽样题中有 53 道先写分析
+  而不直接作答，官方首字符评分只有 4/64。CVBench、CrossVid 都在结尾给出答题要求，偏离格式的输出很少。因此只在
+  MVU-Eval 选项之后追加一句通用提醒 `Strictly follow the required format: output only the answer, with no other text.`，
+  官方指令、题目、选项的原文与顺序不变，不针对任何题型。同样 64 题上：格式合格 11/64 → 64/64，官方分 4/64 → 23/64；
+  与“不提醒、读取分析后的答案”（26/64）相比，差异在随机波动内（各自独有答对 9 / 6 题）。
+  CVBench、CrossVid 不加提醒；其偏离格式的输出由格式稳健分处理（见下）。
 - **失败处理**：官方 MVU-Eval 和 CrossVid 会静默丢弃失败的题。这里失败会记录为 error，重跑同一命令时会补跑；
   只有全部题目成功才给出总分。CCQA 的 Judge 失败同样报错，不记为 0 分。
 - **CCQA Judge**：论文使用 GPT-4.1。本框架与 MVAgent 共用同一个固定 Judge（`deepseek-v4-flash`，代码在
@@ -128,10 +149,13 @@ OUT/
   source/              首次运行时冻结的 run.py 与 harness/；续跑时必须一致
   selection.json       每个 benchmark 选中的 sample_id
   raw/<bench>.jsonl    每题一行，追加写入：status、output（模型原文）、error、media（帧数、尺寸）、
-                       request（端点、usage、finish_reason、生成参数）、seconds
-  scored/<bench>.json  逐题官方评分：prediction、answer、score（CCQA 另有 coverage/correctness/points）
-  summary.json         各 benchmark 总分（CVBench/MVU-Eval 为 accuracy，CrossVid 为 o_avg）、分 task 分数、
-                       完成度，以及核查项（每次调用最大帧数、最大边长、prompt token、finish_reason）
+                       request（端点、usage、finish_reason、生成参数，服务端若返回 reasoning_content 也保存）、seconds
+  scored/<bench>.json  逐题评分：prediction、answer、score（官方），format_ok、robust_prediction、robust_score
+                       （格式稳健），CCQA 另有 coverage/correctness/points
+  summary.json         各 benchmark 官方总分（CVBench/MVU-Eval 为 accuracy，CrossVid 为 o_avg）与格式稳健总分
+                       （robust_accuracy / robust_o_avg）、格式合格率、分 task 分数、完成度，以及核查项（每次调用
+                       最大帧数、最大边长、prompt token、finish_reason）；scoring_code_matches_inference 标明评分代码
+                       是否与推理时冻结的代码一致
   judge_cache/         CCQA Judge 响应缓存
 ```
 
