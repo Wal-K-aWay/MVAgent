@@ -4,14 +4,18 @@ Messages come from the official `build_messages_base` (its `encode_video` does t
 resizing and JPEG encoding; the harness only caches its return value). Scoring is the
 `analyze.py` rule: first character of the stripped, upper-cased output equals `ground_truth`.
 Changed by the unified protocol: `nframes` is the question cap split evenly over the videos
-(official 32 per video) and `max_pixels` (longest edge) is run.py's `--max-side` (official 720).
+(official 32 per video), `max_pixels` (longest edge) is run.py's `--max-side` (official 720), and
+each official `[Video k] <file name>` label becomes `Video k:`. File names are not shown to the
+model: in 68 TR questions the clip number in the name alone gives the answer, and MVAgent only ever
+sees positional IDs.
 """
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
-from .common import MVU_SOURCE, load_official_module, read_json
+from .common import MVU_SOURCE, load_official_module, read_json, video_label
 from .media import cached, image_sizes, source_identity
 
 MAIN = MVU_SOURCE / "inference/main.py"
@@ -48,6 +52,7 @@ class MVUEval:
             "generation": self.generation,
             "frames_per_video": f"min({self.frames} // number_of_videos, source frames)",
             "max_side": self.max_side,
+            "video_label": "official '[Video k] <file name>' replaced by 'Video k:'",
             "score": "output.strip().upper()[:1] == ground_truth",
         }
 
@@ -56,6 +61,14 @@ class MVUEval:
         videos = row["video_paths"]
         per_video = self.frames // len(videos)
         content = self.module.build_messages_base(str(self.data_root), row, videos, per_video, self.max_side)
+        labels = [
+            index for index, part in enumerate(content)
+            if part["type"] == "text" and re.fullmatch(r"\[Video \d+\] .+", part["text"])
+        ]
+        if [content[index]["text"] for index in labels] != [f"[Video {k}] {name}" for k, name in enumerate(videos, 1)]:
+            raise RuntimeError("official build_messages_base no longer labels videos as '[Video k] <file name>'")
+        for k, index in enumerate(labels, 1):
+            content[index] = {"type": "text", "text": video_label(k)}
         messages = [{"role": "user", "content": content}]
         text, request = backend.complete(messages, **self.generation)
         sizes = image_sizes(messages)

@@ -3,7 +3,8 @@
 `run.py` 是 CVBench、MVU-Eval、CrossVid 三个 benchmark 的统一 E2E 入口：同一套命令行、同一个 vLLM 服务、
 同一种输出格式。prompt、输入顺序、抽帧方式、生成参数和评分都直接取自（或直接调用）本目录下的官方源码；
 协议参数只有两个：**每次模型调用最多 `F` 帧（`--frames`，默认 512），每帧最长边不超过 `S` 像素（`--max-side`，默认 448）**。
-下文用 `F`、`S` 指代这两个参数。
+下文用 `F`、`S` 指代这两个参数。输入格式在三个 benchmark 间统一：帧都以有序 JPEG 图片输入，每个视频的帧前放一个
+`Video k:` 文字标签（CrossVid 官方写法），模型看不到视频文件名。
 
 ```
 eval/e2e_eval/
@@ -24,13 +25,13 @@ eval/e2e_eval/
 
 | | CVBench | MVU-Eval | CrossVid |
 |---|---|---|---|
-| 执行的官方代码 | `mvr_doc_to_text`、`extract_characters_regex`、adapter 的系统消息和提示句（AST 读取） | `build_messages_base`（含 `encode_video`）直接调用 | 十个 `eval/<TASK>.py` 的 `evaluate()` 直接调用 |
-| 输入形式 | 每个视频的帧作为有序 JPEG 图片（质量 95），夹在该视频的起始、结束提示图之间（官方为 video 元素） | 逐帧 JPEG（质量 75）`image_url`（官方） | 逐帧 JPEG，图文交替（官方） |
+| 执行的官方代码 | `mvr_doc_to_text`、`extract_characters_regex`、adapter 的系统消息（AST 读取） | `build_messages_base`（含 `encode_video`）直接调用 | 十个 `eval/<TASK>.py` 的 `evaluate()` 直接调用 |
+| 输入形式 | `Video k:` + 该视频的帧（JPEG，质量 95）（官方为提示图包围的 video 元素） | `Video k:` + 该视频的帧（JPEG，质量 75）（官方标签为 `[Video k] 文件名`） | `Video k:` 等标签与帧交替（官方） |
 | 帧数 | 每视频 `F // 视频数`（官方 8） | 每视频 `F // 视频数`（官方 32） | 官方 `--frames` 设为 `F`，按各 task 官方规则分配（官方默认 128） |
 | 分辨率 | 等比缩放，最长边 `S`（官方拉伸为 448×448） | `max_pixels=S`（官方 720） | 官方 `--length` 设为 `S`（官方默认 360） |
 | 缩放与编码 | decord 按目标尺寸解码后编码 | 官方 `encode_video` | 官方 `cv2.resize(INTER_AREA)` 后 `cv2.imencode` |
 | 采样下标 | `linspace(0, n-1, k).round()`（同 `qwen_vl_utils`） | 官方 | 官方 |
-| 顺序与 prompt | system → [起始提示图, 该视频的帧, 结束提示图]×N → 提示句 → 题目（同 adapter） | 官方 | 官方 |
+| 顺序与 prompt | system → [`Video k:`, 该视频的帧]×N → 题目（官方 prompt；去掉了解释提示图的那句话） | [`Video k:`, 该视频的帧]×N → 题目 → 指令 → 选项（官方顺序与原文） | 官方 |
 | 生成参数 | temperature 0、top_p 1（yaml），max_tokens 128（adapter 硬编码） | **官方未设置**；本框架固定 temperature 0、top_p 1、max_tokens 1024 | 从官方 `chat()` 读取：max_tokens 8192、temperature 0、top_p 0.95 |
 | thinking | 请求中显式关闭（与 MVAgent 相同） | 同左 | 同左 |
 | 逐题评分 | `extract_characters_regex(out).strip().upper() == answer.strip().upper()` | `out.strip().upper()[:1] == ground_truth` | 严格相等（BU 与拼接后的答案比较）；FSA 用官方 `interval_iou`，解析失败记 0；CCQA 由 Judge 评分 |
@@ -58,11 +59,16 @@ eval/e2e_eval/
 ### 有意的偏差与说明
 
 - **帧数与分辨率**：统一为 `F` 帧、`S` 像素，这是本协议主动改动的参数。CVBench 官方拉伸为 448×448，这里保持宽高比。
-- **CVBench 的帧输入**：官方 adapter 把视频文件交给 `qwen_vl_utils` 作为 video 元素（Qwen2.5-VL 用真实采样时刻做位置编码）。
-  本框架与另两个 benchmark 统一为逐帧图片：Qwen3.5 不给图片加时间标签，模型只能从图片顺序判断先后。
+- **CVBench 的帧输入**：官方 adapter 把视频文件交给 `qwen_vl_utils` 作为 video 元素（Qwen2.5-VL 用真实采样时刻做位置编码），
+  每个视频前后各插一张提示图（"The video k" / "Video k End"），并加一句话解释这些提示图。本框架与另两个 benchmark
+  统一为 `Video k:` 标签加逐帧图片，提示图和那句解释一并去掉，题目 prompt 本身不变。Qwen3.5 不给图片加时间标签，
+  模型只能从图片顺序判断先后。去掉提示图每题平均少约 7.6k prompt token（约 12%）。
   （若用 vLLM 的 JPEG 帧序列视频输入，vLLM 0.19 默认只保留前 32 帧、并按帧序号标注时间，见审计文档。）
 - **模型自身的预处理**：Qwen3.5 处理器会把每张图的尺寸取整到 32 的倍数；每题实际的 prompt token 数记录在原始记录中。
-- **CVBench 提示图**：`res/videoN.png`、`endN.png` 按官方原图发送（约 1192 像素宽）。它们不是视频帧，不受 `S` 限制。
+- **MVU-Eval 去掉文件名**：官方在每个视频前写 `[Video k] 文件名`，这里改为 `Video k:`。TR（时间排序）中有 68 题的
+  文件名形如 `xHr8X2Wpmno_2_cnt6.mp4`，按其中的片段序号排序就 100% 得到答案；Comparison 中的 nuScenes 题用文件名
+  （`CAM_FRONT_LEFT` 等）区分相机视角。MVAgent 只看到 `video_1`、`video_2` 这样的位置编号，看不到文件名，
+  因此 E2E 也不给文件名，两者得到的信息一致。
 - **MVU-Eval 生成参数**：官方不传任何生成参数，取服务端默认（可能是随机采样）。本框架用贪心解码保证可复现；
   1024 的 token 上限只用来截断失控输出，不影响首字符评分。
 - **失败处理**：官方 MVU-Eval 和 CrossVid 会静默丢弃失败的题。这里失败会记录为 error，重跑同一命令时会补跑；
@@ -73,7 +79,7 @@ eval/e2e_eval/
 ## 运行
 
 vLLM 服务与 MVAgent 使用同一份配置（`configs/inference/modal_qwen35_*_no_skill.yaml` 及其 execution 配置，
-在 devbox 上由 `prelaunch.py` 启动）。vLLM 0.19 未指定时每种模态默认允许 999 张图；每题图片数（`F` 加上 CVBench 的提示图）不超过 999 时不需要额外参数。
+在 devbox 上由 `prelaunch.py` 启动）。vLLM 0.19 未指定时每种模态默认允许 999 张图；`F` 不超过 999 时不需要额外参数。
 
 ```bash
 # 推理：可断点续跑；同一 --output 下协议、模型、题目集合或源码变化会拒绝续写

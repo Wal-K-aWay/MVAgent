@@ -25,6 +25,15 @@ UPSTREAM_COMMITS = {
 }
 
 
+def video_label(index: int) -> str:
+    """Text placed before the frames of the index-th video (1-based) in every benchmark.
+
+    CrossVid's official separator. CVBench (cue images) and MVU-Eval (`[Video k] <file name>`)
+    use it too, so all three present videos the same way and no file name reaches the model.
+    """
+    return f"Video {index}:\n"
+
+
 def read_json(path: Path) -> Any:
     with Path(path).open(encoding="utf-8") as handle:
         return json.load(handle)

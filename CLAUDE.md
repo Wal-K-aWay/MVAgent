@@ -18,7 +18,8 @@ MVAgent 多智能体架构已经冻结（实现与基线实验均已完成）。
   涉及检索、Selector 或注入细节时读 `src/mvagent/skills/README.md`。
 - 借鉴外部 skill 进化方法时：读 `reference/SURVEY.md`（`reference/` 下是相关仓库的浅克隆，不入 git）。
 - 跑或解读端到端（E2E）基线前：读 `eval/e2e_eval/README.md`（统一入口 `eval/e2e_eval/run.py`；每次调用的帧数上限 `--frames`
-  默认 512、最长边 `--max-side` 默认 448，其余与官方代码一致）。
+  默认 512、最长边 `--max-side` 默认 448；帧一律以图片输入，视频之间用 `Video k:` 标签分隔、不给文件名；
+  其余与官方代码一致，偏差清单见该 README）。
 
 ## 术语
 
