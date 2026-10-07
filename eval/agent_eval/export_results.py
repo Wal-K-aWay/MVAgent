@@ -21,8 +21,10 @@ from collections import defaultdict
 from pathlib import Path
 
 # Outcome thresholds mirror skill_evolution.infra.benchmarks.scoring.OUTCOME_THRESHOLDS (pass_at, fail_below).
-THRESHOLDS = {"temporal_localization": (0.5, 0.1), "open_qa": (2 / 3, 1 / 3)}
-VALID = {"ordering": r"\d+(\s*->\s*\d+)+", "temporal_localization": r"\d+(\.\d+)?\s*,\s*\d+(\.\d+)?",
+# Records name the FSA family "temporal"; SampleTask names it "temporal_localization".
+THRESHOLDS = {"temporal_localization": (0.5, 0.1), "temporal": (0.5, 0.1), "open_qa": (2 / 3, 1 / 3)}
+INTERVAL = r"\d+(\.\d+)?\s*,\s*\d+(\.\d+)?"
+VALID = {"ordering": r"\d+(\s*->\s*\d+)+", "temporal_localization": INTERVAL, "temporal": INTERVAL,
          "open_qa": r"[\s\S]*\S[\s\S]*", "choice": r"[A-H]{1,4}\.?|yes\.?|no\.?"}
 
 
