@@ -68,8 +68,10 @@ def sha256_file(path: Path) -> str:
 
 
 def git(*args: str) -> str:
+    # Copied checkouts (Modal sandboxes) are owned by another uid; trust only this repository.
     return subprocess.run(
-        ("git", *args), cwd=PROJECT_ROOT, check=True, capture_output=True, text=True
+        ("git", "-c", f"safe.directory={PROJECT_ROOT}", *args),
+        cwd=PROJECT_ROOT, check=True, capture_output=True, text=True,
     ).stdout.strip()
 
 
