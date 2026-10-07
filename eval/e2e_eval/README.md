@@ -85,6 +85,9 @@ python eval/e2e_eval/run.py infer --output OUT \
 
 # 评分与汇总（CCQA 需要 DEEPSEEK_API_KEY）
 python eval/e2e_eval/run.py score --output OUT
+
+# 核对输入：按真实流程构造消息但不调用模型，按顺序打印文字原文与图片（连续同尺寸图片合并为一行）
+python eval/e2e_eval/run.py preview cvbench:3 mvu_eval:Counting:0 crossvid:MOC:0
 ```
 
 耗时参考（默认 `F`、`S`；Qwen3.5-9B，单张 H200，每副本一个请求；2026-10-07 冒烟实测）：每题模型调用
