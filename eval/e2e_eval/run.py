@@ -242,7 +242,10 @@ def run_infer(args: argparse.Namespace) -> None:
     write_json(args.output / "selection.json", selection)
     workers = args.workers or 2 * backend.slots
     try:  # informational; the frozen source hashes above are the binding record
-        revision = {"commit": git("rev-parse", "HEAD"), "dirty": bool(git("status", "--porcelain", "--", "eval/e2e_eval"))}
+        revision = {
+            "commit": git("rev-parse", "HEAD"),
+            "dirty": bool(git("status", "--porcelain", "--untracked-files=no", "--", "eval/e2e_eval")),
+        }
     except Exception as exc:  # noqa: BLE001 - e.g. no .git in a copied checkout
         revision = {"error": f"{type(exc).__name__}: {exc}"}
     manifest["runs"].append({
