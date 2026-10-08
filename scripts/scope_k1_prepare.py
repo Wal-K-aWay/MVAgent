@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """K1 probe input: Train cases from the historical 35B no-Skill CrossVid baseline (standard library only).
 
-Samples a Train set T from eval/crossvid_clean_pool.json (equal per task, MOC/MSR by whole UAV
+Samples a Train set T from src/skill_evolution/crossvid_clean_pool.json (equal per task, MOC/MSR by whole UAV
 sequence), converts the exported baseline trajectories into scope/views.py cases, and draws K1
 pattern-finder samples (failures + successes, at most one per video source). Task labels are used
 only for sampling and are kept out of rendered text.
@@ -101,7 +101,7 @@ def main() -> None:
     ap.add_argument("--baseline", type=Path, required=True, help="outputs/mvagent/no_skill/qwen3_5_35b_a3b")
     ap.add_argument("--qa-jsonl", type=Path, required=True, help="prepared CrossVid qa.jsonl (Runtime question text)")
     ap.add_argument("--raw-qa", type=Path, required=True, help="official CrossVid QA/ directory")
-    ap.add_argument("--clean-pool", type=Path, default=Path("eval/crossvid_clean_pool.json"))
+    ap.add_argument("--clean-pool", type=Path, default=Path("src/skill_evolution/crossvid_clean_pool.json"))
     ap.add_argument("--per-task", type=int, default=65)
     ap.add_argument("--samples", type=int, default=3)
     ap.add_argument("--failures", type=int, default=40)

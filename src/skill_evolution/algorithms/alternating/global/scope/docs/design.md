@@ -115,7 +115,7 @@
 
 | 分区 | 来源 | 规模（第一阶段） | 用途 | optimizer 能看到什么 |
 |---|---|---:|---|---|
-| **T**（Train） | `eval/crossvid_clean_pool.json`，与 Lite2500 无共同视频来源 | 约 600 | 发现问题、写方法、修订；Selector 在 T 上的选择用来给 optimizer 提供样例 | 公开轨迹、Train GT、对错标签；**不含 task 代号和题号**，样例用 case_1、case_2 这样的局部编号 |
+| **T**（Train） | `src/skill_evolution/crossvid_clean_pool.json`，与 Lite2500 无共同视频来源 | 约 600 | 发现问题、写方法、修订；Selector 在 T 上的选择用来给 optimizer 提供样例 | 公开轨迹、Train GT、对错标签；**不含 task 代号和题号**，样例用 case_1、case_2 这样的局部编号 |
 | **P**（Probe） | CrossVid 非 Lite 题，与 T 的视频来源隔离 | 1500（每 task 150），另有备用 1500 | 测量每张卡在其选中题上的净收益 | 只看到聚合数字 |
 | **G**（Gate） | CrossVid 非 Lite 题，与 T 来源隔离，与 P 题号不重叠 | 1200（每 task 120） | 整库自然选卡评估，决定是否接受 | 只看到接受或拒绝 |
 | **Test** | Lite2500、CVBench、MVU-Eval | — | 最终独立评估 | 不可见 |
@@ -491,7 +491,7 @@ P 被多个候选反复使用，P 上的最好结果会偏乐观。由于 G 的�
 
 ## 附录 B：数据与脚本出处
 
-- 干净训练池：`eval/crossvid_clean_pool.json`，由 `scripts/prepare_crossvid_clean_pool.py` 生成。
+- 干净训练池：`src/skill_evolution/crossvid_clean_pool.json`，由 `scripts/prepare_crossvid_clean_pool.py` 生成。
 - 基线：`outputs/mvagent/no_skill/qwen3_5_35b_a3b/`、`outputs/e2e/qwen3_5_35b_a3b/`（旧服务器，旧协议）。
 - 确定性与回答器分析：`outputs/modal/{pilot_cap1,pilot_cap2,det_on_a,bi}`。
 - cv2r：`outputs/modal/cv2r/`。
