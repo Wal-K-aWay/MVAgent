@@ -492,7 +492,7 @@ P 被多个候选反复使用，P 上的最好结果会偏乐观。由于 G 的�
 ## 附录 B：数据与脚本出处
 
 - 干净训练池：`src/skill_evolution/crossvid_clean_pool.json`，由 `scripts/prepare_crossvid_clean_pool.py` 生成。
-- 基线：`outputs/mvagent/no_skill/qwen3_5_35b_a3b/`、`outputs/e2e/qwen3_5_35b_a3b/`（旧服务器，旧协议）。
+- 基线：runs volume 的 `lightsail_outputs/mvagent/no_skill/qwen3_5_35b_a3b/`、`lightsail_outputs/e2e/qwen3_5_35b_a3b/`（旧服务器，旧协议；容器内路径前加 `/runs/`）。
 - 确定性与回答器分析：runs volume（`wxu-evolve-agent-runs-20261006`）的 `devbox/{pilot_cap1,pilot_cap2,det_on_a,bi}`。
 - cv2r：runs volume 的 `devbox/cv2r/`。
 - 历史实验（WQ、RQ、通宵 N0–N8、动作/参数五组）：提交 `5f8d246` 中 AGENTS.md 的逐日记录。原始产物没有迁移到 Modal 环境。

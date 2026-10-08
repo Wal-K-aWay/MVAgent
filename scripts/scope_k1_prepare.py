@@ -98,7 +98,7 @@ def sample_train(clean: list[str], raw: dict, per_task: int, rng: random.Random)
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--baseline", type=Path, required=True, help="outputs/mvagent/no_skill/qwen3_5_35b_a3b")
+    ap.add_argument("--baseline", type=Path, required=True, help="/runs/lightsail_outputs/mvagent/no_skill/qwen3_5_35b_a3b (runs Volume, read inside Modal)")
     ap.add_argument("--qa-jsonl", type=Path, required=True, help="prepared CrossVid qa.jsonl (Runtime question text)")
     ap.add_argument("--raw-qa", type=Path, required=True, help="official CrossVid QA/ directory")
     ap.add_argument("--clean-pool", type=Path, default=Path("src/skill_evolution/crossvid_clean_pool.json"))

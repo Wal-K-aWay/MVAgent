@@ -13,7 +13,7 @@
 | 生成参数 | temperature 0、top_p 1；adapter 硬编码 max_new_tokens 128 | 未设置（服务端默认） | max_tokens 8192、temperature 0、top_p 0.95，每题最多 3 次尝试 |
 | 评分 | 正则抽取首个 A–D/YES/NO；分母 1000 | 首字符；调用失败的题不计入分母 | 严格相等；FSA 为 IoU；CCQA 由 Judge 打分（论文用 GPT-4.1） |
 
-## 2. 旧结果的问题（`outputs/e2e/` 下的历史 E2E）
+## 2. 旧结果的问题（历史 E2E，原在 `outputs/e2e/`，现存于 runs volume 的 `lightsail_outputs/e2e/`）
 
 | Benchmark | 问题 | 影响 |
 |---|---|---|
