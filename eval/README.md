@@ -1,8 +1,6 @@
 # Benchmark evaluation
 
-- [benchmarks.txt](benchmarks.txt): local dataset root directories.
 - [CrossVid 2500题目ID](crossvid_2500.json): JSON array of 2500 unique full IDs (`crossvid:<task>:<original_id>`), for filtering the original QA records. This is an ID-only export of the [frozen split manifest](../configs/skill_evolution/splits/crossvid_lite2500_eval_seed20260919.json); use that manifest with `--split-manifest` for Skill evaluation. See the [sampling report](../analysis/skill_evolution/crossvid_lite2500.md) for provenance and boundaries.
-- [CrossVid 干净训练池](crossvid_clean_pool.json): 1734 个 CrossVid 题目 ID（格式同上），其视频来源与 2500 题完全不重叠，用作 Skill 进化中 optimizer 可读数据（Train）的来源。来源按录像计：Assembly101 同一次录像的不同相机视角、同一部电影的不同片段（`<TITLE>-<n>.mp4`）、MOC/MSR 的同一 UAV 序列都算同一来源。各 task 题数：BU 492、CC 36、CCQA 96、FSA 202、MOC 338、MSR 344、NC 6、PEA 45、PI 15、PSS 160。由 `python3 scripts/prepare_crossvid_clean_pool.py --qa-dir <CrossVid>/QA --output eval/crossvid_clean_pool.json` 生成。池内题目之间仍可能共享视频，切分 Train/Cal/Gate 时还需按来源隔离。
 
 `eval/e2e_eval/` is the official-source hub. The separate `eval/agent_eval/`
 directory contains the thin MVAgent-system runner for CVBench, MVU-Eval, and CrossVid; it
