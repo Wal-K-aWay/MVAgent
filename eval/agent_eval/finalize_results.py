@@ -16,6 +16,8 @@ from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
 
+from score_crossvid_ccqa import REPORT_NAME
+
 CVBENCH_TASKS_PATH = (
     Path(__file__).resolve().parents[1]
     / "e2e_eval/CVBench/Video-R1/src/r1-v/Evaluation/CVBench.json"
@@ -254,7 +256,7 @@ def _markdown(output_dir: Path, e2e: dict | None) -> str:
     mvu = datasets.get("mvu_eval")
     crossvid = datasets.get("crossvid")
     ccqa_official = None
-    official_path = output_dir / "score" / "ccqa_scores_official_deepseek_v4_flash.json"
+    official_path = output_dir / "score" / REPORT_NAME
     if crossvid and official_path.is_file():
         ccqa_official = _load_json(official_path).get("official_score")
 
@@ -424,7 +426,7 @@ def _markdown(output_dir: Path, e2e: dict | None) -> str:
 
 def _merge_deferred_judge(output_dir: Path, summary: dict) -> dict:
     """Join separately judged answers without modifying frozen inference records."""
-    judge_path = output_dir / "score/ccqa_scores_official_deepseek_v4_flash.json"
+    judge_path = output_dir / "score" / REPORT_NAME
     judge = _load_json(judge_path)
     rows = judge["samples"]
     pending = [json.loads(line) for line in (output_dir / "open_qa_pending.jsonl").read_text().splitlines()]

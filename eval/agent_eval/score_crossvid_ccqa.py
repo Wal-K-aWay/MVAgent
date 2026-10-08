@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Rescore CrossVid CCQA predictions with the official e2e judge protocol.
+"""Score CrossVid CCQA predictions with the fixed local judge and the official protocol.
 
 Reuses ``eval/e2e_eval/CrossVid/eval/score_CCQA.py`` prompt, system message,
-generation defaults and ``<score>`` parsing, with strict response validation.
-Judge model aliases may change at the provider; returned model identity is cached.
+generation settings and ``<score>`` parsing, with strict response validation.
+The judge is Qwen3-30B-A3B-Instruct-2507 served by vLLM (one replica per GPU, started
+with ``--generation-config vllm``); one request in flight per replica keeps every batch
+identical, so greedy judgements are reproducible.
 """
 
 from __future__ import annotations
@@ -12,6 +14,7 @@ import argparse
 import hashlib
 import json
 import os
+import queue
 import re
 import threading
 from concurrent.futures import ThreadPoolExecutor
@@ -49,6 +52,9 @@ Your answer:
 """
 
 SYSTEM_PROMPT = "You are a helpful assistant."
+GENERATION = {"max_tokens": 8192, "temperature": 0.0, "top_p": 0.95}
+JUDGE_MODEL = "Qwen3-30B-A3B-Instruct-2507"
+REPORT_NAME = "ccqa_scores_official_qwen3_30b_a3b.json"
 EXTRACT_PATTERN = re.compile(r"<score>\s*(.*?)\s*</score>", re.DOTALL)
 
 
@@ -70,31 +76,70 @@ def _extract(string: str, tag: str) -> str:
     return match.group(1).strip() if match else ""
 
 
-class DeepSeekJudge:
-    def __init__(self, api_base: str, model: str, timeout_sec: float) -> None:
+def parse_endpoints(value: str) -> list[str]:
+    """Comma-separated URLs, ports or port ranges (8100-8107) on 127.0.0.1."""
+    endpoints = []
+    for token in filter(None, (part.strip() for part in value.split(","))):
+        if token.startswith("http"):
+            endpoints.append(token.rstrip("/"))
+        elif "-" in token:
+            first, last = map(int, token.split("-"))
+            endpoints += [f"http://127.0.0.1:{port}/v1" for port in range(first, last + 1)]
+        else:
+            endpoints.append(f"http://127.0.0.1:{int(token)}/v1")
+    return endpoints
+
+
+class LocalJudge:
+    """vLLM endpoints serving JUDGE_MODEL, each used by one request at a time."""
+
+    def __init__(self, endpoints: list[str], timeout_sec: float) -> None:
+        import httpx
         from openai import OpenAI
 
-        self._client = OpenAI(
-            api_key=os.environ["DEEPSEEK_API_KEY"],
-            base_url=api_base,
-            timeout=timeout_sec,
-            max_retries=2,
-        )
-        self._model = model
+        if not endpoints:
+            raise ValueError("no judge endpoints")
+        self._model = JUDGE_MODEL
+        self._clients: queue.Queue = queue.Queue()
+        weights = set()
+        for endpoint in endpoints:
+            response = httpx.get(f"{endpoint}/models", timeout=15, trust_env=False)
+            response.raise_for_status()
+            cards = {card["id"]: card for card in response.json()["data"]}
+            if JUDGE_MODEL not in cards:
+                raise RuntimeError(f"{endpoint} does not serve {JUDGE_MODEL}: {sorted(cards)}")
+            weights.add(cards[JUDGE_MODEL].get("root"))
+            self._clients.put(OpenAI(
+                api_key="unused",
+                base_url=endpoint,
+                timeout=timeout_sec,
+                max_retries=2,
+                http_client=httpx.Client(trust_env=False, timeout=timeout_sec),
+            ))
+        if len(weights) != 1:
+            raise RuntimeError(f"judge endpoints serve different weights: {sorted(map(str, weights))}")
+        self.identity = {
+            "model": JUDGE_MODEL,
+            "weights": weights.pop(),
+            "replicas": len(endpoints),
+            "system_prompt": SYSTEM_PROMPT,
+            "generation": GENERATION,
+        }
 
-    def chat(self, prompt: str, *, max_tokens: int = 8192):
-        completion = self._client.chat.completions.create(
-            model=self._model,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": prompt},
-            ],
-            stream=False,
-            max_tokens=max_tokens,
-            temperature=0.0,
-            top_p=0.95,
-        )
-        return completion
+    def chat(self, prompt: str):
+        client = self._clients.get()
+        try:
+            return client.chat.completions.create(
+                model=self._model,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt},
+                ],
+                stream=False,
+                **GENERATION,
+            )
+        finally:
+            self._clients.put(client)
 
 
 def _cache_path(cache_dir: Path, key: str) -> Path:
@@ -118,7 +163,7 @@ def _store_cache(cache_dir: Path, key: str, row: dict) -> None:
     _atomic_json(path, row)
 
 
-def _score_one(judge: DeepSeekJudge, cache_dir: Path, item: dict, attempts: int) -> dict:
+def _score_one(judge: LocalJudge, cache_dir: Path, item: dict, attempts: int) -> dict:
     key = hashlib.sha256(
         json.dumps(
             {"model": judge._model, "prompt": item["prompt"]},
@@ -133,10 +178,7 @@ def _score_one(judge: DeepSeekJudge, cache_dir: Path, item: dict, attempts: int)
     last_error = ""
     for attempt in range(max(1, attempts)):
         try:
-            # The reasoning-style judge may exhaust 8192 tokens thinking;
-            # escalate the budget on later attempts so the final JSON is emitted.
-            budget = 8192 if attempt < 2 else 32768
-            completion = judge.chat(item["prompt"], max_tokens=budget)
+            completion = judge.chat(item["prompt"])
             response = completion.choices[0].message.content or ""
             payload = json.loads(_extract(response, "score"))
             coverage = list(payload["coverage"])
@@ -160,7 +202,7 @@ def _score_one(judge: DeepSeekJudge, cache_dir: Path, item: dict, attempts: int)
             }
             _store_cache(cache_dir, key, row)
             return {**item, **row}
-        except Exception as exc:  # noqa: BLE001 - retryable judge failure
+        except Exception as exc:  # noqa: BLE001 - retryable judge failure (greedy: transport errors only)
             last_error = str(exc).strip() or type(exc).__name__
     return {**item, "status": "error", "error": last_error, "cached": False}
 
@@ -173,9 +215,11 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         default=Path("/assets/crossvid/QA/CCQA.json"),
     )
-    parser.add_argument("--api-base", default="https://api.deepseek.com")
-    parser.add_argument("--model", default="deepseek-v4-flash")
-    parser.add_argument("--workers", type=int, default=32)
+    parser.add_argument(
+        "--endpoints",
+        required=True,
+        help=f"vLLM endpoints serving {JUDGE_MODEL}: URLs, ports or port ranges (8100-8107)",
+    )
     parser.add_argument("--attempts", type=int, default=3)
     parser.add_argument("--timeout-sec", type=float, default=600.0)
     return parser
@@ -212,8 +256,9 @@ def main() -> None:
     if not items:
         raise SystemExit("No completed CCQA predictions found to score.")
 
-    cache_dir = output_dir / "ccqa_judge_cache_deepseek"
-    judge = DeepSeekJudge(args.api_base, args.model, args.timeout_sec)
+    cache_dir = output_dir / "ccqa_judge_cache"
+    endpoints = parse_endpoints(args.endpoints)
+    judge = LocalJudge(endpoints, args.timeout_sec)
     results: dict[int, dict] = {}
     lock = threading.Lock()
     done = {"count": 0}
@@ -226,7 +271,7 @@ def main() -> None:
             if done["count"] % 100 == 0:
                 print(f"[PROGRESS] {done['count']}/{len(items)}", flush=True)
 
-    with ThreadPoolExecutor(max_workers=args.workers) as pool:
+    with ThreadPoolExecutor(max_workers=len(endpoints)) as pool:
         list(pool.map(work, items))
 
     ok_rows = [row for row in results.values() if row.get("status") == "ok"]
@@ -242,16 +287,7 @@ def main() -> None:
         "task": "CCQA",
         "scoring_protocol": "CrossVid official score_CCQA.py",
         "official_source": "eval/e2e_eval/CrossVid/eval/score_CCQA.py",
-        "model": args.model,
-        "api_base": args.api_base,
-        "credential": "DEEPSEEK_API_KEY environment variable; value not persisted",
-        "generation": {
-            "max_tokens": "8192 (escalated to 32768 for reasoning-truncated retries)",
-            "temperature": 0.0,
-            "top_p": 0.95,
-            "stream": False,
-        },
-        "system_prompt": SYSTEM_PROMPT,
+        "judge": judge.identity,
         "qa_path": str(args.qa_path),
         "qa_sha256": hashlib.sha256(args.qa_path.read_bytes()).hexdigest(),
         "scored_answer_count": len(ok_rows),
@@ -276,7 +312,7 @@ def main() -> None:
             for row in sorted(results.values(), key=lambda item: item["id"])
         ],
     }
-    save_path = output_dir / "score" / "ccqa_scores_official_deepseek_v4_flash.json"
+    save_path = output_dir / "score" / REPORT_NAME
     save_path.parent.mkdir(parents=True, exist_ok=True)
     _atomic_json(save_path, report)
     print(f"[DONE] official_score={official_score} scored={len(ok_rows)} failed={len(failed_ids)}")

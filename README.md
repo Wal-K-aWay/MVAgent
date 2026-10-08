@@ -49,7 +49,9 @@ Git; `scripts/attribution_probe.py` reads `DEEPSEEK_API_KEY`.
 
 GLM-5.3-Flash is the text optimizer (`provider: bigmodel`, credential `BIGMODEL_API_KEY`) and
 DeepSeek is the CCQA Judge (`DEEPSEEK_API_KEY`); both are defined in
-`configs/skill_evolution/runtime/dynamic_35b_embedding.yaml`. The optimizer uses JSON mode with local
+`configs/skill_evolution/runtime/dynamic_35b_embedding.yaml`. Offline CCQA scoring of finished runs
+(E2E and MVAgent baselines) uses the local Qwen3-30B-A3B-Instruct-2507 Judge instead
+(`eval/agent_eval/serve_ccqa_judge.sh`, `eval/agent_eval/score_crossvid_ccqa.py`). The optimizer uses JSON mode with local
 Schema validation, thinking enabled, reasoning effort `high`, temperature 1, top_p 0.95 and 16384 output tokens.
 
 ```bash

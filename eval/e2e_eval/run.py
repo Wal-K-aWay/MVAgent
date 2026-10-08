@@ -2,7 +2,7 @@
 """Unified end-to-end evaluation of CVBench, MVU-Eval and CrossVid (protocol in README.md).
 
   run.py infer --output DIR --endpoints 8100-8107 [--ids crossvid=eval/crossvid_2500.json]
-  run.py score --output DIR
+  run.py score --output DIR [--judge-endpoints 8100-8107]   # CCQA judge: local Qwen3-30B-A3B-Instruct-2507
   run.py preview cvbench:3 crossvid:MOC:0     # the exact messages, without calling a model
 
 `infer` sends every selected question once to the model and appends raw records to
@@ -93,9 +93,8 @@ def parse_args() -> argparse.Namespace:
 
     score = commands.add_parser("score", help="score raw records with the official rules")
     score.add_argument("--output", type=Path, required=True)
-    score.add_argument("--judge-model", default="deepseek-v4-flash")
-    score.add_argument("--judge-api-base", default="https://api.deepseek.com")
-    score.add_argument("--judge-workers", type=int, default=32)
+    score.add_argument("--judge-endpoints", default="",
+                       help="vLLM endpoints serving the CCQA judge (Qwen3-30B-A3B-Instruct-2507): URLs, ports or ranges")
     score.add_argument("--judge-attempts", type=int, default=3)
     score.add_argument("--judge-timeout", type=float, default=600.0)
 
@@ -424,21 +423,20 @@ def run_score(args: argparse.Namespace) -> None:
             else:
                 scored[sample_id] = {"sample_id": sample_id, "task": items[sample_id]["task"],
                                      **benchmark.score(items[sample_id], raw[sample_id]["output"])}
-        if judge_pending and not os.environ.get("DEEPSEEK_API_KEY"):
-            failures.append(f"CCQA: {len(judge_pending)} answers not judged; set DEEPSEEK_API_KEY and rerun score")
+        if judge_pending and not args.judge_endpoints:
+            failures.append(f"CCQA: {len(judge_pending)} answers not judged; rerun score with --judge-endpoints")
         elif judge_pending:
             from harness.ccqa import judge_outputs
 
-            judged = judge_outputs(judge_pending, cache_dir=args.output / "judge_cache", model=args.judge_model,
-                                   api_base=args.judge_api_base, workers=args.judge_workers,
-                                   attempts=args.judge_attempts, timeout=args.judge_timeout)
+            summary["ccqa_judge"], judged = judge_outputs(
+                judge_pending, cache_dir=args.output / "judge_cache", endpoints=parse_endpoints(args.judge_endpoints),
+                attempts=args.judge_attempts, timeout=args.judge_timeout)
             for sample_id, row in judged.items():
                 if row["status"] == "ok":
                     # the judge reads free text, so there is no answer format to miss
                     scored[sample_id] = {"task": "CCQA", **row, "format_ok": True, "robust_score": row["score"]}
                 else:
                     failures.append(f"{sample_id}: judge failed: {row['error']}")
-            summary["ccqa_judge"] = {"model": args.judge_model, "api_base": args.judge_api_base}
         write_json(args.output / "scored" / f"{name}.json", [scored[sample_id] for sample_id in selection[name] if sample_id in scored])
         summary[name] = summarize(name, selection[name], items, raw, scored)
         missing = summary[name]["selected"] - summary[name]["inferred"]

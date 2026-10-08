@@ -101,8 +101,11 @@ PEA（28.8 → 41.8）和 27B 的 FSA（1.6 → 7.9）、PSS（3.6 → 6.8）。
   1824 题上 99.5%/99.9%/99.9% 直接作答。CVBench、CrossVid 的官方指令本身就明确（结尾重复要求或 `Your answer:`），不改。
 - **失败处理**：官方 MVU-Eval 和 CrossVid 会静默丢弃失败的题。这里失败会记录为 error，重跑同一命令时会补跑；
   只有全部题目成功才给出总分。CCQA 的 Judge 失败同样报错，不记为 0 分。
-- **CCQA Judge**：论文使用 GPT-4.1。本框架与 MVAgent 共用同一个固定 Judge（`deepseek-v4-flash`，代码在
-  `eval/agent_eval/score_crossvid_ccqa.py`），prompt 和汇总公式与 `score_CCQA.py` 逐字一致（运行时校验）。
+- **CCQA Judge**：论文使用 GPT-4.1。本框架与 MVAgent 共用同一个固定的本地 Judge：Qwen3-30B-A3B-Instruct-2507，
+  在 vLLM 上每张 GPU 一个副本、每个副本同时只处理一个请求，贪心解码，结果可复现（启动脚本
+  `eval/agent_eval/serve_ccqa_judge.sh`，客户端 `eval/agent_eval/score_crossvid_ccqa.py`）。prompt、system message、
+  生成参数（temperature 0、top_p 0.95、最多 8192 token）和汇总公式与 `score_CCQA.py` 一致（prompt 运行时逐字校验）。
+  2026-10-08 起取代 deepseek-v4-flash，此前 DeepSeek 评出的 CCQA 分数不要与之混用。
 
 ## 运行
 
@@ -119,8 +122,10 @@ python eval/e2e_eval/run.py infer --output OUT \
   --ids crossvid=eval/crossvid_2500.json \
   --media-cache-dir /work/e2e_media
 
-# 评分与汇总（CCQA 需要 DEEPSEEK_API_KEY）
-python eval/e2e_eval/run.py score --output OUT
+# 评分与汇总。CCQA 由本地 Judge 评分：先在空闲 GPU 上启动 Judge（每张卡一个副本，端口从 8100 起），
+# 再传 --judge-endpoints；不传时其他题照常评分，CCQA 记为未评分并列入 failures
+bash eval/agent_eval/serve_ccqa_judge.sh 0-7 8100
+python eval/e2e_eval/run.py score --output OUT --judge-endpoints 8100-8107
 
 # 核对输入：按真实流程构造消息但不调用模型，按顺序打印文字原文与图片（连续同尺寸图片合并为一行）
 python eval/e2e_eval/run.py preview cvbench:3 mvu_eval:Counting:0 crossvid:MOC:0

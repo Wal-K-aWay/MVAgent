@@ -84,11 +84,14 @@ and CrossVid choice, `start,end` for FSA, `1->3->2->4` for PSS, and fixed
 coverage/correctness judging for CCQA. This is an Agent-system evaluation; official
 end-to-end runners under `eval/e2e_eval/` retain their own protocols.
 
-For a completed deferred run with `open_qa_pending.jsonl`, set `DEEPSEEK_API_KEY`
-in the environment, then run `score_crossvid_ccqa.py --output <run>` and
+For a completed deferred run with `open_qa_pending.jsonl`, start the fixed local Judge
+(`serve_ccqa_judge.sh 0-7`: Qwen3-30B-A3B-Instruct-2507 on vLLM, one replica per GPU on ports
+8100+), then run `score_crossvid_ccqa.py --output <run> --endpoints 8100-8107` and
 `finalize_results.py --output <run>`. The scorer uses the CrossVid coverage/correctness
-prompt, validates scoring-point counts and boolean values, and caches returned model,
-response text and usage. Requested model aliases may resolve to newer provider models.
+prompt, system message and sampling (temperature 0, top_p 0.95), validates scoring-point counts
+and boolean values, caches response text and usage, and records the Judge weights in
+`score/ccqa_scores_official_qwen3_30b_a3b.json`. Each replica serves one request at a time, so
+greedy judgements are reproducible. E2E runs use the same Judge (`eval/e2e_eval/README.md`).
 Finalization requires every deferred answer to match its scored prediction and writes
 `summary_scored.json` plus `benchmark_results.md`; raw records and `summary.json`
 retain their original deferred state. CrossVid's primary O.Avg is the ten-task mean,
