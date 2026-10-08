@@ -45,8 +45,8 @@
 
 | 编号 | 事实 | 数字 | 来源 | 对设计的含义 |
 |---|---|---|---|---|
-| E1 | 每副本并发 1 时推理逐字确定；并发 2 时不确定 | 两次并发 1 运行，124 题轨迹全部相同；并发 2 时对错不一致率 8–23% | `outputs/modal/{pilot_cap1,det_on_a,pilot_cap2,bi}` | 空库结果算一次后缓存复用；所有对比都是确定性的逐题配对 |
-| E2 | Selector 不选卡时，轨迹与空库逐字相同 | cv2r 中 250/250 题次 | `outputs/modal/cv2r` | 一张卡只影响它被选中的题；“没有合适卡就不掉点”在结构上成立，掉点只可能来自**误选** |
+| E1 | 每副本并发 1 时推理逐字确定；并发 2 时不确定 | 两次并发 1 运行，124 题轨迹全部相同；并发 2 时对错不一致率 8–23% | runs volume `devbox/{pilot_cap1,det_on_a,pilot_cap2,bi}` | 空库结果算一次后缓存复用；所有对比都是确定性的逐题配对 |
+| E2 | Selector 不选卡时，轨迹与空库逐字相同 | cv2r 中 250/250 题次 | runs volume `devbox/cv2r` | 一张卡只影响它被选中的题；“没有合适卡就不掉点”在结构上成立，掉点只可能来自**误选** |
 | E3 | 注入任何文本都是一次“确定性扰动” | cv2r 被注入的题次中 33% 翻转对错（18 次变好、13 次变差）；RQ 路由 skill 救回 30% 错题（241/800），同时丢掉 28% 对题（334/1200），净变化约 0 | cv2r 复盘；RQ（09-22） | 收益必须与扰动区分开：面板不按基线对错挑题，逐题配对、样本要大，并设安慰剂对照 |
 | E4 | GlobalAgent 的取证很浅 | 平均约 1 轮取证就回答（CrossVid 97%）；首轮 `analyze_videos` 中 33% 的 instruction 是诱导式（“有没有 X？”）；报告分不出候选时几乎从不追问 | 基线分析 | 最主要的杠杆是首轮取证方式：怎么向每个视频提问、要它报告什么、何时联合观看、何时追问 |
 | E5 | agent 与 E2E 逐题高度互补，但无法预测哪条路线会赢 | NC 中仅 agent 对 346 题、仅 E2E 对 249 题；离线检验中按证据状态分桶，各桶都是“仅 agent 对”更多，只有弃权桶例外 | 基线分析；证据状态分桶 | 逐题的成败大多是扰动；只有一类题平均意义上的差异才可能被利用。optimizer 看单个题的成败时容易过拟合噪声，判断必须以测量为准 |
@@ -493,7 +493,7 @@ P 被多个候选反复使用，P 上的最好结果会偏乐观。由于 G 的�
 
 - 干净训练池：`src/skill_evolution/crossvid_clean_pool.json`，由 `scripts/prepare_crossvid_clean_pool.py` 生成。
 - 基线：`outputs/mvagent/no_skill/qwen3_5_35b_a3b/`、`outputs/e2e/qwen3_5_35b_a3b/`（旧服务器，旧协议）。
-- 确定性与回答器分析：`outputs/modal/{pilot_cap1,pilot_cap2,det_on_a,bi}`。
-- cv2r：`outputs/modal/cv2r/`。
+- 确定性与回答器分析：runs volume（`wxu-evolve-agent-runs-20261006`）的 `devbox/{pilot_cap1,pilot_cap2,det_on_a,bi}`。
+- cv2r：runs volume 的 `devbox/cv2r/`。
 - 历史实验（WQ、RQ、通宵 N0–N8、动作/参数五组）：提交 `5f8d246` 中 AGENTS.md 的逐日记录。原始产物没有迁移到 Modal 环境。
 - 本设计用到的分析脚本（会话临时目录，未入库）：benchmark 画像、证据状态分桶、回答器截断统计、MOC/MSR 序列分析。结论已写入本文。

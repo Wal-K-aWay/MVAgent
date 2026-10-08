@@ -36,6 +36,8 @@ MVAgent 多智能体架构已经冻结（实现与基线实验均已完成）。
 - optimizer 的输入只包含 Train 的公开轨迹；Gate 和 Test 的细节只用于接受判定与报告。
 - 候选只做整库评估；接受规则只看官方总分，不加入成本或步数目标。
 - 原始 rollout 先落盘再评分；Judge 失败直接报错（不记为零分）。
+- 实验结果只存在 Modal 的 runs volume（`wxu-evolve-agent-runs-20261006`）；Lightsail 只放代码和 md 报告，不把结果拷回本地
+  （查看与分析方法见 `mvagent-environment` skill）。
 - 复用过的开发数据称为"开发集"，结论要区分"已测到的"和"尚不能声称的"。
 - 凭据（`BIGMODEL_API_KEY`、`DEEPSEEK_API_KEY`）只从环境变量或 Modal Secret 读取。
 - 计算与模型推理都放在 Modal 上；使用 GPU 时，Modal app 名统一为 `wxu-sglang-baseline-gpu-test-*`，
