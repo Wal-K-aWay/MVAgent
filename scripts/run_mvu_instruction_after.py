@@ -79,8 +79,9 @@ def freeze(output):
         target = temp / ADAPTER
         target.write_text(patch_adapter(target.read_text()))
         shutil.copy2(__file__, temp / 'scripts' / Path(__file__).name)
-        commit = subprocess.check_output(['git', '-C', str(Path(__file__).resolve().parents[1]),
-            'rev-parse', 'HEAD'], text=True).strip()
+        # devbox.sh sync_repo records the launcher commit as a detached HEAD.
+        commit = (Path(__file__).resolve().parents[1] / '.git/HEAD').read_text().strip()
+        assert len(commit) == 40 and all(c in '0123456789abcdef' for c in commit), commit
         changed = []
         for path in source.rglob('*'):
             relative = path.relative_to(source)
