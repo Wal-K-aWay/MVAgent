@@ -20,12 +20,23 @@ This is an adapted development smoke evaluation, not reproduction of published p
 CVBench 15, MVU-Eval 8). CrossVid is restricted to the existing Lite2500 manifest;
 the three known corrupt CVBench inputs are excluded before sampling.
 
-All methods use the same concatenated videos: original ordering, 448-pixel letterboxing,
-30 fps, visual only. Every question includes original-video identities and measured segment
-start/end offsets. Question and answer timestamps remain in the original video's coordinate
-system. Re-encoding rounds individual durations to a 30 fps grid; the timeline records both
-original and encoded durations. The three shortest selected questions (one per benchmark)
-are the initial execution smoke panel, not a representative accuracy sample.
+The current preparation protocol concatenates video packets without scaling, padding,
+re-encoding or FPS conversion. Per-segment dimensions and frame timing are preserved;
+a common microsecond container clock allows unlike source time bases to be joined.
+H.264 parameter sets and MPEG-4 sequence headers are retained at segment boundaries.
+Audio remains excluded from this visual-only experiment.
+
+Every question includes original-video identities and measured segment start/end offsets.
+Question and answer timestamps remain in the named original video's coordinate system.
+Offsets come from actual video packet timing, not container duration metadata that may
+include a longer audio track. Per-segment packet counts/timestamps are checked against
+the sources, then checked again after concatenation. A new output directory is required.
+Use `--selection <previous selection.json>` to retain exactly the same evaluation panel.
+
+The previous `external_methods_20261014` results used 448x448 letterboxing and 30fps.
+They remain historical results under that preprocessing protocol. Model-side image
+limits and each method's own frame sampling are unchanged: the native concatenated
+file is distinct from the sampled/resized media submitted to the model.
 
 Answer-free input JSON and private labels are saved separately. Raw outputs precede
 `score.py`, which reuses project official scorers and task-stratified aggregation. CrossVid's
@@ -99,3 +110,14 @@ The `codex/external-methods-20261014` branch backs up these adapters and the one
 completion scripts. The shared worktree's independent inference-runtime/configuration
 changes and local environment skills are outside this checkpoint. Reproducing the
 submitted runs requires their full Modal frozen snapshots, not this branch alone.
+
+## Inspect the prompts
+
+`preview_prompts.py --item <prepared item.json> --sources <frozen external_sources>
+--output <preview.md>` renders the exact shared question plus the patched Video-RSI
+system prompt and VAM planner system/user templates. `<runtime ...>` fields denote
+live tool evidence and state; the preview does not call a model or invent responses.
+Actual request/response JSONL remains in the run volume.
+
+The native-concat CPU check is `test_native_concat.py`: H.264 and MPEG-4 inputs with
+unlike dimensions and FPS must preserve all decoded frame pixels, sizes and timestamps.
