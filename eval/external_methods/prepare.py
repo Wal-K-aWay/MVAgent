@@ -51,14 +51,16 @@ def packet_clock(path):
 
 
 def timeline(segments):
-    lines = ['The supplied file concatenates the original videos in the order below. '
-             'Use the original video identities when answering. Tool timestamps refer to '
-             'the concatenated file. Times in the original question and in your final '
-             'answer refer to the named original video; subtract its start offset when '
-             'converting a concatenated-file time back. No audio is provided.']
+    lines = ['This is a multi-video understanding task. The original videos have been '
+             'concatenated into one complete video in the order listed below.',
+             'The start and end times of each original video in the concatenated video are:']
     for i, s in enumerate(segments, 1):
-        lines.append(f'Video {i} ({s["video_id"]}): starts at {s["start"]:.6f} seconds, '
-                     f'ends at {s["end"]:.6f} seconds; original duration {s["original_duration"]:.6f} seconds.')
+        lines.append(f'Video {i} ({s["video_id"]}): starts at {s["start"]:.2f} seconds, '
+                     f'ends at {s["end"]:.2f} seconds; original duration {s["original_duration"]:.2f} seconds.')
+    lines.append('Use the original video identities when answering. Tool timestamps refer to '
+                 'the concatenated video. Times in the original question and in your final '
+                 'answer refer to the named original video; subtract its start offset when '
+                 'converting a concatenated-video time back. No audio is provided.')
     return '\n'.join(lines)
 
 
