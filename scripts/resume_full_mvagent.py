@@ -75,7 +75,7 @@ def prepare(source, output):
     assert read(output/'samples.json') == selected
     runner = load('continuation_runner', frozen/'eval/agent_eval/run.py')
     _, _, _, _, run_manifest = runner._prepare_output(
-        output_dir=output/'9B', config_path=Path(manifest['configs']['9B']), dataset_root=Path('/assets'),
+        output_dir=output/'9B', config_path=Path(manifest['configs']['9B']), dataset_root=Path('/assets').resolve(),
         sample_ids=tuple(selected), judge_model=None, resume=False, defer_open_qa_judge=True)
     run_manifest['scorer_identity'] = old_run['scorer_identity']
     run_manifest['inherited_from'] = str(source/'9B')
