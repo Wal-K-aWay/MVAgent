@@ -1,0 +1,51 @@
+# 独立进度检查
+
+- 检查时间：2026-10-14 10:51（北京时间）
+- 已完成实验单元：媒体准备 33/33 题（CrossVid 10、CVBench 15、MVU-Eval 8）；GPU 推理 0/33，有效模型样本 0。
+- 阶段：GPU Sandbox 恢复启动/就绪确认；尚未进入推理或分析。
+- 最近关键实现/实测：主执行者报告 watchdog 已修复旧 epoch 心跳误判（闲置 29,865,764.9 分钟）并已重新 deploy；前一个 Sandbox 已 terminated。此检查中 `devbox.sh health` 返回 `wxu-sglang-baseline-gpu-test-devbox` state=deployed、tasks=2、近一小时 Traceback=0。`devbox.sh status` 与 `log` 未返回内容，无法据此核对新实例 exec、8 个 固定配置 worker 或首条推理。
+- 唯一重要阻塞：新实例的 exec 和 固定配置 worker 就绪尚未确认，因而第一条端到端推理仍无法启动。健康状态无 traceback，但不足以证明模型服务可用。
+- 下一项可执行动作：由主执行者确认新实例可 exec 且 8 个 固定配置 worker READY 后，立即跑 Video-RSI 的三个 benchmark 首题；不要重复提交准备任务。
+- 检查时间：2026-10-14 11:07（北京时间）
+- 已完成实验单元：33/33 媒体准备；Video-RSI 首题探针进行中，3 个 benchmark 目标中已完成 2 题（MVU-Eval `TR:1585` 与 CVBench `764`），两题请求均成功；有效模型样本 2。MVU-Eval 官方分数 1.0（首题答 B），CVBench 题暂未核到评分结果。
+- 阶段：Video-RSI 端到端首题探针运行中。
+- 最近关键实测：远端 `rsi_smoke/progress.json` 显示 `running`、2/3 complete、2 successful、0 failed；耗时分别 57.57s 与 97.17s。`devbox.sh health` 为 state=deployed、tasks=3、近一小时 Traceback=0。首实例的启动故障已由新实例正常 exec 与已报告的 8 个 固定配置 worker READY 消除。
+- 唯一重要阻塞：无；剩余 CrossVid `MSR:361` 正在处理。
+- 下一项可执行动作：等待当前 RSI 第三题完成，再依据三个首题的接口/轨迹表现启动 VAM 与 Meta 的首轮探针；不重复提交。
+- 检查时间：2026-10-14 11:24（北京时间）
+- 已完成实验单元：媒体准备 33/33；Video-RSI 首轮 3/3 全部完成，另一个 RSI 批次 9/30 已成功、0失败；累计 RSI 有效模型输出 12。VAM 首轮 2/3 成功、0失败，累计 VAM 输出 2。当前成功输出合计 14；尚无可汇总的整批准确率结论，RSI 首轮官方得分 2/3。
+- 阶段：RSI 扩展批次与 VAM 首轮探针并行运行；Meta 的真实推理前修复进行中。
+- 最近关键实测：远端 RSI `progress.json` 为 running、9/30 successful；VAM R4 `progress.json` 为 running、2/3 successful。健康检查 state=deployed、tasks=3、近一小时 Traceback=0。Meta 生成的初始 agent 虽通过构造与注入，但真实调用在 `memory.get_context` 因把字符串当字典写入而失败；本地 Qwen 正按原 ABI 修复中，未计作有效输出。重复性小复核尚无可读进度文件。
+- 唯一最重要阻塞：Meta 分支尚未修复并产出首个有效回答；RSI/VAM 的活跃批次未受其阻塞。
+- 下一项可执行动作：让已提交的 RSI、VAM 批次继续完成；Meta 修复通过后立即重跑其原定首题，不重复准备、失败尝试或提交。
+- 检查时间：2026-10-14 11:44（北京时间）
+- 已完成实验单元：33/33 媒体准备。RSI 首题 3/3 成功；扩展批次当前 20/30 完成（19 成功、1 失败），合计 22 个成功的不同题目输出。VAM 累计 7 个不同题目成功输出（其中当前 R4 首轮探针是重复的两题，另有一题失败，不重复计样本）。Meta 尚无有效回答。RSI 首题官方得分 2/3；VAM R4 两条可评分输出为 0.5（2 题开发探针，覆盖不完整）；CCQA 自由回答仍待 Judge。
+- 阶段：RSI 扩展批次运行；VAM R4 首轮结束但含失败；Meta 修复生成中；文本与视觉重复性复核已完成。
+- 最近关键实测：RSI `progress.json` 为 running、20/30 complete、19 successful、1 failed；失败题 CrossVid PSS341。VAM `progress.json` 为 completed_with_errors、3/3 complete、2 successful、1 failed（CrossVid MSR361）；`scores.json` 明确两题总分 0.5，不能外推完整 benchmark。重复性 `comparison.json` 中 text 与 vision 两类输入哈希/提示匹配，完整 token 序列均一致，首差异为空。health state=deployed、tasks=3、近一小时 Traceback=0。Meta 输出目前仍未形成有效任务结果；先前 R2 的三个“A”经行为审查证实为工具错误时硬编码，全部不计有效样本；R3 正按已定位 ABI 问题修复。
+- 唯一最重要阻塞：Meta 分支仍需通过真实行为检查并产出首个有效回答；RSI 仍有 10 题未完成。VAM/RSI 的多视频测量已有继续推进结果，不受 Meta 阻塞。
+- 下一项可执行动作：继续现有 RSI 批次；Meta R3 通过行为检查后跑其首题；VAM 对 MSR361 的计划 JSON 截断按失败保留，后续用方法本身修复后再测，避免把硬错误转成分数。
+- 检查时间：2026-10-14 12:00（北京时间）
+- 已完成实验单元：33/33 媒体准备。RSI 的 3 题首测全部成功，另 30 题批次已结束（29 成功、1 失败），总计 32 个有效模型输出/33 次尝试。VAM 首测原有 2 个成功输出，扩展批次 9/30 完成（8 成功、1 失败），总计 10 个有效输出/11 次尝试。Meta 修复后首题 `mvu_eval:TR:1585` 已跑通，1 个模型输出。
+- 阶段：RSI 批次结束；VAM 扩展运行中；Meta 真实单题 smoke 已结束；重复性检查已完成。
+- 最近关键实测：health 为 state=deployed、tasks=2、近一小时 Traceback=0。Meta `meta_one_r3/progress.json` 是 completed、1/1 successful，答案 B、51.62s；`result.json` 轨迹显示由 Qwen 35B 进行规划/终答并完成 6 次带真实图像输入的视觉调用，内含行为检查 verdict=pass。注意此处行为检查只证明运行链路，不评正确性：同一任务 `result.json` 的 `gt_answer` 为空、`is_correct=false`，但 `scores.json` 记官方分数 1.0，存在待核对的评分口径差异，暂不把这 1.0 当成可靠结论。VAM 扩展为 9/30 complete、8 success、1 failed；失败题 PSS341。RSI 扩展为 30/30 complete、29 success、1 failed；失败题 PSS341。RSI 的 CCQA 仍需 Judge 才能给官方总分。
+- 唯一最重要阻塞：需要核对 Meta smoke 的结果与评分不一致（空 `gt_answer`/`is_correct=false` 对上 `official_score=1.0`），确认正确性口径后才能报 Meta 结论；VAM/RSI 端到端采样仍在推进。
+- 下一项可执行动作：由主执行者检查 Meta 该题的标签映射和评分记录，完成口径核实；同时让正在运行的 VAM 批次继续，并按计划 Judge RSI 的自由回答。
+- 检查时间：2026-10-14 12:02（北京时间；收到主执行者进展后做的短周期复核）
+- 已完成实验单元：RSI 仍为 32 个成功输出/33 次尝试；VAM 为 10 个成功的不同题目输出/11 次尝试。Meta 的 1 题与 2 题批次均完成，共 3 个不同题目成功输出；其余扩展批次已启动，当前至少 1/28 成功，早期两题批次仍 0/2。跨三种方法合计至少 45 个有效输出，尚无完整 benchmark 结论。
+- 阶段：RSI 主要批次完成；VAM 扩展运行；Meta 九个方法×数据集首测组合均已有成功 smoke，Meta 更大批次持续运行。
+- 最近关键实测：健康检查为 state=deployed、tasks=2、近一小时 Traceback=0。远端 Meta `meta_two_r3/progress.json` 为 2/2 成功（CVBench 与 CrossVid/MSR，答案均 B）；`meta_rest_run` 为 1/28，`meta_early_run` 为 0/2。主执行者已核实之前提到的 Meta 字段差异属预期数据隔离：运行时题目不含标签，故上游 `gt_answer=""`、`is_correct=false` 不代表评分结果；共享 scorer 从私有标签单独评分。之前把该字段差异列作阻塞的判断撤销，成绩以独立 scores.json 为准。首个 Meta 题已有行为链路检查通过证据；另两题的通过状态由主执行者报告。
+- 唯一最重要阻塞：暂无阻止测量的外部故障；Meta 的 28 题扩展与早期长题批次仍在运行，正确率仍待各批正式评分。
+- 下一项可执行动作：让当前 Meta/VAM 批次继续并保持 RSI 已完成结果的正式评分/Judge；检查只读进行，不另提交任务。
+- 检查时间：2026-10-14 12:30（北京时间）
+- 已完成实验单元：首轮三个方法×三个数据集九组合均已取得有效端到端输出。RSI 32/33 次尝试有效；VAM 18/21 次尝试有效；Meta 目前 7/7 个已运行样本有效。VAM 与 Meta 的扩展批次仍在跑，不能把已完成 smoke 数当成全 33 题结论。RSI 的 CCQA Judge 仍待完成。
+- 阶段：首轮覆盖完成；RSI 样本批次已结束，VAM 与 Meta 扩展运行及评分分析阶段并行。
+- 最近关键实测：health state=deployed、tasks=2、近一小时 Traceback=0。远端 RSI `progress.json` 显示扩展 30/30（29 成功、PSS341 失败）；VAM 扩展 18/30（16 成功、PSS341 与 CVBench689 失败），连同两条 smoke 有效输出共 18/21。CVBench689 的方法级失败为 planner JSON 两次 500-token 截断。Meta 结果根当前七个实际运行样本均成功；`meta_rest_run` 已到 4/28，`meta_early_run` 仍 0/2。主执行者已将 Meta 标签隔离审核存至 runs 根 `score_protocol_audit.json`：TR1585 标签 B、回答 B，正式分数 1.0；运行时不带 GT，上游空标签字段不参与评分。
+- 唯一最重要阻塞：没有阻止当前测量的基础设施故障；VAM CVBench689 的重复 planner 截断是目前最清楚的单题方法失败，CCQA 官方分数需 Judge 后才能报告。
+- 下一项可执行动作：继续已有 VAM/Meta 队列；在空闲卡按计划启动本地 Qwen Judge 补齐 RSI 的 CCQA 评分，完成后记录结果并释放本任务 Sandbox。无需重交或取消现有作业。
+- 检查时间：2026-10-14 12:46（北京时间）
+- 已完成实验单元：RSI 32/33 次尝试有效。VAM 的初始 3 题加扩展批次当前 23/30，合计 26 次尝试、22 次成功。Meta 首轮及扩展目前共有 10 个成功输出；`meta_rest_run` 7/28，`meta_early_run` 0/2。当前总计至少 64 个成功方法×题目输出；Judge 汇总尚未完成。
+- 阶段：模型推理仍在进行；新增唯一收尾进程 `external_methods_20261014_finalize` 正在等待 VAM 队列完成。它随后会核验并停本任务的 GPU4/8104 Actor、启动固定 Judge、评分 RSI/VAM，再等待 Meta 后评分并写 `final_summary.json`。
+- 最近关键实测：health state=deployed、tasks=2、近一小时 Traceback=0。远端 VAM `progress.json` 显示扩展 23/30、20 成功、3 失败（连同首轮失败共 4 个失败尝试）；新增失败 CVBench689 仍为 planner JSON 两次 500-token 截断。Meta 扩展 `meta_rest_run` 为 7/28 successful、0 failed，早期长题批次仍 0/2。通过只读 `ps` 实际核验 finalize PID 8563 正在运行，命令为 `/runs/devbox/external_methods_20261014/finalize.py`，elapsed 6:44。
+- 唯一最重要阻塞：无需外部操作；收尾流程必须等 VAM 当前批次结束并释放 Actor 才能进行 Judge 评分。其他测量正常推进。
+- 下一项可执行动作：保持只读观察，让已有队列和 finalize 依序完成；不另提交、停止或重复任何任务。
+- 检查时间：2026-10-14 12:48（北京时间）。主执行者转达用户明确要求停止后台定期检查，由用户自行跟进；因此终止本检查循环。此后不再监控实验，也不对任何实验任务采取操作。

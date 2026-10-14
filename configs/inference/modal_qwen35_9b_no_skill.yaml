@@ -1,6 +1,7 @@
 models:
   qwen3_5_9b_local:
     type: local_vllm
+    execution_profile: qwen35-bf16-flashinfer-sync
     model_name: /weights/Qwen3.5-9B
     temperature: 0.0
     top_p: 1.0
@@ -8,12 +9,8 @@ models:
     max_videos_per_request: 8
     max_video_frames_per_request: 512
     video_mode: video_url
-    timeout_sec: 300
-    max_retries: 2
-    dtype: auto
-    gpu_memory_utilization: 0.9
-    max_model_len: 262144
-    reasoning_parser: qwen3
+    timeout_sec: 1860
+    max_retries: 1
     enable_thinking: false
 runtime:
   output_dir: outputs
