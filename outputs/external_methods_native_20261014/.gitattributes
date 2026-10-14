@@ -1,0 +1,2 @@
+# Keep literal upstream prompt whitespace in the preview.
+prompt_example.md whitespace=-blank-at-eol
