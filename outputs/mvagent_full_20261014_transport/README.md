@@ -19,7 +19,26 @@
 - 9B完成后原冻结控制器自动跑27B、35B-A3B，最后用原Judge补CCQA并输出与原E2E的同题比较。
 - 仍为8×H100、每卡TP1/DP1/并发1、BF16、seed0、temperature0、prefix cache关闭。新目录的media缓存复用原内容键。
 
-当前阶段：准备恢复快照及远端验证，尚不能称全量已恢复推理。部署实例为`mvagent-full-20261013`，Sandbox `sb-avRFplVDedzMxeQh67o88z`。
-准备任务`mvagent_full_20261014_prepare`；验证通过后从新冻结目录运行原run_full_mvagent.py，并启动带新tag的host watcher。
+## 实际恢复验证（2026-10-14 14:13 北京时间）
+
+远端compileall、14项接口测试、恢复补丁自检和生命周期自检均通过。8个实际manifest核验不同H100、TP1/并发1、prefix关闭和修复后源码SHA一致。
+5220条继承记录已并行读取，逐条核对status=ok并记录SHA256（inherited_hashes.json），合计2,557,003,337字节。
+实际已补回2条完整轨迹，当前合计5222/5321；新增2条status均ok：
+
+| 样例 | 最大HTTP请求字节 | 实际模型调用 | 最终原始答案 |
+|---|---:|---:|---|
+| CrossVid NC672 | 1,335,732,913 | 15 | `}` |
+| CrossVid NC701 | 559,089,756 | 15 | `}` |
+
+两个超过旧上限的请求已实际完成模型调用；运行恢复不代表答案格式正确。格式偏差按原评分规则保留，不修改答案约束或prompt。
+其余99题继续补测，随后原控制器自动进入27B、35B，再完成Judge与比较。数字是本次核查快照，不是最终全量结果。
+
+DEVBOX_NAME=`mvagent-full-20261013`，Sandbox `sb-avRFplVDedzMxeQh67o88z`；主控制器PID3079。
+host watcher PID1749260，参数`--tag mvagent_full_20261014_transport`，每23小时续接实例；实际跨时限续接仍待发生。
+独立检查代理按15分钟间隔只读核验进展。
+
+准备阶段的两个错误已保留：最后打印的flush参数位置错误发生在产物写完后；随后新manifest把/assets别名与正式入口解析后的挂载路径混用，导致首次resume被拒。
+已修复准备脚本，以官方_prepare_output(resume=True)重新核验全部身份通过；修正前manifest另存preparation_manifest_before_path_fix.json，未改原运行或原始结果。
+恢复前加载继承记录较慢，另用16线程读取并核验，耗时201.43秒；不新增模型推理。暂停的旧watcher已替换，当前watcher已确认接管新控制器。
 
 本轮不重跑已验收的一致性矩阵，也不改变最终答案格式规则。2 GiB有界传输限制覆盖本次101个已知反例，不能据此保证任意大小请求。
