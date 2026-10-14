@@ -98,7 +98,7 @@ def prepare(source, output):
     driver.write(output/'progress.json', dict(started_at=driver.now(), phase='prepared', models={}, comparisons={}))
     shutil.copy2(__file__, output/'recovery_source.py')
     print(json.dumps(dict(prepared=str(output), inherited=len(inherited), retry=len(failed),
-        largest_failed_body=max(r['body_bytes'] for r in oversized)), flush=True))
+        largest_failed_body=max(r['body_bytes'] for r in oversized))), flush=True)
 
 
 def self_check():
