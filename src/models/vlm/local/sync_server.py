@@ -294,8 +294,8 @@ class Handler(BaseHTTPRequestHandler):
             return
         try:
             length = int(self.headers.get('Content-Length', '0'))
-            if not 0 < length <= 512*1024*1024:
-                raise ValueError('Request body must be between 1 byte and 512 MiB')
+            if not 0 < length <= 2*1024*1024*1024:
+                raise ValueError('Request body must be between 1 byte and 2 GiB')
             wire = self.rfile.read(length)
             if len(wire) != length:
                 raise ValueError('Incomplete request body')

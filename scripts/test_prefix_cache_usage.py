@@ -5,7 +5,7 @@ from pathlib import Path
 import tempfile
 from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location('sync_server', ROOT / 'src/models/vlm/local/sync_server.py')
@@ -14,6 +14,25 @@ spec.loader.exec_module(server)
 
 
 class PrefixUsageTest(unittest.TestCase):
+    def test_large_video_body_limit(self):
+        handler = object.__new__(server.Handler)
+        handler.path = '/v1/chat/completions'
+        handler.respond = Mock()
+        handler.rfile = Mock()
+        handler.rfile.read.side_effect = RuntimeError('body read reached')
+        # The observed failing request must pass admission without allocating its payload in this test.
+        for length in (551523424, 1545373160, 2*1024**3):
+            handler.headers = {'Content-Length': str(length)}
+            with self.assertRaisesRegex(RuntimeError, 'body read reached'):
+                handler.do_POST()
+        handler.respond.assert_not_called()
+        handler.rfile.reset_mock()
+        for length in (0, -1, 2*1024**3 + 1):
+            handler.headers = {'Content-Length': str(length)}
+            handler.do_POST()
+            self.assertEqual(handler.respond.call_args.args[0], 400)
+        handler.rfile.read.assert_not_called()
+
     def test_response_audit_and_persisted_usage(self):
         self.assertEqual(server.PROFILE, 'qwen35-bf16-flashinfer-sync')
         self.assertFalse(server.ENGINE_CONFIG['enable_prefix_caching'])
