@@ -2,15 +2,15 @@
 
 2026-10-14，北京时间。用户确认使用本地 Qwen3.5-35B-A3B，先跑 Video-RSI、MetaVideoAgent、Visual-Agentic-Memory（VAM）× CrossVid、CVBench、MVU-Eval 九个组合；Meta 由本地 Qwen 生成初始 agent，不做进化。
 
-## 后台运行（12:49 状态；12:48 起按用户要求停止持续监控）
+## 当前范围：保留 RSI/VAM，取消 Meta 后续评测（13:17 核查）
 
 九个组合均已有真实端到端输出。每个方法使用相同的 33 道开发题：CrossVid 10、CVBench 15、MVU-Eval 8，每个原生 task 一题，抽样 seed=0。
 
 | 方法 | 已完成尝试 | 有效终答 | 当前阶段 |
 |---|---:|---:|---|
 | Video-RSI | 33/33 | 32 | 等 CCQA Judge；PSS341 决策 JSON 失败 |
-| MetaVideoAgent 初始 agent | 10/33 | 10 | 其余 23 题运行 |
-| VAM | 27/33 | 23 | 其余 6 题运行；MSR361、PSS341、CVBench689/274 失败 |
+| MetaVideoAgent 初始 agent | 14/33 | 14 | 用户取消后续 19 题；仅保留已有结果 |
+| VAM | 33/33 | 28 | 推理结束，5 题方法失败；待收尾评分 |
 
 Video-RSI 的 CVBench 15/15 有效、按全集 task 数量加权的小样本估计为 **52.20%**；MVU-Eval 8/8 有效、加权估计 **40.30%**。CrossVid 仍待 CCQA Judge，且 PSS 缺失，不能报告完整十任务 macro。这些数字不等于完整 benchmark 成绩，样本很少，不用于给方法排名。
 
@@ -68,8 +68,14 @@ Video-RSI 的 CVBench 15/15 有效、按全集 task 数量加权的小样本估�
 - VAM 早期暴露 data URI/NULL embedding、跨卷 rename、错误终态识别和缺失 re 导入；失败批次保留，最终采用 R7。
 - RSI FSA386 回答 `517,533` 超出题目目标原视频长度；即使事后减去拼接偏移，仍与标注无重叠。保留官方零分，不替模型改答案。
 
-## 下一项可执行工作
+## 后台收尾
 
-收尾任务 `external_methods_20261014_finalize`（PID8563，runs 根 `finalize.py`）已启动：等 VAM 全部完成后复用 GPU4 启动固定本地 Qwen3-30B-A3B-Instruct-2507 Judge，先评分 RSI/VAM，再等 Meta 完成评分；写出 `final_summary.json`。按用户后续要求，主对话和独立检查代理均不再持续监控。modal-gpu 上已启动一次性结束处理器 `external_methods_autoclose_20261014.py`（PID1712766，已脱离SSH会话）：等待现有推理与收尾任务退出，归档服务日志，写入 `completion.json`，从 volume 外读取并校验汇总/评分 SHA256 后仅释放本任务 Sandbox，不停止共享 app。如果收尾失败，会保留失败状态和日志；Sandbox 另有既有6小时最大寿命。没有重跑整个 benchmark，也没有复现三个方法的论文训练/演化流程。
+用户明确不再测试 MetaVideoAgent。后续评测范围只保留 Video-RSI 与 VAM；Meta 的 14 个已完成输出及中断轨迹保留，剩余 19 题不续跑，也不运行演化。旧结束处理器 PID1712766 已停止。
 
-以12:49的实际队列与吞吐估计：VAM剩约10–20分钟，Meta约60–90分钟，Judge启动评分约5–10分钟、可重叠；整体约1–1.5小时，保守留2小时。此本地Markdown不会随后台结果自动更新；最终数据以runs根的final_summary.json和completion.json为准。
+13:17 核查时，原8卡 Sandbox `sb-pkePyMfpAkafwHhbjqKes5` 已退出，exit code 137，终止原因未确认；没有 Meta 任务仍在该实例运行。原 Judge 日志止于权重加载后，RSI/VAM 的 CCQA 均尚未评分，不把未完成收尾写成已完成。
+
+只补评分的单次任务已从 modal-gpu 启动（客户端PID1724838，`score_remaining.py`，1×H100、128GiB主存）。使用原固定 Judge 与冻结评分代码，合并 RSI/VAM 各33题后写 `final_summary.json`、`completion.json`；运行结束自动释放本单次任务GPU。不会重跑 Actor，也不会提交 Meta。
+
+新收尾脚本：`eval/external_methods/experiments/20261014/{finalize_remaining.py,score_remaining.py}`。运行端保存源码副本、`scope_change.json`、取消前progress与取消标记。旧三方法收尾脚本可从备份提交 `16d694f` 查阅，但已退役，不再运行。
+
+持续监控与检查代理维持停止。本地 Markdown 不会自动刷新；最终评分以 Modal runs 根下 `final_summary.json` 和 `completion.json` 为准。

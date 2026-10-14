@@ -4,6 +4,10 @@ Adapters for the released Video-RSI final harness, a locally generated initial M
 and Visual-Agentic-Memory (VAM). Upstream code lives in `reference/`; `sources.json` pins its
 provenance. The Modal source snapshot includes `external_sources/` as well as all adapters.
 
+On 2026-10-14 the user discontinued further MetaVideoAgent evaluation. Ongoing scoring
+and subsequent evaluation scope retain Video-RSI and VAM only. Meta code and existing
+outputs remain as historical artifacts; its unfinished panel is not resumed.
+
 The first experiment uses Qwen3.5-35B-A3B BF16 with the existing synchronous v2 server,
 seed/temperature 0, thinking disabled and prefix caching off (explicit user decision on
 2026-10-14). Each question owns one replica. VAM also uses the original
