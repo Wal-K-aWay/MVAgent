@@ -32,4 +32,19 @@ python scripts/run_mvu_instruction_after.py --output /runs/devbox/mvu_instructio
 python /runs/devbox/mvu_instruction_after_20261014/frozen_repo/scripts/run_mvu_instruction_after.py --output /runs/devbox/mvu_instruction_after_20261014
 ```
 
-Status: implementation prepared; remote checks and inference pending.
+Status at 2026-10-14 11:11 Asia/Shanghai: CPU preparation and checks passed;
+9B loading in Sandbox `sb-zuVtvMSQ9UZuBFint9zR4q`, job PID43, started 11:08.
+The source audit confirmed only the existing MVU adapter changed; all 1,824
+original request hashes match across the three baseline models. Full remote
+compileall and instruction relocation / changed-input rejection checks passed.
+The eight allocated GPUs are NVIDIA H100 80GB HBM3. No new responses yet.
+
+Launcher commit: `0485741`; paired analysis script and its timeout-only comparison
+correction: `f2ea20e`. Both are backed up on `codex/mvu-instruction-after`.
+The original shared checkout contains unrelated uncommitted runtime changes and
+local notes, which are outside this branch's backup.
+
+After completion, run `scripts/analyze_mvu_instruction_after.py --output
+/runs/devbox/mvu_instruction_after_20261014` on Modal. It checks paired coverage,
+model/config identity, media metadata, full output token logs and server request
+logs, then writes `analysis/analysis.json` and `analysis/report.md` on the volume.
