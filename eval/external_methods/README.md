@@ -20,11 +20,26 @@ This is an adapted development smoke evaluation, not reproduction of published p
 CVBench 15, MVU-Eval 8). CrossVid is restricted to the existing Lite2500 manifest;
 the three known corrupt CVBench inputs are excluded before sampling.
 
-The current preparation protocol concatenates video packets without scaling, padding,
-re-encoding or FPS conversion. Per-segment dimensions and frame timing are preserved;
-a common microsecond container clock allows unlike source time bases to be joined.
+The current preparation protocol preserves per-segment dimensions and frame timing,
+without scaling, padding or FPS conversion. Questions whose videos all use H.264, or
+all use MPEG-4 Part 2, retain the checked stream-copy path without re-encoding.
+Mixed codecs and other codecs are first normalized segment by segment to lossless
+H.264 (`libx264`, QP 0, preset fast), then concatenated by stream copy. All segments
+in that question use the same normalization path, including existing H.264 segments.
+A common microsecond container clock allows unlike source time bases to be joined.
 H.264 parameter sets and MPEG-4 sequence headers are retained at segment boundaries.
 Audio remains excluded from this visual-only experiment.
+
+Normalization uses timestamp passthrough, no B-frame reordering, no automatic rotation
+or scaling, and `-pix_fmt +` to retain the source pixel format. Unsupported formats
+fail explicitly instead of reducing bit depth or chroma resolution. Each normalized
+segment and the final concatenation are decoded and checked against the originals
+for frame count, size, pixel format, RGB pixel hashes and timestamps; segment duration
+is also checked. These checks stream through frames without keeping the video in RAM.
+This costs CPU time and lossless files may be substantially larger. The manifest
+records each segment's processing mode, exact command and source/output metadata.
+The normalization path and its mixed-codec/VFR test cases have not been executed:
+the user requested implementation and input review without further actual tests.
 
 Every question first identifies the task as multi-video understanding and explains that
 the original videos have been concatenated into one complete video. It then lists
@@ -133,5 +148,7 @@ The local `outputs/external_methods_native_20261014/prompt_example.md` preview a
 the current two-decimal template to the prepared sample metadata. Frozen `prepared_r2`
 inputs retain their original prompt text; no model run has used this latest wording.
 
-The native-concat CPU check is `test_native_concat.py`: H.264 and MPEG-4 inputs with
-unlike dimensions and FPS must preserve all decoded frame pixels, sizes and timestamps.
+The native-concat CPU check is `test_native_concat.py`: homogeneous H.264/MPEG-4 and
+mixed-codec inputs with unlike dimensions and FPS, including variable frame timing,
+must preserve all decoded frame pixels, sizes and timestamps, including after seeking.
+Earlier passing checks cover only the homogeneous stream-copy path, not normalization.

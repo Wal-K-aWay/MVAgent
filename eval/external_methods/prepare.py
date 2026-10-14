@@ -2,6 +2,8 @@
 import argparse
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
+import hashlib
+from itertools import zip_longest
 import json
 from pathlib import Path
 import random
@@ -34,7 +36,7 @@ def select(root):
 
 def video_info(path):
     result = subprocess.check_output(['ffprobe', '-v', 'error', '-show_entries',
-        'format=duration:stream=codec_type,codec_name,width,height,time_base,avg_frame_rate,duration,nb_frames',
+        'format=duration:stream=codec_type,codec_name,pix_fmt,width,height,time_base,avg_frame_rate,duration,nb_frames',
         '-of', 'json', str(path)], text=True)
     info = json.loads(result)
     video = next(s for s in info['streams'] if s['codec_type'] == 'video')
@@ -48,6 +50,32 @@ def packet_clock(path):
     with av.open(str(path)) as container:
         return [(float(packet.pts * packet.time_base), float(packet.duration * packet.time_base))
                 for packet in container.demux(video=0) if packet.pts is not None]
+
+
+def frame_signatures(path, offset=0.0):
+    import av
+    with av.open(str(path)) as container:
+        stream = container.streams.video[0]
+        stream.thread_type = 'NONE'
+        for frame in container.decode(stream):
+            if frame.pts is None:
+                raise ValueError(f'{path}: decoded frame has no timestamp')
+            yield (float(frame.pts * frame.time_base) + offset,
+                   frame.width, frame.height, frame.format.name,
+                   hashlib.sha256(frame.to_ndarray(format='rgb24').tobytes()).hexdigest())
+
+
+def verify_frames(expected, actual, label):
+    count = 0
+    for before, after in zip_longest(expected, actual):
+        if before is None or after is None:
+            raise ValueError(f'{label}: decoded frame count changed at frame {count}')
+        if abs(before[0] - after[0]) >= .000002 or before[1:] != after[1:]:
+            raise ValueError(f'{label}: frame {count} pixels, format, size or timestamp changed')
+        count += 1
+    if not count:
+        raise ValueError(f'{label}: no decoded video frames')
+    return count
 
 
 def timeline(segments):
@@ -70,24 +98,40 @@ def prepare(record, output):
     parts, segments, clocks, offset = [], [], [], 0.0
     sources = [(video_id, source, video_info(source)) for video_id, source in record.sample.videos.items()]
     codecs = {info['codec_name'] for _, _, info in sources}
-    if len(codecs) != 1:
-        raise ValueError(f'{record.sample_id}: direct concatenation requires one codec, got {codecs}')
+    # Only these codecs have been checked for native-size stream-copy concatenation.
+    transcode = len(codecs) != 1 or not codecs <= {'h264', 'mpeg4'}
     for i, (video_id, source, original) in enumerate(sources):
         destination = target / f'{i}.mp4'
         source_clock = packet_clock(source)
         source_start = min(t for t, _ in source_clock)
-        # A common container clock is needed by concat; video packets are not re-encoded.
+        # A common container clock lets concat preserve the source frame timing.
         command = ['ffmpeg', '-v', 'error', '-copyts', '-itsoffset', f'{-source_start:.6f}',
-                   '-i', source, '-map', '0:v:0', '-c:v', 'copy', '-an', '-avoid_negative_ts', 'disabled',
-                   '-video_track_timescale', '1000000']
-        if original['codec_name'] == 'mpeg4':
+                   '-noautorotate', '-i', source, '-map', '0:v:0', '-an',
+                   '-avoid_negative_ts', 'disabled', '-video_track_timescale', '1000000']
+        if transcode:
+            # '+' rejects unsupported pixel formats instead of silently converting them.
+            command += ['-c:v', 'libx264', '-qp', '0', '-preset', 'fast', '-pix_fmt', '+',
+                        '-fps_mode', 'passthrough', '-enc_time_base', '1:1000000',
+                        '-bf', '0', '-threads', '1', '-noautoscale']
+        else:
+            command += ['-c:v', 'copy']
+        if not transcode and original['codec_name'] == 'mpeg4':
             command += ['-bsf:v', 'dump_extra=freq=keyframe']
-        subprocess.run(command + ['-n', str(destination)], check=True, timeout=1200)
+        command += ['-n', str(destination)]
+        subprocess.run(command, check=True, timeout=1200)
         remuxed = video_info(destination)
         clock = packet_clock(destination)
-        assert len(clock) == len(source_clock), source
-        assert all(abs(t-(original_t-source_start)) < .000002
-                   for (t, _), (original_t, _) in zip(clock, source_clock)), source
+        verified_frames = None
+        if transcode:
+            verified_frames = verify_frames(frame_signatures(source, -source_start),
+                                            frame_signatures(destination), str(source))
+            source_duration = max(t+d for t, d in source_clock) - source_start
+            if abs(max(t+d for t, d in clock) - source_duration) >= .000002:
+                raise ValueError(f'{source}: video duration changed during lossless encoding')
+        else:
+            assert len(clock) == len(source_clock), source
+            assert all(abs(t-(original_t-source_start)) < .000002
+                       for (t, _), (original_t, _) in zip(clock, source_clock)), source
         duration = max(t+d for t, d in clock)
         assert duration > 0 and abs(min(t for t, _ in clock)) < .000002
         assert (remuxed['width'], remuxed['height']) == (original['width'], original['height'])
@@ -95,7 +139,8 @@ def prepare(record, output):
         segments.append(dict(video_id=video_id, start=offset, end=offset+duration,
             original_duration=duration, source=source, source_sha256=sha256(source),
             source_start_time=source_start, original_stream=original, remuxed_stream=remuxed,
-            packet_count=len(clock)))
+            packet_count=len(clock), processing='lossless_h264' if transcode else 'stream_copy',
+            preparation_command=command, verified_decoded_frames=verified_frames))
         offset += duration
         parts.append(destination)
     listing = target / 'concat.txt'
@@ -110,11 +155,18 @@ def prepare(record, output):
     assert all(abs(t-expected) < .000002 for (t, _), expected in zip(combined_clock, clocks))
     duration = max(t+d for t, d in combined_clock)
     assert abs(duration-offset) < .000002, (duration, offset)
+    if transcode:
+        expected_frames = (frame for segment in segments
+                           for frame in frame_signatures(segment['source'],
+                               segment['start']-segment['source_start_time']))
+        verify_frames(expected_frames, frame_signatures(video), str(video))
     item = dict(sample_id=record.sample_id, video_path=str(video), duration=duration,
         question=timeline(segments) + '\n\nOriginal question:\n' + record.sample.question,
         options={chr(65+i): value for i, value in enumerate(record.sample.options)})
     write(target / 'timeline.json', dict(segments=segments, duration=duration,
-        video_sha256=sha256(video), preprocessing='stream-copy concat; native dimensions and frame timing; visual only',
+        video_sha256=sha256(video), preprocessing=(
+            ('lossless H.264 normalization; ' if transcode else '') +
+            'stream-copy concat; native dimensions and frame timing; visual only'),
         container_time_base='1/1000000'))
     for part in parts:
         part.unlink()
