@@ -26,7 +26,10 @@ a common microsecond container clock allows unlike source time bases to be joine
 H.264 parameter sets and MPEG-4 sequence headers are retained at segment boundaries.
 Audio remains excluded from this visual-only experiment.
 
-Every question includes original-video identities and measured segment start/end offsets.
+Every question first identifies the task as multi-video understanding and explains that
+the original videos have been concatenated into one complete video. It then lists
+original-video identities and measured segment start/end offsets, formatted to two
+decimal places in the prompt. Stored timing metadata retains its original precision.
 Question and answer timestamps remain in the named original video's coordinate system.
 Offsets come from actual video packet timing, not container duration metadata that may
 include a longer audio track. Per-segment packet counts/timestamps are checked against
@@ -44,6 +47,13 @@ full macro requires all ten tasks, including CCQA with the fixed local Qwen3-30B
 Infrastructure failures are reported separately and never converted into zero-scored answers.
 Meta's raw upstream `gt_answer` is intentionally empty; its derived `is_correct=false`
 is therefore not an accuracy result. Only the separate official scorer uses private labels.
+
+The adapted RSI and native VAM answer contracts accept nonempty strings, not an option
+enum. Their agent control messages remain JSON: RSI uses `type=answer` with `answer`,
+and VAM uses `action=answer` with `response`. The saved final `answer` can contain a
+choice, multiple choices, an ordering, a time interval, a number or natural language,
+as requested by the original question. Format support does not guarantee compliance
+or correctness; normal answers with the wrong task format remain scorer inputs.
 
 ## Method-specific changes
 
@@ -118,6 +128,10 @@ submitted runs requires their full Modal frozen snapshots, not this branch alone
 system prompt and VAM planner system/user templates. `<runtime ...>` fields denote
 live tool evidence and state; the preview does not call a model or invent responses.
 Actual request/response JSONL remains in the run volume.
+
+The local `outputs/external_methods_native_20261014/prompt_example.md` preview applies
+the current two-decimal template to the prepared sample metadata. Frozen `prepared_r2`
+inputs retain their original prompt text; no model run has used this latest wording.
 
 The native-concat CPU check is `test_native_concat.py`: H.264 and MPEG-4 inputs with
 unlike dimensions and FPS must preserve all decoded frame pixels, sizes and timestamps.

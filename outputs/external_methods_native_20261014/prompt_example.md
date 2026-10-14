@@ -1,15 +1,17 @@
 # Input and prompt preview
 
-The common question below is the exact prepared input. System prompts come from the frozen, patched upstream source. Fields marked <runtime ...> are templates for live evidence and state, not fabricated model outputs. No model is called by this preview.
+The common question below uses the current two-decimal prompt template and the prepared video metadata. System prompts come from the frozen, patched upstream source. Fields marked <runtime ...> are templates for live evidence and state, not fabricated model outputs. No model is called by this preview.
 
 Sample: `cvbench:764`. No answer label is included.
 
 ## Shared question
 
 ```text
-The supplied file concatenates the original videos in the order below. Use the original video identities when answering. Tool timestamps refer to the concatenated file. Times in the original question and in your final answer refer to the named original video; subtract its start offset when converting a concatenated-file time back. No audio is provided.
-Video 1 (video_1): starts at 0.000000 seconds, ends at 6.581688 seconds; original duration 6.581688 seconds.
-Video 2 (video_2): starts at 6.581688 seconds, ends at 14.348001 seconds; original duration 7.766313 seconds.
+This is a multi-video understanding task. The original videos have been concatenated into one complete video in the order listed below.
+The start and end times of each original video in the concatenated video are:
+Video 1 (video_1): starts at 0.00 seconds, ends at 6.58 seconds; original duration 6.58 seconds.
+Video 2 (video_2): starts at 6.58 seconds, ends at 14.35 seconds; original duration 7.77 seconds.
+Use the original video identities when answering. Tool timestamps refer to the concatenated video. Times in the original question and in your final answer refer to the named original video; subtract its start offset when converting a concatenated-video time back. No audio is provided.
 
 Original question:
 Provide several videos and a single-choice question with exactly one correct option.
@@ -166,7 +168,7 @@ Matching skills from skill_policy.py are appended to this system prompt at each 
     "sample_id": "cvbench:764",
     "video_path": "/runs/devbox/external_methods_native_20261014/prepared_r2/media/cvbench_764/concatenated.mp4",
     "duration": 14.348001,
-    "question": "The supplied file concatenates the original videos in the order below. Use the original video identities when answering. Tool timestamps refer to the concatenated file. Times in the original question and in your final answer refer to the named original video; subtract its start offset when converting a concatenated-file time back. No audio is provided.\nVideo 1 (video_1): starts at 0.000000 seconds, ends at 6.581688 seconds; original duration 6.581688 seconds.\nVideo 2 (video_2): starts at 6.581688 seconds, ends at 14.348001 seconds; original duration 7.766313 seconds.\n\nOriginal question:\nProvide several videos and a single-choice question with exactly one correct option.\nWatch the videos carefully. Select one answer choice and output only its uppercase letter.\n\nQuestion:\nWhich action differentiates the individual's approach to the piano between the videos?\n\nOptions:\nA. Gesturing with hands.\nB. Identifying specific keys.\nC. Standing beside the piano.\nD. Playing with different numbers of fingers.\n\nYour answer:",
+    "question": "This is a multi-video understanding task. The original videos have been concatenated into one complete video in the order listed below.\nThe start and end times of each original video in the concatenated video are:\nVideo 1 (video_1): starts at 0.00 seconds, ends at 6.58 seconds; original duration 6.58 seconds.\nVideo 2 (video_2): starts at 6.58 seconds, ends at 14.35 seconds; original duration 7.77 seconds.\nUse the original video identities when answering. Tool timestamps refer to the concatenated video. Times in the original question and in your final answer refer to the named original video; subtract its start offset when converting a concatenated-video time back. No audio is provided.\n\nOriginal question:\nProvide several videos and a single-choice question with exactly one correct option.\nWatch the videos carefully. Select one answer choice and output only its uppercase letter.\n\nQuestion:\nWhich action differentiates the individual's approach to the piano between the videos?\n\nOptions:\nA. Gesturing with hands.\nB. Identifying specific keys.\nC. Standing beside the piano.\nD. Playing with different numbers of fingers.\n\nYour answer:",
     "options": {
       "A": "A. Gesturing with hands.",
       "B": "B. Identifying specific keys.",
@@ -283,9 +285,11 @@ Output ONLY valid JSON.
 ## VAM planner user template
 
 ```text
-Goal: The supplied file concatenates the original videos in the order below. Use the original video identities when answering. Tool timestamps refer to the concatenated file. Times in the original question and in your final answer refer to the named original video; subtract its start offset when converting a concatenated-file time back. No audio is provided.
-Video 1 (video_1): starts at 0.000000 seconds, ends at 6.581688 seconds; original duration 6.581688 seconds.
-Video 2 (video_2): starts at 6.581688 seconds, ends at 14.348001 seconds; original duration 7.766313 seconds.
+Goal: This is a multi-video understanding task. The original videos have been concatenated into one complete video in the order listed below.
+The start and end times of each original video in the concatenated video are:
+Video 1 (video_1): starts at 0.00 seconds, ends at 6.58 seconds; original duration 6.58 seconds.
+Video 2 (video_2): starts at 6.58 seconds, ends at 14.35 seconds; original duration 7.77 seconds.
+Use the original video identities when answering. Tool timestamps refer to the concatenated video. Times in the original question and in your final answer refer to the named original video; subtract its start offset when converting a concatenated-video time back. No audio is provided.
 
 Original question:
 Provide several videos and a single-choice question with exactly one correct option.

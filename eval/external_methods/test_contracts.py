@@ -29,7 +29,8 @@ def main():
             else:
                 raise AssertionError(f'Accepted invalid answer {bad!r}')
     text = timeline([dict(video_id='video_2', start=10.25, end=30.75, original_duration=20.5)])
-    assert '10.250000 seconds' in text and '30.750000 seconds' in text and 'subtract its start offset' in text
+    assert text.startswith('This is a multi-video understanding task.')
+    assert '10.25 seconds' in text and '30.75 seconds' in text and 'subtract its start offset' in text
     print('Adapter contracts passed')
 
 
