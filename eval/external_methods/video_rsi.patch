@@ -1,0 +1,109 @@
+--- a/solver_full_workspace/engine/common.py
++++ b/solver_full_workspace/engine/common.py
+@@ -33,8 +33,8 @@
+     options = value["options"]
+     if isinstance(options, list):
+         options = {chr(65 + i): text for i, text in enumerate(options)}
+-    if not isinstance(options, dict) or not 2 <= len(options) <= 26:
+-        raise ValueError("each item needs 2..26 explicit choice options")
++    if not isinstance(options, dict) or not 0 <= len(options) <= 26:
++        raise ValueError("item options must be a mapping with at most 26 choices")
+     if any(len(k) != 1 or not "A" <= k <= "Z" for k in options):
+         raise ValueError("option keys must be uppercase single letters")
+     if not isinstance(value["question"], str) or not math.isfinite(float(value["duration"])) or float(value["duration"]) <= 0:
+--- a/solver_full_workspace/engine/runner.py
++++ b/solver_full_workspace/engine/runner.py
+@@ -117,8 +117,8 @@
+             stderr.close()
+         if result is None:
+             result = {"status": "engineering_error", "answer": None, "error": failure or "worker exited without result", "stderr": diagnostic}
+-        if result.get("status") == "answered" and result.get("answer") not in item["options"]:
+-            result.update(status="invalid_decision", answer=None, error="answer is not one actual option")
++        if result.get("status") == "answered" and (not isinstance(result.get("answer"), str) or not result["answer"].strip()):
++            result.update(status="invalid_decision", answer=None, error="answer must be a nonempty string")
+         result.update(sample_id=item["sample_id"], usage=services.meter.summary(), meter_events=services.meter.events, service_trace=services.trace)
+         return result
+ 
+--- a/artifacts/final_harness/answers.py
++++ b/artifacts/final_harness/answers.py
+@@ -34,9 +34,10 @@
+     if not isinstance(value, dict):
+         raise ValueError("decision must be an object")
+     if value.get("type") == "answer":
+-        answer = str(value.get("answer", "")).strip().upper()
+-        if answer not in options:
+-            raise ValueError("submit exactly one actual option: " + ",".join(options))
++        answer = value.get("answer")
++        if not isinstance(answer, str) or not answer.strip():
++            raise ValueError("submit a nonempty answer string following the question")
++        answer = answer.strip()
+         value["answer"] = answer
+     elif value.get("type") != "tool" or not isinstance(value.get("tool"), str) or not isinstance(value.get("arguments", {}), dict):
+         raise ValueError("expected a tool action or final answer")
+--- a/artifacts/final_harness/agent.py
++++ b/artifacts/final_harness/agent.py
+@@ -87,15 +87,15 @@
+                 elif remaining <= 1:
+                     repair = (
+                         'Response repair: this is the last step. Return only '
+-                        '{"type":"answer","answer":"<option_letter>","reason":"..."}. '
+-                        'Select your best-supported single option from ' + ", ".join(self.item["options"]) +
++                        '{"type":"answer","answer":"<answer_string>","reason":"..."}. '
++                        'Submit your best-supported answer in the format requested by the question' +
+                         '. No further tool action will execute. Do not invent evidence. '
+                     )
+                 else:
+                     repair = (
+                         'Response repair: return one JSON tool action or terminal answer using the response protocol. '
+                         'Keep your intended action if it is valid; this is not a request to answer prematurely. '
+-                        'If answering, use one actual option from ' + ", ".join(self.item["options"]) + '. '
++                        'If answering, follow the answer format requested by the question. '
+                     )
+                 messages.extend([
+                     {"role": "assistant", "content": text},
+--- a/artifacts/final_harness/prompt.md
++++ b/artifacts/final_harness/prompt.md
+@@ -93,16 +93,16 @@
+ timestamps, inspect a different interval or obtain global context.
+ 
+ If the budget runs out while uncertainty remains, submit the best-supported
+-single option available. Do not invent evidence to justify it.
++answer in the format requested by the question. Do not invent evidence to justify it.
+ 
+ Response protocol:
+ Return one JSON object for a tool action or a terminal answer (not a tool).
+ Tool action: {"type":"tool","tool":"<available_tool_name>","arguments":{}}
+ Replace <available_tool_name> with a listed tool and supply its required arguments.
+ Visual tool example: {"type":"tool","tool":"inspect_interval","arguments":{"start":120,"end":136,"observation_goal":"Read the speaker's visible name caption; report if unreadable rather than inferring identity."}}
+-Terminal answer: {"type":"answer","answer":"<option_letter>","reason":"..."}
+-Replace <option_letter> with exactly one letter present in this question's options;
+-do not assume only A-D.
++Terminal answer: {"type":"answer","answer":"<answer_string>","reason":"..."}
++Replace <answer_string> with a nonempty string in the format requested by the question.
++Options, if present, are supplied in the question. Do not impose a single-choice format on other tasks.
+ 
+ Time arguments accept numeric seconds or explicit "MM:SS" / "HH:MM:SS" strings.
+ For example "15:04" means 904 seconds, while 15.04 means 15.04 seconds, not
+--- a/solver_full_workspace/engine/services.py
++++ b/solver_full_workspace/engine/services.py
+@@ -252,7 +252,7 @@
+                 raise ServiceError("invalid frame timestamp")
+             fid = "frame_%06d" % len(self.frames)
+             path = self.scratch / (fid + ".jpg")
+-            subprocess.run([ffmpeg, "-v", "error", "-ss", str(timestamp), "-i", str(self.media["video_path"]), "-frames:v", "1", "-vf", "scale=768:-2", "-threads", "1", "-y", str(path)], capture_output=True, check=True, timeout=60)
++            subprocess.run([ffmpeg, "-v", "error", "-ss", str(timestamp), "-i", str(self.media["video_path"]), "-frames:v", "1", "-vf", "scale=448:-2", "-threads", "1", "-y", str(path)], capture_output=True, check=True, timeout=60)
+             if not path.is_file() or path.stat().st_size == 0:
+                 raise ServiceError("frame extraction produced no image")
+             self.frames[fid] = {"timestamp": timestamp, "path": path}
+--- a/solver_full_workspace/engine/worker.py
++++ b/solver_full_workspace/engine/worker.py
+@@ -40,8 +40,8 @@
+     sys.dont_write_bytecode = True
+     scratch = Path(request["scratch"]).resolve()
+     os.environ["TMPDIR"] = str(scratch)
++    syscall_fence(network=False)
+     if request["isolation"]:
+-        syscall_fence(network=False)
+         filesystem_fence(python_paths() + [root], [scratch])
+     executed = set()
+ 
