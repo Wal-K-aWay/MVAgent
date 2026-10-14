@@ -35,7 +35,7 @@ def main():
                 command = ['ffmpeg','-v','error','-f','lavfi','-t','1',
                            '-i',f'testsrc2=size={size}:rate={fps}']
                 if variable_timing:
-                    command += ['-vf', "select='not(eq(mod(n,4),1))'", '-fps_mode', 'passthrough']
+                    command += ['-vf', "select='not(eq(mod(n,4),1))'", '-vsync', '0']
                 subprocess.run(command + ['-c:v',codec,'-g','5','-threads','1',
                     '-pix_fmt','yuv420p','-n',str(path)],check=True)
                 paths.append(path)

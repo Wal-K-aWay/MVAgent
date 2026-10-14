@@ -111,7 +111,7 @@ def prepare(record, output):
         if transcode:
             # '+' rejects unsupported pixel formats instead of silently converting them.
             command += ['-c:v', 'libx264', '-qp', '0', '-preset', 'fast', '-pix_fmt', '+',
-                        '-fps_mode', 'passthrough', '-enc_time_base', '1:1000000',
+                        '-vsync', '0', '-enc_time_base', '1:1000000',
                         '-bf', '0', '-threads', '1', '-noautoscale']
         else:
             command += ['-c:v', 'copy']

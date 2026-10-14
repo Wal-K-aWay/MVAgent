@@ -38,8 +38,10 @@ for frame count, size, pixel format, RGB pixel hashes and timestamps; segment du
 is also checked. These checks stream through frames without keeping the video in RAM.
 This costs CPU time and lossless files may be substantially larger. The manifest
 records each segment's processing mode, exact command and source/output metadata.
-The normalization path and its mixed-codec/VFR test cases have not been executed:
-the user requested implementation and input review without further actual tests.
+After the user resumed testing, homogeneous and mixed-codec/VFR checks passed on
+Modal (93 decoded frames, eight seeks). The image's FFmpeg requires `-vsync 0` for
+timestamp passthrough; its unsupported `-fps_mode` spelling was removed. Current
+two-method smoke evidence is tracked in `outputs/external_methods_current_20261014/README.md`.
 
 Every question first identifies the task as multi-video understanding and explains that
 the original videos have been concatenated into one complete video. It then lists
@@ -131,7 +133,7 @@ accuracy is established by these smoke runs.
 
 ## Backup checkpoint
 
-The `codex/external-methods-20261014` branch backs up these adapters and the one-off
+The `codex/external-methods-prompts-20261014` branch backs up these adapters and the one-off
 completion scripts. The shared worktree's independent inference-runtime/configuration
 changes and local environment skills are outside this checkpoint. Reproducing the
 submitted runs requires their full Modal frozen snapshots, not this branch alone.
@@ -151,4 +153,5 @@ inputs retain their original prompt text; no model run has used this latest word
 The native-concat CPU check is `test_native_concat.py`: homogeneous H.264/MPEG-4 and
 mixed-codec inputs with unlike dimensions and FPS, including variable frame timing,
 must preserve all decoded frame pixels, sizes and timestamps, including after seeking.
-Earlier passing checks cover only the homogeneous stream-copy path, not normalization.
+The original 33-question preparation covers stream copy; the later synthetic checks
+also cover lossless normalization. Do not treat those as full Agent evaluation results.

@@ -90,6 +90,8 @@ async def infer(args):
         raise RuntimeError(f'VAM indexing failed: {job.error or job.result}')
     if job.result.get('filter_report',{}).get('embed_failures',{}).get('count',0):
         raise RuntimeError('VAM index contains failed embeddings; inspect index_progress.json')
+    index_seconds = time.monotonic()-started
+    query_started = time.monotonic()
     result = None
     with (args.output/'events.jsonl').open('w') as stream:
         async for event in search_generator(item['question'], store_instance=get_store(persist_path=str(args.output/'memory.sqlite3'))):
@@ -101,7 +103,8 @@ async def infer(args):
                 result = event['result']
     if not result or not str(result.get('answer') or '').strip():
         raise RuntimeError('VAM returned no final answer')
-    result.update(sample_id=item['sample_id'], seconds=time.monotonic()-started, index=job.result)
+    result.update(sample_id=item['sample_id'], seconds=time.monotonic()-started, index=job.result,
+                  index_seconds=index_seconds, query_seconds=time.monotonic()-query_started)
     write(args.output/'result.json',result)
     print(json.dumps({k:result.get(k) for k in ('sample_id','answer','seconds','found')}),flush=True)
 
