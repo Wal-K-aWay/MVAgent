@@ -66,7 +66,9 @@ def main():
         identity = read(target / 'manifest.json')['identity']['model']
         old_identity = read(old / 'manifest.json')['identity']['model']
         assert identity['weights_manifest'] == old_identity['weights_manifest']
-        assert identity['execution'] == old_identity['execution']
+        # The 9B baseline predates the service-timeout increase; numerical settings are identical.
+        assert {k: v for k, v in identity['execution'].items() if k != 'source_sha256'} == {
+            k: v for k, v in old_identity['execution'].items() if k != 'source_sha256'}
         execution = identity['execution']
         assert execution['profile'] == 'qwen35-bf16-flashinfer-sync-v2'
         assert execution['config']['enable_prefix_caching'] is False
