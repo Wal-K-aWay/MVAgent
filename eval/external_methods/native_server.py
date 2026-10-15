@@ -34,7 +34,9 @@ def configure():
         return generation
 
     def profile():
-        return dict(original_profile(), external_transport_sha256=base.sha256_file(Path(__file__)))
+        return dict(original_profile(), external_transport_sha256=base.sha256_file(Path(__file__)),
+                    request_timeout_seconds=base.REQUEST_TIMEOUT_SECONDS,
+                    generation_policy='preserve upstream explicit temperature and max_tokens; local seed=0, thinking disabled')
 
     base.PROFILE = PROFILE
     base.validate_request = validate

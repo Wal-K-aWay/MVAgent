@@ -31,7 +31,6 @@ async def infer(args):
     from vam.config import get_settings
     settings = get_settings()
     settings.llm_model = settings.siliconflow_model_id = card['id']
-    settings.llm_max_image_pixels = 448*448
     settings.dashscope_api_key = settings.openrouter_api_key = ''
     settings.siliconflow_api_key = 'local-no-auth'
     settings.siliconflow_base_url = args.endpoint.rstrip('/')
@@ -39,8 +38,7 @@ async def infer(args):
         exclude={'openrouter_api_key', 'siliconflow_api_key', 'dashscope_api_key'}),
         llm_parameter_policy='Original per-call max_tokens, temperature, retries and timeouts; no 2048 fallback',
         adaptations=['local Qwen endpoint/model', 'local original embedding model transport',
-                     'temporary files share memory-store filesystem', 'upstream missing re import',
-                     'user-approved 448 input limit']))
+                     'temporary files share memory-store filesystem', 'upstream missing re import']))
     audit_httpx(args.output/'requests.jsonl', 'http://127.0.0.1:8200/v1')
     from vam.video import index_video_async
     from vam.jobs import manager as job_manager
@@ -49,7 +47,7 @@ async def infer(args):
     item = json.loads(args.item.read_text())
     started = time.monotonic()
     job_id = await index_video_async(tmp_path=item['video_path'], cleanup_temp=False,
-        fps=settings.video_fps, max_frames=None, laplacian_min=settings.video_laplacian_min,
+        fps=settings.video_fps, max_frames=settings.video_max_frames, laplacian_min=settings.video_laplacian_min,
         diff_threshold=settings.video_diff_threshold, ssim_threshold=settings.video_ssim_threshold,
         hist_threshold=settings.video_hist_threshold, similarity_threshold=settings.video_similarity_threshold,
         frame_id_prefix='input', video_absolute_start_time=None, debug=False,

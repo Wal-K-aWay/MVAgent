@@ -1,14 +1,14 @@
 """Summarize completed external-method smoke calls and timings without judging answers."""
 import argparse
-from datetime import datetime
 import json
 from pathlib import Path
 import sys
 
 
 def main(root):
-    sys.path.insert(0, str(root/'frozen_repo/src'))
-    from models.vlm.local.sync_server import token_audit
+    sys.path[:0] = [str(root/'frozen_repo/src'), str(root/'frozen_repo/eval/external_methods')]
+    from native_server import configure
+    token_audit = configure().token_audit
     report = dict(methods={}, media=[])
     for item in json.loads((root/'prepared/items.json').read_text()):
         timeline = json.loads((Path(item['video_path']).parent/'timeline.json').read_text())
@@ -19,13 +19,13 @@ def main(root):
         directory = root/method
         progress_path = directory/'progress.json'
         progress = json.loads(progress_path.read_text())
-        assert progress['completed'] == progress['expected'] == 3, progress
+        assert progress['completed'] == progress['expected'], progress
         rows = []
         for row in progress['samples']:
             sample = directory/row['sample_id'].replace(':', '_')
             result_path = sample/'result.json'
             result = json.loads(result_path.read_text()) if result_path.exists() else {}
-            calls = prompt_tokens = output_tokens = cached_tokens = 0
+            calls = prompt_tokens = output_tokens = cached_tokens = request_errors = 0
             call_seconds = []
             requests = sample/'requests.jsonl'
             if requests.exists():
@@ -33,7 +33,12 @@ def main(root):
                     for line in stream:
                         request = json.loads(line)
                         response = request['response']
-                        wire = json.dumps(request['request']).encode()
+                        if request.get('error') or not response or not response.get('choices'):
+                            request_errors += 1
+                            continue
+                        # urllib and httpx serialize the same JSON differently.
+                        wire = (json.dumps(request['request']).encode() if method == 'rsi' else
+                                json.dumps(request['request'], ensure_ascii=False, separators=(',', ':'), allow_nan=False).encode())
                         token_audit(response, wire)
                         usage = response['usage']
                         calls += 1
@@ -46,10 +51,17 @@ def main(root):
                 output_tokens=output_tokens, cached_tokens=cached_tokens,
                 model_http_seconds=sum(call_seconds) if len(call_seconds) == calls else None,
                 agent_seconds=result.get('seconds'),
-                index_seconds=result.get('index_seconds'), query_seconds=result.get('query_seconds')))
-        report['methods'][method] = dict(successful=progress['successful'], expected=3,
-            batch_seconds=progress_path.stat().st_mtime-datetime.fromisoformat(progress['started_at']).timestamp(),
+                index_seconds=result.get('index_seconds'), query_seconds=result.get('query_seconds'),
+                request_errors=request_errors, provider_errors=result.get('usage', {}).get('provider_errors'),
+                tool_errors=result.get('diagnostics', {}).get('tool_execution_errors')))
+        report['methods'][method] = dict(successful=progress['successful'], expected=progress['expected'],
+            batch_seconds=progress['batch_seconds'],
             samples=rows)
+        score_path = directory/'scores.json'
+        if score_path.exists():
+            score = json.loads(score_path.read_text())
+            report['methods'][method]['scoring'] = {k:v for k,v in score.items() if k not in ('rows','failed')}
+    report['phase_timing'] = json.loads((root/'progress.json').read_text())
     (root/'analysis.json').write_text(json.dumps(report, ensure_ascii=False, indent=2))
     print(json.dumps(report, ensure_ascii=False, indent=2))
 

@@ -44,7 +44,8 @@ def main():
         endpoints.put(endpoint)
     write(args.output/'service_cards.json',cards)
     state = dict(method=args.method, phase='running', started_at=datetime.now(timezone.utc).isoformat(),
-                 expected=len(items), completed=0, successful=0, failed=0, samples=[])
+                 expected=len(items), completed=0, successful=0, failed=0, samples=[],
+                 question_timeout_seconds=7200, model_replicas=endpoints.qsize())
     batch_started = time.monotonic()
     write(args.output/'progress.json',state)
 
@@ -74,7 +75,10 @@ def main():
         write(output/'execution.json',row)
         return row
 
-    with ThreadPoolExecutor(max_workers=endpoints.qsize()) as pool:
+    workers = (json.loads((upstream/'config.example.json').read_text())['execution']['concurrency']
+               if args.method == 'rsi' else endpoints.qsize())
+    state['batch_workers'] = workers
+    with ThreadPoolExecutor(max_workers=workers) as pool:
         for future in as_completed([pool.submit(one,item) for item in items]):
             row = future.result()
             state['completed'] += 1
