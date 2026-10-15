@@ -104,10 +104,10 @@ remote. The two batches retain separate transfer manifests and verification reco
 
 The combined `outputs/e2e_final_20261013/reports/final_results.md` now has two
 three-model by three-benchmark overview tables, one official and one robust.
-The MVU column consistently uses instruction-after results for all models;
-original-order scores and task details are retained as the historical comparison.
-CVBench and CrossVid values and detailed tables are unchanged. All 18 overview
-cells were checked against scored records/summaries; all 5,472 new responses and
+Each MVU cell now shows original-order → instruction-after results for all models;
+both protocols appear directly in the overview, with full comparisons below.
+CVBench and CrossVid values and detailed tables are unchanged. All 24 displayed score values
+were checked against scored records/summaries; all 5,472 new responses and
 score IDs match. README, audit context, benchmark notes and local storage rules
 were updated to distinguish the two protocols and document the additional authorization.
 
