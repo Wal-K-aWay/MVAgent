@@ -77,7 +77,7 @@ CPU分析核验5472条完整输出token及客户端/服务端请求记录，缺�
 
 这是复用开发集上的提示位置对照，不代表未见数据泛化，也没有重新执行重复性矩阵。9B旧基线采用600秒服务超时，新轮沿用1800秒恢复版；正常响应的数值配置相同，截断与基础设施错误另列。
 
-Modal原件与冻结源码：/runs/devbox/mvu_instruction_after_20261014。2026-10-15按用户授权将原始回答、评分和配套元数据归入outputs/e2e_final_20261013/的对应模型目录，以instruction_after文件名标识；共享分析/报告在analysis/与reports/，旧分组目录已删除；媒体、权重和冻结环境仍留Modal。
+Modal原件与冻结源码：/runs/devbox/mvu_instruction_after_20261014。2026-10-15按用户授权将原始回答、评分和配套元数据归入outputs/e2e/的对应模型目录，以instruction_after文件名标识；共享分析/报告在analysis/与reports/，旧分组目录已删除；媒体、权重和冻结环境仍留Modal。
 
 ## 运行与核查来源
 

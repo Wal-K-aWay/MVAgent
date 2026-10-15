@@ -94,7 +94,7 @@ DEVBOX_NAME=mvagent-mvu-after-20261014 .agents/skills/mvagent-environment/devbox
 ## Result migration and combined overview — 2026-10-15
 
 The user additionally authorized migrating the raw MVU instruction-after answers,
-scores and metadata into `outputs/e2e_final_20261013/`. At the user's follow-up request,
+scores and metadata into `outputs/e2e/`. At the user's follow-up request,
 they are now consolidated into its existing `9B/`, `35B-A3B/` and `27B/` folders.
 Raw/scored files use `mvu_eval_instruction_after`; model metadata and comparisons
 use the `_mvu_instruction_after.json` suffix. Shared metadata is in `analysis/`,
@@ -103,13 +103,12 @@ removed after all 33 files were copied and verified without overwriting any base
 The import contains 29 files / 18,117,891 bytes; every size and SHA256 matches the
 streamed Modal source manifest. The previous 671 files / 42,800,648 bytes were also
 rechecked unchanged, for 700 imported payload files / 60,918,539 bytes total.
-The detailed report is `reports/mvu_instruction_after.md`; the progress-check record
-is `reports/mvu_instruction_after_progress_checks.md`. Modal originals, media, weights, frozen runtime and server logs remain
+Reports were subsequently consolidated into `reports/final_results.md`; duplicate reports and progress notes were removed. The archive was renamed to `outputs/e2e`. The retained 698 imported files (60,905,027 bytes) still match their source hashes; the two removed imported reports retain their provenance in the transfer manifest. Modal originals, media, weights, frozen runtime and server logs remain
 remote. The two batches retain separate transfer manifests and verification records in the
 archive root; the MVU pair is suffixed `_mvu_instruction_after.json`, and its paths
 were updated to the consolidated layout while preserving remote source paths/hashes.
 
-The combined `outputs/e2e_final_20261013/reports/final_results.md` now has two
+The combined `outputs/e2e/reports/final_results.md` now has two
 three-model by three-benchmark overview tables, one official and one robust.
 Each MVU cell now shows original-order → instruction-after results for all models;
 both protocols appear directly in the overview, with full comparisons below.

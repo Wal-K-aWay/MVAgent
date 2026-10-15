@@ -102,7 +102,6 @@ CVBench为排除3道损坏视频题后的997题均分；CrossVid总分为十类�
 5472条结果的题目覆盖、模型权重和数值配置、实际服务身份、完整输出token及客户端/服务端日志均核对通过。
 28次输出达到token上限，均保留并评分；它们与请求错误分开统计。9B旧基线服务超时为600秒，本轮沿用1800秒恢复版，数值设置相同。
 本轮是复用开发集上的单遍提示位置对照，未重新运行重复性矩阵。
-[完整MVU报告](mvu_instruction_after.md)包含逐题型对照、协议与核查范围。
 
 ## CrossVid Lite2500 分项
 
@@ -119,10 +118,31 @@ CVBench为排除3道损坏视频题后的997题均分；CrossVid总分为十类�
 | PI | 100 | 73.00 | 73.00 | 83.00 | 83.00 | 79.00 | 80.00 |
 | PSS | 182 | 6.59 | 6.59 | 5.49 | 6.04 | 2.20 | 4.40 |
 
+## 评测设置与核查
+
+固定推理设置为8×H100、BF16、每卡TP1/DP1且并发1，seed=0、temperature=0、thinking关闭；
+每次最多512帧、最长边448，prefix cache关闭，使用FlashInfer和原生GemmaRMSNorm。不使用skill。
+CrossVid CCQA的Judge为Qwen3-30B-A3B-Instruct-2507；CCQA按得分点聚合，CrossVid按十类任务等权宏平均。
+
+原位置基线每模型5321条有效结果，共15963条；题目覆盖、完整输出token、输入哈希及评分代码身份核对通过。
+CVBench题号64–66的源视频损坏，排除后报997题分数，完整1000题总分仍为null。
+原27B和35B-A3B运行曾因600秒服务超时失败；改为1800秒后使用新冻结目录完整重跑，未混入旧轮部分结果。
+该恢复不改变输入或数值配置，没有证据将故障归因于OOM或抢占。
+
+**Judge限制：**717条CCQA评分中715条与现存共享缓存一致。35B-A3B的两组重复文本
+（CCQA733/742、CCQA737/740）分别出现0与1/3的历史评分，而当前缓存均为1/3。
+每模型239个题号对应214份不同的Judge请求文本；这些重复请求输入哈希相同，现存缓存不能重现所有历史评分。
+并发同键覆盖与代码行为相符，但未被时间证据证实，判定差异的底层原因尚未定位；Actor重复性结论不能外推到Judge。
+本报告保留原始评分。若将上述两条替换为当前缓存值，35B-A3B的CCQA从36.4597变为36.7239，
+CrossVid宏平均从32.1111变为32.1375（+0.0264个百分点），不改变27B领先的结论。
+详细核查数据保留在`analysis/analysis.json`和`analysis/cache_audit.json`；本次MVU复测不调用Judge。
+
 ## 数据来源与迁移核对
 
 - 原位置结果：本目录的 `9B/`、`27B/`、`35B-A3B/`，原有文件保留。CVBench和CrossVid总览取自这些结果。
 - MVU指令移后结果：各模型目录的`raw/mvu_eval_instruction_after.jsonl`、`scored/mvu_eval_instruction_after.json`和`*_mvu_instruction_after.json`；原位置文件保留，按文件名区分。
-- 复测迁入29个文件、18,117,891字节，整理后大小与SHA256仍一致；清单与校验记录为总目录的`transfer_manifest_mvu_instruction_after.json`、`transfer_verification_mvu_instruction_after.json`。共享分析在`analysis/`，报告在`reports/`；原分组子目录已删除。
+- 复测最初迁入29个文件、18,117,891字节；两份重复报告合并到本文后删除，保留27个数据及元数据文件、18,104,379字节，大小与SHA256一致；清单与校验记录为总目录的`transfer_manifest_mvu_instruction_after.json`、`transfer_verification_mvu_instruction_after.json`。共享分析在`analysis/`，报告在`reports/`；原分组子目录已删除。
 - Modal原件仍在 `wxu-evolve-agent-runs-20261006` 的 `devbox/mvu_instruction_after_20261014/`；媒体、权重、冻结运行环境及服务日志未迁入本机。
-- `reports/audit.md` 中原有逐题比较与Judge说明属于原位置基线；本次MVU复测不调用Judge，不改变CrossVid分数。
+- 原位置来源为`devbox/e2e_full_20261012/9B`及`devbox/e2e_full_20261013_timeout/{35B-A3B,27B}`；分析来源为`devbox/e2e_results_analysis_20261013/`。
+- 冻结源码包含未提交改动，不能仅凭commit重建；重跑须使用远端冻结源码及各模型manifest记录的配置、split和哈希。
+- 本地目录现为`outputs/e2e/`，`reports/`只保留本文。两批共保留698个迁入文件、60,905,027字节；移除报告的原始来源与哈希记在迁移清单，Modal原件未删除。
