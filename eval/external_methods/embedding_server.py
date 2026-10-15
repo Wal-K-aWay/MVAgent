@@ -25,7 +25,7 @@ def main():
     from qwen3_vl_embedding import Qwen3VLEmbedder
     torch.manual_seed(0)
     model = Qwen3VLEmbedder(str(args.weights), torch_dtype=torch.bfloat16,
-                           attn_implementation='sdpa', max_pixels=448*448)
+                           attn_implementation='sdpa')
     preprocess = model._preprocess_inputs
 
     def checked_preprocess(conversations):
@@ -39,7 +39,7 @@ def main():
 
     model._preprocess_inputs = checked_preprocess
     write(args.output/'manifest.json', dict(model='Qwen3-VL-Embedding-8B', dtype='bfloat16',
-        implementation='official Qwen3VLEmbedder', attention='sdpa', max_pixels=448*448,
+        implementation='official Qwen3VLEmbedder', attention='sdpa', max_pixels=model.max_pixels,
         default_instruction=model.default_instruction, max_length=model.max_length,
         input_protocol='upstream VAM embedding payload and batch boundaries; local official model implementation',
         limitation='Cloud provider internal defaults are not available; input_type is logged, no custom query instruction is injected'))
