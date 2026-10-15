@@ -14,7 +14,7 @@ Agent 接收完整的多视频问题，包括选项和约束，以及可用的�
 以下参数是每个 action 的 parameters 对象中的字段。
 - analyze_videos(videoagent_request=[{video_id, instruction}, ...])：请求分析所选视频。为每个视频提供仅凭该视频即可回答的完整指令。每条请求返回对应视频的报告。Agent 需要综合报告进行跨视频推理。
 - watch_videos(instruction, videos=[{video_id, clip: [start, end]}, ...])：可用时，请求对至少两个不同视频进行联合视觉分析。指定比较内容，并为每个视频提供一个片段，时间使用各自源视频的秒数。结果提供联合观看这些片段得到的证据。
-- answer()：根据系统自动提供的问题与累计 History 生成最终答案。该 action 无输入参数，输出为最终答案。
+- answer(answer)：根据问题与累计 History，在 parameters.answer 中直接提交非空字符串形式的最终答案。
 
 ## action 的信息边界
 analyze_videos 为每个视频返回一份围绕 instruction 的独立文本报告。报告可以保留明确要求的事件、数量、时间和属性，但它压缩了视觉证据。细微外观、姿态、空间关系或短暂转变可能被遗漏，或描述得过于粗略而无法支持详细比较。未报告的特征仍是未知；描述相同不能证明视觉上等同。每个单视频分析只能检查所分配的视频，因此跨视频对应仍由 Agent 建立。
@@ -70,12 +70,12 @@ strategy 是完成任务的编号流程。它说明先获取什么信息、怎�
 
 流程使用可用的 Global action 和合法参数。视频 ID 和时间来自输入或此前结果，不能依赖尚未返回的报告。每条 analyze_videos 请求只凭所分配的视频即可回答。watch_videos 至少比较两个不同视频，每视频一个合法 clip，instruction 明确比较内容；需要解决视觉差异时使用，而非每次比较都自动使用。
 
-补查针对可能改变答案的具体缺口，改变相关 instruction 或范围。未报告的细节仍是未知，不能据此判定不存在；描述相同不能证明对象相同，联合观察也受片段和采样限制。训练答案、样例和偏好的选项不是观察事实。所需结果得到支持后调用 answer(parameters={})，未解决的不确定性保留在 History 中。流程遵守题目的判定标准和输出要求，不阅读 when_to_use 也可以执行。
+补查针对可能改变答案的具体缺口，改变相关 instruction 或范围。未报告的细节仍是未知，不能据此判定不存在；描述相同不能证明对象相同，联合观察也受片段和采样限制。训练答案、样例和偏好的选项不是观察事实。所需结果得到支持后在 parameters.answer 中提交要求的结果，并在 reason 中简洁说明重要不确定性。流程遵守题目的判定标准和输出要求，不阅读 when_to_use 也可以执行。
 
 strong examples:
 - 1. Use analyze_videos with one videoagent_request per supplied segment; each instruction requests its start state, end state, actions and uncertainty from that video alone.
   2. Match reported end states to start states. If an adjacency is ambiguous, use watch_videos on the disputed videos with clips inside their supplied durations; instruction requests the distinguishing boundary cue.
-  3. When the chain is supported, check that every segment occurs exactly once, then call answer with no parameters. If observation cannot resolve a boundary, preserve the uncertainty in History.
+  3. When the chain is supported, check that every segment occurs exactly once, then submit the requested result in parameters.answer. If observation cannot resolve a boundary, explain the uncertainty concisely in reason.
 
 weak examples:
 

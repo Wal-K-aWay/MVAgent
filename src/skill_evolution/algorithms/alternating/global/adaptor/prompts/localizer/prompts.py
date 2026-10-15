@@ -28,7 +28,7 @@ Read the input, question-level Skill guidance, all steps, final answer and groun
 - Action: the action and parameters recorded at Step k.
 - Result: the observation or answer returned at Step k, available to subsequent decisions.
 
-Locate selection or parameter faults at the step making that decision, judged against its decision basis. Locate execution faults at the step producing the defective result, judged against its request and available evidence. When a later step mishandles that result, assess the later action separately. Reports from one analyze_videos call share one step; watch_videos returns one joint observation. The ordinary answer action has no parameters and generates its result from the supplied question and History.
+Locate selection or parameter faults at the step making that decision, judged against its decision basis. Locate execution faults at the step producing the defective result, judged against its request and available evidence. When a later step mishandles that result, assess the later action separately. Reports from one analyze_videos call share one step; watch_videos returns one joint observation. The ordinary answer action directly submits parameters.answer, chosen from the question and History.
 
 {trajectory}"""
 
@@ -42,20 +42,20 @@ Choose one type for each fault_chain entry. Different steps in one trajectory ma
 - Example: The decisive property is unresolved in all reports, yet the Agent calls answer instead of gathering evidence.
 
 **action_parameter_error**: The action is appropriate, but its parameters make the request inadequate for the question.
-- Characteristics: Keeping the action and changing its video IDs, clips or instruction would form a reasonable request. These parameters belong to analyze_videos and watch_videos; answer has none.
+- Characteristics: Keeping the action and changing its video IDs, clips, instruction or submitted answer would satisfy the question. The answer action carries parameters.answer.
 - Improvement: Specify the parameter change and its source in the input or earlier evidence.
 - Example: A joint comparison excludes the candidate event because its clips end before the reported event time.
 
 **action_execution_error**: An appropriate action with adequate parameters returns a demonstrably defective result.
-- Characteristics: Identify the adequate request, a verifiable defect in its result, and the evidence requirement affected by that defect. Supported defects include an explicit request requirement left unanswered, an internally invalid result, an explicit execution failure or incorrect handling of already sufficient evidence. An ordinary answer can fall in this category when answering is justified but its returned answer contradicts clear History.
+- Characteristics: Identify the adequate request, a verifiable defect in its result, and the evidence requirement affected by that defect. Supported defects include an explicit request requirement left unanswered, an internally invalid result, an explicit execution failure. The answer action returns its submitted parameter directly; a wrong submitted answer is a decision-parameter fault.
 - Improvement: Identify a feasible public evidence-verification or answer-consistency rule. Describe the execution defect without inventing a defect in an adequate request or proposing changes to hidden action internals. If no supported improvement is available through the Agent's actions or evidence handling, use skip and explain the execution problem in reason.
-- Example: History unambiguously identifies video_2, mapped to option B, but answer returns A.
+- Example: An observation explicitly requested both objects but returned information about only one.
 
 ## Classification Boundaries
 
 Judge a request against the evidence-acquisition purpose it serves at that stage. An initial overview may reasonably request approximate times or gather reference and target descriptions concurrently. Assess whether later decisions refine the decisive details before answering. Retaining the action with better parameters supports action_parameter_error; an alternative action also being available does not establish action_selection_error.
 
-For answer, first check whether History supports an answer meeting the question's requirements. Unresolved competing candidates in a single-choice task, counts matching no option, or undetermined ordering relations require assessment of a concrete follow-up opportunity. Calling answer while such an actionable decisive gap remains is action_selection_error. When evidence is sufficient but the returned answer misuses it or violates the required format, assess action_execution_error. Agreement with one report is insufficient when other relevant evidence remains unresolved. An ordinary answer has no parameters.
+For answer, first check whether History supports an answer meeting the question's requirements. Unresolved competing candidates in a single-choice task, counts matching no option, or undetermined ordering relations require assessment of a concrete follow-up opportunity. Calling answer while such an actionable decisive gap remains is action_selection_error. When evidence is sufficient but parameters.answer misuses it or violates the required format, assess action_parameter_error. Agreement with one report is insufficient when other relevant evidence remains unresolved. An ordinary answer carries the submitted result in parameters.answer.
 
 For an execution fault, identify the request requirement, the direct result defect and evidence assigning that defect to this step. A later report can correct an earlier report. Disagreement between reports establishes a need for reconciliation, not which report failed. Cross-view contradictions require established object identity, time span and comparison criteria. Event timestamps or suspicious counts are verification cues; they do not reveal hidden observation mistakes or establish observation coverage.
 
@@ -106,7 +106,7 @@ Step 1: action=analyze_videos {"videoagent_request":[{"video_id":"video_1","inst
 Step 2: action=answer | output=video_1
 Final answer: video_1.
 Ground truth: video_2.
-Analysis: Both prior reports leave the decisive fact unresolved. Answer has no parameters to repair; the next move should gather evidence.
+Analysis: Both prior reports leave the decisive fact unresolved. Changing parameters.answer cannot resolve this evidence gap; the next move should gather evidence.
 Output:
 {"status":"located","reason":"The answer was issued while vinegar use remained unresolved.","fault_chain":[{"step":2,"fault_type":"action_selection_error","evidence_reason":"Neither earlier report establishes which video adds vinegar, yet the Agent calls answer.","improvement_principle":"Use targeted analyze_videos instructions to verify the unresolved pours before answering."}]}
 </example>
@@ -127,7 +127,7 @@ Output:
 {"status":"located","reason":"The overview was reasonable, but the Agent answered before distinguishing the candidates.","fault_chain":[{"step":2,"fault_type":"action_selection_error","evidence_reason":"Two candidates remain, one with uncertain purpose, and neither has verified boundaries; answer selects the first without resolving these gaps.","improvement_principle":"When an overview leaves multiple functional candidates, use analyze_videos to verify their purposes and the matching candidate's start/end boundaries before answering."}]}
 </example>
 
-<example type="answer_execution_error">
+<example type="answer_parameter_error">
 Input: Which video shows a red car? A means video_1; B means video_2.
 Videos: video_1 (10 seconds); video_2 (10 seconds).
 Selected skill: preserve-identities, used throughout; preserve video IDs when comparing reports.
@@ -136,12 +136,12 @@ Step 1: action=analyze_videos {"videoagent_request":[{"video_id":"video_1","inst
   obs[video_1]: A blue car; no red car.
   obs[video_2]: A red car; no blue car.
 Step 2: action=watch_videos {"instruction":"Confirm which video shows the red car.","videos":[{"video_id":"video_1","clip":[0,10]},{"video_id":"video_2","clip":[0,10]}]} | obs=video_1 shows a blue car; video_2 shows a red car.
-Step 3: action=answer | output=A
+Step 3: action=answer {"answer":"A"} | output=A
 Final answer: A.
 Ground truth: B.
-Analysis: Step 2 supplies consistent evidence. Step 3 returns the wrong option, so the execution fault belongs to Step 3. Answering is justified by clear evidence. The answer result contradicts the video-to-option mapping; answer has no parameters.
+Analysis: Step 2 supplies consistent evidence. Answering is justified, but Step 3 submits the wrong option in parameters.answer. Keeping answer and correcting that parameter resolves the video-to-option mapping.
 Output:
-{"status":"located","reason":"The evidence resolves the question, but the answer maps the supported video to the wrong option.","fault_chain":[{"step":3,"fault_type":"action_execution_error","evidence_reason":"History identifies video_2 as red and the input maps video_2 to B, but answer returns A.","improvement_principle":"Verify the evidence-supported video ID against the question's option mapping when producing the final answer."}]}
+{"status":"located","reason":"The evidence resolves the question, but the answer maps the supported video to the wrong option.","fault_chain":[{"step":3,"fault_type":"action_parameter_error","evidence_reason":"History identifies video_2 as red and the input maps video_2 to B, but answer returns A.","improvement_principle":"Verify the evidence-supported video ID against the question's option mapping when producing the final answer."}]}
 </example>
 
 <example type="explicit_label_confusion">
@@ -234,7 +234,7 @@ Rules:
 - located requires 1-3 distinct editable step numbers, earliest supported root cause first.
 - skip requires an empty fault_chain; describe any supported execution defect or uncertainty in reason.
 - Each entry contains exactly step, fault_type, evidence_reason and improvement_principle.
-- answer has no parameters; action_parameter_error applies only to analyze_videos or watch_videos.
+- action_parameter_error can apply to parameters.answer when the prior evidence supports a correction; ground truth alone does not justify it.
 - Use only step numbers allowed by the Schema. Runtime finalizers are context, not fault targets.
 - Return JSON directly without Markdown fences or text outside the object.
 

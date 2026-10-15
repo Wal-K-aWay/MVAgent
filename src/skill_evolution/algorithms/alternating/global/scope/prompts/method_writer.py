@@ -17,7 +17,7 @@ Requirements for the strategy:
 1. Address the decision point named in the pattern. Say exactly what to do differently: which action, how to word each instruction (what each report must contain), which clips, when to follow up and with what request, when to stop. Prefer one clear default procedure with at most two conditional branches.
 2. Stay within the existing actions and their contracts. analyze_videos instructions are sent to agents that do not see the question, so the strategy must tell the coordinator to put the needed criteria into each instruction. watch_videos must ask for visible evidence, never for the final answer.
 3. Write for any question that matches when_to_use. Do not mention the example cases, their topics, objects, scenes or answers. Do not introduce fixed numbers (seconds, frame rates, counts) unless they follow from the question itself.
-4. Do not include answer-format rules: the final answer is written by a separate answerer that never sees this card.
+4. Do not duplicate generic answer-format rules already supplied by the runtime; focus the card on reusable evidence and judgment strategies.
 5. Keep successful behavior that the successes show; do not add steps the evidence does not motivate.
 6. Plain English, short numbered steps, usually 150 to 350 words; never more than 600 words. No headings above the steps.
 

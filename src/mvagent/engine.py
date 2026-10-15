@@ -479,10 +479,11 @@ class MVAgentEngine:
             action = str(decision["action"])
             parameters = decision["parameters"]
             if action == "answer":
-                return self._request_terminal_answer(
-                    global_agent=global_agent, trajectory=trajectory,
-                    round_index=global_round, forced=False,
-                )
+                return {
+                    "answer": parameters["answer"],
+                    "reason": decision["reason"],
+                    "status": "answered",
+                }, decision["reason"]
 
             if action == "analyze_videos":
                 self._execute_analyze_videos_action(
@@ -505,7 +506,7 @@ class MVAgentEngine:
             else:
                 raise ValueError(f"Unknown GlobalAgent action: {action}")
 
-        return self._request_terminal_answer(
+        return self._request_terminal_decision(
             global_agent=global_agent,
             trajectory=trajectory,
             round_index=max_decisions + 1,
@@ -786,15 +787,14 @@ class MVAgentEngine:
             )
         return outcomes
 
-    def _request_terminal_answer(
+    def _request_terminal_decision(
         self,
         *,
         global_agent: GlobalAgent,
         trajectory: Trajectory,
         round_index: int,
-        forced: bool = True,
     ) -> tuple[dict[str, Any], str]:
-        """Run the standalone answer block after evidence gathering stops.
+        """Use the same decision contract, restricted to answer, at the loop limit.
 
         Args:
             global_agent: Question-scoped coordinator with the final memory.
@@ -802,18 +802,18 @@ class MVAgentEngine:
             round_index: Sequential round assigned to the terminal call.
 
         Returns:
-            The generated answer and stop reason; forced calls retain the gap status.
+            The generated answer and stop reason, retaining the gap status.
         """
-        stop_reason = "GlobalAgent reached max_steps." if forced else "Agent selected answer."
-        event_action = "terminal_answer" if forced else "answer"
+        stop_reason = "GlobalAgent reached max_steps."
         question_trajectory = QuestionTrajectory.wrap(trajectory)
         try:
-            attempt = global_agent.answer()
+            with event_scope(agent="GlobalAgent", decision_id=f"global:{round_index}"):
+                attempt = global_agent.decide(answer_only=True)
             if attempt.get("status") != "ok":
                 error = str(attempt.get("error") or "Terminal decision failed.")
                 question_trajectory.record(
                     agent="GlobalAgent",
-                    action=event_action,
+                    action="terminal_answer",
                     round_index=round_index,
                     input={"stop_reason": stop_reason},
                     output={
@@ -822,15 +822,15 @@ class MVAgentEngine:
                     },
                 )
                 return self._terminal_fallback(stop_reason, error)
-            generated = dict(attempt["value"])
+            generated = dict(attempt["decision"])
             answer = {
-                "answer": str(generated.get("answer") or "").strip(),
-                "reason": str(generated.get("reason") or "").strip(),
-                "status": "forced_with_gaps" if forced else "answered",
+                "answer": generated["parameters"]["answer"],
+                "reason": generated["reason"],
+                "status": "forced_with_gaps",
             }
             question_trajectory.record(
                 agent="GlobalAgent",
-                action=event_action,
+                action="terminal_answer",
                 round_index=round_index,
                 input={"stop_reason": stop_reason},
                 output=generated,
@@ -846,12 +846,12 @@ class MVAgentEngine:
                     blocks=[("reason", answer["reason"])],
                 )
             )
-            return answer, stop_reason if forced else answer["reason"]
+            return answer, stop_reason
         except Exception as exc:
             error = str(exc).strip() or type(exc).__name__
             question_trajectory.record(
                 agent="GlobalAgent",
-                action=event_action,
+                action="terminal_answer",
                 round_index=round_index,
                 input={"stop_reason": stop_reason},
                 output={

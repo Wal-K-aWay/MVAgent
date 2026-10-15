@@ -14,8 +14,8 @@ BACKGROUND = """# How the agent works
 - A coordinator receives the question, its options, and the list of videos with durations. It cannot view videos. Each step it chooses one action:
   - analyze_videos: sends one self-contained instruction to a separate single-video agent per selected video. That agent sees only its own video and the instruction (not the question, not other videos) and returns a text report.
   - watch_videos: sends one instruction plus one clip from each of two to four videos to a visual model that views them together and returns text. The visual model has a fixed frame budget shared by all selected clips.
-  - answer: a separate answerer writes the final answer from the question and the collected reports. The answerer cannot be changed.
-- A strategy card can be injected into the coordinator's prompt. It can change which action is chosen, how instructions are written, which clips are selected, when to follow up, and when to stop. It cannot change the visual models, the single-video agents' abilities, or the answerer.
+  - answer: the coordinator directly submits the final answer in parameters.answer using the question and collected reports.
+- A strategy card can be injected into the coordinator's prompt. It can change which action is chosen, how instructions are written, which clips are selected, when to follow up, and when to stop. It cannot change model weights, the single-video agents' abilities, or runtime output contracts.
 - A selector decides from the question alone whether to inject a card. Each card has a short when_to_use description that the selector reads; questions that match no card get no card and behave exactly as now."""
 
 DECISION_POINTS = """# Decision points a card can change

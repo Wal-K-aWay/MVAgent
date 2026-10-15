@@ -9,7 +9,7 @@ The Agent receives the complete multi-video question, including any options and 
 The arguments below are fields of each action's parameters object.
 - analyze_videos(videoagent_request=[{video_id, instruction}, ...]): request analysis of selected videos. Give each video a self-contained instruction answerable from that video alone. Each request returns a report about its assigned video. The Agent must combine the reports to reason across videos.
 - watch_videos(instruction, videos=[{video_id, clip: [start, end]}, ...]): when available, request joint visual analysis of at least two distinct videos. Specify the comparison and one clip per video, using each video's source-time seconds. The result provides evidence from viewing the clips together.
-- answer(): generate the final answer from the question and accumulated History supplied automatically. This action has no input parameters; its output is the final answer.
+- answer(answer): submit the final answer directly in parameters.answer, a nonblank string based on the question and accumulated History.
 
 ## Action information boundaries
 analyze_videos returns a separate instruction-focused text report for each video. These reports can preserve explicitly requested events, counts, timing and attributes, but they compress the visual evidence. Fine appearance, pose, spatial relationships or brief transitions may be omitted or described too coarsely for a detailed comparison. An omitted feature is unknown; matching descriptions do not establish visual equivalence. Each single-video analysis can inspect only its assigned video, so cross-video correspondence remains the Agent's responsibility.
@@ -68,13 +68,13 @@ strategy is a numbered procedure for solving the task. It explains what informat
 
 The procedure uses available Global actions and valid parameters. Video IDs and times come from the input or earlier results; a request cannot depend on a report that has not returned. Each analyze_videos request is answerable from its assigned video alone. watch_videos compares at least two different videos, with one valid clip per video and a clear comparison instruction. It is used when needed to resolve a visual difference, not automatically for every comparison.
 
-A follow-up addresses a specific gap that could change the answer, with a changed instruction or range. Missing details remain unknown; they do not prove absence. Matching descriptions do not prove identical objects, and joint viewing is limited by its clips and sampling. Training answers, examples and preferred options are not observations. Once the required result is supported, the procedure calls answer(parameters={}); unresolved uncertainty remains in History. The procedure preserves the question's criteria and output requirements and can be followed without reading when_to_use.
+A follow-up addresses a specific gap that could change the answer, with a changed instruction or range. Missing details remain unknown; they do not prove absence. Matching descriptions do not prove identical objects, and joint viewing is limited by its clips and sampling. Training answers, examples and preferred options are not observations. Once the required result is supported, the procedure submits the requested result in parameters.answer; material uncertainty is explained concisely in reason. The procedure preserves the question's criteria and output requirements and can be followed without reading when_to_use.
 
 strong examples:
 
 - 1. Use analyze_videos with one videoagent_request per supplied segment; each instruction requests its start state, end state, actions and uncertainty from that video alone.
   2. Match reported end states to start states. If an adjacency is ambiguous, use watch_videos on the disputed videos with clips inside their supplied durations; instruction requests the distinguishing boundary cue.
-  3. When the chain is supported, check that every segment occurs exactly once, then call answer with no parameters. If observation cannot resolve a boundary, preserve the uncertainty in History.
+  3. When the chain is supported, check that every segment occurs exactly once, then submit the requested result in parameters.answer. If observation cannot resolve a boundary, explain the uncertainty concisely in reason.
 
 weak examples:
 
