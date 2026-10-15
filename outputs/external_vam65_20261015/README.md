@@ -31,3 +31,5 @@ Video-RSI复用已完成的`external_original_images_20261015/rsi`结果与评�
 CrossVid为十类任务macro，CVBench/MVU按任务全集题量加权估计官方平均分。运行失败独立列出，不悄悄当作模型答错；正常返回但格式不合要求仍按官方规则评分。结果只代表这个开发面板，不是全量benchmark成绩。
 
 验证：CPU对新控制器语法检查通过，复用已完成数据实际执行报告生成并核验样本数；媒体manifest、VAM/Actor/Embedding实现SHA与已验收版本一致。新七路并行的实际启动与首批结果另行记录。
+
+启动确认：模型加载285.35秒，20:00:33北京时间进入推理。7个Actor均为不同H100、固定TP1/C1且prefix cache关闭，Embedding默认像素上限1843200。确认时VAM已4/65成功、0运行失败；首题MVU TR1585返回B、46.80秒，3条实际响应的输入hash与完整token审计通过。`startup_verification.json`保存证据；`code_backup.json`记录源码备份commit a1c39e8及9个相关源码SHA的逐一核对。后台继续，不进行持续监控；后续实际状态以远端progress与最终报告为准。
