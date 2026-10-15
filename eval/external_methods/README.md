@@ -10,7 +10,7 @@
 |---|---|
 | RSI 规划 / 视觉输出上限 | 均直接读取原配置的 8192 |
 | RSI 步数 / 服务调用 / 帧暴露上限 | 原版 11 / 64 / 256 |
-| RSI 温度 / HTTP 超时 / provider 重试 | 原版 0 / 240 秒 / 1 次重试 |
+| RSI 温度 / HTTP 超时 / provider 重试 | 0 / 1860 秒 / 1 次重试；仅 HTTP 等待由用户批准从原版 240 秒延长 |
 | RSI 抽帧 | 原版串行流程；只保留用户确认的宽度 448 例外 |
 | VAM 输出上限 | 原调用点的 220、300、500、700 等；不注入统一 2048 fallback |
 | VAM 温度 | 原调用点的 0、0.1、0.2 |
@@ -19,7 +19,7 @@
 | Actor | 两方法的语言/视觉角色均替换为本地 Qwen3.5-35B-A3B |
 | Embedding | 本地原 Qwen3-VL-Embedding-8B；原 VAM 请求结构与批次边界，448×448 像素面积限制；实际值写入 manifest |
 
-RSI 复用上游 `PinnedProvider.chat`，VAM 复用上游 `OpenRouterClient._chat_impl` 与 embedding 客户端。审计钩子只记录实际请求和耗时，不改其温度、预算、重试或超时。VAM embedding 请求只改为本地端点；原云服务内部默认值并不公开，本地使用官方 Qwen embedder 的默认指令，不能声称向量与云端逐位一致。
+RSI 复用上游 `PinnedProvider.chat`，VAM 复用上游 `OpenRouterClient._chat_impl` 与 embedding 客户端。审计钩子只记录实际请求和耗时。RSI 本地 HTTP 等待由用户批准延长至1860秒；上游240秒记录仍保存在审计基准中，整题1800秒预算、服务端1800秒时限及1次重试不变。VAM 的时限不变。VAM embedding 请求只改为本地端点；原云服务内部默认值并不公开，本地使用官方 Qwen embedder 的默认指令，不能声称向量与云端逐位一致。
 
 每题保存 `effective_config.json`、`service_card.json`、`requests.jsonl`、`result.json` 和 `execution.json`。模型服务另存模型/权重/数值配置与源码身份。原始输出先落盘，再由 `score.py` 调用共享官方评分协议。正常格式错误与运行故障分开报告。
 
@@ -30,6 +30,7 @@ RSI 复用上游 `PinnedProvider.chat`，VAM 复用上游 `OpenRouterClient._cha
 - 多视频按题目顺序拼接为一个视频，prompt 开头明确说明多视频任务及拼接方式；各视频起止时间保留两位小数，内部记录保留完整精度。题目及最终回答的时间指向原视频坐标。
 - RSI 原版只接受单个选项；用户明确保留非空字符串的通用答案适配，以支持多选、排序、定位、数字和自然语言。没有改变工具策略或技能库。
 - 两方法输入图像保持已确认的 448 限制；VAM 视频帧数读取原项目配置。取消额外的四路抽帧优化，不把速度实验改动混入原方法参数测试。
+- RSI 仅将 HTTP 等待改为1860秒。旧冻结批次继续使用240秒，完成后自动补跑失败题及含请求错误的成功题；无请求错误的成功题复用，逐题记录来源与实际时限。补跑耗时独立于旧批次，不将两次运行拼成一次吞吐结果。
 - 本地模型端点、Python/OCR 路径、VAM 临时文件路径按 Modal 环境调整。Modal 缺少 Landlock，RSI 保留 candidate seccomp 与外层 Sandbox，但不具备上游相同的文件系统 fence。
 - VAM 的原始缺失 `re` 导入补丁保留。这些运行环境修正均列入有效配置，不能称为逐字未改的上游代码。
 

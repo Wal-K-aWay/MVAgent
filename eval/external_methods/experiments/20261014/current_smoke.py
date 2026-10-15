@@ -133,12 +133,13 @@ def infer(output):
             stream.close()
 
 
-def score(output):
+def score(output, prepared=None):
     frozen = output/'frozen_repo'
     scripts = frozen/'eval/external_methods'
     env = dict(os.environ, PYTHONPATH=f'{SUPPORT}/deps:{frozen}/src')
     state = json.loads((output/'progress.json').read_text())
-    labels = json.loads((output/'prepared/private_labels.json').read_text())
+    prepared = prepared or output/'prepared'
+    labels = json.loads((prepared/'private_labels.json').read_text())
     needs_judge = any(json.loads(path.read_text())['success'] and
         labels[json.loads(path.read_text())['sample_id']]['sample']['task']=='open_qa'
         for method in ('rsi','vam') for path in (output/method).glob('*/execution.json'))
@@ -167,7 +168,7 @@ def score(output):
         write(output/'progress.json', state)
         scoring_started = time.monotonic()
         for method in ('rsi','vam'):
-            command = [sys.executable,str(scripts/'score.py'),'--prepared',str(output/'prepared'),
+            command = [sys.executable,str(scripts/'score.py'),'--prepared',str(prepared),
                        '--run',str(output/method)]
             if needs_judge:
                 command += ['--judge-endpoint','http://127.0.0.1:8110/v1']

@@ -27,6 +27,7 @@ def main():
     # Modal lacks Landlock; keep candidate seccomp and the outer Modal sandbox.
     config['execution'].update(python=sys.executable, linux_isolation=False)
     config['services']['ocr_model_root'] = '/runs/devbox/external_methods_20261014/ocr_models'
+    config['services']['timeout_seconds'] = 1860  # User-approved local HTTP wait; generation budgets stay upstream.
     if args.preflight:
         provider = OfflineProvider()
     else:
@@ -48,7 +49,8 @@ def main():
     write(args.output/'effective_config.json', dict(config=config,
         adaptations=['local model identity and loopback endpoint', 'local Python/OCR paths',
                      'Modal isolation: seccomp retained, Landlock unavailable',
-                     'user-approved generic answer contract and 448-wide model images'],
+                     'user-approved generic answer contract and 448-wide model images',
+                     'user-approved local HTTP timeout 1860 seconds (upstream 240)'],
         protocol='upstream budgets, sampling, retries and serial extraction; explicit user-approved adapters'))
     services = Services(item, {'video_path': item['video_path']}, config,
                         args.output/'scratch', provider=provider)

@@ -202,6 +202,7 @@
     "local Qwen3.5 Actor endpoints/model identity",
     "generic nonempty RSI answer strings",
     "448 model input limit",
+    "RSI local HTTP timeout 1860 seconds; upstream reference remains 240 seconds",
     "multi-video concat and two-decimal timing prompt"
   ]
 }
