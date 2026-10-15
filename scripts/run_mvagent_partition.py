@@ -24,7 +24,6 @@ def validate_adoption(pid, output, model):
     assert process_alive(pid) and any(v.endswith(b'eval/agent_eval/run.py') for v in command)
     index = command.index(b'--output')
     assert Path(os.fsdecode(command[index+1])).resolve() == (output/model).resolve()
-    assert os.getpgid(pid) == pid, 'Only adopt the standalone evaluation process group'
 
 
 def main():
@@ -58,7 +57,7 @@ def main():
     state.update(model_scope=args.models)
     state.pop('error', None); state.pop('traceback', None)
     process = None
-    adopted = args.adopt_pid
+    requested_adoption, adopted = args.adopt_pid, None
     caches = {m: {} for m in args.models}
 
     def save():
@@ -98,8 +97,9 @@ def main():
             if record.get('inference_done'):
                 continue
             config, execution = manifest['configs'][model], manifest['executions'][model]
-            if adopted:
-                validate_adoption(adopted, output, model)
+            if requested_adoption:
+                validate_adoption(requested_adoption, output, model)
+                adopted, requested_adoption = requested_adoption, None
                 core.write(output/'adoption.json', dict(pid=adopted, model=model, at=core.now()))
                 state.update(phase='inference', model=model)
                 while process_alive(adopted):
@@ -147,7 +147,7 @@ def main():
     finally:
         core.stop(process)
         if adopted and process_alive(adopted):
-            os.killpg(adopted, signal.SIGTERM)
+            os.kill(adopted, signal.SIGTERM)
         (Path('/work/jobs')/f'{output.name}.pid').unlink(missing_ok=True)
 
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Run on modal-gpu: keep the frozen full evaluation alive across Sandbox lifetimes."""
 import argparse
+import asyncio
 from datetime import datetime, timezone
 import fcntl
 import io
@@ -19,6 +20,14 @@ OUT='/runs/devbox/'+TAG
 FROZEN=OUT+'/frozen_repo/scripts/run_full_mvagent.py'
 RENEW_SECONDS=23*3600
 TERMINAL={'completed','completed_with_errors','failed'}
+
+
+async def execution_ready(sandbox, timeout=5):
+    try:
+        await asyncio.wait_for(sandbox._get_task_id.aio(raise_if_task_complete=True), timeout)
+        return True
+    except asyncio.TimeoutError:
+        return False
 
 
 def merge_completed(volume, plan_path):
@@ -79,6 +88,7 @@ def main():
     parser.add_argument('--source')
     parser.add_argument('--models', nargs='+')
     parser.add_argument('--merge-plan', help='Optional runs-volume plan to merge scored model groups')
+    parser.add_argument('--start-existing', action='store_true', help='Wait for an already requested Sandbox, then start its assigned job once')
     parser.add_argument('--self-check',action='store_true')
     parser.add_argument('--inspect',action='store_true',help='Read-only check; do not start or stop anything')
     args=parser.parse_args()
@@ -139,6 +149,26 @@ def main():
         assert devbox.start_job(new,TAG,shlex.join(command))==0
         return new
     try:
+        if args.start_existing:
+            sb = devbox._sandbox()
+            queued_written = False
+            while not stopping and not asyncio.run(execution_ready(sb)):
+                if not queued_written:
+                    log(dict(action='queued', sandbox=sb.object_id))
+                    if not progress():
+                        queued = dict(phase='queued', started_at=datetime.now(timezone.utc).isoformat(),
+                                      models={}, comparisons={}, model_scope=args.models)
+                        with volume.batch_upload(force=True) as batch:
+                            batch.put_file(io.BytesIO(json.dumps(queued).encode()), f'devbox/{TAG}/progress.json')
+                    queued_written = True
+                time.sleep(30)
+            if stopping:
+                return
+            sb.reload_volumes()
+            _, _, _, job_alive, data = view()
+            if not job_alive and data.get('phase') not in TERMINAL:
+                assert devbox.start_job(sb, TAG, shlex.join(command)) == 0
+                log(dict(action='started_assigned_job', sandbox=sb.object_id))
         while not stopping:
             try:
                 sb,alive,age,job_alive,data=view();phase=data.get('phase')

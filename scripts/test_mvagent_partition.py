@@ -1,5 +1,6 @@
 """CPU checks for process adoption and complete-only merging of model groups."""
 from contextlib import contextmanager
+import asyncio
 import json
 from pathlib import Path
 import subprocess
@@ -8,7 +9,19 @@ import tempfile
 import unittest
 
 from run_mvagent_partition import process_alive, validate_adoption
-from watch_full_mvagent import merge_completed
+from watch_full_mvagent import execution_ready, merge_completed
+
+
+class AllocationTest(unittest.IsolatedAsyncioTestCase):
+    async def test_pending_allocation_does_not_start_a_duplicate_job(self):
+        class Task:
+            async def aio(self, **kwargs):
+                await asyncio.sleep(.05)
+                return 'task-id'
+        class Sandbox:
+            _get_task_id = Task()
+        self.assertFalse(await execution_ready(Sandbox(), timeout=.001))
+        self.assertTrue(await execution_ready(Sandbox(), timeout=.2))
 
 
 class Volume:
@@ -28,7 +41,7 @@ class Volume:
 
 
 class PartitionTest(unittest.TestCase):
-    def test_adopt_only_the_assigned_live_process_group(self):
+    def test_adopt_only_the_assigned_live_process(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             script = root/'eval/agent_eval/run.py'
