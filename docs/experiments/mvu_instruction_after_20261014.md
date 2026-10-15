@@ -89,3 +89,28 @@ Read-only progress commands from the main project directory:
 DEVBOX_NAME=mvagent-mvu-after-20261014 .agents/skills/mvagent-environment/devbox/devbox.sh cat devbox/mvu_instruction_after_20261014/progress.json
 DEVBOX_NAME=mvagent-mvu-after-20261014 .agents/skills/mvagent-environment/devbox/devbox.sh log mvu_instruction_after_20261014
 ```
+
+
+## Result migration and combined overview — 2026-10-15
+
+The user additionally authorized migrating the raw MVU instruction-after answers,
+scores and metadata into `outputs/e2e_final_20261013/mvu_instruction_after_20261014/`.
+The import contains 29 files / 18,117,891 bytes; every size and SHA256 matches the
+streamed Modal source manifest. The previous 671 files / 42,800,648 bytes were also
+rechecked unchanged, for 700 imported payload files / 60,918,539 bytes total.
+The existing local detailed report and progress-check record moved into the same
+subdirectory. Modal originals, media, weights, frozen runtime and server logs remain
+remote. The two batches retain separate transfer manifests and verification records.
+
+The combined `outputs/e2e_final_20261013/reports/final_results.md` now has two
+three-model by three-benchmark overview tables, one official and one robust.
+The MVU column consistently uses instruction-after results for all models;
+original-order scores and task details are retained as the historical comparison.
+CVBench and CrossVid values and detailed tables are unchanged. All 18 overview
+cells were checked against scored records/summaries; all 5,472 new responses and
+score IDs match. README, audit context, benchmark notes and local storage rules
+were updated to distinguish the two protocols and document the additional authorization.
+
+Only explicitly selected Markdown reports are backed up in Git; raw results and
+JSON transfer proofs stay in the requested local directory and on Modal. This
+work does not rerun inference or change the default evaluation prompt.

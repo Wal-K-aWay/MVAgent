@@ -77,12 +77,12 @@ CPU分析核验5472条完整输出token及客户端/服务端请求记录，缺�
 
 这是复用开发集上的提示位置对照，不代表未见数据泛化，也没有重新执行重复性矩阵。9B旧基线采用600秒服务超时，新轮沿用1800秒恢复版；正常响应的数值配置相同，截断与基础设施错误另列。
 
-原始数据与冻结源码：/runs/devbox/mvu_instruction_after_20261014（Modal runs volume）；本地只保留代码和Markdown报告。
+Modal原件与冻结源码：/runs/devbox/mvu_instruction_after_20261014。2026-10-15按用户授权将原始回答、评分和配套元数据复制到outputs/e2e_final_20261013/mvu_instruction_after_20261014/；媒体、权重和冻结环境仍留Modal。
 
 ## 运行与核查来源
 
 - 本轮固定源码与原始结果：Modal runs volume的 `devbox/mvu_instruction_after_20261014/`。
 - Launcher提交：`0485741`；原冻结基线提交：`4eb309b`；实际文件哈希记录在 `source_provenance.json`。
 - 分析代码提交：`f2ea20e`；远端 `analysis/analysis.json`、`analysis/analysis_source.py`、`analysis/report.md`。
-- 只复制Markdown报告到本机；原始回答、token、评分JSON和模型/媒体仍留Modal。
+- 2026-10-15迁入29个文件、18,117,891字节，逐文件大小及SHA256一致；原始回答含token，评分JSON与配套元数据可本地轻量分析。Modal原件保留，媒体、权重、冻结源码未下载。
 - 独立检查代理按用户要求在10月14日11:29退出对话时停止；此次仅执行CPU分析，没有重跑模型或Judge。
