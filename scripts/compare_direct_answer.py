@@ -40,11 +40,18 @@ def now():
     return datetime.now(timezone.utc).isoformat()
 
 
+def visible_labels(options):
+    from harness.answers import option_labels
+    # CVBench can store all labelled choices in one list element (e.g. question 996).
+    embedded = re.findall(r'(?:^|[,;\n])\s*\(?([A-Z])[.):]\s', '\n'.join(options))
+    return ''.join(dict.fromkeys(embedded)) if embedded else option_labels(options)
+
+
 def measure(text, record, scorer):
-    from harness.answers import (option_labels, leads_with_choice, read_choice,
+    from harness.answers import (leads_with_choice, read_choice,
                                  read_letters, read_yes_no, read_order, read_interval)
     text = str(text or '').strip()
-    labels = option_labels(record.sample.options)
+    labels = visible_labels(record.sample.options)
     task = record.native_task
     if task == 'FSA' and record.dataset == 'crossvid':
         try:
@@ -180,7 +187,7 @@ def aggregate(rows):
     return result
 
 
-def analyze_model(output, model):
+def analyze_model(output, model, report_root=None):
     from skill_evolution.infra.benchmarks.catalog import load_multibench_records, build_official_scorer
     selected = read(output/'selection.json')['models'][model]
     records = load_multibench_records('/assets', [r['sample_id'] for r in selected])
@@ -214,8 +221,9 @@ def analyze_model(output, model):
         group = [r for r in rows if r['random_panel']] if panel=='random' else [r for r in rows if r['diagnostic_reasons']]
         report['panels'][panel] = {ds:aggregate([r for r in group if r['dataset']==ds])
                                  for ds in sorted({r['dataset'] for r in group})}
-    write(output/model/'paired.json', rows)
-    write(output/model/'comparison.json', report)
+    target = (report_root or output)/model
+    write(target/'paired.json', rows)
+    write(target/'comparison.json', report)
     return report
 
 
@@ -282,8 +290,21 @@ def main():
     assert out.is_relative_to(Path('/runs').resolve())
     out.mkdir(parents=True,exist_ok=True)
     if args.mode=='analyze':
+        assert visible_labels(['A. First, B. Second, C. Third, D. Fourth']) == 'ABCD'
+        assert visible_labels(['A. First', 'B. Second']) == 'AB'
+        assert visible_labels(['Yes.', 'No.']) == 'AB'
+        target = out/'analysis'
+        target.mkdir(exist_ok=True)
+        shutil.copy2(__file__, target/'source.py')
+        for relative in ['src/skill_evolution/infra/benchmarks/catalog.py',
+                         'src/skill_evolution/infra/benchmarks/scoring.py',
+                         'src/skill_evolution/infra/benchmarks/adapters.py',
+                         'eval/e2e_eval/harness/answers.py']:
+            assert sha(ROOT/relative) == sha(out/'frozen_repo'/relative), relative
+        write(target/'manifest.json',dict(at=now(),source_sha256=sha(Path(__file__)),
+            note='Correct visible labels in one-element option lists; selection and inference frozen unchanged. Original model comparison files retained.'))
         for model in MODELS:
-            print(json.dumps(analyze_model(out,model)),flush=True)
+            print(json.dumps(analyze_model(out,model,report_root=target)),flush=True)
     else:
         {'prepare':prepare,'run':run}[args.mode](out)
 
