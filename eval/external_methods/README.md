@@ -39,7 +39,9 @@ VAM 使用原 TUI/WebSocket 的 `vam.agent.stream_agent_response`：先经顶层
 - 本地模型端点、Python/OCR 路径、VAM 临时文件路径按 Modal 环境调整。Modal 缺少 Landlock，RSI 保留 candidate seccomp 与外层 Sandbox，但不具备上游相同的文件系统 fence。
 - VAM 的原始缺失 `re` 导入补丁保留。这些运行环境修正均列入有效配置，不能称为逐字未改的上游代码。
 
-65题RSI和3题VAM已完成原图像协议重跑、评分和审计，复用已校验的拼接媒体（含修复NC80），未复用448协议答案；结果为final_summary.json及report.md。当前调用检查与600秒最小冒烟使用独立目录devbox/external_call_audit_20261015。
+65题RSI和3题VAM已完成原图像协议重跑、评分和审计，复用已校验的拼接媒体（含修复NC80），未复用448协议答案；结果为final_summary.json及report.md。当前调用检查与600秒最小冒烟使用独立目录devbox/external_call_audit_20261015_r2；首次诊断脚本初始化错误及其CPU证据保留在不带r2的目录。
+
+600秒验证已完成：CV764返回B、83.38秒、3调用；另重放CV722不合格视觉请求，其输入与244个输出token逐一匹配旧记录，仍未遵循JSON要求。共4次实际响应审计通过，0请求错误；未发现模板、thinking开关、上下文截断或EOS漏停问题。按用户要求保留原提示词与生成参数，不以改善格式为由加约束或惩罚。[检查详情](../../outputs/external_original_images_20261015/call_settings_audit.md)。
 
 ## 客户端依赖
 

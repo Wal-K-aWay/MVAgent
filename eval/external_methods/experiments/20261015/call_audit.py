@@ -11,7 +11,7 @@ import time
 import urllib.request
 
 BASE = Path('/runs/devbox/external_original_images_20261015')
-ROOT = Path('/runs/devbox/external_call_audit_20261015')
+ROOT = Path('/runs/devbox/external_call_audit_20261015_r2')
 SUPPORT = Path('/runs/devbox/external_methods_20261014/support')
 ADAPTERS = Path(__file__).resolve().parents[2]
 
@@ -157,7 +157,7 @@ def smoke():
                 break
             except OSError:
                 time.sleep(5)
-        from solver_full_workspace.engine.services import PinnedProvider
+        from solver_full_workspace.engine.services import Meter, PinnedProvider
         from transport_audit import audit_urllib
         from unittest.mock import patch
         old=json.loads((ROOT/'cvbench_722_request.json').read_text())
@@ -165,7 +165,7 @@ def smoke():
         config['timeout_seconds']=600
         config['qwen']['request_model']=card['id']
         provider=object.__new__(PinnedProvider)
-        provider.config,provider.meter,provider.key,provider.endpoint=config,None,'local-no-auth','http://127.0.0.1:8100/v1'
+        provider.config,provider.meter,provider.key,provider.endpoint=config,Meter(),'local-no-auth','http://127.0.0.1:8100/v1'
         audit_urllib(ROOT/'replay_requests.jsonl')
         original=urllib.request.urlopen
         observed=[]

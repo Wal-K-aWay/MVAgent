@@ -42,4 +42,12 @@ RSI三题相同工具参数重复执行2–5次；已有实际请求和输出哈
 
 CPU实际传参检查、VAM超时读取检查和已有源码语法检查通过。原冻结包不包含`scripts`/`demo.py`，本次没有对不存在的路径宣称完成全项目检查。
 
-单卡H100真实复测正在执行：重放CV722的一条原不合格视觉请求，再以600秒新默认跑完整CV764题；不新增Judge或准确率实验。结果另存Modal runs volume `devbox/external_call_audit_20261015`，含`audit.json`、`end_token_audit.json`、冻结源码和原始请求。完成后补充实测结果。
+首次诊断脚本在独立调用`PinnedProvider`时漏初始化`Meter`，尚未发出推理请求即退出；原评测入口由`Services`正常绑定计数器，没有该问题。首次CPU检查与`end_token_audit.json`保留在`devbox/external_call_audit_20261015`，失败不计入模型表现。
+
+修正后单卡H100真实复测已完成，函数正常返回：
+
+- CV722原不合格视觉请求：实际HTTP等待参数600秒；请求、输入哈希、244个完整输出token与旧记录一致，24.70秒自然结束，仍为自然语言而非要求的JSON。失败表现可复现，不是HTTP截断或响应拼接造成。
+- CV764完整RSI题：返回`B`，83.38秒，3次模型调用、1261个输出token，0请求错误；实际配置600秒，两角色仍8192 token/温度0。另含上述重放共4次真实响应，输入哈希与完整token审计通过。
+- 没有新增Judge、采样对照或准确率矩阵，不将这次与旧批的耗时差当作超时修改带来的提速。
+
+新结果目录为Modal runs volume `devbox/external_call_audit_20261015_r2`，保留`audit.json`、`smoke.json`、`replay.json`、冻结源码及原始请求。测试服务已在finally中停止，Modal app正常完成并退出；旧失败目录保留，不混入模型结果。
