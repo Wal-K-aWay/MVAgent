@@ -4,6 +4,7 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 import hashlib
 from itertools import zip_longest
+from fractions import Fraction
 import json
 from pathlib import Path
 import random
@@ -58,6 +59,17 @@ def packet_clock(path):
                 for packet in container.demux(video=0) if packet.pts is not None]
 
 
+def first_displayed_time(path):
+    import av
+    with av.open(str(path)) as container:
+        stream = container.streams.video[0]
+        stream.thread_type = 'NONE'
+        frame = next(container.decode(stream))
+        if frame.pts is None:
+            raise ValueError(f'{path}: first displayed frame has no timestamp')
+        return float(frame.pts*frame.time_base)
+
+
 def frame_signatures(path, offset=0.0):
     import av
     with av.open(str(path)) as container:
@@ -93,6 +105,50 @@ def verify_concat_clock(actual, expected, duration):
     return container_duration
 
 
+def normalize_lossless(source, destination):
+    import av
+    if Path(destination).exists():
+        raise FileExistsError(destination)
+    deadline = time.monotonic()+1200
+    clock = Fraction(1, 1000000)
+    durations, origin, extent = {}, None, 0
+    # Use the same decoder as pixel verification; MPEG-4 IDCT rounding differs across FFmpeg versions.
+    with av.open(str(source)) as inp, av.open(str(destination), 'w', options={
+            'video_track_timescale':'1000000', 'movie_timescale':'1000000'}) as out:
+        original = inp.streams.video[0]
+        original.thread_type = 'NONE'
+        stream = out.add_stream('libx264', rate=original.average_rate)
+        stream.width, stream.height = original.width, original.height
+        stream.pix_fmt = original.codec_context.format.name
+        stream.time_base = stream.codec_context.time_base = clock
+        stream.codec_context.thread_count = 1
+        stream.options = {'qp':'0', 'preset':'fast', 'bf':'0', 'x264-params':'repeat-headers=1'}
+        for frame in inp.decode(original):
+            if time.monotonic() > deadline:
+                raise TimeoutError('Lossless normalization exceeded 1200 seconds')
+            if frame.pts is None or frame.duration <= 0:
+                raise ValueError('Normalization requires explicit presentation timestamps and frame durations')
+            if (frame.width, frame.height, frame.format.name) != (stream.width, stream.height, stream.pix_fmt):
+                raise ValueError('A source stream changed dimensions or pixel format during normalization')
+            stamp = frame.pts*frame.time_base
+            if origin is None:
+                origin = stamp
+            tick = round((stamp-origin)/clock)
+            durations[tick] = round(frame.duration*frame.time_base/clock)
+            extent = max(extent, tick+durations[tick])
+            frame.pts, frame.time_base = tick, clock
+            for packet in stream.encode(frame):
+                packet.duration = durations[packet.pts]
+                out.mux(packet)
+        for packet in stream.encode():
+            packet.duration = durations[packet.pts]
+            out.mux(packet)
+    if origin is None:
+        raise ValueError('No displayed source frames to normalize')
+    return float(origin), float(extent*clock), dict(implementation='PyAV', libraries=av.library_versions,
+        codec='libx264', qp=0, preset='fast', threads=1, b_frames=0, repeat_headers=True)
+
+
 def timeline(segments):
     lines = ['This is a multi-video understanding task. The original videos have been '
              'concatenated into one complete video in the order listed below.',
@@ -114,37 +170,39 @@ def prepare(record, output):
     parts, segments, clocks, offset = [], [], [], 0.0
     sources = [(video_id, source, video_info(source)) for video_id, source in record.sample.videos.items()]
     codecs = {info['codec_name'] for _, _, info in sources}
+    source_clocks = {source: packet_clock(source) for _, source, _ in sources}
+    display_starts = {source: first_displayed_time(source) for _, source, _ in sources}
+    preroll = any(min(t for t, _ in source_clocks[source]) < display_starts[source]-.000002
+                  for _, source, _ in sources)
     # Only these codecs have been checked for native-size stream-copy concatenation.
-    transcode = len(codecs) != 1 or not codecs <= {'h264', 'mpeg4'}
+    transcode = len(codecs) != 1 or not codecs <= {'h264', 'mpeg4'} or preroll
     for i, (video_id, source, original) in enumerate(sources):
         destination = target / f'{i}.mp4'
-        source_clock = packet_clock(source)
+        source_clock = source_clocks[source]
         source_start = min(t for t, _ in source_clock)
+        normalization = None
         # A common container clock lets concat preserve the source frame timing.
         command = ['ffmpeg', '-v', 'error', '-copyts', '-itsoffset', f'{-source_start:.6f}',
                    '-noautorotate', '-i', source, '-map', '0:v:0', '-an',
                    '-avoid_negative_ts', 'disabled', '-video_track_timescale', '1000000']
-        if transcode:
-            # '+' rejects unsupported pixel formats instead of silently converting them.
-            command += ['-c:v', 'libx264', '-qp', '0', '-preset', 'fast', '-pix_fmt', '+',
-                        '-vsync', '0', '-enc_time_base', '1:1000000',
-                        '-bf', '0', '-threads', '1', '-noautoscale']
-        else:
-            command += ['-c:v', 'copy']
-        if transcode or original['codec_name'] == 'h264':
+        command += ['-c:v', 'copy']
+        if original['codec_name'] == 'h264':
             # MP4 keeps one global header; repeat each segment's SPS/PPS at every keyframe for seeking.
             command += ['-bsf:v', 'h264_mp4toannexb,dump_extra=freq=keyframe']
         elif original['codec_name'] == 'mpeg4':
             command += ['-bsf:v', 'dump_extra=freq=keyframe']
         command += ['-n', str(destination)]
-        subprocess.run(command, check=True, timeout=1200)
+        if transcode:
+            source_start, source_duration, normalization = normalize_lossless(source, destination)
+            command = None
+        else:
+            subprocess.run(command, check=True, timeout=1200)
         remuxed = video_info(destination)
         clock = packet_clock(destination)
         verified_frames = None
         if transcode:
             verified_frames = verify_frames(frame_signatures(source, -source_start),
                                             frame_signatures(destination), str(source))
-            source_duration = max(t+d for t, d in source_clock) - source_start
             if abs(max(t+d for t, d in clock) - source_duration) >= .000002:
                 raise ValueError(f'{source}: video duration changed during lossless encoding')
         else:
@@ -158,8 +216,10 @@ def prepare(record, output):
         segments.append(dict(video_id=video_id, start=offset, end=offset+duration,
             original_duration=duration, source=source, source_sha256=sha256(source),
             source_start_time=source_start, original_stream=original, remuxed_stream=remuxed,
+            original_packet_start=min(t for t, _ in source_clock), first_displayed_time=display_starts[source],
+            normalized_for_preroll=preroll,
             packet_count=len(clock), processing='lossless_h264' if transcode else 'stream_copy',
-            preparation_command=command, verified_decoded_frames=verified_frames))
+            preparation_command=command, normalization=normalization, verified_decoded_frames=verified_frames))
         offset += duration
         parts.append(destination)
     listing = target / 'concat.txt'

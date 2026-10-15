@@ -25,7 +25,7 @@ def main():
     from qwen3_vl_embedding import Qwen3VLEmbedder
     torch.manual_seed(0)
     model = Qwen3VLEmbedder(str(args.weights), torch_dtype=torch.bfloat16,
-                           attn_implementation='sdpa')
+                           attn_implementation='sdpa', max_pixels=448*448)
     preprocess = model._preprocess_inputs
 
     def checked_preprocess(conversations):

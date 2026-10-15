@@ -28,6 +28,7 @@ def main():
             ('mpeg4', ('mpeg4', 'mpeg4'), False),
             ('mixed', ('libx264', 'mpeg4'), False),
             ('mixed_vfr', ('mpeg4', 'libx264'), True),
+            ('preroll', ('libx264', 'libx264'), False),
         ):
             paths = []
             for i, (codec, size, fps) in enumerate(zip(codecs, ('320x240', '480x272'), (10, 15))):
@@ -38,6 +39,11 @@ def main():
                     command += ['-vf', "select='not(eq(mod(n,4),1))'", '-vsync', '0']
                 subprocess.run(command + ['-c:v',codec,'-g','5','-threads','1',
                     '-pix_fmt','yuv420p','-n',str(path)],check=True)
+                if name == 'preroll' and i == 1:
+                    original_path = path.with_name('uncut.mp4')
+                    path.rename(original_path)
+                    subprocess.run(['ffmpeg','-v','error','-ss','0.4','-i',str(original_path),
+                        '-t','2','-c:v','copy','-n',str(path)],check=True)
                 paths.append(path)
             originals = [decoded(path) for path in paths]
             item = prepare(SimpleNamespace(sample_id=name, sample=SimpleNamespace(
@@ -45,7 +51,7 @@ def main():
                 question='Compare the two videos.', options=[])),root/'prepared')
             metadata = json.loads((Path(item['video_path']).parent/'timeline.json').read_text())
             segments = metadata['segments']
-            processing = 'stream_copy' if len(set(codecs)) == 1 else 'lossless_h264'
+            processing = 'stream_copy' if len(set(codecs)) == 1 and name != 'preroll' else 'lossless_h264'
             assert all(s['processing'] == processing for s in segments)
             if processing == 'lossless_h264':
                 assert all(s['remuxed_stream']['codec_name'] == 'h264' for s in segments)
@@ -56,12 +62,13 @@ def main():
             expected = [(w,h,t+s['start']-s['source_start_time'],digest)
                         for s,frames in zip(segments,originals) for w,h,t,digest in frames]
             assert len(actual) == len(expected), (name,len(actual),len(expected))
-            if not variable_timing:
+            if not variable_timing and name != 'preroll':
                 assert len(actual) == 75
             for a,e in zip(actual,expected):
                 assert (a[0],a[1],a[3]) == (e[0],e[1],e[3]), (name,a,e)
                 assert abs(a[2]-e[2]) < .000002, (name,a[2],e[2])
-            for target in (.7, segments[1]['start']+.2, segments[1]['start']+2.2):
+            for target in (.7, segments[1]['start']+.2,
+                           segments[1]['start']+min(2.2, segments[1]['original_duration']*.8)):
                 with av.open(item['video_path']) as container:
                     stream = container.streams.video[0]
                     container.seek(int(target / stream.time_base), stream=stream, backward=True)
