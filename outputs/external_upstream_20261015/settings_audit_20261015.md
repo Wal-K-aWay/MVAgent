@@ -57,7 +57,7 @@
 已在Modal CPU独立安装：
 
 - RSI：原`requirements-lock.txt`全部22项固定版本，逐项版本及NumPy/OpenCV实际导入检查通过。
-- VAM：全部13项适用依赖约束通过；NumPy1.26.4、opencv-python4.10.0.84，其余满足原声明范围。
+- VAM：全部13项适用依赖约束通过；NumPy1.26.4、opencv-python4.10.0.84。后续运行时导入发现共享SciPy需要NumPy≥2，另以SciPy1.14.1对齐间接依赖，兼容性与SSIM检查已通过，warnings-as-errors无警告。
 - 两个客户端通过独立PYTHONPATH目录运行，不将互相冲突的依赖注入Qwen模型服务。Qwen服务仍为既有固定BF16运行环境。
 - 路径：`devbox/external_methods_20261014/support/upstream_clients_20261015`，保存两个安装日志、版本manifest与实际导入路径。新run_batch逐方法保存`client_environment.json`。
 
@@ -69,6 +69,7 @@
 - 每题独立记忆库与空会话，避免题间数据污染；原TUI可长期保留跨问答记忆。局部临时文件放在记忆库同一文件系统，避免原子移动跨设备失败。
 - 本地模型端点、OCR/Python路径和实际模型身份不同；Modal缺少Landlock，保留seccomp与外层Sandbox，无法声称与原文件系统隔离完全相同。
 - Embedding权重仍是原Qwen3-VL-Embedding-8B，但由本地官方实现服务，BF16/sdpa、默认instruction、8192上下文、448²像素。云端如何解释input_type、内部图像/视频处理和数值实现不可见，不能证明向量逐位等同。
+- VAM的448²限制作用于图像上传与Embedding图像；原video_url上下文仍走10MB视频路径，不能声称视频帧处理后的尺寸一律为448。
 - 本地Qwen使用seed0、thinking关闭、默认top_p1、131072上下文、单请求最多512张image/8个video；原云服务没有公开相同数值环境。13:28已观测RSI单请求最多32张image，VAM最多4张image/1个video，未达到本地媒体数量上限；不能外推任意输入。
 - VAM没有锁死全部依赖版本，满足声明范围不等于复原作者机器上的每一个二进制版本。云端模型更换本身也不可能保证相同答案。
 
