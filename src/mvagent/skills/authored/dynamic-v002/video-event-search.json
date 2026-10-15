@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "id": "video-event-search",
+    "role": "video",
+    "stages": [
+      "initial",
+      "evidence"
+    ]
+  },
+  "when_to_use": "Locate an event in a video when its position is unknown before narrowing temporal observation ranges. The local instruction requires locating an event, but supplied anchors and retained observations do not establish a candidate interval. Do not use when a candidate is already located and only its precise boundaries remain uncertain.",
+  "strategy": "1. Ask what to identify the requested event, retaining identity, order and negation constraints.\n2. Cover the relevant unobserved time span with observe; choose fps within capacity without assuming the event is at either endpoint.\n3. Once a candidate is observed, use its source-video time as the basis for any narrower observation.\n\nConstraints:\nDo not refine an interval guessed from the question alone. Failure to see a brief event with sparse sampling does not prove absence."
+}

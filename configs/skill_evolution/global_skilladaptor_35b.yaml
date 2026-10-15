@@ -1,0 +1,18 @@
+algorithm: global-skilladaptor-v1
+dataset_root: /home/kww/datasets/Multi-Video
+runtime:
+  mvagent_config: configs/skill_evolution/runtime/dynamic_35b_embedding.yaml
+  cache_dir: .cache/skill_evolution/global_skilladaptor
+optimizer:
+  model_type: glm53_flash_optimizer
+open_qa_judge:
+  enabled: true
+  model:
+    model_type: deepseek_judge_fixed
+training:
+  rounds: 3
+  batch_size: 32
+  patience: 3
+  seed: 20260928
+  issue_score_threshold: 1.0
+  max_card_words: 1200

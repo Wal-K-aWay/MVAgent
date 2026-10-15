@@ -1,0 +1,17 @@
+{
+  "split_seed": 20260906,
+  "selection": "Existing task-stratified preparation script, 10 Train / 5 Eval groups per task, one sample per group; exclude the old 8/4 smoke groups. Then replace any Eval group sharing an individual video with Train in the same seeded task order.",
+  "replacements": [
+    {
+      "removed": "crossvid:CC:354",
+      "replacement": "crossvid:CC:122",
+      "reason": "Individual video path shared with Train; use the first unused same-task group in the existing seeded order without shared Train video paths."
+    }
+  ],
+  "counts": {
+    "train": 70,
+    "eval": 35
+  },
+  "shared_individual_video_paths": 0,
+  "manifest_hash": "e01976d7dd83f83c0e9e0eea53f821e873a5235a39559f3c8a20fca9fcc94d14"
+}

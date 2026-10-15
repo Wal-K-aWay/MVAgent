@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-synchronized-relation",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Determine position, direction, visibility, motion trajectory or separation (including lanes/car lengths) across synchronized views. Not enumerating objects or events. Two synchronized views with referenced object identities are given; the required answer is location, direction, visibility, motion trajectory or separation, possibly measured in lanes/car lengths. Exclude enumeration of objects/events; numeric wording alone does not make a task counting.",
+  "strategy": "1. Identify the condition view/event, target view, target object and reference object; preserve the question’s frame-relative or motion-relative meaning and any distance unit. If no event time is specified, identify the requested motion interval or final state.\n2. Use joint watch_videos to initialize labeled identities, track them beyond the label window and locate the event time. Inspect corresponding times in both views.\n3. Observe target and reference together at that time; track the requested interval for trajectory questions. For separation, estimate in the requested unit using visible lane boundaries or a comparable vehicle length, not raw cross-view pixels. If direction, occlusion or event timing is ambiguous, re-watch a narrower synchronized range including the event transition.\n4. Compare the observed relation with the options. Choose not-visible only after checking the specified view at the relevant time; do not substitute a count or infer absence from a missing report.\n\nConstraints:\nCount visible intervening lanes only when requested; vehicle-length distance is an estimate, not a vehicle count. Left/right can change with viewpoint; do not transfer image directions between cameras. Losing a label is not losing the object."
+}

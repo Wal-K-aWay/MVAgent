@@ -1,0 +1,63 @@
+{
+  "model": "qwen3_5_35b_a3b",
+  "scope": "full CVBench and MVU-Eval",
+  "only": "cvbench",
+  "limit": null,
+  "runner": {
+    "path": "scripts/run_official_cvbench_mvu.py",
+    "sha256": "2ba1e5a7a5725c334ca80bf00c49df931982182901c75b107660285ae9e58e7f",
+    "snapshot_path": "/home/kww/projects/MVAgent_API/outputs/qwen3_5_35b_a3b_e2e/cvbench/protocol_source/run_official_cvbench_mvu.py",
+    "description": "Local OpenAI-compatible compatibility adapter referencing the Git-tracked reduced upstream sources; not an unmodified official-repository execution."
+  },
+  "official_sources": {
+    "cvbench": {
+      "url": "https://github.com/Hokhim2/CVBench",
+      "protocol_sha256": "f772475bd06ea0600dec1325646f6121550a01f9428b0936bcbc3dfd4bbc644e",
+      "qwen_adapter_sha256": "469a8ced8195301c16f4e90d453a51e84666047d6b6805e9ae791433e7633dca"
+    },
+    "mvu_eval": {
+      "url": "https://github.com/NJU-LINK/MVU-Eval",
+      "inference_sha256": "8366c7595957dfabedb2854809d71d386af40c7d6e1c6e577e76135773a6c477",
+      "scorer_sha256": "29234af26fdc19138f25c535a2dec1f7104e1d9fca7616865a7a2dddad1f1ffe"
+    }
+  },
+  "cvbench": {
+    "endpoints": [
+      "http://127.0.0.1:8101/v1",
+      "http://127.0.0.1:8102/v1"
+    ],
+    "workers": 6,
+    "decode_batch_frames": 64,
+    "media_cache": true,
+    "media_cache_dir": "/home/kww/projects/MVAgent_API/.cache/e2e_media",
+    "frames_per_video_cap": 512,
+    "frames_per_question_cap": 512,
+    "max_side_pixels": 720,
+    "max_tokens": 16,
+    "temperature": 0,
+    "top_p": 1.0
+  },
+  "mvu_eval": {
+    "endpoints": [
+      "http://127.0.0.1:8001/v1",
+      "http://127.0.0.1:8101/v1"
+    ],
+    "workers_per_endpoint": 1,
+    "decode_batch_frames": 64,
+    "media_cache": true,
+    "media_cache_dir": "/home/kww/projects/MVAgent_API/.cache/e2e_media",
+    "frames_per_video_cap": 32,
+    "frames_per_question_cap": 512,
+    "max_side_pixels": 720,
+    "max_tokens": 64,
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "enable_thinking": false,
+    "answer_parser": "final-choice-v1",
+    "legacy_score": "first upper-cased output character"
+  },
+  "transport": {
+    "api_timeout_seconds": 900.0,
+    "max_retries": 3
+  }
+}

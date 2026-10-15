@@ -1,0 +1,20 @@
+{
+  "upstream": "https://github.com/ECNU-ICALK/AutoSkill",
+  "commit": "94c47ca488d4ba4117d20272e66d49b9877e68cf",
+  "files": {
+    "autoskill/interactive/selection.py": "106f43fcb5cf3b618424e93d07e0c1fa3a7bfca947b83a0c95081731e6423486",
+    "autoskill/utils/units.py": "c0afa38998134a661116b09e573abdca77ca3b518b05d5b538687394f9938276"
+  },
+  "ported": [],
+  "adaptations": [
+    "2026-09-28: shared selector template with role-specific black-box backgrounds; complete-task method selection and applicability versus future visual facts; input/output contracts unchanged",
+    "2026-09-26: selector system prompt rewritten for structured JSON metadata; not byte-identical to upstream",
+    "Candidate fields exactly id, description, when_to_use; no strategy, example, owner, resources or preview",
+    "One or none; strict Schema and use_skills/IDs consistency; errors propagate",
+    "Eligible catalogs over8 use metadata-only BM25 and embedding reciprocal-rank fusion",
+    "Task-scoped selection; inject only strategy",
+    "2026-09-28: prompts.py owns the shared template, role backgrounds and renderer; selector output contains only use_skills and selected_skill_ids, with reason removed",
+    "2026-09-28: readable User text with full task, optional video IDs/durations and candidate metadata; no history/max_selected; remove unused history formatter and sizing helpers. Retrieval query and Actor Memory unchanged."
+  ],
+  "license": "No LICENSE file found in pinned upstream tree; provenance retained, do not assert an upstream license grant."
+}

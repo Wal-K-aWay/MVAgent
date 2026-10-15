@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-behavior-multiselect",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Evaluate visible behavior criteria independently across videos and return all supported option labels. Only for questions explicitly allowing multiple correct choices; not single-choice video pairs or open answers. The question explicitly permits multiple correct option labels and asks about visible behavior, interactions or conditions. Exclude single-choice questions, even when one option names several videos.",
+  "strategy": "1. Read each option as a claim; preserve simultaneous-action requirements, quantifiers and the requested number of answers without redefining behavior.\n2. Use analyze_videos for all relevant videos. Give each VideoAgent its local criteria, asking for actions, objects, posture, temporal overlap and timestamped support or uncertainty.\n3. Evaluate each option independently. If a brief event or alleged absence determines an unresolved option, request a focused re-observation through analyze_videos or inspect relevant clips with watch_videos.\n4. Return all supported option letters in the requested format. Do not force one video or one letter; do not count a near match as a match.\n\nConstraints:\nShared objects do not prove simultaneous actions. An unmentioned event is not evidence of absence. Do not invent definitions for subjective wording."
+}

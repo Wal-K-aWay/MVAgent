@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-synchronized-count",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Count distinct objects at an event time or count events over an interval in synchronized views. Not position, direction, identity, or separation measured in lanes/car lengths. Time-synchronized views and labeled entities are supplied, and the question asks how many objects or events meet specified conditions. Exclude position/direction and separation measured in lanes or car lengths; those require spatial measurement rather than enumerating targets.",
+  "strategy": "1. Distinguish snapshot count from cumulative event count. Identify the reference event, counted unit, attribute filters and whether counting is in one view or across views.\n2. Use joint watch_videos to initialize referenced identities from their labeled windows and locate the anchor event. Use matching time ranges in synchronized views.\n3. For snapshot counts, inspect the target view at the anchored moment, narrowing the synchronized range if details are unresolved. For totals, cover the requested interval and build an event list with timestamps; one instant cannot establish a total.\n4. Check occlusion and double counting across views. Recheck only unresolved identities or events, then map the supported quantity to the option label.\n\nConstraints:\nCount entities/events, not appearances in two views. A valid timestamp can be zero. A number fitting an option is not independent evidence."
+}

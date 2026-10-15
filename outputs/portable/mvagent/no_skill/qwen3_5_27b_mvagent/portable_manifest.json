@@ -1,0 +1,15 @@
+{
+  "source_model": "qwen3_5_27b_mvagent_no_skill",
+  "record_count": 5324,
+  "files": [
+    "answers.jsonl.gz",
+    "trajectories.jsonl.gz",
+    "events_compact.jsonl.gz"
+  ],
+  "raw_records_preserved_locally": true,
+  "omitted_from_portable_bundle": [
+    "full result.json events payloads",
+    "vllm logs",
+    "execution_events.jsonl"
+  ]
+}

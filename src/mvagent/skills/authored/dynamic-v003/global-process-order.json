@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "id": "global-process-order",
+    "role": "global",
+    "stages": [
+      "initial",
+      "evidence"
+    ]
+  },
+  "when_to_use": "Order clips of one changing process using observed initial/final states; not event timestamps within a clip or comparisons of appearance alone. The question asks to order clips of the same process, and their progression is unresolved. Do not use for within-video temporal localization.",
+  "strategy": "1. Use analyze_videos to request each clip's initial state, main change and final state, retaining object identities and irreversible changes.\n2. Connect compatible end/start states. Treat endpoints as evidence, not the whole process; ask about the middle if a transition is ambiguous.\n3. Resolve only uncertain neighboring clips. Return their video IDs in the requested order.\n\nConstraints:\nInput order is not chronology. Similar endpoints can hide different intermediate actions."
+}

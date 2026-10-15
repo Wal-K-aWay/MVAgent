@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-shuffled-sequence",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Order supplied shuffled procedure segments using action prerequisites and changes of material state. Output a permutation of segment identifiers, not a time interval or an inferred missing event. The task supplies shuffled segments of a procedure and asks for their chronological ordering. All output items must be supplied segment identifiers.",
+  "strategy": "1. Use analyze_videos on each segment to record input state, operation, output state and distinctive objects; avoid asking each isolated clip to guess its global rank.\n2. Build before/after constraints from prerequisites and state changes. Identify which clips can follow others; appearance or typical recipe order alone is insufficient.\n3. For ambiguous adjacency, watch the end of the earlier candidate and start of the later candidate using their own durations. Expand into clip interiors when boundaries lack decisive context.\n4. Check the complete ordering against all constraints and include every segment exactly once. Output only the requested identifier sequence and separator.\n\nConstraints:\nA clip can contain more than one action. Do not use filenames or hidden original timestamps as ordering evidence."
+}

@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "id": "video-event-interval",
+    "role": "video",
+    "stages": [
+      "initial",
+      "evidence"
+    ]
+  },
+  "when_to_use": "Locate an operation or temporal relation and refine its actual source-time boundaries; use coarse-to-fine observation instead of repeatedly paraphrasing an unlocalized event. The instruction asks when an operation occurs, its start/end, first occurrence, before/after or overlap. A prose description without source-time evidence cannot fulfill the request.",
+  "strategy": "1. Extract the visible event and boundary criteria. For a supplied reference interval, inspect that interval and describe its operation; do not infer a target video that you cannot see.\n2. If location is unknown, observe the full valid range or ordered chunks with what asking for candidate source-time brackets and surrounding states. A sampled frame time is not an exact action boundary.\n3. If the returned report lacks times, do not finish with the same description. Search smaller ordered ranges to bracket the event, then inspect the bracket plus context at fps adequate for the required precision. Never invent a bracket from a plausible recipe order.\n4. For first occurrence inspect earlier coverage; for overlap compare event intervals. Before finish ensure start <= end within duration and explain uncertainty at transitions. If the budget cannot resolve boundaries, return the established bracket and limitation.\n\nConstraints:\nRepeated requests for precise seconds without new evidence do not increase precision. Reject timestamps outside the video; do not convert source time to clip-relative time silently."
+}

@@ -1,0 +1,88 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "global-count-units",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "Compare counts of repeated actions across clips using the same completed-event definition and time scope; not ingredient presence or process-step ordering. The task asks how many times an action occurs or compares such counts, and comparable counts are missing. Exclude distinct object presence and already settled counts.",
+      "strategy": "1. Use analyze_videos. Give each relevant VideoAgent the same action definition, completion rule and requested temporal scope.\n2. Request the count and uncertain occurrences, without suggesting an option's number.\n3. Compare like-for-like counts; recheck only uncertainty that could change the answer.\n\nConstraints:\nPreparation is not a completed action. Do not change the counting unit between videos."
+    },
+    {
+      "meta": {
+        "id": "global-process-order",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "Order clips of one changing process using observed initial/final states; not event timestamps within a clip or comparisons of appearance alone. The question asks to order clips of the same process, and their progression is unresolved. Do not use for within-video temporal localization.",
+      "strategy": "1. Use analyze_videos to request each clip's initial state, main change and final state, retaining object identities and irreversible changes.\n2. Connect compatible end/start states. Treat endpoints as evidence, not the whole process; ask about the middle if a transition is ambiguous.\n3. Resolve only uncertain neighboring clips. Return their video IDs in the requested order.\n\nConstraints:\nInput order is not chronology. Similar endpoints can hide different intermediate actions."
+    },
+    {
+      "meta": {
+        "id": "global-spatial-anchor",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "Resolve left/right or relative location across camera views with an explicit reference object and viewpoint; not matching sign text, colors or object identity alone. The answer depends on a spatial direction or relative position across views, and the reference frame is unresolved. Exclude mere appearance or text matching.",
+      "strategy": "1. Use analyze_videos to locate the queried object relative to the question's anchor and viewpoint. Preserve both in instruction.\n2. Map reports to the same frame before comparing. Different camera-left directions are not automatically contradictory.\n3. If an answer-changing relation remains unclear, jointly watch the relevant views with a neutral instruction naming the object, anchor and viewpoint.\n\nConstraints:\nScreen-left is not necessarily object-left or left when facing an entrance. Do not choose a frame absent from the question or evidence."
+    },
+    {
+      "meta": {
+        "id": "global-visual-discriminants",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "Jointly inspect unresolved visual differences, shared attributes or ingredient presence across videos; not counts, chronology or viewpoint-relative directions. The answer depends on cross-video visible details that reports do not establish, and watch_videos is available. Exclude counts, clip ordering and spatial directions.",
+      "strategy": "1. Use watch_videos for the relevant videos. Copy the original question and options into instruction; preserve which video each claim concerns.\n2. Use known time anchors; without anchors retain full-duration coverage. Ask for option-discriminating observations, not confirmation of a guessed answer.\n3. Compare the observed attributes. Answer when supported; recheck only a missing distinction that changes the answer.\n\nConstraints:\nNot mentioned is not absent. Similar color alone does not establish identity."
+    },
+    {
+      "meta": {
+        "id": "video-completed-count",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "Count repeated occurrences of a specified action, preserving completion and temporal scope; not listing distinct steps or checking ingredient presence. Instruction requests an action count or occurrence index that Memory does not settle. Exclude distinct process-step lists, static objects and resolved counts.",
+      "strategy": "1. Use observe over the requested scope. In what, repeat the action definition and completion criterion; ask for distinguishable occurrences.\n2. Choose fps for action speed within the frame budget. Do not count one occurrence twice across overlapping ranges.\n3. Reobserve only a consequential ambiguous interval; otherwise finish with the supported count and limitations.\n\nConstraints:\nDo not turn partial motions or uncertain visibility into exact completed counts."
+    },
+    {
+      "meta": {
+        "id": "video-event-boundary",
+        "role": "video",
+        "stages": [
+          "evidence"
+        ]
+      },
+      "when_to_use": "Refine start/end timestamps of an action already located in Memory; NOT text legibility, object detail, counts, clip ordering or an unlocated event. Instruction needs action start/end times AND Memory locates that action AND a required boundary remains uncertain. All three are necessary. Exclude OCR and spatial/appearance detail.",
+      "strategy": "1. Use observe around the known uncertain boundary, including context on both sides within the video.\n2. Ask what distinguishes before, during and after the action. Increase fps only as needed within the frame budget.\n3. Finish with source-video seconds and any remaining uncertainty once the requested boundaries are supported.\n\nConstraints:\nA crop edge is not an event boundary. Extra temporal samples do not inherently improve text resolution."
+    },
+    {
+      "meta": {
+        "id": "video-event-location",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "Find when a requested action occurs before any candidate time is known; never use for reading text, static attributes or ordinary object identification. Instruction explicitly needs an action's time or temporal interval, but neither supplied anchors nor Memory locates it. Exclude OCR, static appearance, counts and already located events.",
+      "strategy": "1. Use observe over the permitted search interval; do not guess a narrow window.\n2. In what, preserve the action, entity and any occurrence/order constraint. Ask for candidate source-video times and surrounding actions.\n3. Choose fps within the frame budget for the action's speed. Use observed candidates for later refinement.\n\nConstraints:\nSparse sampling can miss brief actions; non-detection does not prove absence."
+    }
+  ]
+}

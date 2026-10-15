@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-independent-focused-analysis",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Use analyze_videos to check clearly specified visible facts independently in each video, then aggregate them in Global. Suitable for conjunctions, exclusions and per-video ingredient/action checklists; not fine joint detail, temporal relations, event totals or causal judgments. The question supplies a concrete local fact or checklist that one video can establish without seeing other videos. The main work is fact collection, not discovering an unknown event structure or interpreting why something matters.",
+  "strategy": "1. Convert the question and options into a consistent local checklist, preserving negation, conjunction and scope. Call analyze_videos only on relevant video IDs.\n2. Each videoagent_request.instruction contains all definitions needed for that video, asks for visible evidence with source times, and distinguishes supported, contradicted and unknown. Do not ask a VideoAgent which other video differs or which global option wins. Stay within the shared instruction budget.\n3. Global builds a video-by-criterion table and applies the requested intersection, difference, number of matching videos or option combination. Same-video co-presence must not be inferred by combining facts from different videos.\n4. Recheck only unresolved cells that change the result. If the remaining issue is a subtle visual difference, jointly watch the relevant videos/intervals instead of requesting another generic summary.\n\nConstraints:\nMissing from a report is not absent from the video. Do not guess an unlabeled ingredient’s identity or taste. Counting matching videos is not counting events through time."
+}

@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "id": "video-event-location",
+    "role": "video",
+    "stages": [
+      "initial",
+      "evidence"
+    ]
+  },
+  "when_to_use": "Find when a requested action occurs before any candidate time is known; never use for reading text, static attributes or ordinary object identification. Instruction explicitly needs an action's time or temporal interval, but neither supplied anchors nor Memory locates it. Exclude OCR, static appearance, counts and already located events.",
+  "strategy": "1. Use observe over the permitted search interval; do not guess a narrow window.\n2. In what, preserve the action, entity and any occurrence/order constraint. Ask for candidate source-video times and surrounding actions.\n3. Choose fps within the frame budget for the action's speed. Use observed candidates for later refinement.\n\nConstraints:\nSparse sampling can miss brief actions; non-detection does not prove absence."
+}

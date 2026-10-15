@@ -1,0 +1,9 @@
+question_workers: auto
+max_prepared_requests: auto
+model_pools:
+  qwen35_local:
+    replicas:
+    - gpus:
+      - 7
+      endpoint: http://127.0.0.1:8001/v1
+      max_inflight: 2

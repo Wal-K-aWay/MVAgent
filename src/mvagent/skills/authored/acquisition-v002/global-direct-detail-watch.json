@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-direct-detail-watch",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Directly compare fine visible attributes, handling or contact across videos using watch_videos. Use when the discriminating visual feature is already specified; not event totals, synchronized event-time states, functional interval alignment or inferred narrative meaning. The question identifies a concrete visual distinction: tool shape, cloth use, placement, hand contact, material appearance or a subtle action. A text summary may omit the deciding detail. Long duration alone does not change this goal into a general survey.",
+  "strategy": "1. Start with watch_videos for the relevant comparison videos. Use full valid ranges when the location is unknown, or History-supported intervals when available. Preserve a common comparison target across groups if the videos exceed the watch limit.\n2. instruction names each video_id, target operation and the distinguishing option facts, including exclusions. Request attributed observations and uncertainty, not a final answer or option letter.\n3. A full-duration watch is only an initial pass for long videos: if sampling misses the detail, use reported event times for a narrower watch. If the location remains unknown, ask the relevant VideoAgent to locate that operation before joint reinspection. Do not guess clip times.\n4. Resolve only uncertainties that can change the comparison; then map facts to the required answer format. If a relevant property is not visually identifiable, retain uncertainty rather than inferring it from appearance.\n\nConstraints:\nDo not copy “only output the answer” into the visual instruction. A single option can name several videos. Watch accepts one clip per video, no fps, and at least two distinct videos."
+}

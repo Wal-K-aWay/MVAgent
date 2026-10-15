@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "dataset": "crossvid-choice-smoke",
+  "seed": 0,
+  "samples": [
+    {
+      "sample_id": "crossvid:MOC:116",
+      "split": "train",
+      "group_id": "crossvid:MOC:116"
+    },
+    {
+      "sample_id": "crossvid:MSR:204",
+      "split": "train",
+      "group_id": "crossvid:MSR:204"
+    },
+    {
+      "sample_id": "crossvid:BU:247",
+      "split": "train",
+      "group_id": "crossvid:BU:247"
+    },
+    {
+      "sample_id": "crossvid:MOC:113",
+      "split": "eval",
+      "group_id": "crossvid:MOC:113"
+    },
+    {
+      "sample_id": "crossvid:MSR:304",
+      "split": "eval",
+      "group_id": "crossvid:MSR:304"
+    },
+    {
+      "sample_id": "crossvid:BU:361",
+      "split": "eval",
+      "group_id": "crossvid:BU:361"
+    },
+    {
+      "sample_id": "crossvid:MOC:12",
+      "split": "test",
+      "group_id": "crossvid:MOC:12"
+    },
+    {
+      "sample_id": "crossvid:MSR:523",
+      "split": "test",
+      "group_id": "crossvid:MSR:523"
+    },
+    {
+      "sample_id": "crossvid:BU:499",
+      "split": "test",
+      "group_id": "crossvid:BU:499"
+    }
+  ]
+}

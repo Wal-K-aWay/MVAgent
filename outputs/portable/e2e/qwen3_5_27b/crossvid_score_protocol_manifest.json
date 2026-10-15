@@ -1,0 +1,52 @@
+{
+  "status": "complete",
+  "started_at_utc": "2026-08-30T06:45:53Z",
+  "finished_at_utc": "2026-08-30T07:22:46Z",
+  "finished_at_beijing": "2026-08-30T15:22:46+0800",
+  "task": "CCQA",
+  "scoring_protocol": "CrossVid official score_CCQA.py",
+  "official_source": "eval/e2e_eval/CrossVid/eval/score_CCQA.py",
+  "official_source_sha256": "5d66141128384950942b99f443e317b31113e18a57f0ebf1e2c91d13023a6111",
+  "experiment_source": "outputs/qwen3_5_35b_a3b_e2e/protocol_source/score_CCQA_deepseek_v4_flash.py",
+  "experiment_source_sha256": "aa265f0dcd0a7b2ccf7ed5794cb660b3434206bd709d0681affef872230ac969",
+  "official_score_prompt_exact_match": true,
+  "model": "deepseek-v4-flash",
+  "api_base": "https://api.deepseek.com",
+  "credential": "DEEPSEEK_API_KEY environment variable; value not persisted",
+  "generation": {
+    "max_tokens": 8192,
+    "temperature": 0.0,
+    "top_p": 0.95,
+    "stream": false
+  },
+  "workers": 40,
+  "execution_extensions": [
+    "Replace the official hard-coded local scorer model with deepseek-v4-flash",
+    "Resume only missing score IDs after official parser failures; successful IDs are never rescored"
+  ],
+  "retry_rounds": [
+    {"input_missing": 871, "newly_scored": 799},
+    {"input_missing": 72, "newly_scored": 50},
+    {"input_missing": 22, "newly_scored": 14},
+    {"input_missing": 8, "newly_scored": 1},
+    {"input_missing": 7, "newly_scored": 1},
+    {"input_missing": 6, "newly_scored": 2},
+    {"input_missing": 4, "newly_scored": 1},
+    {"input_missing": 3, "newly_scored": 0},
+    {"input_missing": 3, "newly_scored": 1},
+    {"input_missing": 2, "newly_scored": 2}
+  ],
+  "qa_count": 872,
+  "inference_answer_count": 871,
+  "scored_answer_count": 871,
+  "missing_inference_ids": [632],
+  "unique_score_ids": 871,
+  "length_mismatch_count": 0,
+  "score_field_mismatch_count": 0,
+  "sum_score": 2588,
+  "all_score": 5526,
+  "official_score": 0.4683315237061165,
+  "qa_sha256": "ec7b03f1a624741e20317a23e7c9d359bd884b7791f3db95fd59a11b35ae5b5e",
+  "answer_sha256": "5a56a98759393402c0028b593de4b94f41d22cc6ca49cbc069c9cf340cfb2d9b",
+  "score_output_sha256": "83c326e5e3acc455766048ce3102ae2f8f5fc934e20531bcdeb49fff87dd2bbf"
+}

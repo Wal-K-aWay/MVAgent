@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-synchronized-snapshot",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Locate an event time across synchronized views, then inspect the requested state at that time: position, visibility, separation or snapshot count. Not cumulative events or whole-interval trajectories. A state in one synchronized view must be evaluated at a moment defined by an event, possibly in another view. The state may be a quantity or a spatial relation. Exclude total pass/overtake counts and questions about an entire motion trajectory.",
+  "strategy": "1. Identify the condition event and view, target view, target entities, and requested observable or unit. Initialize identities from labeled windows when provided.\n2. Use joint watch_videos over matching time ranges to locate the event and inspect the corresponding target-view state. Preserve full coverage until the event is located.\n3. If event timing or target detail is unclear, inspect a narrower synchronized interval including the transition. Recheck the event and target together; do not automatically distrust zero timestamps.\n4. Read the requested state: enumerate visible objects for a snapshot count; use target-view axes for directions; use lane boundaries or comparable vehicle length for separation. Check occlusion, then answer in the requested format.\n\nConstraints:\nA number of car lengths is distance, not a vehicle count. A snapshot cannot establish how many passes occurred over an interval. Narrower evidence does not automatically overrule broader context."
+}

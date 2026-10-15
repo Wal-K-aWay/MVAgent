@@ -1,0 +1,2507 @@
+{
+  "version": 2,
+  "dataset": "mvagent-multibench-broad-v1",
+  "seed": 20260908,
+  "samples": [
+    {
+      "sample_id": "crossvid:BU:616",
+      "split": "train",
+      "group_id": "crossvid:BU:616"
+    },
+    {
+      "sample_id": "crossvid:CC:272",
+      "split": "train",
+      "group_id": "crossvid:CC:272"
+    },
+    {
+      "sample_id": "crossvid:CCQA:303",
+      "split": "train",
+      "group_id": "crossvid:CCQA:303"
+    },
+    {
+      "sample_id": "crossvid:FSA:1081",
+      "split": "train",
+      "group_id": "crossvid:FSA:1081"
+    },
+    {
+      "sample_id": "crossvid:MOC:323",
+      "split": "train",
+      "group_id": "crossvid:MOC:323"
+    },
+    {
+      "sample_id": "crossvid:MSR:525",
+      "split": "train",
+      "group_id": "crossvid:MSR:525"
+    },
+    {
+      "sample_id": "crossvid:NC:1022",
+      "split": "train",
+      "group_id": "crossvid:NC:1022"
+    },
+    {
+      "sample_id": "crossvid:PEA:179",
+      "split": "train",
+      "group_id": "crossvid:PEA:179"
+    },
+    {
+      "sample_id": "crossvid:PI:193",
+      "split": "train",
+      "group_id": "crossvid:PI:193"
+    },
+    {
+      "sample_id": "crossvid:PSS:99",
+      "split": "train",
+      "group_id": "crossvid:PSS:99"
+    },
+    {
+      "sample_id": "cvbench:433",
+      "split": "train",
+      "group_id": "cvbench:433"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1668",
+      "split": "train",
+      "group_id": "mvu_eval:Comparison:1668"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:13",
+      "split": "train",
+      "group_id": "mvu_eval:Counting:128"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:1096",
+      "split": "train",
+      "group_id": "mvu_eval:ICL:1095"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:200",
+      "split": "train",
+      "group_id": "mvu_eval:ICL:1095"
+    },
+    {
+      "sample_id": "mvu_eval:OR:1183",
+      "split": "train",
+      "group_id": "mvu_eval:OR:1183"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:943",
+      "split": "train",
+      "group_id": "mvu_eval:RAG:943"
+    },
+    {
+      "sample_id": "mvu_eval:SU:1208",
+      "split": "train",
+      "group_id": "mvu_eval:SU:1208"
+    },
+    {
+      "sample_id": "mvu_eval:TR:267",
+      "split": "train",
+      "group_id": "mvu_eval:TR:267"
+    },
+    {
+      "sample_id": "crossvid:BU:445",
+      "split": "train",
+      "group_id": "crossvid:BU:445"
+    },
+    {
+      "sample_id": "crossvid:CC:558",
+      "split": "train",
+      "group_id": "crossvid:CC:558"
+    },
+    {
+      "sample_id": "crossvid:CCQA:71",
+      "split": "train",
+      "group_id": "crossvid:CCQA:71"
+    },
+    {
+      "sample_id": "crossvid:FSA:420",
+      "split": "train",
+      "group_id": "crossvid:FSA:420"
+    },
+    {
+      "sample_id": "crossvid:MOC:527",
+      "split": "train",
+      "group_id": "crossvid:MOC:527"
+    },
+    {
+      "sample_id": "crossvid:MSR:484",
+      "split": "train",
+      "group_id": "crossvid:MSR:484"
+    },
+    {
+      "sample_id": "crossvid:NC:1172",
+      "split": "train",
+      "group_id": "crossvid:NC:1172"
+    },
+    {
+      "sample_id": "crossvid:PEA:839",
+      "split": "train",
+      "group_id": "crossvid:PEA:839"
+    },
+    {
+      "sample_id": "crossvid:PI:51",
+      "split": "train",
+      "group_id": "crossvid:PI:51"
+    },
+    {
+      "sample_id": "crossvid:PSS:445",
+      "split": "train",
+      "group_id": "crossvid:PSS:445"
+    },
+    {
+      "sample_id": "cvbench:751",
+      "split": "train",
+      "group_id": "cvbench:751"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1719",
+      "split": "train",
+      "group_id": "mvu_eval:Comparison:1719"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:1020",
+      "split": "train",
+      "group_id": "mvu_eval:Counting:1020"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:1110",
+      "split": "train",
+      "group_id": "mvu_eval:ICL:1110"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:352",
+      "split": "train",
+      "group_id": "mvu_eval:KIR:352"
+    },
+    {
+      "sample_id": "mvu_eval:OR:1189",
+      "split": "train",
+      "group_id": "mvu_eval:OR:1189"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:991",
+      "split": "train",
+      "group_id": "mvu_eval:RAG:991"
+    },
+    {
+      "sample_id": "mvu_eval:SU:867",
+      "split": "train",
+      "group_id": "mvu_eval:SU:867"
+    },
+    {
+      "sample_id": "mvu_eval:TR:279",
+      "split": "train",
+      "group_id": "mvu_eval:TR:279"
+    },
+    {
+      "sample_id": "crossvid:BU:70",
+      "split": "train",
+      "group_id": "crossvid:BU:70"
+    },
+    {
+      "sample_id": "crossvid:CC:390",
+      "split": "train",
+      "group_id": "crossvid:CC:390"
+    },
+    {
+      "sample_id": "crossvid:CCQA:550",
+      "split": "train",
+      "group_id": "crossvid:CCQA:550"
+    },
+    {
+      "sample_id": "crossvid:FSA:1791",
+      "split": "train",
+      "group_id": "crossvid:FSA:1791"
+    },
+    {
+      "sample_id": "crossvid:MOC:445",
+      "split": "train",
+      "group_id": "crossvid:MOC:445"
+    },
+    {
+      "sample_id": "crossvid:MSR:559",
+      "split": "train",
+      "group_id": "crossvid:MOC:527"
+    },
+    {
+      "sample_id": "crossvid:NC:377",
+      "split": "train",
+      "group_id": "crossvid:NC:377"
+    },
+    {
+      "sample_id": "crossvid:PEA:680",
+      "split": "train",
+      "group_id": "crossvid:PEA:680"
+    },
+    {
+      "sample_id": "crossvid:PI:119",
+      "split": "train",
+      "group_id": "crossvid:PI:119"
+    },
+    {
+      "sample_id": "crossvid:PSS:525",
+      "split": "train",
+      "group_id": "crossvid:PSS:525"
+    },
+    {
+      "sample_id": "cvbench:156",
+      "split": "train",
+      "group_id": "cvbench:156"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1660",
+      "split": "train",
+      "group_id": "mvu_eval:Comparison:1660"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:138",
+      "split": "train",
+      "group_id": "mvu_eval:Counting:138"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:680",
+      "split": "train",
+      "group_id": "mvu_eval:ICL:1110"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:356",
+      "split": "train",
+      "group_id": "mvu_eval:KIR:356"
+    },
+    {
+      "sample_id": "mvu_eval:OR:440",
+      "split": "train",
+      "group_id": "mvu_eval:OR:440"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:1322",
+      "split": "train",
+      "group_id": "mvu_eval:RAG:1322"
+    },
+    {
+      "sample_id": "mvu_eval:SU:861",
+      "split": "train",
+      "group_id": "mvu_eval:SU:861"
+    },
+    {
+      "sample_id": "mvu_eval:TR:407",
+      "split": "train",
+      "group_id": "mvu_eval:TR:407"
+    },
+    {
+      "sample_id": "crossvid:BU:252",
+      "split": "train",
+      "group_id": "crossvid:BU:252"
+    },
+    {
+      "sample_id": "crossvid:CC:436",
+      "split": "train",
+      "group_id": "crossvid:CC:436"
+    },
+    {
+      "sample_id": "crossvid:CCQA:125",
+      "split": "train",
+      "group_id": "crossvid:CCQA:125"
+    },
+    {
+      "sample_id": "crossvid:FSA:2172",
+      "split": "train",
+      "group_id": "crossvid:FSA:2172"
+    },
+    {
+      "sample_id": "crossvid:MOC:48",
+      "split": "train",
+      "group_id": "crossvid:MOC:48"
+    },
+    {
+      "sample_id": "crossvid:MSR:93",
+      "split": "train",
+      "group_id": "crossvid:MSR:93"
+    },
+    {
+      "sample_id": "crossvid:NC:781",
+      "split": "train",
+      "group_id": "crossvid:NC:781"
+    },
+    {
+      "sample_id": "crossvid:PEA:933",
+      "split": "train",
+      "group_id": "crossvid:PEA:933"
+    },
+    {
+      "sample_id": "crossvid:PI:196",
+      "split": "train",
+      "group_id": "crossvid:PI:196"
+    },
+    {
+      "sample_id": "crossvid:PSS:117",
+      "split": "train",
+      "group_id": "crossvid:PSS:117"
+    },
+    {
+      "sample_id": "cvbench:859",
+      "split": "train",
+      "group_id": "cvbench:859"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1696",
+      "split": "train",
+      "group_id": "mvu_eval:Comparison:1696"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:21",
+      "split": "train",
+      "group_id": "mvu_eval:Counting:21"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:1095",
+      "split": "train",
+      "group_id": "mvu_eval:ICL:1095"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:363",
+      "split": "train",
+      "group_id": "mvu_eval:KIR:363"
+    },
+    {
+      "sample_id": "mvu_eval:OR:435",
+      "split": "train",
+      "group_id": "mvu_eval:OR:435"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:952",
+      "split": "train",
+      "group_id": "mvu_eval:RAG:952"
+    },
+    {
+      "sample_id": "mvu_eval:SU:584",
+      "split": "train",
+      "group_id": "mvu_eval:SU:584"
+    },
+    {
+      "sample_id": "mvu_eval:TR:1550",
+      "split": "train",
+      "group_id": "mvu_eval:TR:1550"
+    },
+    {
+      "sample_id": "crossvid:BU:533",
+      "split": "train",
+      "group_id": "crossvid:BU:533"
+    },
+    {
+      "sample_id": "crossvid:CC:44",
+      "split": "train",
+      "group_id": "crossvid:CC:44"
+    },
+    {
+      "sample_id": "crossvid:CCQA:698",
+      "split": "train",
+      "group_id": "crossvid:CCQA:698"
+    },
+    {
+      "sample_id": "crossvid:FSA:233",
+      "split": "train",
+      "group_id": "crossvid:FSA:233"
+    },
+    {
+      "sample_id": "crossvid:MOC:115",
+      "split": "train",
+      "group_id": "crossvid:MOC:115"
+    },
+    {
+      "sample_id": "crossvid:MSR:138",
+      "split": "train",
+      "group_id": "crossvid:MSR:138"
+    },
+    {
+      "sample_id": "crossvid:NC:918",
+      "split": "train",
+      "group_id": "crossvid:NC:918"
+    },
+    {
+      "sample_id": "crossvid:PEA:77",
+      "split": "train",
+      "group_id": "crossvid:PEA:77"
+    },
+    {
+      "sample_id": "crossvid:PI:36",
+      "split": "train",
+      "group_id": "crossvid:PI:36"
+    },
+    {
+      "sample_id": "crossvid:PSS:11",
+      "split": "train",
+      "group_id": "crossvid:PSS:11"
+    },
+    {
+      "sample_id": "cvbench:322",
+      "split": "train",
+      "group_id": "cvbench:322"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:863",
+      "split": "train",
+      "group_id": "mvu_eval:Comparison:863"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:59",
+      "split": "train",
+      "group_id": "mvu_eval:Counting:59"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:676",
+      "split": "train",
+      "group_id": "mvu_eval:ICL:676"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:365",
+      "split": "train",
+      "group_id": "mvu_eval:KIR:365"
+    },
+    {
+      "sample_id": "mvu_eval:OR:1151",
+      "split": "train",
+      "group_id": "mvu_eval:OR:1151"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:984",
+      "split": "train",
+      "group_id": "mvu_eval:RAG:984"
+    },
+    {
+      "sample_id": "mvu_eval:SU:1192",
+      "split": "train",
+      "group_id": "mvu_eval:SU:1192"
+    },
+    {
+      "sample_id": "mvu_eval:TR:1540",
+      "split": "train",
+      "group_id": "mvu_eval:TR:1540"
+    },
+    {
+      "sample_id": "crossvid:BU:1",
+      "split": "train",
+      "group_id": "crossvid:BU:1"
+    },
+    {
+      "sample_id": "crossvid:CC:394",
+      "split": "train",
+      "group_id": "crossvid:CC:394"
+    },
+    {
+      "sample_id": "crossvid:CCQA:538",
+      "split": "train",
+      "group_id": "crossvid:CCQA:538"
+    },
+    {
+      "sample_id": "crossvid:FSA:111",
+      "split": "train",
+      "group_id": "crossvid:CCQA:550"
+    },
+    {
+      "sample_id": "crossvid:MOC:198",
+      "split": "train",
+      "group_id": "crossvid:MOC:198"
+    },
+    {
+      "sample_id": "crossvid:MSR:464",
+      "split": "train",
+      "group_id": "crossvid:MOC:445"
+    },
+    {
+      "sample_id": "crossvid:NC:37",
+      "split": "train",
+      "group_id": "crossvid:NC:37"
+    },
+    {
+      "sample_id": "crossvid:PEA:567",
+      "split": "train",
+      "group_id": "crossvid:PEA:567"
+    },
+    {
+      "sample_id": "crossvid:PI:121",
+      "split": "train",
+      "group_id": "crossvid:PI:121"
+    },
+    {
+      "sample_id": "crossvid:PSS:345",
+      "split": "train",
+      "group_id": "crossvid:PSS:345"
+    },
+    {
+      "sample_id": "cvbench:699",
+      "split": "train",
+      "group_id": "cvbench:699"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1714",
+      "split": "train",
+      "group_id": "mvu_eval:Comparison:1714"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:128",
+      "split": "train",
+      "group_id": "mvu_eval:Counting:128"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:671",
+      "split": "train",
+      "group_id": "mvu_eval:ICL:659"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:498",
+      "split": "train",
+      "group_id": "mvu_eval:KIR:498"
+    },
+    {
+      "sample_id": "mvu_eval:OR:754",
+      "split": "train",
+      "group_id": "mvu_eval:OR:754"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:1773",
+      "split": "train",
+      "group_id": "mvu_eval:RAG:1773"
+    },
+    {
+      "sample_id": "mvu_eval:SU:862",
+      "split": "train",
+      "group_id": "mvu_eval:SU:862"
+    },
+    {
+      "sample_id": "mvu_eval:TR:1477",
+      "split": "train",
+      "group_id": "mvu_eval:TR:1477"
+    },
+    {
+      "sample_id": "crossvid:BU:210",
+      "split": "train",
+      "group_id": "crossvid:BU:210"
+    },
+    {
+      "sample_id": "crossvid:CC:775",
+      "split": "train",
+      "group_id": "crossvid:CC:775"
+    },
+    {
+      "sample_id": "crossvid:CCQA:433",
+      "split": "train",
+      "group_id": "crossvid:CCQA:433"
+    },
+    {
+      "sample_id": "crossvid:FSA:2016",
+      "split": "train",
+      "group_id": "crossvid:FSA:2016"
+    },
+    {
+      "sample_id": "crossvid:MOC:496",
+      "split": "train",
+      "group_id": "crossvid:MOC:496"
+    },
+    {
+      "sample_id": "crossvid:MSR:415",
+      "split": "train",
+      "group_id": "crossvid:MSR:415"
+    },
+    {
+      "sample_id": "crossvid:NC:167",
+      "split": "train",
+      "group_id": "crossvid:NC:167"
+    },
+    {
+      "sample_id": "crossvid:PEA:493",
+      "split": "train",
+      "group_id": "crossvid:PEA:493"
+    },
+    {
+      "sample_id": "crossvid:PI:118",
+      "split": "train",
+      "group_id": "crossvid:PI:118"
+    },
+    {
+      "sample_id": "crossvid:PSS:396",
+      "split": "train",
+      "group_id": "crossvid:PSS:396"
+    },
+    {
+      "sample_id": "cvbench:792",
+      "split": "train",
+      "group_id": "cvbench:792"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1699",
+      "split": "train",
+      "group_id": "mvu_eval:Comparison:1699"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:171",
+      "split": "train",
+      "group_id": "mvu_eval:Counting:138"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:741",
+      "split": "train",
+      "group_id": "mvu_eval:ICL:741"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:239",
+      "split": "train",
+      "group_id": "mvu_eval:ICL:1112"
+    },
+    {
+      "sample_id": "mvu_eval:OR:397",
+      "split": "train",
+      "group_id": "mvu_eval:OR:397"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:1252",
+      "split": "train",
+      "group_id": "mvu_eval:RAG:1252"
+    },
+    {
+      "sample_id": "mvu_eval:SU:868",
+      "split": "train",
+      "group_id": "mvu_eval:SU:868"
+    },
+    {
+      "sample_id": "mvu_eval:TR:1618",
+      "split": "train",
+      "group_id": "mvu_eval:TR:1618"
+    },
+    {
+      "sample_id": "crossvid:BU:400",
+      "split": "train",
+      "group_id": "crossvid:BU:400"
+    },
+    {
+      "sample_id": "crossvid:CC:638",
+      "split": "train",
+      "group_id": "crossvid:CC:638"
+    },
+    {
+      "sample_id": "crossvid:CCQA:390",
+      "split": "train",
+      "group_id": "crossvid:CC:638"
+    },
+    {
+      "sample_id": "crossvid:FSA:792",
+      "split": "train",
+      "group_id": "crossvid:FSA:792"
+    },
+    {
+      "sample_id": "crossvid:MOC:156",
+      "split": "train",
+      "group_id": "crossvid:MOC:156"
+    },
+    {
+      "sample_id": "crossvid:MSR:147",
+      "split": "train",
+      "group_id": "crossvid:MSR:147"
+    },
+    {
+      "sample_id": "crossvid:NC:13",
+      "split": "train",
+      "group_id": "crossvid:NC:13"
+    },
+    {
+      "sample_id": "crossvid:PEA:285",
+      "split": "train",
+      "group_id": "crossvid:PEA:285"
+    },
+    {
+      "sample_id": "crossvid:PI:162",
+      "split": "train",
+      "group_id": "crossvid:PI:162"
+    },
+    {
+      "sample_id": "crossvid:PSS:62",
+      "split": "train",
+      "group_id": "crossvid:PSS:62"
+    },
+    {
+      "sample_id": "cvbench:612",
+      "split": "train",
+      "group_id": "cvbench:612"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1669",
+      "split": "train",
+      "group_id": "mvu_eval:Comparison:1669"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:152",
+      "split": "train",
+      "group_id": "mvu_eval:Counting:152"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:724",
+      "split": "train",
+      "group_id": "mvu_eval:ICL:1095"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:327",
+      "split": "train",
+      "group_id": "mvu_eval:KIR:327"
+    },
+    {
+      "sample_id": "mvu_eval:OR:404",
+      "split": "train",
+      "group_id": "mvu_eval:OR:404"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:1331",
+      "split": "train",
+      "group_id": "mvu_eval:RAG:1331"
+    },
+    {
+      "sample_id": "mvu_eval:SU:855",
+      "split": "train",
+      "group_id": "mvu_eval:SU:855"
+    },
+    {
+      "sample_id": "mvu_eval:TR:1643",
+      "split": "train",
+      "group_id": "mvu_eval:TR:1643"
+    },
+    {
+      "sample_id": "crossvid:BU:217",
+      "split": "train",
+      "group_id": "crossvid:BU:217"
+    },
+    {
+      "sample_id": "crossvid:CC:539",
+      "split": "train",
+      "group_id": "crossvid:CC:539"
+    },
+    {
+      "sample_id": "crossvid:CCQA:628",
+      "split": "train",
+      "group_id": "crossvid:CCQA:628"
+    },
+    {
+      "sample_id": "crossvid:FSA:1008",
+      "split": "train",
+      "group_id": "crossvid:FSA:1008"
+    },
+    {
+      "sample_id": "crossvid:MOC:529",
+      "split": "train",
+      "group_id": "crossvid:MOC:527"
+    },
+    {
+      "sample_id": "crossvid:MSR:171",
+      "split": "train",
+      "group_id": "crossvid:MSR:171"
+    },
+    {
+      "sample_id": "crossvid:NC:612",
+      "split": "train",
+      "group_id": "crossvid:NC:612"
+    },
+    {
+      "sample_id": "crossvid:PEA:547",
+      "split": "train",
+      "group_id": "crossvid:PEA:547"
+    },
+    {
+      "sample_id": "crossvid:PI:20",
+      "split": "train",
+      "group_id": "crossvid:NC:13"
+    },
+    {
+      "sample_id": "crossvid:PSS:272",
+      "split": "train",
+      "group_id": "crossvid:PSS:272"
+    },
+    {
+      "sample_id": "cvbench:158",
+      "split": "train",
+      "group_id": "cvbench:156"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:818",
+      "split": "train",
+      "group_id": "mvu_eval:Comparison:818"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:616",
+      "split": "train",
+      "group_id": "mvu_eval:Counting:21"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:1112",
+      "split": "train",
+      "group_id": "mvu_eval:ICL:1112"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:456",
+      "split": "train",
+      "group_id": "mvu_eval:KIR:228"
+    },
+    {
+      "sample_id": "mvu_eval:OR:1184",
+      "split": "train",
+      "group_id": "mvu_eval:OR:1184"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:946",
+      "split": "train",
+      "group_id": "mvu_eval:RAG:946"
+    },
+    {
+      "sample_id": "mvu_eval:SU:1205",
+      "split": "train",
+      "group_id": "mvu_eval:SU:1205"
+    },
+    {
+      "sample_id": "mvu_eval:TR:852",
+      "split": "train",
+      "group_id": "mvu_eval:TR:852"
+    },
+    {
+      "sample_id": "crossvid:BU:267",
+      "split": "train",
+      "group_id": "crossvid:BU:267"
+    },
+    {
+      "sample_id": "crossvid:CC:182",
+      "split": "train",
+      "group_id": "crossvid:CC:182"
+    },
+    {
+      "sample_id": "crossvid:CCQA:211",
+      "split": "train",
+      "group_id": "crossvid:CCQA:211"
+    },
+    {
+      "sample_id": "crossvid:FSA:1297",
+      "split": "train",
+      "group_id": "crossvid:CC:436"
+    },
+    {
+      "sample_id": "crossvid:MOC:14",
+      "split": "train",
+      "group_id": "crossvid:MOC:14"
+    },
+    {
+      "sample_id": "crossvid:MSR:500",
+      "split": "train",
+      "group_id": "crossvid:MSR:500"
+    },
+    {
+      "sample_id": "crossvid:NC:637",
+      "split": "train",
+      "group_id": "crossvid:NC:37"
+    },
+    {
+      "sample_id": "crossvid:PEA:523",
+      "split": "train",
+      "group_id": "crossvid:PEA:523"
+    },
+    {
+      "sample_id": "crossvid:PI:134",
+      "split": "train",
+      "group_id": "crossvid:PI:134"
+    },
+    {
+      "sample_id": "crossvid:PSS:73",
+      "split": "train",
+      "group_id": "crossvid:PSS:73"
+    },
+    {
+      "sample_id": "cvbench:218",
+      "split": "train",
+      "group_id": "cvbench:218"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1708",
+      "split": "train",
+      "group_id": "mvu_eval:Comparison:1708"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:1057",
+      "split": "train",
+      "group_id": "mvu_eval:Counting:1057"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:659",
+      "split": "train",
+      "group_id": "mvu_eval:ICL:659"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:228",
+      "split": "train",
+      "group_id": "mvu_eval:KIR:228"
+    },
+    {
+      "sample_id": "mvu_eval:OR:1157",
+      "split": "train",
+      "group_id": "mvu_eval:OR:1157"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:1261",
+      "split": "train",
+      "group_id": "mvu_eval:RAG:1261"
+    },
+    {
+      "sample_id": "mvu_eval:SU:1063",
+      "split": "train",
+      "group_id": "mvu_eval:SU:1063"
+    },
+    {
+      "sample_id": "mvu_eval:TR:1436",
+      "split": "train",
+      "group_id": "mvu_eval:TR:1436"
+    },
+    {
+      "sample_id": "cvbench:823",
+      "split": "train",
+      "group_id": "cvbench:823"
+    },
+    {
+      "sample_id": "cvbench:375",
+      "split": "train",
+      "group_id": "cvbench:375"
+    },
+    {
+      "sample_id": "cvbench:793",
+      "split": "train",
+      "group_id": "cvbench:793"
+    },
+    {
+      "sample_id": "cvbench:152",
+      "split": "train",
+      "group_id": "cvbench:152"
+    },
+    {
+      "sample_id": "cvbench:437",
+      "split": "train",
+      "group_id": "cvbench:437"
+    },
+    {
+      "sample_id": "cvbench:568",
+      "split": "train",
+      "group_id": "cvbench:568"
+    },
+    {
+      "sample_id": "cvbench:333",
+      "split": "train",
+      "group_id": "cvbench:333"
+    },
+    {
+      "sample_id": "cvbench:999",
+      "split": "train",
+      "group_id": "cvbench:999"
+    },
+    {
+      "sample_id": "cvbench:553",
+      "split": "train",
+      "group_id": "cvbench:553"
+    },
+    {
+      "sample_id": "cvbench:538",
+      "split": "train",
+      "group_id": "cvbench:538"
+    },
+    {
+      "sample_id": "cvbench:748",
+      "split": "train",
+      "group_id": "cvbench:748"
+    },
+    {
+      "sample_id": "cvbench:646",
+      "split": "train",
+      "group_id": "cvbench:646"
+    },
+    {
+      "sample_id": "cvbench:929",
+      "split": "train",
+      "group_id": "cvbench:929"
+    },
+    {
+      "sample_id": "cvbench:168",
+      "split": "train",
+      "group_id": "cvbench:168"
+    },
+    {
+      "sample_id": "cvbench:876",
+      "split": "train",
+      "group_id": "cvbench:876"
+    },
+    {
+      "sample_id": "cvbench:287",
+      "split": "train",
+      "group_id": "cvbench:287"
+    },
+    {
+      "sample_id": "cvbench:529",
+      "split": "train",
+      "group_id": "cvbench:529"
+    },
+    {
+      "sample_id": "cvbench:771",
+      "split": "train",
+      "group_id": "cvbench:771"
+    },
+    {
+      "sample_id": "cvbench:301",
+      "split": "train",
+      "group_id": "cvbench:301"
+    },
+    {
+      "sample_id": "cvbench:920",
+      "split": "train",
+      "group_id": "cvbench:920"
+    },
+    {
+      "sample_id": "cvbench:627",
+      "split": "train",
+      "group_id": "cvbench:627"
+    },
+    {
+      "sample_id": "cvbench:315",
+      "split": "train",
+      "group_id": "cvbench:315"
+    },
+    {
+      "sample_id": "cvbench:891",
+      "split": "train",
+      "group_id": "cvbench:891"
+    },
+    {
+      "sample_id": "cvbench:370",
+      "split": "train",
+      "group_id": "cvbench:369"
+    },
+    {
+      "sample_id": "cvbench:547",
+      "split": "train",
+      "group_id": "cvbench:547"
+    },
+    {
+      "sample_id": "cvbench:925",
+      "split": "train",
+      "group_id": "cvbench:925"
+    },
+    {
+      "sample_id": "cvbench:542",
+      "split": "train",
+      "group_id": "cvbench:542"
+    },
+    {
+      "sample_id": "cvbench:337",
+      "split": "train",
+      "group_id": "cvbench:337"
+    },
+    {
+      "sample_id": "cvbench:641",
+      "split": "train",
+      "group_id": "cvbench:641"
+    },
+    {
+      "sample_id": "cvbench:87",
+      "split": "train",
+      "group_id": "cvbench:87"
+    },
+    {
+      "sample_id": "cvbench:234",
+      "split": "train",
+      "group_id": "cvbench:234"
+    },
+    {
+      "sample_id": "cvbench:387",
+      "split": "train",
+      "group_id": "cvbench:387"
+    },
+    {
+      "sample_id": "cvbench:81",
+      "split": "train",
+      "group_id": "cvbench:81"
+    },
+    {
+      "sample_id": "cvbench:864",
+      "split": "train",
+      "group_id": "cvbench:864"
+    },
+    {
+      "sample_id": "cvbench:189",
+      "split": "train",
+      "group_id": "cvbench:188"
+    },
+    {
+      "sample_id": "cvbench:853",
+      "split": "train",
+      "group_id": "cvbench:853"
+    },
+    {
+      "sample_id": "cvbench:180",
+      "split": "train",
+      "group_id": "cvbench:180"
+    },
+    {
+      "sample_id": "cvbench:534",
+      "split": "train",
+      "group_id": "cvbench:534"
+    },
+    {
+      "sample_id": "cvbench:981",
+      "split": "train",
+      "group_id": "cvbench:981"
+    },
+    {
+      "sample_id": "cvbench:966",
+      "split": "train",
+      "group_id": "cvbench:966"
+    },
+    {
+      "sample_id": "cvbench:932",
+      "split": "train",
+      "group_id": "cvbench:932"
+    },
+    {
+      "sample_id": "cvbench:720",
+      "split": "train",
+      "group_id": "cvbench:720"
+    },
+    {
+      "sample_id": "cvbench:622",
+      "split": "train",
+      "group_id": "cvbench:622"
+    },
+    {
+      "sample_id": "cvbench:416",
+      "split": "train",
+      "group_id": "cvbench:416"
+    },
+    {
+      "sample_id": "cvbench:417",
+      "split": "train",
+      "group_id": "cvbench:417"
+    },
+    {
+      "sample_id": "cvbench:454",
+      "split": "train",
+      "group_id": "cvbench:454"
+    },
+    {
+      "sample_id": "cvbench:271",
+      "split": "train",
+      "group_id": "cvbench:271"
+    },
+    {
+      "sample_id": "cvbench:790",
+      "split": "train",
+      "group_id": "cvbench:790"
+    },
+    {
+      "sample_id": "cvbench:132",
+      "split": "train",
+      "group_id": "cvbench:132"
+    },
+    {
+      "sample_id": "cvbench:12",
+      "split": "train",
+      "group_id": "cvbench:12"
+    },
+    {
+      "sample_id": "cvbench:34",
+      "split": "train",
+      "group_id": "cvbench:34"
+    },
+    {
+      "sample_id": "cvbench:22",
+      "split": "train",
+      "group_id": "cvbench:22"
+    },
+    {
+      "sample_id": "cvbench:62",
+      "split": "train",
+      "group_id": "cvbench:62"
+    },
+    {
+      "sample_id": "cvbench:686",
+      "split": "train",
+      "group_id": "cvbench:686"
+    },
+    {
+      "sample_id": "cvbench:543",
+      "split": "train",
+      "group_id": "cvbench:543"
+    },
+    {
+      "sample_id": "cvbench:661",
+      "split": "train",
+      "group_id": "cvbench:661"
+    },
+    {
+      "sample_id": "cvbench:623",
+      "split": "train",
+      "group_id": "cvbench:622"
+    },
+    {
+      "sample_id": "cvbench:369",
+      "split": "train",
+      "group_id": "cvbench:369"
+    },
+    {
+      "sample_id": "cvbench:188",
+      "split": "train",
+      "group_id": "cvbench:188"
+    },
+    {
+      "sample_id": "cvbench:385",
+      "split": "train",
+      "group_id": "cvbench:385"
+    },
+    {
+      "sample_id": "crossvid:BU:263",
+      "split": "eval",
+      "group_id": "crossvid:BU:263"
+    },
+    {
+      "sample_id": "crossvid:CC:683",
+      "split": "eval",
+      "group_id": "crossvid:CC:683"
+    },
+    {
+      "sample_id": "crossvid:CCQA:69",
+      "split": "eval",
+      "group_id": "crossvid:CCQA:69"
+    },
+    {
+      "sample_id": "crossvid:FSA:591",
+      "split": "train",
+      "group_id": "crossvid:FSA:591"
+    },
+    {
+      "sample_id": "crossvid:MOC:293",
+      "split": "train",
+      "group_id": "crossvid:MOC:293"
+    },
+    {
+      "sample_id": "crossvid:MSR:397",
+      "split": "eval",
+      "group_id": "crossvid:MSR:397"
+    },
+    {
+      "sample_id": "crossvid:NC:907",
+      "split": "eval",
+      "group_id": "crossvid:NC:907"
+    },
+    {
+      "sample_id": "crossvid:PEA:719",
+      "split": "eval",
+      "group_id": "crossvid:PEA:719"
+    },
+    {
+      "sample_id": "crossvid:PI:113",
+      "split": "eval",
+      "group_id": "crossvid:PI:113"
+    },
+    {
+      "sample_id": "crossvid:PSS:609",
+      "split": "eval",
+      "group_id": "crossvid:PSS:609"
+    },
+    {
+      "sample_id": "cvbench:733",
+      "split": "train",
+      "group_id": "cvbench:733"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1659",
+      "split": "train",
+      "group_id": "mvu_eval:Comparison:1659"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:31",
+      "split": "eval",
+      "group_id": "mvu_eval:Counting:31"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:1133",
+      "split": "eval",
+      "group_id": "mvu_eval:ICL:1128"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:538",
+      "split": "eval",
+      "group_id": "mvu_eval:ICL:1128"
+    },
+    {
+      "sample_id": "mvu_eval:OR:392",
+      "split": "train",
+      "group_id": "mvu_eval:OR:392"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:891",
+      "split": "eval",
+      "group_id": "mvu_eval:RAG:891"
+    },
+    {
+      "sample_id": "mvu_eval:SU:1023",
+      "split": "train",
+      "group_id": "mvu_eval:Counting:1017"
+    },
+    {
+      "sample_id": "mvu_eval:TR:1473",
+      "split": "eval",
+      "group_id": "mvu_eval:TR:1473"
+    },
+    {
+      "sample_id": "crossvid:BU:734",
+      "split": "train",
+      "group_id": "crossvid:BU:734"
+    },
+    {
+      "sample_id": "crossvid:CC:493",
+      "split": "eval",
+      "group_id": "crossvid:CC:493"
+    },
+    {
+      "sample_id": "crossvid:CCQA:759",
+      "split": "eval",
+      "group_id": "crossvid:CCQA:759"
+    },
+    {
+      "sample_id": "crossvid:FSA:211",
+      "split": "train",
+      "group_id": "crossvid:FSA:211"
+    },
+    {
+      "sample_id": "crossvid:MOC:540",
+      "split": "train",
+      "group_id": "crossvid:MOC:540"
+    },
+    {
+      "sample_id": "crossvid:MSR:443",
+      "split": "eval",
+      "group_id": "crossvid:MOC:429"
+    },
+    {
+      "sample_id": "crossvid:NC:90",
+      "split": "train",
+      "group_id": "crossvid:NC:86"
+    },
+    {
+      "sample_id": "crossvid:PEA:929",
+      "split": "train",
+      "group_id": "crossvid:PEA:929"
+    },
+    {
+      "sample_id": "crossvid:PI:43",
+      "split": "eval",
+      "group_id": "crossvid:PI:43"
+    },
+    {
+      "sample_id": "crossvid:PSS:262",
+      "split": "eval",
+      "group_id": "crossvid:PSS:262"
+    },
+    {
+      "sample_id": "cvbench:194",
+      "split": "eval",
+      "group_id": "cvbench:194"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:826",
+      "split": "train",
+      "group_id": "mvu_eval:Comparison:826"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:108",
+      "split": "eval",
+      "group_id": "mvu_eval:Counting:108"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:717",
+      "split": "eval",
+      "group_id": "mvu_eval:ICL:1128"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:177",
+      "split": "train",
+      "group_id": "mvu_eval:ICL:1113"
+    },
+    {
+      "sample_id": "mvu_eval:OR:1185",
+      "split": "eval",
+      "group_id": "mvu_eval:OR:1185"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:918",
+      "split": "eval",
+      "group_id": "mvu_eval:RAG:918"
+    },
+    {
+      "sample_id": "mvu_eval:SU:859",
+      "split": "eval",
+      "group_id": "mvu_eval:SU:859"
+    },
+    {
+      "sample_id": "mvu_eval:TR:1510",
+      "split": "eval",
+      "group_id": "mvu_eval:TR:1510"
+    },
+    {
+      "sample_id": "crossvid:BU:634",
+      "split": "train",
+      "group_id": "crossvid:BU:634"
+    },
+    {
+      "sample_id": "crossvid:CC:308",
+      "split": "train",
+      "group_id": "crossvid:CC:308"
+    },
+    {
+      "sample_id": "crossvid:CCQA:574",
+      "split": "eval",
+      "group_id": "crossvid:CCQA:574"
+    },
+    {
+      "sample_id": "crossvid:FSA:1669",
+      "split": "train",
+      "group_id": "crossvid:CC:579"
+    },
+    {
+      "sample_id": "crossvid:MOC:564",
+      "split": "train",
+      "group_id": "crossvid:MOC:563"
+    },
+    {
+      "sample_id": "crossvid:MSR:320",
+      "split": "train",
+      "group_id": "crossvid:MSR:320"
+    },
+    {
+      "sample_id": "crossvid:NC:852",
+      "split": "eval",
+      "group_id": "crossvid:NC:852"
+    },
+    {
+      "sample_id": "crossvid:PEA:315",
+      "split": "eval",
+      "group_id": "crossvid:PEA:315"
+    },
+    {
+      "sample_id": "crossvid:PI:139",
+      "split": "train",
+      "group_id": "crossvid:PI:139"
+    },
+    {
+      "sample_id": "crossvid:PSS:522",
+      "split": "train",
+      "group_id": "crossvid:PSS:522"
+    },
+    {
+      "sample_id": "cvbench:420",
+      "split": "eval",
+      "group_id": "cvbench:420"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1704",
+      "split": "eval",
+      "group_id": "mvu_eval:Comparison:1704"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:105",
+      "split": "eval",
+      "group_id": "mvu_eval:Counting:105"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:692",
+      "split": "eval",
+      "group_id": "mvu_eval:ICL:692"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:180",
+      "split": "eval",
+      "group_id": "mvu_eval:ICL:1128"
+    },
+    {
+      "sample_id": "mvu_eval:OR:757",
+      "split": "eval",
+      "group_id": "mvu_eval:OR:757"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:873",
+      "split": "eval",
+      "group_id": "mvu_eval:RAG:873"
+    },
+    {
+      "sample_id": "mvu_eval:SU:1231",
+      "split": "eval",
+      "group_id": "mvu_eval:SU:1231"
+    },
+    {
+      "sample_id": "mvu_eval:TR:285",
+      "split": "train",
+      "group_id": "mvu_eval:TR:285"
+    },
+    {
+      "sample_id": "crossvid:BU:810",
+      "split": "eval",
+      "group_id": "crossvid:BU:810"
+    },
+    {
+      "sample_id": "crossvid:CC:274",
+      "split": "train",
+      "group_id": "crossvid:CC:274"
+    },
+    {
+      "sample_id": "crossvid:CCQA:325",
+      "split": "train",
+      "group_id": "crossvid:CCQA:325"
+    },
+    {
+      "sample_id": "crossvid:FSA:1258",
+      "split": "eval",
+      "group_id": "crossvid:FSA:1258"
+    },
+    {
+      "sample_id": "crossvid:MOC:355",
+      "split": "eval",
+      "group_id": "crossvid:MOC:355"
+    },
+    {
+      "sample_id": "crossvid:MSR:535",
+      "split": "eval",
+      "group_id": "crossvid:MSR:535"
+    },
+    {
+      "sample_id": "crossvid:NC:1084",
+      "split": "eval",
+      "group_id": "crossvid:NC:1084"
+    },
+    {
+      "sample_id": "crossvid:PEA:690",
+      "split": "eval",
+      "group_id": "crossvid:PEA:690"
+    },
+    {
+      "sample_id": "crossvid:PI:42",
+      "split": "eval",
+      "group_id": "crossvid:PI:42"
+    },
+    {
+      "sample_id": "crossvid:PSS:477",
+      "split": "train",
+      "group_id": "crossvid:CCQA:253"
+    },
+    {
+      "sample_id": "cvbench:528",
+      "split": "eval",
+      "group_id": "cvbench:528"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1722",
+      "split": "eval",
+      "group_id": "mvu_eval:Comparison:1722"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:107",
+      "split": "eval",
+      "group_id": "mvu_eval:Counting:107"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:1131",
+      "split": "train",
+      "group_id": "mvu_eval:ICL:1113"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:350",
+      "split": "train",
+      "group_id": "mvu_eval:KIR:350"
+    },
+    {
+      "sample_id": "mvu_eval:OR:1159",
+      "split": "train",
+      "group_id": "mvu_eval:OR:1159"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:1821",
+      "split": "train",
+      "group_id": "mvu_eval:RAG:1821"
+    },
+    {
+      "sample_id": "mvu_eval:SU:566",
+      "split": "train",
+      "group_id": "mvu_eval:Counting:1017"
+    },
+    {
+      "sample_id": "mvu_eval:TR:801",
+      "split": "eval",
+      "group_id": "mvu_eval:TR:801"
+    },
+    {
+      "sample_id": "crossvid:BU:795",
+      "split": "eval",
+      "group_id": "crossvid:BU:795"
+    },
+    {
+      "sample_id": "crossvid:CC:55",
+      "split": "eval",
+      "group_id": "crossvid:CC:55"
+    },
+    {
+      "sample_id": "crossvid:CCQA:332",
+      "split": "train",
+      "group_id": "crossvid:CCQA:332"
+    },
+    {
+      "sample_id": "crossvid:FSA:1762",
+      "split": "eval",
+      "group_id": "crossvid:FSA:1762"
+    },
+    {
+      "sample_id": "crossvid:MOC:28",
+      "split": "eval",
+      "group_id": "crossvid:MOC:28"
+    },
+    {
+      "sample_id": "crossvid:MSR:310",
+      "split": "train",
+      "group_id": "crossvid:MOC:293"
+    },
+    {
+      "sample_id": "crossvid:NC:1208",
+      "split": "eval",
+      "group_id": "crossvid:NC:1208"
+    },
+    {
+      "sample_id": "crossvid:PEA:94",
+      "split": "eval",
+      "group_id": "crossvid:PEA:94"
+    },
+    {
+      "sample_id": "crossvid:PI:181",
+      "split": "eval",
+      "group_id": "crossvid:PI:181"
+    },
+    {
+      "sample_id": "crossvid:PSS:191",
+      "split": "eval",
+      "group_id": "crossvid:PSS:191"
+    },
+    {
+      "sample_id": "cvbench:603",
+      "split": "eval",
+      "group_id": "cvbench:603"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1661",
+      "split": "eval",
+      "group_id": "mvu_eval:Comparison:1661"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:94",
+      "split": "eval",
+      "group_id": "mvu_eval:Counting:94"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:666",
+      "split": "eval",
+      "group_id": "mvu_eval:ICL:666"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:494",
+      "split": "eval",
+      "group_id": "mvu_eval:ICL:1128"
+    },
+    {
+      "sample_id": "mvu_eval:OR:418",
+      "split": "train",
+      "group_id": "mvu_eval:OR:418"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:1357",
+      "split": "train",
+      "group_id": "mvu_eval:RAG:1357"
+    },
+    {
+      "sample_id": "mvu_eval:SU:848",
+      "split": "eval",
+      "group_id": "mvu_eval:SU:848"
+    },
+    {
+      "sample_id": "mvu_eval:TR:256",
+      "split": "train",
+      "group_id": "mvu_eval:TR:256"
+    },
+    {
+      "sample_id": "crossvid:BU:723",
+      "split": "train",
+      "group_id": "crossvid:BU:723"
+    },
+    {
+      "sample_id": "crossvid:CC:313",
+      "split": "eval",
+      "group_id": "crossvid:CC:313"
+    },
+    {
+      "sample_id": "crossvid:CCQA:537",
+      "split": "eval",
+      "group_id": "crossvid:CCQA:537"
+    },
+    {
+      "sample_id": "crossvid:FSA:193",
+      "split": "eval",
+      "group_id": "crossvid:FSA:193"
+    },
+    {
+      "sample_id": "crossvid:MOC:563",
+      "split": "train",
+      "group_id": "crossvid:MOC:563"
+    },
+    {
+      "sample_id": "crossvid:MSR:550",
+      "split": "eval",
+      "group_id": "crossvid:MSR:550"
+    },
+    {
+      "sample_id": "crossvid:NC:86",
+      "split": "train",
+      "group_id": "crossvid:NC:86"
+    },
+    {
+      "sample_id": "crossvid:PEA:456",
+      "split": "train",
+      "group_id": "crossvid:PEA:456"
+    },
+    {
+      "sample_id": "crossvid:PI:155",
+      "split": "eval",
+      "group_id": "crossvid:PI:155"
+    },
+    {
+      "sample_id": "crossvid:PSS:389",
+      "split": "eval",
+      "group_id": "crossvid:PSS:389"
+    },
+    {
+      "sample_id": "cvbench:615",
+      "split": "eval",
+      "group_id": "cvbench:615"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1684",
+      "split": "eval",
+      "group_id": "mvu_eval:Comparison:1684"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:585",
+      "split": "eval",
+      "group_id": "mvu_eval:Counting:585"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:1128",
+      "split": "eval",
+      "group_id": "mvu_eval:ICL:1128"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:349",
+      "split": "train",
+      "group_id": "mvu_eval:KIR:349"
+    },
+    {
+      "sample_id": "mvu_eval:OR:1138",
+      "split": "eval",
+      "group_id": "mvu_eval:OR:1138"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:1771",
+      "split": "train",
+      "group_id": "mvu_eval:RAG:1770"
+    },
+    {
+      "sample_id": "mvu_eval:SU:624",
+      "split": "train",
+      "group_id": "mvu_eval:SU:624"
+    },
+    {
+      "sample_id": "mvu_eval:TR:286",
+      "split": "eval",
+      "group_id": "mvu_eval:TR:286"
+    },
+    {
+      "sample_id": "crossvid:BU:827",
+      "split": "eval",
+      "group_id": "crossvid:BU:827"
+    },
+    {
+      "sample_id": "crossvid:CC:579",
+      "split": "train",
+      "group_id": "crossvid:CC:579"
+    },
+    {
+      "sample_id": "crossvid:CCQA:253",
+      "split": "train",
+      "group_id": "crossvid:CCQA:253"
+    },
+    {
+      "sample_id": "crossvid:FSA:3",
+      "split": "train",
+      "group_id": "crossvid:FSA:3"
+    },
+    {
+      "sample_id": "crossvid:MOC:183",
+      "split": "eval",
+      "group_id": "crossvid:MOC:183"
+    },
+    {
+      "sample_id": "crossvid:MSR:290",
+      "split": "eval",
+      "group_id": "crossvid:MSR:290"
+    },
+    {
+      "sample_id": "crossvid:NC:117",
+      "split": "eval",
+      "group_id": "crossvid:NC:117"
+    },
+    {
+      "sample_id": "crossvid:PEA:872",
+      "split": "eval",
+      "group_id": "crossvid:PEA:872"
+    },
+    {
+      "sample_id": "crossvid:PI:170",
+      "split": "eval",
+      "group_id": "crossvid:PI:170"
+    },
+    {
+      "sample_id": "crossvid:PSS:297",
+      "split": "eval",
+      "group_id": "crossvid:PSS:297"
+    },
+    {
+      "sample_id": "cvbench:935",
+      "split": "train",
+      "group_id": "cvbench:935"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1742",
+      "split": "train",
+      "group_id": "mvu_eval:Comparison:1742"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:29",
+      "split": "train",
+      "group_id": "mvu_eval:Counting:1017"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:648",
+      "split": "train",
+      "group_id": "mvu_eval:ICL:648"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:185",
+      "split": "eval",
+      "group_id": "mvu_eval:KIR:185"
+    },
+    {
+      "sample_id": "mvu_eval:OR:773",
+      "split": "eval",
+      "group_id": "mvu_eval:OR:773"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:1811",
+      "split": "eval",
+      "group_id": "mvu_eval:RAG:1811"
+    },
+    {
+      "sample_id": "mvu_eval:SU:428",
+      "split": "eval",
+      "group_id": "mvu_eval:SU:428"
+    },
+    {
+      "sample_id": "mvu_eval:TR:1471",
+      "split": "train",
+      "group_id": "mvu_eval:TR:1471"
+    },
+    {
+      "sample_id": "crossvid:BU:713",
+      "split": "eval",
+      "group_id": "crossvid:BU:713"
+    },
+    {
+      "sample_id": "crossvid:CC:7",
+      "split": "train",
+      "group_id": "crossvid:CC:7"
+    },
+    {
+      "sample_id": "crossvid:CCQA:828",
+      "split": "eval",
+      "group_id": "crossvid:CCQA:828"
+    },
+    {
+      "sample_id": "crossvid:FSA:246",
+      "split": "eval",
+      "group_id": "crossvid:FSA:246"
+    },
+    {
+      "sample_id": "crossvid:MOC:429",
+      "split": "eval",
+      "group_id": "crossvid:MOC:429"
+    },
+    {
+      "sample_id": "crossvid:MSR:579",
+      "split": "train",
+      "group_id": "crossvid:MOC:540"
+    },
+    {
+      "sample_id": "crossvid:NC:774",
+      "split": "train",
+      "group_id": "crossvid:NC:774"
+    },
+    {
+      "sample_id": "crossvid:PEA:104",
+      "split": "train",
+      "group_id": "crossvid:PEA:104"
+    },
+    {
+      "sample_id": "crossvid:PI:64",
+      "split": "train",
+      "group_id": "crossvid:PI:64"
+    },
+    {
+      "sample_id": "crossvid:PSS:634",
+      "split": "eval",
+      "group_id": "crossvid:PSS:634"
+    },
+    {
+      "sample_id": "cvbench:549",
+      "split": "train",
+      "group_id": "cvbench:549"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1653",
+      "split": "eval",
+      "group_id": "mvu_eval:Comparison:1653"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:1017",
+      "split": "train",
+      "group_id": "mvu_eval:Counting:1017"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:1113",
+      "split": "train",
+      "group_id": "mvu_eval:ICL:1113"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:377",
+      "split": "eval",
+      "group_id": "mvu_eval:KIR:377"
+    },
+    {
+      "sample_id": "mvu_eval:OR:795",
+      "split": "eval",
+      "group_id": "mvu_eval:OR:795"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:1770",
+      "split": "train",
+      "group_id": "mvu_eval:RAG:1770"
+    },
+    {
+      "sample_id": "mvu_eval:SU:613",
+      "split": "eval",
+      "group_id": "mvu_eval:Counting:108"
+    },
+    {
+      "sample_id": "mvu_eval:TR:278",
+      "split": "eval",
+      "group_id": "mvu_eval:TR:278"
+    },
+    {
+      "sample_id": "crossvid:BU:90",
+      "split": "train",
+      "group_id": "crossvid:BU:90"
+    },
+    {
+      "sample_id": "crossvid:CC:684",
+      "split": "eval",
+      "group_id": "crossvid:CC:684"
+    },
+    {
+      "sample_id": "crossvid:CCQA:340",
+      "split": "train",
+      "group_id": "crossvid:CC:579"
+    },
+    {
+      "sample_id": "crossvid:FSA:584",
+      "split": "eval",
+      "group_id": "crossvid:FSA:584"
+    },
+    {
+      "sample_id": "crossvid:MOC:103",
+      "split": "eval",
+      "group_id": "crossvid:MOC:103"
+    },
+    {
+      "sample_id": "crossvid:MSR:325",
+      "split": "train",
+      "group_id": "crossvid:MSR:320"
+    },
+    {
+      "sample_id": "crossvid:NC:225",
+      "split": "train",
+      "group_id": "crossvid:NC:225"
+    },
+    {
+      "sample_id": "crossvid:PEA:331",
+      "split": "eval",
+      "group_id": "crossvid:PEA:331"
+    },
+    {
+      "sample_id": "crossvid:PI:160",
+      "split": "train",
+      "group_id": "crossvid:PI:160"
+    },
+    {
+      "sample_id": "crossvid:PSS:554",
+      "split": "train",
+      "group_id": "crossvid:CCQA:325"
+    },
+    {
+      "sample_id": "cvbench:800",
+      "split": "train",
+      "group_id": "cvbench:800"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1664",
+      "split": "eval",
+      "group_id": "mvu_eval:Comparison:1664"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:591",
+      "split": "train",
+      "group_id": "mvu_eval:Counting:1017"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:706",
+      "split": "eval",
+      "group_id": "mvu_eval:ICL:1128"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:334",
+      "split": "train",
+      "group_id": "mvu_eval:KIR:334"
+    },
+    {
+      "sample_id": "mvu_eval:OR:417",
+      "split": "eval",
+      "group_id": "mvu_eval:OR:417"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:1359",
+      "split": "eval",
+      "group_id": "mvu_eval:RAG:1359"
+    },
+    {
+      "sample_id": "mvu_eval:SU:622",
+      "split": "train",
+      "group_id": "mvu_eval:SU:622"
+    },
+    {
+      "sample_id": "mvu_eval:TR:1174",
+      "split": "train",
+      "group_id": "mvu_eval:TR:1174"
+    },
+    {
+      "sample_id": "crossvid:BU:364",
+      "split": "eval",
+      "group_id": "crossvid:BU:364"
+    },
+    {
+      "sample_id": "crossvid:CC:728",
+      "split": "eval",
+      "group_id": "crossvid:CC:728"
+    },
+    {
+      "sample_id": "crossvid:CCQA:728",
+      "split": "eval",
+      "group_id": "crossvid:CCQA:728"
+    },
+    {
+      "sample_id": "crossvid:FSA:1387",
+      "split": "eval",
+      "group_id": "crossvid:FSA:1387"
+    },
+    {
+      "sample_id": "crossvid:MOC:237",
+      "split": "eval",
+      "group_id": "crossvid:MOC:237"
+    },
+    {
+      "sample_id": "crossvid:MSR:216",
+      "split": "eval",
+      "group_id": "crossvid:MSR:216"
+    },
+    {
+      "sample_id": "crossvid:NC:271",
+      "split": "eval",
+      "group_id": "crossvid:NC:271"
+    },
+    {
+      "sample_id": "crossvid:PEA:294",
+      "split": "train",
+      "group_id": "crossvid:PEA:294"
+    },
+    {
+      "sample_id": "crossvid:PI:92",
+      "split": "train",
+      "group_id": "crossvid:PI:92"
+    },
+    {
+      "sample_id": "crossvid:PSS:219",
+      "split": "train",
+      "group_id": "crossvid:PSS:219"
+    },
+    {
+      "sample_id": "cvbench:978",
+      "split": "eval",
+      "group_id": "cvbench:978"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1689",
+      "split": "train",
+      "group_id": "mvu_eval:Comparison:1689"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:1024",
+      "split": "train",
+      "group_id": "mvu_eval:Counting:1017"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:721",
+      "split": "train",
+      "group_id": "mvu_eval:ICL:1113"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:560",
+      "split": "eval",
+      "group_id": "mvu_eval:ICL:1128"
+    },
+    {
+      "sample_id": "mvu_eval:OR:777",
+      "split": "train",
+      "group_id": "mvu_eval:OR:777"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:989",
+      "split": "eval",
+      "group_id": "mvu_eval:RAG:989"
+    },
+    {
+      "sample_id": "mvu_eval:SU:839",
+      "split": "eval",
+      "group_id": "mvu_eval:SU:839"
+    },
+    {
+      "sample_id": "mvu_eval:TR:799",
+      "split": "eval",
+      "group_id": "mvu_eval:TR:799"
+    },
+    {
+      "sample_id": "cvbench:308",
+      "split": "train",
+      "group_id": "cvbench:308"
+    },
+    {
+      "sample_id": "cvbench:366",
+      "split": "eval",
+      "group_id": "cvbench:366"
+    },
+    {
+      "sample_id": "cvbench:425",
+      "split": "train",
+      "group_id": "cvbench:425"
+    },
+    {
+      "sample_id": "cvbench:108",
+      "split": "train",
+      "group_id": "cvbench:108"
+    },
+    {
+      "sample_id": "cvbench:449",
+      "split": "eval",
+      "group_id": "cvbench:449"
+    },
+    {
+      "sample_id": "cvbench:178",
+      "split": "eval",
+      "group_id": "cvbench:178"
+    },
+    {
+      "sample_id": "cvbench:357",
+      "split": "eval",
+      "group_id": "cvbench:357"
+    },
+    {
+      "sample_id": "cvbench:842",
+      "split": "train",
+      "group_id": "cvbench:842"
+    },
+    {
+      "sample_id": "cvbench:811",
+      "split": "eval",
+      "group_id": "cvbench:811"
+    },
+    {
+      "sample_id": "cvbench:953",
+      "split": "train",
+      "group_id": "cvbench:953"
+    },
+    {
+      "sample_id": "cvbench:469",
+      "split": "eval",
+      "group_id": "cvbench:469"
+    },
+    {
+      "sample_id": "cvbench:801",
+      "split": "eval",
+      "group_id": "cvbench:801"
+    },
+    {
+      "sample_id": "cvbench:342",
+      "split": "eval",
+      "group_id": "cvbench:342"
+    },
+    {
+      "sample_id": "cvbench:715",
+      "split": "eval",
+      "group_id": "cvbench:715"
+    },
+    {
+      "sample_id": "cvbench:939",
+      "split": "eval",
+      "group_id": "cvbench:939"
+    },
+    {
+      "sample_id": "cvbench:212",
+      "split": "eval",
+      "group_id": "cvbench:212"
+    },
+    {
+      "sample_id": "cvbench:135",
+      "split": "train",
+      "group_id": "cvbench:135"
+    },
+    {
+      "sample_id": "cvbench:839",
+      "split": "eval",
+      "group_id": "cvbench:839"
+    },
+    {
+      "sample_id": "cvbench:264",
+      "split": "train",
+      "group_id": "cvbench:262"
+    },
+    {
+      "sample_id": "cvbench:692",
+      "split": "train",
+      "group_id": "cvbench:692"
+    },
+    {
+      "sample_id": "cvbench:476",
+      "split": "eval",
+      "group_id": "cvbench:476"
+    },
+    {
+      "sample_id": "cvbench:124",
+      "split": "train",
+      "group_id": "cvbench:124"
+    },
+    {
+      "sample_id": "cvbench:472",
+      "split": "eval",
+      "group_id": "cvbench:472"
+    },
+    {
+      "sample_id": "cvbench:580",
+      "split": "eval",
+      "group_id": "cvbench:580"
+    },
+    {
+      "sample_id": "cvbench:1",
+      "split": "train",
+      "group_id": "cvbench:1"
+    },
+    {
+      "sample_id": "cvbench:913",
+      "split": "eval",
+      "group_id": "cvbench:913"
+    },
+    {
+      "sample_id": "cvbench:121",
+      "split": "train",
+      "group_id": "cvbench:121"
+    },
+    {
+      "sample_id": "cvbench:278",
+      "split": "eval",
+      "group_id": "cvbench:278"
+    },
+    {
+      "sample_id": "cvbench:974",
+      "split": "eval",
+      "group_id": "cvbench:974"
+    },
+    {
+      "sample_id": "cvbench:144",
+      "split": "train",
+      "group_id": "cvbench:143"
+    },
+    {
+      "sample_id": "cvbench:949",
+      "split": "train",
+      "group_id": "cvbench:949"
+    },
+    {
+      "sample_id": "cvbench:285",
+      "split": "eval",
+      "group_id": "cvbench:285"
+    },
+    {
+      "sample_id": "cvbench:774",
+      "split": "train",
+      "group_id": "cvbench:774"
+    },
+    {
+      "sample_id": "cvbench:143",
+      "split": "train",
+      "group_id": "cvbench:143"
+    },
+    {
+      "sample_id": "cvbench:185",
+      "split": "eval",
+      "group_id": "cvbench:185"
+    },
+    {
+      "sample_id": "cvbench:961",
+      "split": "train",
+      "group_id": "cvbench:961"
+    },
+    {
+      "sample_id": "cvbench:795",
+      "split": "train",
+      "group_id": "cvbench:795"
+    },
+    {
+      "sample_id": "cvbench:441",
+      "split": "eval",
+      "group_id": "cvbench:441"
+    },
+    {
+      "sample_id": "cvbench:200",
+      "split": "eval",
+      "group_id": "cvbench:200"
+    },
+    {
+      "sample_id": "cvbench:943",
+      "split": "eval",
+      "group_id": "cvbench:943"
+    },
+    {
+      "sample_id": "cvbench:147",
+      "split": "eval",
+      "group_id": "cvbench:147"
+    },
+    {
+      "sample_id": "cvbench:397",
+      "split": "train",
+      "group_id": "cvbench:397"
+    },
+    {
+      "sample_id": "cvbench:248",
+      "split": "train",
+      "group_id": "cvbench:248"
+    },
+    {
+      "sample_id": "cvbench:390",
+      "split": "eval",
+      "group_id": "cvbench:390"
+    },
+    {
+      "sample_id": "cvbench:355",
+      "split": "eval",
+      "group_id": "cvbench:355"
+    },
+    {
+      "sample_id": "cvbench:918",
+      "split": "eval",
+      "group_id": "cvbench:918"
+    },
+    {
+      "sample_id": "cvbench:517",
+      "split": "train",
+      "group_id": "cvbench:517"
+    },
+    {
+      "sample_id": "cvbench:491",
+      "split": "train",
+      "group_id": "cvbench:491"
+    },
+    {
+      "sample_id": "cvbench:970",
+      "split": "train",
+      "group_id": "cvbench:970"
+    },
+    {
+      "sample_id": "cvbench:266",
+      "split": "eval",
+      "group_id": "cvbench:266"
+    },
+    {
+      "sample_id": "cvbench:92",
+      "split": "eval",
+      "group_id": "cvbench:92"
+    },
+    {
+      "sample_id": "cvbench:262",
+      "split": "train",
+      "group_id": "cvbench:262"
+    },
+    {
+      "sample_id": "cvbench:431",
+      "split": "eval",
+      "group_id": "cvbench:431"
+    },
+    {
+      "sample_id": "cvbench:681",
+      "split": "eval",
+      "group_id": "cvbench:681"
+    },
+    {
+      "sample_id": "cvbench:261",
+      "split": "eval",
+      "group_id": "cvbench:261"
+    },
+    {
+      "sample_id": "cvbench:593",
+      "split": "eval",
+      "group_id": "cvbench:593"
+    },
+    {
+      "sample_id": "cvbench:620",
+      "split": "train",
+      "group_id": "cvbench:620"
+    },
+    {
+      "sample_id": "cvbench:290",
+      "split": "eval",
+      "group_id": "cvbench:290"
+    },
+    {
+      "sample_id": "cvbench:628",
+      "split": "eval",
+      "group_id": "cvbench:628"
+    },
+    {
+      "sample_id": "cvbench:204",
+      "split": "eval",
+      "group_id": "cvbench:204"
+    }
+  ]
+}

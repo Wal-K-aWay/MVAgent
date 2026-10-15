@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "id": "global-count-comparison",
+    "role": "global",
+    "stages": [
+      "initial",
+      "evidence"
+    ]
+  },
+  "when_to_use": "Compare event counts across videos using a shared counting unit and independently established counts; not appearance matching. The question compares how many times an event occurs in different videos, and reliable comparable counts are not yet available. Do not use for visual appearance comparison or when existing reports already settle the count comparison.",
+  "strategy": "1. Define the same visible event and completion criterion for each video. Preserve any temporal restriction in instruction.\n2. Prefer analyze_videos when each count can be established independently; ask for the count and any ambiguity that changes it.\n3. Compare counts only after checking that reports used the same unit and scope. Recheck only an ambiguity that could change the answer.\n\nConstraints:\nThe word compare does not itself require joint watch. Do not count preparatory movements as completed events or assume an option's count is true."
+}

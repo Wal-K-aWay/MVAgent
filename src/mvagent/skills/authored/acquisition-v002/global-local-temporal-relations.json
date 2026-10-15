@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-local-temporal-relations",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Use analyze_videos to establish before/after, first occurrence or simultaneous overlap between named events within each video. Compare timestamped relations in Global; not cumulative event counts, synchronized cross-view snapshots or ordering supplied shuffled clips. The answer depends on how specified actions are ordered or whether they overlap, rather than merely whether both occur. The same local relation can be checked across unrelated videos.",
+  "strategy": "1. Define the two events and the exact relation from the question: before, after, first incorporation, or overlap. Preserve “first” and other scope constraints.\n2. Call analyze_videos with a self-contained instruction for each relevant video. Request source-time intervals for both events, whether they visibly overlap, and uncertainty at their boundaries. For “first”, request enough earlier coverage to exclude a prior occurrence.\n3. Global compares the reported intervals or explicit observed sequence. Both actions appearing somewhere is not evidence of overlap; events from separate videos cannot establish a within-video relation.\n4. If the decisive boundary is unclear, request targeted reinspection around it with neighboring context. Use watch only when a remaining cross-video visual distinction needs joint inspection. Apply the relation to each video, then return the requested count, labels or comparison.\n\nConstraints:\nReport-level sentence order is not event order. An uncertain boundary must not be converted into certain overlap. A later clear occurrence does not prove it is the first."
+}

@@ -1,0 +1,93 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "global-assembly-error",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Diagnose assembly errors across demonstrations using the question-provided error taxonomy and action/part identities. Not normal cooking sequence comparisons or shuffled-clip ordering. Multiple assembly demonstrations are accompanied by candidate part-attachment/removal actions or defined procedural error types. The task asks which error occurred or which videos satisfy an error condition.",
+      "strategy": "1. Preserve the supplied error definitions, part pairs, video references and any exact-count condition; distinguish a current error from a consequence of an earlier error.\n2. Use analyze_videos for local action sequences around candidate operations. Ask for before/action/after state, connected parts, removals and timestamps; request observations before classifying correctness.\n3. Align corresponding operations across demonstrations and classify each candidate using the given taxonomy. Check counts across videos rather than treating the occurrence of an operation as an error.\n4. For unresolved order, placement or correction, use watch_videos on relevant segments or request targeted observation with neighboring context. Map the supported video/action/error combination back to the option label.\n\nConstraints:\nDetachment can be legitimate. A common sequence is not automatically the correct sequence. Do not lead a VideoAgent by asserting the candidate mistake."
+    },
+    {
+      "meta": {
+        "id": "global-contextual-interpretation",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Compare the function, causal role or contextual significance of observed events or behavior. Use when mere presence is insufficient to answer; not simple attribute lookup or explicitly defined assembly-error diagnosis. The question asks why an event matters, what function a behavior serves, how an outcome is explained, or which context best supports an interpretation. It requires surrounding events or consequences, not just detecting the named item. Exclude an explicitly omitted story middle and procedural-error taxonomies.",
+      "strategy": "1. Turn each candidate interpretation into observable supporting and contradicting facts. Distinguish occurrence from causation, practical function or narrative significance.\n2. Use analyze_videos to inspect relevant events with surrounding actions, state changes and consequences. Ask for timestamped observations before inferred interpretations.\n3. Compare support across videos or candidate explanations. If several contain the same surface cue, request contextual evidence distinguishing their role; use watch_videos for disputed visible details.\n4. Answer in the requested format, clearly separating observations from inferred meaning. Do not invent unseen motives or claim causality from temporal succession alone.\n\nConstraints:\nAn object appearing is not proof that it drives the outcome. Function can be inferred cautiously from behavior and context, without inventing an unobserved consequence."
+    },
+    {
+      "meta": {
+        "id": "global-evidence-matrix",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Compare independently observable facts across videos using the same evidence checklist, then apply the question’s aggregation and answer format. Covers option selection and free-text comparison, not synchronized-event localization, causal interpretation or error diagnosis. The key uncertainty is whether or how each independent video exhibits specified attributes, actions, co-occurrence or local sequence. The answer can be derived from a per-video evidence table. Exclude tasks requiring causal significance, procedural correctness, synchronized event anchoring, reference-interval alignment or shuffled ordering.",
+      "strategy": "1. Extract requested dimensions and full option claims, preserving quantifiers, video groups, simultaneous-action and ordering conditions. Read the output contract separately from the evidence task.\n2. Use analyze_videos with the same local checklist for each video: observed value, supporting time and uncertainty. For fine visual differences better compared directly, use watch_videos with the original question and options if any.\n3. Build a video-by-criterion table. Keep confirmed, contradicted and unknown separate; a missing report is not absence. Recheck only uncertain cells that change the result, retaining coverage until locations are known.\n4. Apply the requested operation: intersection, uniqueness, difference, number of matching videos, or option evaluation. Return one label, multiple labels or an attributed prose comparison as requested. Never equate one option with one video.\n\nConstraints:\nDo not guess unlabeled ingredients or redefine behavior. Counting videos satisfying a fact is not counting events through time."
+    },
+    {
+      "meta": {
+        "id": "global-functional-interval",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Find the time interval in a target video performing the same functional step as a supplied reference interval. Not full-video method comparisons or ordering shuffled segments. A question specifies a reference time interval in one video and asks for the corresponding functional step interval in another. The requested answer is start,end in seconds.",
+      "strategy": "1. Ask analyze_videos to inspect the exact reference interval and describe action, object, starting state and resulting state; do not identify equivalence from tools alone.\n2. Ask the target VideoAgent to locate candidate occurrences of that operation with their full start/end bounds. Preserve coverage until a candidate location is established.\n3. Check functional equivalence and distinguish repeated similar actions. If boundaries are uncertain, request finer observation around the candidate including preceding/following context; joint watch can resolve visual mismatches.\n4. Return target-video start,end in the requested coordinate system. Use reported source coordinates; do not add clip offsets again. Match action extent, not reference duration.\n\nConstraints:\nDifferent speeds can produce different lengths. An event can genuinely start at zero. Never fabricate an endpoint."
+    },
+    {
+      "meta": {
+        "id": "global-missing-middle",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Infer the most supported omitted event connecting a supplied beginning and ending of one story. Not ordering supplied clips or comparing independent complete narratives. The task explicitly provides an earlier and a later segment of one story, omits the middle, and asks which proposed intervening event best connects them. Segment names alone are insufficient.",
+      "strategy": "1. Use analyze_videos on both segments for character identities, goals, objects and consequential state changes; obtain both broad context and states near the gap.\n2. For each option, identify the transition it would explain and what visible evidence or contradiction it predicts in the supplied segments.\n3. If decisive visual details are unresolved, watch the relevant boundary or contextual segments. Do not assume all clues occur exactly at the cut, or that full clips must always be rewatched.\n4. Choose the option best supported by the observed transition and least contradicted by either segment. Keep inferred middle events distinct from observed facts.\n\nConstraints:\nPlausibility alone is weak evidence. Do not claim the omitted event was seen or infer chronology from filenames."
+    },
+    {
+      "meta": {
+        "id": "global-shuffled-sequence",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Order supplied shuffled procedure segments using action prerequisites and changes of material state. Output a permutation of segment identifiers, not a time interval or an inferred missing event. The task supplies shuffled segments of a procedure and asks for their chronological ordering. All output items must be supplied segment identifiers.",
+      "strategy": "1. Use analyze_videos on each segment to record input state, operation, output state and distinctive objects; avoid asking each isolated clip to guess its global rank.\n2. Build before/after constraints from prerequisites and state changes. Identify which clips can follow others; appearance or typical recipe order alone is insufficient.\n3. For ambiguous adjacency, watch the end of the earlier candidate and start of the later candidate using their own durations. Expand into clip interiors when boundaries lack decisive context.\n4. Check the complete ordering against all constraints and include every segment exactly once. Output only the requested identifier sequence and separator.\n\nConstraints:\nA clip can contain more than one action. Do not use filenames or hidden original timestamps as ordering evidence."
+    },
+    {
+      "meta": {
+        "id": "global-synchronized-snapshot",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Locate an event time across synchronized views, then inspect the requested state at that time: position, visibility, separation or snapshot count. Not cumulative events or whole-interval trajectories. A state in one synchronized view must be evaluated at a moment defined by an event, possibly in another view. The state may be a quantity or a spatial relation. Exclude total pass/overtake counts and questions about an entire motion trajectory.",
+      "strategy": "1. Identify the condition event and view, target view, target entities, and requested observable or unit. Initialize identities from labeled windows when provided.\n2. Use joint watch_videos over matching time ranges to locate the event and inspect the corresponding target-view state. Preserve full coverage until the event is located.\n3. If event timing or target detail is unclear, inspect a narrower synchronized interval including the transition. Recheck the event and target together; do not automatically distrust zero timestamps.\n4. Read the requested state: enumerate visible objects for a snapshot count; use target-view axes for directions; use lane boundaries or comparable vehicle length for separation. Check occlusion, then answer in the requested format.\n\nConstraints:\nA number of car lengths is distance, not a vehicle count. A snapshot cannot establish how many passes occurred over an interval. Narrower evidence does not automatically overrule broader context."
+    },
+    {
+      "meta": {
+        "id": "global-track-history",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Track identity and state changes through a time interval to reconstruct a trajectory or enumerate distinct events. Not a single event-anchored snapshot or counting how many independent videos satisfy a predicate. The answer requires history over an interval: total occurrences, pass/overtake events, or an object’s motion path/final trajectory. A single frame or moment cannot establish it. Exclude procedural correctness and shuffled-segment ordering.",
+      "strategy": "1. Define the target identity, event transition or path information, and interval boundaries from the question. If an anchor event starts the interval, locate it before accumulation.\n2. Use analyze_videos for independent local histories or joint watch_videos when synchronized cross-view tracking is necessary. Ask for ordered timestamps, before/after relations and identities, not an unsupported total.\n3. Build an event or state-transition ledger. Maintain coverage of the entire requested interval; track objects after label windows and avoid double counting a single event seen in multiple views.\n4. Inspect unresolved transitions, occlusions or gaps with neighboring context. For counts, enumerate distinct qualifying ledger entries; for trajectories, summarize the supported ordered path. Format the answer as requested.\n\nConstraints:\nCounting visible objects at one moment is not counting objects passed. Do not infer unseen paths across an occlusion or merge unrelated identities."
+    }
+  ]
+}

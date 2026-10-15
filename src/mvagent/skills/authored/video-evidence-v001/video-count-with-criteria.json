@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "id": "video-count-with-criteria",
+    "role": "video",
+    "stages": [
+      "initial",
+      "evidence"
+    ]
+  },
+  "when_to_use": "Count defined objects, applied attributes or events using an explicit inclusion rule and an evidence ledger; distinguish unique entities from repeated appearances. The instruction requests a numeric count or inventory: tables, colors used in artwork, repeated actions, overtakes or other entities/events. It does not merely ask whether a fact is present.",
+  "strategy": "1. Define the counted unit from the instruction: unique objects, colors actually applied, or event occurrences. Keep borderline categories separate rather than silently broadening the unit.\n2. observe with what requesting an item/event ledger, distinguishing features, source times and inclusion reasons. For moving cameras track reappearing objects; for repeated events cover the requested interval and define what starts a new event.\n3. Count from the ledger, not from narrative length. Exclude duplicates. When occlusion or ambiguous identity could change the count, observe the supported ambiguous range with preceding/following context; fps follows motion speed and frame limits.\n4. finish with the confirmed count, compact inventory and unresolved candidates. If a total cannot be established, give the supported lower bound and uncertainty rather than a guessed exact number.\n\nConstraints:\nA counter is not automatically a table. Paper and marker casing are not automatically colors used by the artist. Do not sum frame-wise sightings of one object. Never invent unobserved entries."
+}

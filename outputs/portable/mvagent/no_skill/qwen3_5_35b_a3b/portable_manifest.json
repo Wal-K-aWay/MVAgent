@@ -1,0 +1,15 @@
+{
+  "source_model": "qwen3_5_35b_a3b",
+  "record_count": 11839,
+  "files": [
+    "answers.jsonl.gz",
+    "trajectories.jsonl.gz",
+    "events_compact.jsonl.gz"
+  ],
+  "raw_records_preserved_locally": true,
+  "omitted": [
+    "full result.json event payloads",
+    "vllm logs",
+    "execution_events.jsonl"
+  ]
+}

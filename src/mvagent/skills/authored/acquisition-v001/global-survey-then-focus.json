@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-survey-then-focus",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Use staged analyze_videos when relevant events, segments or roles must first be located before a useful detailed instruction can be written. Survey only question-relevant context, then focus; not an obligatory two-pass procedure for already clear local checks. A complex question requires discovering where the relevant evidence is or how the videos relate before deciding what to inspect closely. The initial uncertainty prevents a precise local checklist; length alone is insufficient to trigger this workflow.",
+  "strategy": "1. First use analyze_videos to obtain a brief question-directed map from each relevant video: relevant stages/events, their approximate source-time spans, and unresolved facts. Include content or style only when it helps answer this question; avoid generic full-video narration.\n2. Global identifies the candidate segments and remaining discriminants from those reports. If the reports already settle the question, answer without another pass.\n3. Otherwise call analyze_videos again on only the unresolved videos. Each new instruction includes the local question, target entities, the tentative interval from the survey and the exact missing evidence. Treat survey claims as hypotheses to verify. Permit expansion if the interval misses the event or its causal/temporal context.\n4. VideoAgent chooses observe ranges and sampling. Global cannot set observe directly or add clip/fps to analyze_videos. For a remaining fine cross-video difference, use joint watch on the located intervals instead. Stop when additional inspection would not change the supported answer.\n\nConstraints:\nA coarse report is not final evidence for a fine detail. Do not force a second pass, inspect every video again, or crop away necessary preconditions. Retained Video memory does not excuse an incomplete new instruction."
+}

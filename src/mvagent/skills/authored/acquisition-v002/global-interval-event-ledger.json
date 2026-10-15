@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-interval-event-ledger",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Use VideoAgent analysis to track a defined event through an interval and count distinct occurrences or trace a final path. Use synchronized watch first only if another view defines the interval start; not snapshot counts or the number of videos matching a predicate. The question requires a cumulative pass/overtake count, a trajectory through time, or an event total after a trigger. Identity and coverage over the relevant interval matter; a single clear frame cannot establish the answer.",
+  "strategy": "1. Define the tracked entity, event unit, interval and filters such as color, direction or same-side traffic. Initialize any temporarily labeled identities from their visible label windows.\n2. If a cross-view trigger defines the interval, first locate it using synchronized watch; then pass its established source-time bound to the target VideoAgent. Otherwise directly analyze the relevant video.\n3. instruction requests an ordered ledger: event time, involved entity, before/after relation and possible duplicate or occlusion. Require full relevant coverage. For a path question, request state/lane changes and the final confirmed state rather than an invented count.\n4. Global deduplicates observations of the same event and checks gaps. Request focused verification of ambiguous crossings or uncovered intervals; reappearance alone is not a new event. Answer only the quantity or state actually requested.\n\nConstraints:\nDo not count one physical event twice across cameras. Distinguish a snapshot of cars behind a truck from events over an interval. Lane-option questions may ask final lane even when the wording says trajectory."
+}

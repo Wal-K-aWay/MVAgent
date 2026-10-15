@@ -1,0 +1,155 @@
+{
+  "excluded_known_sample_count": 472,
+  "excluded_source_group_count": 470,
+  "available_source_groups_by_stratum": {
+    "crossvid/BU": 778,
+    "crossvid/CC": 484,
+    "crossvid/CCQA": 687,
+    "crossvid/FSA": 2248,
+    "crossvid/MOC": 496,
+    "crossvid/MSR": 526,
+    "crossvid/NC": 565,
+    "crossvid/PEA": 888,
+    "crossvid/PI": 186,
+    "crossvid/PSS": 664,
+    "cvbench/all": 468,
+    "mvu_eval/Comparison": 129,
+    "mvu_eval/Counting": 190,
+    "mvu_eval/ICL": 98,
+    "mvu_eval/KIR": 177,
+    "mvu_eval/OR": 125,
+    "mvu_eval/RAG": 339,
+    "mvu_eval/SU": 138,
+    "mvu_eval/TR": 286
+  },
+  "sample_counts": {
+    "train": 130,
+    "eval": 70
+  },
+  "dataset_counts": {
+    "train": {
+      "crossvid": 78,
+      "cvbench": 20,
+      "mvu_eval": 32
+    },
+    "eval": {
+      "crossvid": 39,
+      "cvbench": 15,
+      "mvu_eval": 16
+    }
+  },
+  "native_task_counts": {
+    "train": {
+      "crossvid/BU": 6,
+      "crossvid/CC": 6,
+      "crossvid/CCQA": 12,
+      "crossvid/FSA": 12,
+      "crossvid/MOC": 6,
+      "crossvid/MSR": 6,
+      "crossvid/NC": 6,
+      "crossvid/PEA": 6,
+      "crossvid/PI": 6,
+      "crossvid/PSS": 12,
+      "cvbench/all": 20,
+      "mvu_eval/Comparison": 4,
+      "mvu_eval/Counting": 4,
+      "mvu_eval/ICL": 4,
+      "mvu_eval/KIR": 4,
+      "mvu_eval/OR": 4,
+      "mvu_eval/RAG": 4,
+      "mvu_eval/SU": 4,
+      "mvu_eval/TR": 4
+    },
+    "eval": {
+      "crossvid/BU": 3,
+      "crossvid/CC": 3,
+      "crossvid/CCQA": 6,
+      "crossvid/FSA": 6,
+      "crossvid/MOC": 3,
+      "crossvid/MSR": 3,
+      "crossvid/NC": 3,
+      "crossvid/PEA": 3,
+      "crossvid/PI": 3,
+      "crossvid/PSS": 6,
+      "cvbench/all": 15,
+      "mvu_eval/Comparison": 2,
+      "mvu_eval/Counting": 2,
+      "mvu_eval/ICL": 2,
+      "mvu_eval/KIR": 2,
+      "mvu_eval/OR": 2,
+      "mvu_eval/RAG": 2,
+      "mvu_eval/SU": 2,
+      "mvu_eval/TR": 2
+    }
+  },
+  "output_task_counts": {
+    "train": {
+      "choice": 94,
+      "open_qa": 12,
+      "ordering": 12,
+      "temporal_localization": 12
+    },
+    "eval": {
+      "choice": 52,
+      "open_qa": 6,
+      "ordering": 6,
+      "temporal_localization": 6
+    }
+  },
+  "integrity": {
+    "test_sample_count": 0,
+    "duplicate_sample_ids": 0,
+    "source_groups_crossing_splits": 0
+  },
+  "version": 1,
+  "manifest": "/home/kww/projects/MVAgent_API/configs/skill_evolution/splits/multibench_broad_train130_eval70_seed20260828.json",
+  "manifest_sha256": "b7fe4ebc65e30ebc52e2a9bd38c9cb03e4066ee986e6208aecaf57e8ee7a41e2",
+  "manifest_hash": "0784fab4d45cf8ef68b9717138ecae3c5b083c480fb66375931f16495658c2bd",
+  "seed": 20260828,
+  "source_record_counts": {
+    "crossvid": 9015,
+    "cvbench": 1000,
+    "mvu_eval": 1824
+  },
+  "source_validation": {
+    "globally_unique_sample_ids": true,
+    "all_rows_normalized": true,
+    "all_referenced_media_exist": true
+  },
+  "sources": [
+    {
+      "path": "/home/kww/datasets/Multi-Video/CrossVid/qa.jsonl",
+      "sha256": "2d0be4c2b444363bd6197db185ea8064dc3259c38854934b451052f5a0bd9de8"
+    },
+    {
+      "path": "/home/kww/datasets/Multi-Video/CVBench/QAs.json",
+      "sha256": "e0c2970dc5b718fcb68cc30789832c17b64d52513281205135eee72787765af2"
+    },
+    {
+      "path": "/home/kww/datasets/Multi-Video/MVU-Eval/QAs.json",
+      "sha256": "55f1f0790c84447caa36ab6e28958197c286ec765c31e19415c96de095257172"
+    }
+  ],
+  "excluded_manifests": [
+    {
+      "path": "/home/kww/projects/MVAgent_API/configs/skill_evolution/splits/crossvid_choice_smoke_seed0.json",
+      "sha256": "cd4b72bdb9ebb41a54a8afadecb4e2f69a065fd14cf9ab73ce28fcdab630ae64",
+      "sample_count": 9
+    },
+    {
+      "path": "/home/kww/projects/MVAgent_API/configs/skill_evolution/splits/crossvid_choice_stratified_28_14_14_seed42.json",
+      "sha256": "76155f9bea9f0842cdf8bc566cc470a7ea927bf0c5618782623f1d4b0f94b51b",
+      "sample_count": 56
+    },
+    {
+      "path": "/home/kww/projects/MVAgent_API/configs/skill_evolution/splits/crossvid_choice_stratified_70_35_70_seed42.json",
+      "sha256": "d07fa6ae7d2638e2cbb6f566c3d436807a9d2c814579a737bb4c0a2b4a474e30",
+      "sample_count": 175
+    },
+    {
+      "path": "/home/kww/projects/MVAgent_API/configs/skill_evolution/splits/crossvid_choice_stratified_fresh_105_70_70_seed20260827.json",
+      "sha256": "531ea448bbdc917e119d4beabd589f29c006a71ef2742d918ac02fa8c6a035f1",
+      "sample_count": 245
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-contextual-interpretation",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Compare the function, causal role or contextual significance of observed events or behavior. Use when mere presence is insufficient to answer; not simple attribute lookup or explicitly defined assembly-error diagnosis. The question asks why an event matters, what function a behavior serves, how an outcome is explained, or which context best supports an interpretation. It requires surrounding events or consequences, not just detecting the named item. Exclude an explicitly omitted story middle and procedural-error taxonomies.",
+  "strategy": "1. Turn each candidate interpretation into observable supporting and contradicting facts. Distinguish occurrence from causation, practical function or narrative significance.\n2. Use analyze_videos to inspect relevant events with surrounding actions, state changes and consequences. Ask for timestamped observations before inferred interpretations.\n3. Compare support across videos or candidate explanations. If several contain the same surface cue, request contextual evidence distinguishing their role; use watch_videos for disputed visible details.\n4. Answer in the requested format, clearly separating observations from inferred meaning. Do not invent unseen motives or claim causality from temporal succession alone.\n\nConstraints:\nAn object appearing is not proof that it drives the outcome. Function can be inferred cautiously from behavior and context, without inventing an unobserved consequence."
+}

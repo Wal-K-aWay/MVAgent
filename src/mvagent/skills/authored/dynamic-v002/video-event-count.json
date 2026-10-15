@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "id": "video-event-count",
+    "role": "video",
+    "stages": [
+      "initial",
+      "evidence"
+    ]
+  },
+  "when_to_use": "Observe and count repeated events within one video using the instruction's event definition, completion rule and temporal scope. The local instruction requests an event count or occurrence index that retained observations do not yet establish. Do not use for object identity or an already resolved count.",
+  "strategy": "1. Preserve the event definition and counting unit in what. Cover the requested interval rather than assuming repetitions occur near endpoints.\n2. Choose fps for event speed within frame capacity. Overlapping source ranges must not lead to counting the same occurrence twice.\n3. If only a specific occurrence is ambiguous, target that interval; otherwise finish with the supported count and material limitations.\n\nConstraints:\nPartial actions are not automatically completed events. A sparse observation may miss brief repetitions; do not turn uncertain visibility into an exact count."
+}

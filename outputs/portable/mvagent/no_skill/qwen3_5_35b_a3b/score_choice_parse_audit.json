@@ -1,0 +1,2134 @@
+{
+  "statistics": {
+    "crossvid": {
+      "total": 5231,
+      "correct": 2227,
+      "parseable": 4773,
+      "unparseable": 458,
+      "all_accuracy": 0.4257312177403938,
+      "parseable_accuracy": 0.4665828619316991
+    },
+    "crossvid:BU": {
+      "total": 848,
+      "correct": 346,
+      "parseable": 743,
+      "unparseable": 105,
+      "all_accuracy": 0.4080188679245283,
+      "parseable_accuracy": 0.46567967698519513
+    },
+    "crossvid:CC": {
+      "total": 798,
+      "correct": 434,
+      "parseable": 682,
+      "unparseable": 116,
+      "all_accuracy": 0.543859649122807,
+      "parseable_accuracy": 0.6363636363636364
+    },
+    "crossvid:MOC": {
+      "total": 566,
+      "correct": 209,
+      "parseable": 560,
+      "unparseable": 6,
+      "all_accuracy": 0.36925795053003535,
+      "parseable_accuracy": 0.3732142857142857
+    },
+    "crossvid:MSR": {
+      "total": 594,
+      "correct": 239,
+      "parseable": 592,
+      "unparseable": 2,
+      "all_accuracy": 0.40235690235690236,
+      "parseable_accuracy": 0.40371621621621623
+    },
+    "crossvid:NC": {
+      "total": 1221,
+      "correct": 571,
+      "parseable": 1139,
+      "unparseable": 82,
+      "all_accuracy": 0.46764946764946763,
+      "parseable_accuracy": 0.5013169446883231
+    },
+    "crossvid:PEA": {
+      "total": 953,
+      "correct": 261,
+      "parseable": 806,
+      "unparseable": 147,
+      "all_accuracy": 0.2738719832109129,
+      "parseable_accuracy": 0.3238213399503722
+    },
+    "crossvid:PI": {
+      "total": 251,
+      "correct": 167,
+      "parseable": 251,
+      "unparseable": 0,
+      "all_accuracy": 0.6653386454183267,
+      "parseable_accuracy": 0.6653386454183267
+    },
+    "cvbench": {
+      "total": 1000,
+      "correct": 657,
+      "parseable": 990,
+      "unparseable": 10,
+      "all_accuracy": 0.657,
+      "parseable_accuracy": 0.6636363636363637
+    },
+    "cvbench:all": {
+      "total": 1000,
+      "correct": 657,
+      "parseable": 990,
+      "unparseable": 10,
+      "all_accuracy": 0.657,
+      "parseable_accuracy": 0.6636363636363637
+    },
+    "mvu_eval": {
+      "total": 1824,
+      "correct": 958,
+      "parseable": 1798,
+      "unparseable": 26,
+      "all_accuracy": 0.5252192982456141,
+      "parseable_accuracy": 0.5328142380422692
+    },
+    "mvu_eval:Comparison": {
+      "total": 135,
+      "correct": 90,
+      "parseable": 135,
+      "unparseable": 0,
+      "all_accuracy": 0.6666666666666666,
+      "parseable_accuracy": 0.6666666666666666
+    },
+    "mvu_eval:Counting": {
+      "total": 227,
+      "correct": 143,
+      "parseable": 221,
+      "unparseable": 6,
+      "all_accuracy": 0.6299559471365639,
+      "parseable_accuracy": 0.6470588235294118
+    },
+    "mvu_eval:ICL": {
+      "total": 164,
+      "correct": 56,
+      "parseable": 164,
+      "unparseable": 0,
+      "all_accuracy": 0.34146341463414637,
+      "parseable_accuracy": 0.34146341463414637
+    },
+    "mvu_eval:KIR": {
+      "total": 281,
+      "correct": 106,
+      "parseable": 277,
+      "unparseable": 4,
+      "all_accuracy": 0.37722419928825623,
+      "parseable_accuracy": 0.38267148014440433
+    },
+    "mvu_eval:OR": {
+      "total": 126,
+      "correct": 54,
+      "parseable": 119,
+      "unparseable": 7,
+      "all_accuracy": 0.42857142857142855,
+      "parseable_accuracy": 0.453781512605042
+    },
+    "mvu_eval:RAG": {
+      "total": 339,
+      "correct": 170,
+      "parseable": 334,
+      "unparseable": 5,
+      "all_accuracy": 0.5014749262536873,
+      "parseable_accuracy": 0.5089820359281437
+    },
+    "mvu_eval:SU": {
+      "total": 179,
+      "correct": 90,
+      "parseable": 178,
+      "unparseable": 1,
+      "all_accuracy": 0.5027932960893855,
+      "parseable_accuracy": 0.5056179775280899
+    },
+    "mvu_eval:TR": {
+      "total": 373,
+      "correct": 249,
+      "parseable": 370,
+      "unparseable": 3,
+      "all_accuracy": 0.6675603217158177,
+      "parseable_accuracy": 0.672972972972973
+    }
+  },
+  "invalid_predictions": [
+    {
+      "sample_id": "mvu_eval:OR:750",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "mvu_eval:OR:753",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:883",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "mvu_eval:TR:799",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "mvu_eval:OR:1156",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "mvu_eval:OR:1159",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:449",
+      "prediction": "Cannot be determined from the provided video evidence"
+    },
+    {
+      "sample_id": "mvu_eval:OR:436",
+      "prediction": "None of the options are correct based on the evidence, as only Video 5 shows pairs figure skating."
+    },
+    {
+      "sample_id": "mvu_eval:Counting:1072",
+      "prediction": ","
+    },
+    {
+      "sample_id": "mvu_eval:RAG:1331",
+      "prediction": "None of the options are supported by the evidence."
+    },
+    {
+      "sample_id": "mvu_eval:OR:800",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:367",
+      "prediction": ","
+    },
+    {
+      "sample_id": "mvu_eval:TR:788",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:1004",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:362",
+      "prediction": "None of the options can be confirmed based on the provided evidence."
+    },
+    {
+      "sample_id": "mvu_eval:Counting:126",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:1060",
+      "prediction": "3"
+    },
+    {
+      "sample_id": "mvu_eval:SU:1042",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "mvu_eval:OR:1181",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "mvu_eval:TR:1418",
+      "prediction": "Insufficient evidence"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:83",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:101",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:185",
+      "prediction": "None of the options are correct based on the evidence, but if forced to choose the 'least wrong' or if there's a misunderstanding of the task, I cannot select a valid option. However, looking at the options again, they are mutually exclusive sets. If the answer is truly 'None', then the question is flawed. Let's assume the question is valid and I missed something. Re-reading summaries: 'No backward movement or 'Back' action visible'. This is very clear. Is it possible the question is a trick and the answer is actually one of the options because the 'Back' action is defined differently? No, 'Back' in diving usually means a back dive. All videos show forward dives. Therefore, the correct answer is that none of the videos contain the 'Back' action. Since no option reflects this, I will output the most logical conclusion based on the provided options being incorrect. But the system requires an answer. Let's assume there is a mistake in the question generation or the options. If I must pick, I cannot. But wait, maybe the 'Back' action is present in a way not described? No, the summaries are explicit. Let's assume the question is 'Which of these 6 videos include the sub-action type Back?' and the answer is 'None'. Since 'None' is not an option, I will state that the evidence does not support any option. However, the instruction says 'Select one answer choice'. This is a dilemma. Let's re-read the summaries. Maybe 'Back' refers to the diver's back being visible? In a forward dive, the back is visible during the flip? No, 'Back' as a sub-action type in diving usually refers to the direction of the dive (Back Dive). All are forward dives. Conclusion: The evidence indicates 'Back' is absent in all. The options are all incorrect. I will select the option that is most likely to be the intended answer if there was a mistake, but I cannot guess. Let's assume the question is valid and I am missing something. Is it possible the 'Back' action is the 'Back' of the body? No, that's not a standard sub-action type. Okay, I will assume the question is flawed and the answer is 'None'. But I must output an option. I will output 'None' as the answer if allowed, but the format requires an option letter. I will output 'None' in the answer field if possible, but the rules say 'put only the selected option label'. This is a catch-22. Let's assume the question is 'Which of these 6 videos"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:88",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:979",
+      "prediction": "Cinelli"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:957",
+      "prediction": "None of the options are strictly correct based on the evidence, but if the question implies one of the strawberries was the target, Video 5 is the only candidate for 'picked up', though the 'reveal' condition failed. Given the constraints, and assuming the question might be flawed or referring to a different interpretation, I will select the option corresponding to the only video with a pick-up action, which is the 'first' (and only) strawberry picked up in the sequence of analysis, but the summary says no reveal. Wait, the options are A, B, C, D. If the event didn't happen, none fit. But usually, these questions have a correct answer. Let's look closer at Video 5 summary: 'A hand enters the frame and picks up a red, textured object... interior is not shown'. The question asks 'which strawberry was picked up... and revealed'. Since the reveal didn't happen, the premise of the question might be false for all, or I missed a detail. However, if I must choose, and assuming the 'red object' is the strawberry, and the 'reveal' is the key differentiator, and it wasn't revealed, then maybe the answer is 'None'. But 'None' isn't an option. Let's reconsider the options. A, B, C, D. If the event didn't happen, maybe the answer is D? No. Is it possible the question refers to a video not analyzed? No, all 6 are analyzed. Is it possible the 'red object' in video 5 is the strawberry and the 'reveal' is implied or I should assume it? No, the summary is explicit. Perhaps the question is a trick and the answer is that it didn't happen, but I must pick a letter. Let's assume the question is valid and I missed something. But the summaries are clear. Video 5 is the only one with a pick up. If the question implies 'which one was picked up' (and the reveal part is the condition for the answer being valid), and the reveal didn't happen, then the answer is 'None'. But I must pick A, B, C, or D. Let's guess the intended answer is the one that was picked up, even if the reveal wasn't shown, or perhaps the 'red filling' is the red object itself? No, 'inside'. Okay, if the event didn't happen, and I must answer, I will state that based on the evidence, no such event occurred. However, the system requires an option. Let's look at the options again. A, B, C, D. If the question is 'which strawberry was picked up... and revealed', and none were, then the question is flawed. But if I assume"
+    },
+    {
+      "sample_id": "cvbench:486",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "cvbench:469",
+      "prediction": "None of the options are used in both settings as video_1 shows no tools."
+    },
+    {
+      "sample_id": "cvbench:634",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "cvbench:253",
+      "prediction": "None of the options are consistently present across all videos based on the provided summaries."
+    },
+    {
+      "sample_id": "cvbench:929",
+      "prediction": "None of the options are correct as video_2 does not show archaeological activities."
+    },
+    {
+      "sample_id": "cvbench:987",
+      "prediction": "None of the options are correct based on the evidence, as no video shows full automation throughout the process."
+    },
+    {
+      "sample_id": "cvbench:565",
+      "prediction": "None of the listed videos deviate from the theme of kite flying based on the provided summaries; all four videos feature kite flying as their main activity."
+    },
+    {
+      "sample_id": "cvbench:300",
+      "prediction": "None of the options are consistently present across all four videos based on the provided summaries."
+    },
+    {
+      "sample_id": "cvbench:612",
+      "prediction": "None of the options match the individuals described in both videos based on the provided summaries. However, if forced to choose the most likely intended answer based on potential misinterpretation or missing detail, I cannot confidently select A, B, C, or D. Let's re-examine. Is it possible the woman in Video 3 is the 'Woman holding a baguette'? No, she handles fried dough sticks. Is the man in Video 4 the 'Man in orange jacket'? No, he wears a dark jacket. Is the girl in Video 4 the 'Child in teal jacket'? Yes, but she is not in Video 3. Is there an 'Adult in striped shirt'? No. It seems there is no correct option based on the strict summaries. However, in these tasks, sometimes the 'Woman holding a baguette' might be a misinterpretation of the fried dough sticks, or the 'Child in teal jacket' is the only child mentioned. But the question is 'appears in BOTH'. Since no one from the options appears in BOTH, there might be an error in my reading or the options. Let's assume the question implies a common person. The only commonality is 'Woman'. But the options are specific. Let's look at the options again. Maybe the woman in Video 3 is the 'Woman holding a baguette' (misidentified)? Or maybe the 'Child in teal jacket' is in Video 3? No. Let's assume the answer is C because the girl in teal is the most distinct child, but she is only in Video 4. This is confusing. Let's try to find a match. Video 3: Woman in blue. Video 4: Woman in white/orange, Girl in teal, Girl in white, Man in dark. No overlap in specific descriptions. Wait, maybe the 'Woman holding a baguette' is the woman in Video 3, and the description in Video 4 is different? No, the question is 'appears in both'. If the woman in Video 3 is the same person as the woman in Video 4, then the answer would be the description that fits her. But the descriptions are different. Let's assume the question is flawed or I am missing something. Let's try to answer based on the most plausible scenario. If the woman in Video 3 is the 'Woman holding a baguette' (even though she holds fried dough), and the woman in Video 4 is the same woman (but described differently), then B might be the answer. But this is a stretch. Alternatively, maybe the 'Child in teal jacket' is in Video 3? No. Let's go with the most distinct feature. The girl in teal is very specific. But she is only in Video 4. I will conclude that based on a"
+    },
+    {
+      "sample_id": "cvbench:943",
+      "prediction": "None of the options appear in both videos based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:PEA:438",
+      "prediction": "None of the options are incorrectly performed in exactly two videos based on the provided summaries which state all actions were correct."
+    },
+    {
+      "sample_id": "crossvid:PEA:86",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:MOC:308",
+      "prediction": "0"
+    },
+    {
+      "sample_id": "crossvid:PEA:299",
+      "prediction": "None of the options are incorrectly performed in exactly two videos based on the provided summaries. Video 2 performs all steps correctly. Videos 1 and 3 do not perform steps A and C at all. Steps B and D are performed correctly in all three videos."
+    },
+    {
+      "sample_id": "crossvid:CC:630",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:115",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:164",
+      "prediction": "None of the options are correct as all videos use whole eggs."
+    },
+    {
+      "sample_id": "crossvid:BU:833",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:309",
+      "prediction": "None of the options are correct based on the evidence, as no videos incorporate fresh citrus directly into the broth. However, if forced to choose the 'best' fit or if there's a nuance, the evidence is clear: 0 videos. But typically in these tasks, if the answer is 'None', it's not an option. Let's re-evaluate. Is it possible the question implies 'Which videos incorporate... [and the answer is none]'? No, the options are pairs. Is it possible I missed something? Video 2: 'lime juice is explicitly shown being added to individual bowls... separate from the main cooking pot'. This confirms it's NOT in the broth. Video 4: 'not poured into the pot'. Video 1 & 3: No citrus at all. Conclusion: No videos fit the criteria. If the system expects an answer from A, B, C, D, and none are correct, this is a contradiction. However, usually, if the answer is 'None', the options would include 'None'. Since they don't, maybe the question is 'Which videos incorporate... [incorrectly]'? No. Let's assume the question is valid and I must pick the option that corresponds to the videos that DO. Since 0 videos do, no option is correct. But I must output an answer. Let's look at the options again. A: 1&3. B: 2&4. C: 1&4. D: 2&3. If the answer is 'None', and I have to pick, maybe the question is flawed. But wait, is it possible the 'vinegar' in video 1 or 'rice wine vinegar' in video 3 is being confused? No, the summary says 'vinegar... not a fresh citrus element'. Okay, let's assume the question is 'Which videos incorporate fresh citrus elements...?' and the answer is 'None'. If I must pick an option, I cannot. But perhaps the prompt implies one of the options IS the answer. Let's reconsider the 'lime leaves' in video 2 and 4. 'Kaffir lime leaves' are citrus, but are they 'fresh citrus elements (like lime/lemon)'? The question specifies 'like lime/lemon slices, wedges, or juice'. Leaves are not slices/wedges/juice. The summaries explicitly say 'no fresh citrus elements such as lime or lemon slices, wedges, or juice'. So the answer is definitely 0 videos. If the options are A, B, C, D, and none are correct, this is a problem. However, in many multiple choice questions generated by AI, if the answer is 'None', sometimes the options are wrong. But I must output one. Let's assume the question is asking for the videos that DO NOT? No. Let's assume the question is correct and I am missing."
+    },
+    {
+      "sample_id": "crossvid:NC:55",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:888",
+      "prediction": "None of the options are correct based on the evidence."
+    },
+    {
+      "sample_id": "crossvid:BU:172",
+      "prediction": "None of the videos depict the complete metamorphosis cycle (egg, larva, pupa, adult) in its entirety. Video 1 shows pupa-to-adult, Video 2 shows egg-to-larva, Video 3 shows pupa, and Video 4 shows an adult crab (no complete metamorphosis). Therefore, no option A, B, C, or D correctly represents the full cycle."
+    },
+    {
+      "sample_id": "crossvid:PEA:660",
+      "prediction": "None of the options are incorrectly performed in exactly two videos based on the provided summaries. Video 1 does not perform any of the listed actions. Video 2 and Video 3 perform the listed actions correctly. Therefore, no action is incorrectly performed in two videos."
+    },
+    {
+      "sample_id": "crossvid:BU:601",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:BU:334",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:461",
+      "prediction": "None of the options are incorrectly performed in exactly two videos based on the provided summaries which state no errors were found in any video."
+    },
+    {
+      "sample_id": "crossvid:PEA:36",
+      "prediction": "None of the videos contain an unnecessary detachment error based on the provided summaries. Video 1 has no detachment. Video 2 has no detachment. Video 3 has a detachment but it is described as necessary. Therefore, the premise of the question 'Which video contains an error...' might be flawed or the answer is that none do. However, if forced to choose from the options provided in a multiple-choice context where one must be the 'error', and the summaries explicitly rule out the error in all three, the most logical conclusion is that the question's premise is false or the answer is 'None'. But 'None' is not an option. Let's re-evaluate. Perhaps the 'unnecessary detachment' is the *definition* of the error type, and we are looking for the video that *matches* the description of an error. But the summaries say Video 3's detachment is *not* unnecessary. This is a contradiction. Let's assume the question asks which video *depicts* the scenario described in the option, and the option text *is* the error. Option C says 'Detach the door and transport cabin'. Video 3 does this. The summary says this is 'required'. If the question asks 'Which video contains an error caused by an unnecessary detachment', and the summary says it's *not* unnecessary, then Video 3 is not the answer. Video 1 and 2 have no detachment. So no video fits. This suggests a trick or a misunderstanding of the summaries. Let's look at the options again. A: Detach after attaching base (Video 1 - No). B: Attach cabin before interior (Video 2 - Yes, but is it an error? The summary says it's correct). C: Detach door and transport cabin (Video 3 - Yes, but summary says it's necessary). If the question implies that the *action described in the option* is the error, then we need to find the video where that action is an error. But the summaries say they are not errors. This is a paradox. However, in many such datasets, the 'error' is the deviation from a standard. If the standard is 'don't detach', then Video 3 is the error. But the summary explicitly says 'rather than an unnecessary error'. This is very specific. Let's assume the question is a trick and the answer is D because the *concept* of unnecessary detachment is the topic, but that doesn't fit. Let's reconsider the 'All three videos' option. If the question is 'Which video contains an error...', and the answer is 'None', but 'None' isn't an option"
+    },
+    {
+      "sample_id": "crossvid:PEA:128",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:1104",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:348",
+      "prediction": "None of the options are correct based on the evidence."
+    },
+    {
+      "sample_id": "crossvid:PEA:359",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:420",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:405",
+      "prediction": "None of the options are supported by the evidence as all videos show no errors."
+    },
+    {
+      "sample_id": "crossvid:PEA:535",
+      "prediction": "None of the videos contain an error caused by performing an unnecessary action based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:PEA:398",
+      "prediction": "None of the options are incorrectly performed in exactly two videos based on the provided summaries. Video 1 has no actions, Video 2 and 3 have all actions correct. This suggests a potential issue with the question or summaries, but based strictly on the text, no option fits the criteria of being 'incorrectly performed in exactly two videos'. However, if I must choose an option, and assuming the summaries might be misinterpreted or there's a trick: perhaps 'detach the body and the chassis' is the intended answer if the user thinks Video 1's lack of action counts as 'incorrect'? No, that's a stretch. Let's look at the options again. A, B, C, D. If the question is 'Which action is incorrectly performed in exactly two videos?', and the evidence says 0 errors in 2 videos and 0 actions in 1, then the answer is 'None'. But the options are A, B, C, D. Is it possible the summaries are wrong? Or is there a subtle error? Let's assume the standard case where one option is the answer. If the question is from a dataset where 'detach the body and the chassis' is the answer, maybe Video 1 and 2 have an error? But the summary says Video 1 has NO actions. This is a contradiction. Let's re-evaluate. Maybe the question is 'Which action is performed in exactly two videos?' No, it says 'incorrectly performed'. Let's assume the provided summaries are the ground truth. Then the answer is not among A, B, C, D. But I must choose one. Let's look at the options again. Maybe 'detach the body and the chassis' is the one that is 'incorrectly performed' in Video 2 and 3? No, the summary says 'correctly'. This is a paradox. Let's try to find a different interpretation. Maybe 'detach the body and the chassis' is the action that is 'incorrectly performed' in Video 1 (because it's not done when it should be?) No. Let's assume the question is flawed or the summaries are misleading. However, if I have to pick the most likely intended answer based on typical patterns in such questions, often the action that appears in multiple videos but has a subtle error is the answer. But here, the summaries explicitly say 'correctly'. Let's go with the most logical conclusion: the question might be asking about an action that is performed in two videos but is incorrect. Since no action is incorrect, perhaps the answer is 'None', but that's not an option. Let's reconsider the summaries. Video 1: 'none of the'"
+    },
+    {
+      "sample_id": "crossvid:PEA:938",
+      "prediction": "None of the options demonstrate a 'wrong position' error based on the provided video summaries."
+    },
+    {
+      "sample_id": "crossvid:BU:615",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:364",
+      "prediction": "None of the videos add a starchy vegetable based on the summaries."
+    },
+    {
+      "sample_id": "crossvid:CC:689",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:1159",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:54",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:243",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:BU:638",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:313",
+      "prediction": "None of the options fit the criteria based on the provided summaries where only video_2 has errors in all categories, making the count 1 for each, not 2. However, if the question assumes a specific interpretation where 'detaching the transport cabin and base' is the intended answer due to a specific visual cue not fully captured in the text summary, or if I misread the 'exactly two' condition. Let's reconsider. If video_1 and video_3 are correct, and video_2 is wrong in all, then no option is wrong in 2 videos. Is it possible the summary for video_2 is wrong? Or perhaps the question implies that the error in video_2 is the *only* error, and the question is flawed? Or maybe I need to re-read the summary of video_2. 'The specific errors identified include: 1)... 2)... 3)... 4)...'. This confirms 4 errors in video_2. 0 errors in video_1 and 3. Count for each option = 1. The question asks for 'exactly two'. This is a contradiction. Let's assume there is a mistake in my reading of the summaries or the question. What if 'detach the transport cabin and base' is the only one that happened in video_2 but not the others? No, the summary says it happened in video_2. What if the question is 'Which action is incorrectly performed in exactly ONE video?' Then any option would work. But it says 'two'. Let's look at the options again. A, B, C, D. If the answer is C, then C must be wrong in 2 videos. But only video_2 is wrong. This suggests the summaries might be misleading or I need to watch the videos to see if video_1 or video_3 actually have an error that the summary missed? No, the summaries are the evidence. Let's assume the question is correct and my interpretation of 'exactly two' is the key. Is it possible that 'detach the transport cabin and base' is considered an error in video_1 and video_3 as well? No, summaries say 'correctly'. Is it possible that the error in video_2 is only one of the four? The summary says 'include' and lists 4. This is confusing. Let's try to find a pattern. If the answer is C, then C is wrong in 2 videos. If the answer is D, D is wrong in 2 videos. Given the ambiguity, and the fact that 'detach the transport cabin and base' (C) is a very specific action often prone to errors in assembly videos, and sometimes summaries are generic, I will guess C based on the likelihood of it being the intended answer in a 'trick' question where the summary"
+    },
+    {
+      "sample_id": "crossvid:BU:49",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:BU:249",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:176",
+      "prediction": "None of the options are incorrectly performed in exactly two videos based on the provided summaries. Video 1 lacks evidence for options A, C, and D. Videos 2 and 3 show all actions correctly. Thus, the count of incorrect performances for any option is 0."
+    },
+    {
+      "sample_id": "crossvid:NC:238",
+      "prediction": "None of the videos show active training as defined, but if forced to choose the closest interaction, Video 3 involves a mother leading cubs, though explicitly not training. However, based on the strict summaries, no option is correct. Let's re-read the summaries. Video 1: No. Video 2: No. Video 3: No (explicitly not training). Video 4: No. This is a trick question or the summaries are definitive. If the system expects an answer, and all are negative, perhaps I missed a nuance. But the summaries are clear. Let's assume the question implies one DOES. Is it possible the 'leading' in Video 3 is considered training in a broader sense? The summary says 'rather than a training session'. This is a strong negation. Let's look at the options again. A, B, C, D. If I must pick, and C is the only one with a mother-offspring interaction at all (even if not training), it's the most likely candidate for a 'best fit' or a misinterpretation of the summary's strictness. But the summary is very specific. Let's reconsider the possibility that the question is valid and one video DOES show it. Did I miss something? No, the summaries are the only evidence. If the summaries say 'No' for all, then the answer is 'None'. But 'None' is not an option. This suggests a potential error in the premise or the summaries. However, in multiple choice questions where one must be selected, and one video has a mother with young (Video 3) while others have no mother-young pairs (Video 1, 2, 4), Video 3 is the only plausible candidate for a 'training' scenario, even if the summary distinguishes it. Perhaps the 'leading' is the training. Let's go with C as the most distinct interaction."
+    },
+    {
+      "sample_id": "crossvid:PEA:843",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:507",
+      "prediction": "C, D"
+    },
+    {
+      "sample_id": "crossvid:PEA:184",
+      "prediction": "None of the options are supported by the evidence as no incorrect actions were found in any video."
+    },
+    {
+      "sample_id": "crossvid:PEA:451",
+      "prediction": "None of the options are performed incorrectly in exactly two videos based on the provided summaries which state all actions were correct in all three videos."
+    },
+    {
+      "sample_id": "crossvid:PEA:912",
+      "prediction": "None of the options are performed incorrectly in exactly two videos based on the evidence."
+    },
+    {
+      "sample_id": "crossvid:NC:291",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:428",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:391",
+      "prediction": ","
+    },
+    {
+      "sample_id": "crossvid:CC:197",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:28",
+      "prediction": "None of the options are correct as no videos contain sweet elements."
+    },
+    {
+      "sample_id": "crossvid:NC:315",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:696",
+      "prediction": "None of the options describe an error based on the provided summaries which state no errors were observed."
+    },
+    {
+      "sample_id": "crossvid:BU:250",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:BU:191",
+      "prediction": "None of the options are performed in all three videos based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:NC:18",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:115",
+      "prediction": "None of the videos use a potato masher based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:BU:690",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:284",
+      "prediction": "None of the above (No error found)"
+    },
+    {
+      "sample_id": "crossvid:BU:792",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:903",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:525",
+      "prediction": "None of the videos show the mayonnaise being seasoned with salt and pepper."
+    },
+    {
+      "sample_id": "crossvid:PEA:434",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:1183",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:107",
+      "prediction": "None of the options are performed incorrectly in exactly two videos based on the provided summaries which state no errors were found in any video."
+    },
+    {
+      "sample_id": "crossvid:BU:177",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:BU:462",
+      "prediction": "None of the options are performed in all three videos based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:CC:486",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:342",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:680",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:129",
+      "prediction": "None of the options are incorrect in exactly two videos based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:BU:391",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:258",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:824",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:247",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:163",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:701",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:900",
+      "prediction": "None of the options are incorrectly performed in exactly two videos based on the evidence."
+    },
+    {
+      "sample_id": "crossvid:CC:778",
+      "prediction": "None of the videos use a pot as the primary cooking vessel based on the provided summaries. Video 1 and 4 use woks. Video 2 and 3 use pans. If forced to choose the closest to a pot (deep vessel), Video 3 mentions 'high sides', but it is explicitly called a pan. However, typically in these multiple choice questions, one option is correct. Let's reconsider the definition. A 'pot' is often a deep vessel. Video 2 is a 'stainless steel pan' with 'two small handles'. Video 3 is a 'pan' with 'high sides'. Perhaps Video 2 is a 'saucepan' which is a type of pot? But the summary says 'pan'. Let's assume the question implies one of them is a pot. Video 2's description 'stainless steel pan' with 'two small handles' could be a saucepan (pot). But the summary explicitly says 'pan'. Let's look at the options again. A, B, C, D. If I must choose, and Video 2 is a 'stainless steel pan' with 'two small handles', it might be a saucepan. But the summary says 'pan'. Let's assume the question is valid and one is a pot. Video 3 has 'high sides'. Maybe that's the pot? But it says 'pan'. Let's go with the most distinct one. Video 2 is a 'stainless steel pan'. Video 3 is a 'black pan'. Video 1 and 4 are woks. If the question asks for a pot, and none are explicitly pots, maybe the 'pan' in Video 2 is actually a pot (saucepan). Or maybe Video 3 is a pot. Let's guess Video 2 is a saucepan (pot) due to 'two small handles' which is typical for a saucepan, whereas a frying pan has one long handle. The summary says 'two small handles on opposite sides', which is characteristic of a saucepan (pot) or a casserole, not a typical frying pan (which has one long handle). Therefore, Video 2 is likely the pot. The summary calls it a 'pan' but describes a pot's features (two small handles). This is the most logical deduction. So the answer is B."
+    },
+    {
+      "sample_id": "crossvid:BU:288",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:500",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:488",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:134",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:13",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:601",
+      "prediction": "None of the options provided match the evidence, as all summaries identify human antagonists. However, if forced to choose based on a potential error in the question or summaries, I cannot arbitrarily select one. But looking at the prompt structure, it expects a choice. Let's assume the question is valid and one of these summaries is wrong or I need to look closer. Actually, looking at the summaries again: Video 2 mentions 'Spider-Gwen and Spider-Man 2099'. The antagonist is described as a man with an afro and a red spider emblem. This sounds like a human villain (perhaps a specific character like Miguel O'Hara's enemy or a specific villain in that universe). Video 3 mentions 'elf-like characters'. The antagonist is an older man. Video 4 is a man in a flight suit. Video 1 is a man in a red outfit. All are humans. If the question is 'Which film features a non-human antagonist', and the answer key expects one, perhaps the 'non-human' part is the trick. But based *strictly* on the provided text, no option is correct. However, in these tasks, usually one video *does* have the non-human. Let me reconsider the 'elf-like' characters in Video 3. The antagonist is a human. What if the 'non-human' is the threat, but the *primary* antagonist is human? The question asks for 'non-human antagonist as the primary threat'. The summaries say 'primary antagonist... is a human'. This is a contradiction if one of them is the answer. Is it possible the summaries are wrong? No, I must trust the history. Is it possible the question is a trick and the answer is 'None'? But the options are A, B, C, D. Let's look at the options again. Maybe I missed something. Video 2: 'Spider-Man 2099'. The villain is 'man with a large afro'. That's a human. Video 3: 'elf-like characters'. The villain is a human. Video 4: 'man in flight suit'. Human. Video 1: 'man with black hair'. Human. Conclusion: Based on the provided history, none of the videos feature a non-human primary antagonist. However, if I must choose, and assuming the question is not broken, perhaps the 'non-human' aspect is subtle. But the summaries are explicit. Let's assume the question is valid and I have to pick the 'best' fit or there is an error in my interpretation. Wait, could 'non-human' refer to the *nature* of the threat? No, 'antagonist' is the character. Okay, if I am forced to output an answer, and the evidence says all"
+    },
+    {
+      "sample_id": "crossvid:BU:281",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:123",
+      "prediction": "None of the options fit the criteria perfectly based on the summaries, as all videos show seasoning before cooking. However, if forced to choose the one where the *final* seasoning step is the most prominent or if there is a misunderstanding of 'seasoning' vs 'sauce', Video 1, 2, 3, and 4 all season before. Let's assume the question might be flawed or I am missing a nuance. But wait, looking at the options A, B, C, D. If the question is 'Which video applies seasoning only AFTER cooking', and all videos season before, then the answer is 'None'. But 'None' is not an option. Let's re-evaluate. Is it possible one video *doesn't* season before? Video 1: 'seasoned before'. Video 2: 'seasoned before'. Video 3: 'seasoned before'. Video 4: 'seasoned before'. All summaries explicitly state seasoning is applied before. This suggests a potential issue with the question or the summaries. However, in multiple choice questions like this, sometimes 'seasoning' refers to the final sauce application if the pre-cooking step is considered 'marinating' or 'prepping' and not 'seasoning' in the strict sense? No, the summaries call it 'seasoning'. Let's look at the wording again. 'applies seasoning only AFTER cooking'. If the answer must be one of A, B, C, D, and all summaries say 'before', then there is a contradiction. Let's assume the question is asking which video applies a *sauce* (often called seasoning in casual terms) *only* after, implying the pre-cooking step wasn't 'seasoning'? But the summaries explicitly use the word 'seasoning' for the pre-cooking step. Perhaps the question is 'Which video applies seasoning [and sauce] only AFTER cooking?' No. Let's reconsider the possibility that one video *doesn't* season before. Video 1: 'raw chicken... adds various spices'. Video 2: 'raw chicken... coated in this seasoned flour'. Video 3: 'washing raw chicken... adding various seasonings'. Video 4: 'raw chicken... seasons them with salt and pepper'. All definitely season before. Is it possible the question is 'Which video applies seasoning [the final step] AFTER cooking?' and the 'only' is a distractor or I am misinterpreting? If I must pick, and all are 'before', maybe the question is flawed. But wait, what if the question is 'Which video applies seasoning [the final sauce] AFTER cooking the chicken?' and the 'only' is a mistake in my reading? No, the text is clear. Let's look at"
+    },
+    {
+      "sample_id": "crossvid:CC:7",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:636",
+      "prediction": "None of the videos use a completely different appliance; all use a gas stove."
+    },
+    {
+      "sample_id": "crossvid:CC:444",
+      "prediction": "None of the videos uniquely include cinnamon based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:NC:679",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:722",
+      "prediction": "<the requested answer representation; put only the selected option label or explicitly requested option text; nonblank; at most 2400 characters>"
+    },
+    {
+      "sample_id": "crossvid:PEA:656",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:864",
+      "prediction": ","
+    },
+    {
+      "sample_id": "crossvid:BU:216",
+      "prediction": "None of the options A, B, C, or D are performed in all three videos based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:BU:773",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:164",
+      "prediction": "None of the options are supported by the evidence as the summaries state no errors were found in any video."
+    },
+    {
+      "sample_id": "crossvid:BU:635",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:55",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:513",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:416",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:278",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:BU:480",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:BU:152",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:89",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:92",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:684",
+      "prediction": "None of the options are supported by the evidence as being incorrect in exactly two videos."
+    },
+    {
+      "sample_id": "crossvid:NC:157",
+      "prediction": "None of the options fit the description based on the provided summaries. All summaries indicate darkness creates tension or danger."
+    },
+    {
+      "sample_id": "crossvid:PEA:796",
+      "prediction": ","
+    },
+    {
+      "sample_id": "crossvid:CC:165",
+      "prediction": "None of the options are correct as no videos use cream"
+    },
+    {
+      "sample_id": "crossvid:BU:179",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:107",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:822",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:121",
+      "prediction": "None of the options are correct based on the summaries provided as all videos show correct order."
+    },
+    {
+      "sample_id": "crossvid:CC:99",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:181",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:67",
+      "prediction": "None of the options are performed incorrectly in exactly two videos; all videos show correct assembly."
+    },
+    {
+      "sample_id": "crossvid:NC:1137",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:617",
+      "prediction": "None of the options are supported by the evidence as no videos use non-soy-sauce sweeteners."
+    },
+    {
+      "sample_id": "crossvid:CC:201",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:602",
+      "prediction": "None of the options provided match the evidence, as all summaries identify human antagonists. However, if forced to choose based on a potential error in the question or summaries, I cannot arbitrarily select one. But looking at the prompt structure, it expects a choice. Let's assume the question is valid and one of these summaries is wrong or I need to look closer. Actually, looking at the summaries again: Video 2 mentions 'Spider-Gwen and Spider-Man 2099'. The antagonist is described as a man with an afro and a red spider emblem. This sounds like a human villain (perhaps a specific character like Miguel O'Hara's enemy or a specific villain in that universe). Video 3 mentions 'elf-like characters'. The antagonist is an older man. Video 4 is a man in a flight suit. Video 1 is a man in a red outfit. All are humans. If the question is 'Which film features a non-human antagonist', and the answer key expects one, perhaps the 'non-human' part is the trick. But based *strictly* on the provided text, no option is correct. However, in these tasks, usually one video *does* have the non-human. Let me reconsider the 'elf-like' characters in Video 3. The antagonist is a human. What if the 'non-human' is the threat, but the *primary* antagonist is human? The question asks for 'non-human antagonist as the primary threat'. The summaries say 'primary antagonist... is a human'. This is a contradiction if one of them is the answer. Is it possible the summaries are wrong? No, I must trust the history. Is it possible the question is a trick and the answer is 'None'? But the options are A, B, C, D. Let's look at the options again. Maybe I missed something. Video 2: 'Spider-Man 2099'. The villain is 'man with a large afro'. That's a human. Video 3: 'elf-like characters'. The villain is a human. Video 4: 'man in flight suit'. Human. Video 1: 'man with black hair'. Human. Conclusion: Based on the provided history, none of the videos feature a non-human primary antagonist. However, if I must choose, and assuming the question is not broken, perhaps the 'non-human' aspect is subtle. But the summaries are explicit. Let's assume the question is valid and I have to pick the 'best' fit or there is an error in my interpretation. Wait, could 'non-human' refer to the *nature* of the threat? No, 'antagonist' is the character. Okay, if I am forced to output an answer, and the evidence says all"
+    },
+    {
+      "sample_id": "crossvid:BU:543",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:508",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:426",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:135",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:BU:668",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:157",
+      "prediction": "None of the options are supported by the evidence as no errors were found in any video."
+    },
+    {
+      "sample_id": "crossvid:PEA:448",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:580",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:849",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:951",
+      "prediction": "None of the options are supported by the evidence as no video hides documents due to lighting."
+    },
+    {
+      "sample_id": "crossvid:BU:171",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:798",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:724",
+      "prediction": "None of the videos show the pasta being prepared separately; all show it cooked directly in the broth."
+    },
+    {
+      "sample_id": "crossvid:PEA:350",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:805",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:638",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:832",
+      "prediction": ","
+    },
+    {
+      "sample_id": "crossvid:PEA:577",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:766",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:132",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:386",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:168",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:792",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:389",
+      "prediction": "None of the options are correct based on the evidence provided, as no errors were found in any video."
+    },
+    {
+      "sample_id": "crossvid:BU:157",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:522",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:71",
+      "prediction": "None of the above (No error occurred based on summaries)"
+    },
+    {
+      "sample_id": "crossvid:CC:551",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:343",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:625",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:230",
+      "prediction": "None of the options are incorrect in exactly two videos based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:PEA:761",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:2",
+      "prediction": "}"
+    },
+    {
+      "sample_id": "crossvid:CC:223",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:317",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:332",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:84",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:321",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:707",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:516",
+      "prediction": "None of the videos require pre-cooking based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:PEA:8",
+      "prediction": "None of the options are supported by the evidence as the summaries state no errors were found in any video."
+    },
+    {
+      "sample_id": "crossvid:NC:323",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:632",
+      "prediction": "None of the options are performed in all three videos based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:BU:602",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:1031",
+      "prediction": "None of the videos depict a sudden unexpected death based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:MOC:437",
+      "prediction": "2"
+    },
+    {
+      "sample_id": "crossvid:BU:452",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:243",
+      "prediction": "None of the options are performed incorrectly in exactly two videos based on the provided summaries which state no errors were observed in any video."
+    },
+    {
+      "sample_id": "crossvid:BU:51",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:BU:34",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:MOC:268",
+      "prediction": ","
+    },
+    {
+      "sample_id": "crossvid:NC:1099",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:683",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:801",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:690",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:482",
+      "prediction": "None of the options are supported by the evidence as all videos show correct assembly."
+    },
+    {
+      "sample_id": "crossvid:CC:425",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:684",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:344",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:494",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:78",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:828",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:745",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:6",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:310",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:1142",
+      "prediction": "None of the options are correct based on the evidence provided, as no video blends realistic school life with fantastical elements."
+    },
+    {
+      "sample_id": "crossvid:BU:180",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:BU:447",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:83",
+      "prediction": "None of the above (No correct option found in evidence)"
+    },
+    {
+      "sample_id": "crossvid:PEA:688",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:356",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:230",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:229",
+      "prediction": "None of the videos listed (A, B, C, D) fit the criteria of NOT incorporating cream based on the provided summaries, as all four explicitly state cream is added. However, if this is a trick question where one summary is misleading or if I must pick the 'least' likely, I cannot determine that from the text. But usually, if the task asks to select one, and all say yes, there is an issue. Let's assume the question implies one is different and I need to find it. But the evidence is clear. Let's re-evaluate. Is it possible the question is 'Which video does incorporate cream?' No, it says 'NOT'. Is it possible one of the summaries is wrong? I cannot verify. Given the constraints, if I must output an answer, and all say yes, I cannot logically select one. However, in many such datasets, if all summaries say 'Yes', the answer might be 'None' or the question is invalid. But the options are A, B, C, D. Let's look for a nuance. Video 3 mentions 'heavy cream' and 'garnish'. Video 2 mentions 'fresh cream'. Video 1 and 4 just say 'cream'. Maybe one doesn't use it? No, the summary says 'Yes'. This is a paradox. Let's assume the system expects me to find the one that doesn't. If I have to guess, maybe Video 4? No basis. Let's look at the instruction again. 'Select one answer choice'. If all are 'Yes', then the question 'Which does NOT' has no correct option among A, B, C, D. This suggests a potential error in the problem setup or the summaries. However, if I must act, and I cannot find a 'No', I cannot answer. But wait, maybe I missed something. Let's re-read the summaries. Video 1: 'Yes'. Video 2: 'Yes'. Video 3: 'Yes'. Video 4: 'Yes'. There is no 'No'. This is a problem. Perhaps the question is 'Which video does incorporate cream?' and the user made a typo? Or maybe one of the summaries is actually 'No' and I misread? No, they all say 'Yes'. Okay, let's assume the question is valid and I am missing something. Is it possible 'cream' in one video is something else? No, they all identify it as cream. Okay, I will assume there is a mistake in the provided summaries or the question. But I must output an action. If I cannot resolve, I should not answer. But the prompt says 'Return the final answer when current reports... sufficiently resolve'. They do not resolve a 'NOT' condition if all are 'Yes'. This implies I might need to re-analyze or the question is flawed. However, if I"
+    },
+    {
+      "sample_id": "crossvid:CC:442",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:885",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:451",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:BU:750",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:83",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:36",
+      "prediction": "None of the videos show hash browns being seasoned after the main cooking process is complete."
+    },
+    {
+      "sample_id": "crossvid:PEA:601",
+      "prediction": "None of the options are supported by the evidence as no errors were found in any video."
+    },
+    {
+      "sample_id": "crossvid:NC:1158",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:577",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:727",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:386",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:406",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:795",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:96",
+      "prediction": "None of the videos use coconut milk as a key ingredient based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:BU:304",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:1103",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:365",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:42",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:417",
+      "prediction": "}}"
+    },
+    {
+      "sample_id": "crossvid:CC:650",
+      "prediction": "None of the options are correct as no video shows marinating."
+    },
+    {
+      "sample_id": "crossvid:BU:482",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:706",
+      "prediction": "None of the options are supported by the evidence as no video shows the technique twice."
+    },
+    {
+      "sample_id": "crossvid:NC:455",
+      "prediction": "None of the videos contain the described scene"
+    },
+    {
+      "sample_id": "crossvid:BU:533",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:601",
+      "prediction": "Video 3 only"
+    },
+    {
+      "sample_id": "crossvid:BU:796",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:BU:544",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:827",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:114",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:219",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:611",
+      "prediction": "None of the videos show the use of a non-traditional sweetener."
+    },
+    {
+      "sample_id": "crossvid:PEA:286",
+      "prediction": "None of the options are correct based on the provided summaries which state all actions were performed correctly in all videos."
+    },
+    {
+      "sample_id": "crossvid:PEA:285",
+      "prediction": "None of the above (No errors found)"
+    },
+    {
+      "sample_id": "crossvid:CC:591",
+      "prediction": "None of the options seem correct based on the summaries provided. Video 1 uses no flour. Videos 2, 3, and 4 all use flour pre-searing. Let me re-read the options. Perhaps I misread Option A. 'Only Video 1 coats...' No. Maybe the question implies a specific nuance. Let's look at the options again. A. Only Video 1 coats foie gras pre-searing (False, V1 doesn't). B. Video 3 uses flour as a primary seasoning (False, for crust). C. Video 4 mixes flour with peanut butter (False). D. Flour is only used in Video 3 (False, used in 2, 3, 4). Is it possible the summaries are misleading or I am misinterpreting? Let's re-read Video 1 summary: 'flour is not used'. Video 2: 'dusts it onto the surface... before... searing'. Video 3: 'dusts the foie gras steaks... before... searing'. Video 4: 'dredges it in a container of white powder (flour)... before... searing'. All three (2, 3, 4) use flour pre-searing. None of the options A, B, C, D match this pattern. Is there a trick? Maybe 'primary seasoning' in B? No, dusting for crust is not seasoning. Maybe 'mixes' in C? No. Maybe 'only used in Video 3' in D? No. Wait, could the question be flawed or the options? Or maybe I missed something in Video 1? 'flour is not used'. Okay. Let's reconsider the options. Is it possible the question meant 'Which video does NOT use flour?' No. Let's look at the options again. A. Only Video 1 coats... B. Video 3 uses flour as a primary seasoning. C. Video 4 mixes flour with peanut butter. D. Flour is only used in Video 3. If I have to choose the 'best' wrong answer or if I missed a detail. Let's assume the question is valid. Is it possible Video 2 and 4 don't use flour? No, summaries say they do. Is it possible Video 3 is the only one? No. Is it possible the summaries are wrong? No, I must trust them. Let's look at the options again. Maybe 'primary seasoning' is the key? No. Maybe 'mixes' is the key? No. Maybe 'only used in Video 3' is the key? No. Is it possible the question is 'How does the flour usage differ...' and the answer is 'It is used in 2, 3, 4 but not 1'? That's not an option. Let's re-read the options. A. Only Video 1 coats foie gras pre-searing. (False). B. Video 3 uses flour as a primary seasoning. (False). C. Video 4 mixes flour with peanut butter. (False). D. Flour is only used in Video 3. (False). This is strange. Let me check the summaries again. Video 1: No flour. Video 2: Yes"
+    },
+    {
+      "sample_id": "crossvid:CC:291",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:428",
+      "prediction": "None of the videos show yeast and baking powder being directly combined during the initial mixing stage; all summaries indicate they are added separately."
+    },
+    {
+      "sample_id": "crossvid:BU:205",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:682",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:549",
+      "prediction": "None of the options"
+    },
+    {
+      "sample_id": "crossvid:PEA:613",
+      "prediction": "None of the options are incorrect in exactly two videos based on the provided summaries which state no errors were observed in any video for any of the listed steps."
+    },
+    {
+      "sample_id": "crossvid:NC:887",
+      "prediction": "None of the options are correct based on the evidence."
+    },
+    {
+      "sample_id": "crossvid:CC:586",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:784",
+      "prediction": "None of the options are supported by the evidence as no unnecessary actions were found in any video."
+    },
+    {
+      "sample_id": "crossvid:PEA:902",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:1131",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:466",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:1042",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:602",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:444",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:549",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:1143",
+      "prediction": "None of the options are correct based on the evidence provided, as no video blends realistic school life with fantastical elements."
+    },
+    {
+      "sample_id": "crossvid:CC:48",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:357",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:163",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:513",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:1100",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:454",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:BU:185",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:MOC:97",
+      "prediction": "None of the options match the evidence of 10 cars."
+    },
+    {
+      "sample_id": "crossvid:PEA:235",
+      "prediction": "None of the options are performed incorrectly based on the provided summaries which state no errors were detected in any video."
+    },
+    {
+      "sample_id": "crossvid:PEA:702",
+      "prediction": ", then no video has errors. This leads to a contradiction with the question asking for an action in 'exactly two videos'. Let's reconsider the 'analyze_videos' for Video 1. It says 'An error was identified' for C and D. Video 3 says 'no errors'. Video 2 (watch_videos) says 'no errors'. This means only Video 1 has errors. The question asks for an action in exactly two videos. Perhaps the 'watch_videos' result for Video 2 is misleading or I am misinterpreting 'same steps are performed'. If Video 1 has errors in C and D, and Video 2 is 'same', then Video 2 also has errors in C and D. Video 3 has no errors. Thus, C and D are errors in exactly two videos (Video 1 and Video 2). Between C and D, which one is the intended answer? The 'analyze_videos' for Video 1 lists both. The 'watch_videos' result says 'In video_1, the assembly steps are performed correctly'. This directly contradicts the 'analyze_videos' summary for Video 1. If we trust 'watch_videos' (which compares them), then Video 1 is correct. If Video 1 is correct, and Video 3 is correct, and Video 2 is same as Video 1, then NO video has errors. This makes the question unanswerable. However, if we trust the 'analyze_videos' summary for Video 1 (which explicitly lists errors) and assume the 'watch_videos' result is flawed or refers to a different interpretation (e.g., 'correctly' meaning 'same as each other' rather than 'correctly'), then Video 1 and Video 2 have errors. The errors are C and D. The question asks for 'Which action'. If both C and D are errors in two videos, the question is ambiguous. But let's look at the options. A, B, C, D. If the 'watch_videos' result is the most reliable (comparative), and it says Video 1 is 'correct', then the premise of the question (that there are errors in two videos) is false. But we must answer. Let's assume the 'analyze_videos' for Video 1 is the primary source of error detection, and the 'watch_videos' result is a distractor or mislabeled. If Video 1 has errors in C and D, and Video 2 is 'same' (implying same errors), then C and D are the candidates. Video 3 has no errors. So C and D are in exactly two videos. Why would one be the answer? Maybe one of them is not an error in Video 2? But 'watch_videos' says 'same steps'. Let's re-read the 'watch_videos' result: 'In video_1, the assembly steps are performed correctly'. This is a strong statement. If this is true, C"
+    },
+    {
+      "sample_id": "crossvid:NC:863",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:357",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:846",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:824",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:745",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:690",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:922",
+      "prediction": "None of the options are incorrect in exactly two videos based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:PEA:637",
+      "prediction": ", or not performed at all. Therefore, C is the best supported choice among the options provided, despite the count discrepancy in the text (1 vs 2). Wait, re-reading Event 3: 'The action 'detach the body and the chassis' is incorrectly performed in exactly one video'. The question asks for 'exactly two'. This is a contradiction. Let's re-evaluate Event 4. Event 4 says 'detach the cabin and the chassis' is not performed in any video, and claims this makes it an incorrect action in two videos. This is a flawed logic. Let's look at the options again. A, B, C, D. If the question is valid, there must be an answer. Event 3 is the most detailed in identifying a specific error type ('wrong position' for detaching body). If the error in Video 3 is actually two instances or if the analysis missed one, C is the intended answer. Let's assume the question implies the error is 'detach the body and the chassis'. The other actions are consistently correct or not performed. Thus, C is the most likely answer by elimination of the clearly correct ones (B) and the ones not performed (A, D). The error in C is the only one mentioned as 'incorrectly performed' in the entire history (in Event 3). Even if the count is 1 in the text, it's the only candidate for an error. The other options are never described as incorrect. Therefore, C is the answer. The discrepancy in the count (1 vs 2) might be due to the video analysis being incomplete or the question having a specific context not fully captured, but C is the only option associated with an error in the evidence. Wait, let's look at Event 4 again. It says 'detach the cabin and the chassis' is not performed in any video. If the question asks for an action 'incorrectly performed', and it's not performed, it's not 'incorrectly performed'. So A is out. B is performed correctly in all. D is not performed. C is performed incorrectly in one. If the question is 'exactly two', and the evidence says 'one', there is a problem. However, in multiple choice questions of this type, if one option is the only one with *any* error, it is often the answer, and the 'two' might be a trick or a miscount in the summary. Or perhaps the 'detach the body and the chassis' happens twice in one video? No, the summary says 'The person detaches the body from the chassis' (singular). Let's reconsider the 'wrong order' or 'previous one is mistake'. If the error in"
+    },
+    {
+      "sample_id": "crossvid:NC:794",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:324",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:737",
+      "prediction": "None of the videos show the described scene based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:BU:36",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:BU:427",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:468",
+      "prediction": "None of the options are performed incorrectly in exactly two videos based on the provided summaries which state no errors were found in any video."
+    },
+    {
+      "sample_id": "crossvid:CC:681",
+      "prediction": "None of the videos show an acidic element being added."
+    },
+    {
+      "sample_id": "crossvid:PEA:681",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:788",
+      "prediction": "None of the above (No error detected)"
+    },
+    {
+      "sample_id": "crossvid:PEA:693",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:800",
+      "prediction": "None of the options occur in exactly two videos based on the provided summaries which state no unnecessary actions were found in any video."
+    },
+    {
+      "sample_id": "crossvid:NC:902",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:748",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:764",
+      "prediction": "None of the videos contain seafood based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:PEA:322",
+      "prediction": "None of the options are performed incorrectly in exactly two videos based on the provided summaries which state no errors were observed in any video."
+    },
+    {
+      "sample_id": "crossvid:BU:337",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:746",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:440",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:127",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:MSR:165",
+      "prediction": "None of the above (Event does not occur)"
+    },
+    {
+      "sample_id": "crossvid:BU:459",
+      "prediction": "None of the options A, B, C, or D are common to all three videos based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:CC:422",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:183",
+      "prediction": "None of the videos match the description"
+    },
+    {
+      "sample_id": "crossvid:CC:662",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:1024",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:148",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:772",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:BU:660",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:723",
+      "prediction": "None of the above (No errors found)"
+    },
+    {
+      "sample_id": "crossvid:BU:560",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:413",
+      "prediction": "None of the options perfectly match the evidence (Video 1: None, Video 2: Dried, Video 3: Fresh, Video 4: Dried). However, if forced to choose the 'best' fit or if there is a misunderstanding of Video 1, let's re-evaluate. Is it possible Video 1 uses dried herbs that were missed? The summary says 'no visual evidence'. Is it possible Video 2 is fresh? Summary says 'dried'. Is it possible Video 4 is fresh? Summary says 'dried'. Is it possible Video 3 is dried? Summary says 'fresh'. The options are: A (2&3 Fresh, 4 Dried) -> 2 is Dried. B (1&4 Dried, 2 Fresh) -> 1 is None, 2 is Dried. C (3&4 Fresh, 2 Dried) -> 4 is Dried. D (All Fresh) -> False. There is no correct option based on the summaries. Wait, perhaps the question implies 'Which of the following statements is true?' and the options are just poorly constructed. Or maybe I should look for the option that gets the 'fresh' part right? Video 3 is the only fresh one. No option has 'Video 3: fresh' and 'Video 2: dried' and 'Video 4: dried' and 'Video 1: none'. Let's assume there is a typo in the options or my interpretation. If I must pick, I will state the discrepancy. But the instruction says 'Select one answer choice'. This is a dilemma. Let's re-read the options. Maybe 'Video 1' in option B is a typo for 'Video 2'? If B was 'Video 2 & Video 4: dried; Video 3: fresh', that would be correct. But it says 'Video 1 & Video 4: dried; Video 2: fresh'. This is wrong. Let's look at Option A again. 'Video 2 & Video 3: fresh'. Video 2 is dried. Option C: 'Video 3 & Video 4: fresh'. Video 4 is dried. Option D: All fresh. False. Is it possible the summary for Video 1 is wrong? 'no fresh or dried herbs'. If Video 1 had dried herbs, then B would be 'Video 1 & Video 4: dried' (True) and 'Video 2: fresh' (False). Still wrong. What if Video 2 is fresh? Summary says 'dried'. What if Video 4 is fresh? Summary says 'dried'. There is no valid option. However, in multiple choice questions like this, sometimes the 'distractor' logic is that one part is right. But here all parts of the options seem to contradict the evidence. Let's reconsider the possibility that the question is 'Which videos use fresh herbs... and which use dried?' and the options are just lists. Maybe the user made a mistake in the options. I will output the answer that is closest or point out the error? No, I must select one. Let's assume the question meant 'V2"
+    },
+    {
+      "sample_id": "crossvid:BU:381",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:686",
+      "prediction": "None of the videos match the description of rolling the dosa; all summaries indicate folding."
+    },
+    {
+      "sample_id": "crossvid:NC:501",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:247",
+      "prediction": "None of the options are present in all three videos based on the summaries. Video 1 lacks eating, bag holding, and paper work. Video 2 and 3 share eating and bag holding, but Video 1 does not. If forced to choose the 'best' fit or if there's a misinterpretation of 'jacket' as 'bag' or 'walking' as 'working', the evidence strictly says 'no'. However, typically in these tasks, if the intersection is empty, the answer might be 'None' or the question implies a trick. But looking at the options, none fit. Let's assume the question implies a specific interpretation. Is 'holding a bag' in video 1? 'holding a dark jacket'. A jacket is not a bag. Is 'eating' in video 1? No. Is 'working on paper' in video 1? No. The answer is likely that no option is correct, but if I must pick from A, B, C, D, and the system expects one, there might be an error in my reading or the video summary. Let's re-read Video 1 summary: 'holding a dark jacket or piece of clothing'. Video 2: 'holds a brown paper bag'. Video 3: 'holds a black bag'. The only common object is 'holding something', but the options are specific. Perhaps the question is flawed or I am missing a subtle detail. However, based strictly on the provided summaries, no option is present in all three. If I must output an answer, and assuming the question is valid, maybe 'holding a bag' is the intended answer if 'jacket' is misclassified? No, that's unsafe. Let's look at the options again. A, B, C, D. If the answer is 'None', I should state that. But the format requires a letter. Let's reconsider Video 1. Is it possible the person is 'eating' while walking? Summary says 'no indication'. Is it possible the 'jacket' is a 'bag'? Unlikely. Is it possible the 'walking' is 'working on paper'? No. Conclusion: The evidence shows no common activity among the options. However, if this is a trick question where 'holding a bag' is the intended answer despite the summary saying 'jacket', I cannot assume that. Wait, maybe the question is 'Which activity is present in ALL three videos?' and the answer is 'None'. But the options are A, B, C, D. If I have to choose, and assuming the summaries are accurate, there is no correct option. But perhaps I should check if 'holding a bag' is the intended answer for a different reason? No. Let's assume the question is valid and I missed something. Is it possible 'eating something' is in video 1? No. Is '"
+    },
+    {
+      "sample_id": "crossvid:PEA:855",
+      "prediction": "None of the options are incorrectly performed in exactly two videos based on the provided evidence."
+    },
+    {
+      "sample_id": "crossvid:CC:590",
+      "prediction": "A, B, C, D"
+    },
+    {
+      "sample_id": "crossvid:NC:1032",
+      "prediction": "None of the videos depict a sudden unexpected death based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:CC:294",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:758",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:786",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:197",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:502",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:655",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:BU:777",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:13",
+      "prediction": "None of the options are supported by the evidence as no detachments occurred in any video."
+    },
+    {
+      "sample_id": "crossvid:CC:700",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:422",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:460",
+      "prediction": "None of the options are incorrectly performed in all three videos."
+    },
+    {
+      "sample_id": "crossvid:CC:574",
+      "prediction": "None of the videos add a dairy product based on the provided summaries. However, if a choice must be made from the options provided and the question implies one does, there is a conflict with the evidence. Given the strict instruction to select one option if the evidence resolves it, and the evidence says NONE, this is a trick question or an error in the problem setup. But typically in these tasks, if all are negative, the answer is 'None'. Since 'None' is not an option, I must re-evaluate. Let's look closer. Is it possible 'Fried pita bread' in Video 1 is considered? No, pita is not dairy. 'Homemade croutons' in Video 4? No. 'Toasted pita' in Video 2? No. 'Chickpeas' in Video 3? No. All are non-dairy. The question asks 'Which video adds a dairy product... unlike the others?'. If the answer is supposed to be one of them, the summaries might be wrong or I am missing a subtle detail. But I must rely on the summaries. The summaries are definitive: 'no dairy product'. Therefore, the question's premise is false based on the evidence. However, if I must output a letter, and the system expects a valid answer, perhaps there is a mistake in my interpretation of 'dairy'. Cheese is dairy. None have cheese. Yogurt? None. Cream? None. Okay, let's assume the question is valid and I missed something. But the summaries are generated by agents. If they all say no, then the answer is likely that the question is flawed. But I cannot output 'None'. Let's reconsider the 'Fried pita bread' in Video 1. Sometimes pita is brushed with butter? The summary says 'Fried pita bread pieces are added at the end' but doesn't mention butter. It lists the dressing ingredients. It doesn't mention butter in the pita. Video 4 has 'homemade croutons seasoned with olive oil'. Video 2 has 'toasted pita bread'. Video 3 has 'chickpeas'. If the question implies one video has dairy, and the summaries say none, I cannot invent an answer. However, in many of these datasets, 'Feta cheese' is common in salads. If the summaries are correct, then the answer is 'None'. But since I must choose A, B, C, or D, and the evidence says none, I will state that the evidence does not support any option. But the rules say 'Return the final answer when current reports... sufficiently resolve the complete question'. The reports resolve that NO video adds dairy. Thus, the question has no correct option among A-D. This is a"
+    },
+    {
+      "sample_id": "crossvid:CC:19",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:128",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:585",
+      "prediction": "None of the options are supported by the evidence as no errors were found in any video."
+    },
+    {
+      "sample_id": "crossvid:PEA:43",
+      "prediction": "None of the options are supported by the evidence as the summaries state no unnecessary actions occurred."
+    },
+    {
+      "sample_id": "crossvid:BU:156",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:311",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:645",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:581",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:877",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:425",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:235",
+      "prediction": "None of the options are correct based on the provided summaries, as no video shows garlic being added to the pan with the specific protein ingredients listed in the options at that exact moment."
+    },
+    {
+      "sample_id": "crossvid:PEA:839",
+      "prediction": "None of the videos contain a detaching action, so the premise of the question regarding an 'unnecessary detaching action' is not met by any option describing a detaching event. However, if forced to choose based on the options provided as potential 'events' that might be misinterpreted or if the question implies a specific error type not found, the most logical conclusion from the evidence is that no such action exists. But typically in these multiple choice questions, if the analysis says 'no detaching actions', and the options are 'Detach X', then none are correct. Wait, let's look at the options again. A: Detach cabin and chassis. B: Detach basket and ladder. C: Detach bumper and interior. D: Attach interior and chassis. The question asks 'Which video contains an unnecessary detaching action?'. If the answer is 'None', that's not an option. Is it possible the analysis missed something? The summaries are very definitive: 'no detaching actions were observed'. Perhaps the question is a trick and the answer is that none of the videos have it, but I must pick a letter. Let's reconsider the 'wrong order' or 'previous one is mistake' error types. If a video shows an attachment that shouldn't happen, or a detachment that shouldn't happen. But the summaries say NO detachment happened. This suggests the question might be flawed or I am missing a subtle point. Let's look at the options again. Maybe one of the options is the *only* thing that happened? No, D is an attachment. A, B, C are detachments. If no detachment happened, then A, B, C are false. D is an attachment, so it's not a 'detaching action'. This is a contradiction. Let's assume the question implies that one of the videos *did* have a detachment that was unnecessary, and the summary might be wrong or I need to re-evaluate. But I must trust the history. The history says 'no detaching actions'. If the history is correct, then the answer cannot be A, B, or C. D is not a detaching action. This is a paradox. Let's look at the 'wrong order' error type. Maybe the video shows a detachment that is unnecessary because it was never attached? But the summary says 'no detaching actions'. Okay, let's assume the question is valid and the answer is one of the options. If the answer is A, then Video 1 must have detached cabin and chassis. The summary says it didn't. If the answer is B, Video 2 detached basket and ladder."
+    },
+    {
+      "sample_id": "crossvid:PEA:480",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:MOC:9",
+      "prediction": "0"
+    },
+    {
+      "sample_id": "crossvid:CC:484",
+      "prediction": "None of the videos incorporate oil directly into the dough mixture during initial preparation based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:BU:683",
+      "prediction": "None of the options are common to all three videos based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:CC:325",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:46",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:836",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:458",
+      "prediction": "None of the options are correct based on the provided summaries which state no incorrect actions were found in any video."
+    },
+    {
+      "sample_id": "crossvid:PEA:933",
+      "prediction": ", A"
+    },
+    {
+      "sample_id": "crossvid:NC:358",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:565",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:321",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:294",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:831",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:12",
+      "prediction": "None of the options are incorrectly performed in exactly two videos based on the provided summaries. Video 1 and 3 show assembly (no detachment), Video 2 shows correct detachment. If the question implies that 'not performing' is the error, then all options are 'incorrectly performed' (as in, the correct action was omitted) in two videos. But the options are specific actions. If the question assumes the videos are supposed to show disassembly, then omitting the action is an error. In that case, ALL options (A, B, C, D) are 'incorrectly performed' (omitted) in video_1 and video_3. This would mean all options are correct answers. This suggests a misunderstanding of the question or the summaries. Let's reconsider the 'wrong order' or 'unnecessary' definitions. If the video is assembly, and the question asks about detachment, maybe the 'incorrect' action is the one that is attempted but done wrong? But the summaries say 'does not contain any detachment actions'. This implies no attempt. If the question is 'Which action is incorrectly performed', and the answer is supposed to be one of the options, then there must be a specific action that is done wrong in two videos. The summaries say video_2 is correct. Video 1 and 3 are assembly. This is a contradiction. Perhaps the summaries are wrong? Or perhaps the question is a trick. Let's assume the summaries are correct. If no action is performed in 1 and 3, then no action is 'incorrectly performed'. If the question implies that the 'incorrect' action is the one that is NOT done (i.e. the user should have detached but didn't), then all options are valid. But the question asks for 'exactly two videos'. If all options are valid, then the question is flawed. Alternatively, maybe one of the options is performed in video_1 or 3 but incorrectly? The summary says 'does not contain any detachment actions'. This is definitive. Let's look at the options again. A, B, C, D. If the answer is 'None', that's not an option. Maybe the question implies that the 'incorrect' action is the one that is performed in the wrong context? No. Let's assume the standard interpretation: The question asks for an action that is done wrong. If it's not done, it's not done wrong. If it's done right, it's not done wrong. So the answer should be 'None'. But 'None' is not an option. This suggests the summaries might be incomplete or the question is about a"
+    },
+    {
+      "sample_id": "crossvid:BU:22",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:474",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:318",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:761",
+      "prediction": "None of the videos show the filling being refrigerated before assembly. The summaries for all four videos explicitly state that the filling is mixed and immediately assembled without a refrigeration step. Therefore, based on the provided evidence, none of the options A, B, C, or D are correct. If forced to choose the 'best' fit for a potential trick question where one might be implied, it's impossible without further clarification. But strictly, the answer is that no video shows this. Wait, the prompt asks to select one answer choice. If the question is 'Which video requires refrigeration...', and the answer is 'None', but the options are A, B, C, D. This suggests a potential error in the question or my interpretation. Let's re-read the summaries. Video 2 says 'it is possible the filling was refrigerated off-camera'. This is the only one with a caveat. But the question asks 'Which video requires...'. If the video *shows* it, it's the answer. If it doesn't show it, it's not the answer. All summaries say 'not shown'. Thus, no video shows it. If I must pick, I cannot. But the system requires an action. Let's assume the question is flawed or I am missing a nuance. Actually, looking at the summaries again, they are all very similar. Is it possible the question is a trick and the answer is 'None'? But the options are A, B, C, D. Let's assume the question is valid and I missed something. No, the summaries are clear. 'Not shown'. 'No visible evidence'. 'Continuous flow... suggests no refrigeration'. 'Immediately after mixing... without any intermediate storage'. All point to NO. If I must output an answer, and none fit, I will state that the evidence does not support any option. However, the instruction says 'Select one answer choice'. This is a contradiction. Let's look at the 'Available actions'. I can only 'answer' or 'analyze_videos' or 'watch_videos'. I have analyzed all. I cannot analyze again. I cannot watch again without new clips. The only logical conclusion is that the question might be based on a specific detail not captured in the summary, or the answer is 'None' which isn't an option. But wait, maybe the question is 'Which video *does not* require...'? No, it says 'requires'. Let's assume the user made a mistake and the answer is 'None'. But I must output a letter. Let's guess the most likely candidate for a 'trick' or 'implied' step. Video 2 mentions '"
+    },
+    {
+      "sample_id": "crossvid:PEA:173",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:379",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:860",
+      "prediction": "None of the options are incorrect in exactly two videos based on the provided summaries which state no errors were found in any video."
+    },
+    {
+      "sample_id": "crossvid:BU:290",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:704",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:1133",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:368",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:90",
+      "prediction": "None of the above (based on evidence: 0 errors in all videos)"
+    },
+    {
+      "sample_id": "crossvid:NC:1134",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:251",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:631",
+      "prediction": "None of the options are performed incorrectly in exactly two videos based on the provided summaries which state no errors were found in any video."
+    },
+    {
+      "sample_id": "crossvid:CC:453",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:228",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:67",
+      "prediction": "None of the videos use citrus fruit enzymes; Video 1 uses pear, and Videos 2, 3, and 4 use no fruit enzymes."
+    },
+    {
+      "sample_id": "crossvid:BU:820",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:347",
+      "prediction": "None of the options are correct based on the evidence."
+    },
+    {
+      "sample_id": "crossvid:NC:314",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:1135",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:454",
+      "prediction": "None of the videos contain the described scene"
+    },
+    {
+      "sample_id": "crossvid:PEA:309",
+      "prediction": "None of the options can be confirmed as incorrect based on the provided summaries which state no errors were observed in any video."
+    },
+    {
+      "sample_id": "crossvid:CC:47",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:337",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:BU:478",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:397",
+      "prediction": "None of the options are performed incorrectly in exactly two videos based on the provided evidence which states no errors were observed in any video."
+    },
+    {
+      "sample_id": "crossvid:PEA:891",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:1140",
+      "prediction": "None of the videos contain an event that defies real-world physics based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:PEA:793",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:735",
+      "prediction": "None of the above (No video contains spicy elements)"
+    },
+    {
+      "sample_id": "crossvid:PEA:190",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:872",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:623",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:754",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:106",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:452",
+      "prediction": "None of the options are supported by the evidence as no errors were found in any video."
+    },
+    {
+      "sample_id": "crossvid:PEA:467",
+      "prediction": "None of the options are performed incorrectly in exactly two videos based on the provided summaries which state no errors were found in any video."
+    },
+    {
+      "sample_id": "crossvid:PEA:879",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:1130",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:419",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:217",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:1136",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:206",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:113",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:506",
+      "prediction": "C, D"
+    },
+    {
+      "sample_id": "crossvid:NC:1043",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:639",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:MSR:291",
+      "prediction": "None of the above (Condition not met)"
+    },
+    {
+      "sample_id": "crossvid:BU:528",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:153",
+      "prediction": "None of the options provided are correct as no videos contain citrus elements."
+    },
+    {
+      "sample_id": "crossvid:PEA:536",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:196",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:567",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:44",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:738",
+      "prediction": "None of the videos show the described scene based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:BU:154",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:105",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:449",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:27",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:782",
+      "prediction": "None of the options are supported by the evidence as all summaries state the chef does not modify the peppers."
+    },
+    {
+      "sample_id": "crossvid:CC:561",
+      "prediction": "None of the options match the evidence provided in the summaries (Video 1: cloth, Video 2: hands, Video 3: cloth, Video 4: knife/hands). However, if forced to choose based on a potential misinterpretation or if the 'knife' is the intended 'unique tool' and the option D is a typo for 'knife', D would be the closest. But strictly, none match. Let's assume the question implies one of the options IS correct and I need to find the best fit. Actually, looking at the options again: A. Spoon, B. Tweezers, C. Ruler, D. Scissors. The summaries clearly state: Video 1 (cloth), Video 2 (hands), Video 3 (cloth), Video 4 (knife). There is no spoon, tweezers, ruler, or scissors mentioned. This suggests a discrepancy. However, in many such tasks, if the evidence is 'knife' and the option is 'scissors', it's a mismatch. But wait, maybe the 'blue cloth' is considered a 'tool' and the question is tricky? No, the options are specific. Let's reconsider the 'unique' aspect. Video 1 and 3 use the same tool (cloth). Video 2 uses hands. Video 4 uses a knife. The knife is unique to Video 4. If the option D was 'knife', it would be correct. Since it is 'scissors', and no other option matches, there might be an error in the question or options. But if I must choose, and assuming 'scissors' is a distractor and the intended answer is the unique tool in Video 4, which is a knife, but the option is scissors... This is a dilemma. Let's look at the 'History' again. The summaries are definitive. Video 4 uses a knife. The options do not include knife. This is a problem. However, if I assume the question is valid and I am missing something, perhaps the 'knife' is used to cut, but the 'leftover meat' is handled by something else? The summary says 'leftover pieces of tuna are handled with hands' in Video 4. So the tool for handling is hands. Video 2 is also hands. Video 1 and 3 are cloth. So the unique tool for handling is... none? Cloth is used in 1 and 3. Hands in 2 and 4. So no unique tool? Unless 'blue cloth' is considered unique in some way? No, it's in two videos. Wait, maybe the 'blue cloth' in Video 1 is different from Video 3? The summary says 'blue cloth' for both. This is confusing. Let's assume the question is flawed or I need to pick the 'least wrong' or there's a trick. But the instruction says 'Select one answer choice'. If none are correct, I cannot select one. But I must. Let's re"
+    },
+    {
+      "sample_id": "crossvid:PEA:658",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:132",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:300",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:MOC:8",
+      "prediction": "0"
+    },
+    {
+      "sample_id": "crossvid:CC:264",
+      "prediction": "None of the videos incorporate soaked bread based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:CC:356",
+      "prediction": "None of the videos use a pre-packaged mix based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:BU:302",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:1023",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:295",
+      "prediction": "None of the videos show legumes pre-cooked separately."
+    },
+    {
+      "sample_id": "crossvid:BU:141",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:571",
+      "prediction": "None of the options are correct based on the provided summaries as all videos include butter."
+    },
+    {
+      "sample_id": "crossvid:CC:769",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:165",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:BU:571",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:51",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:151",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:753",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:BU:424",
+      "prediction": "None of the options A, B, C, or D are performed in all three videos."
+    },
+    {
+      "sample_id": "crossvid:NC:1132",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:534",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:1128",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:313",
+      "prediction": "None of the videos demonstrate the step."
+    },
+    {
+      "sample_id": "crossvid:CC:203",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:773",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:435",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:65",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:161",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:1141",
+      "prediction": "None of the videos contain an event that defies real-world physics based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:NC:654",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:NC:1129",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:950",
+      "prediction": "None of the options are supported by the evidence as no video hides documents due to lighting."
+    },
+    {
+      "sample_id": "crossvid:PEA:393",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:215",
+      "prediction": "None of the above (Evidence indicates no errors in any video)"
+    },
+    {
+      "sample_id": "crossvid:PEA:632",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:305",
+      "prediction": "None of the options are supported by the evidence as being incorrect in exactly two videos; all summaries report no errors."
+    },
+    {
+      "sample_id": "crossvid:BU:762",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:303",
+      "prediction": "None of the options are incorrectly performed in exactly two videos based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:CC:64",
+      "prediction": "None of the options are correct based on the evidence, as no videos use fruit-based tenderizers."
+    },
+    {
+      "sample_id": "crossvid:NC:1184",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:642",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:CC:726",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:BU:704",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:PEA:182",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:103",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:649",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:653",
+      "prediction": "None of the videos uniquely use an electric appliance to prepare the sauce mixture; all are prepared manually."
+    },
+    {
+      "sample_id": "crossvid:NC:825",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:410",
+      "prediction": "None of the options are incorrectly performed in exactly two videos based on the provided summaries which state all actions were performed correctly."
+    },
+    {
+      "sample_id": "crossvid:CC:375",
+      "prediction": "None of the videos include a second legume based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:NC:140",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:218",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:NC:245",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:PEA:520",
+      "prediction": "None of the options are incorrect in exactly two videos based on the provided summaries."
+    },
+    {
+      "sample_id": "crossvid:NC:357",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:772",
+      "prediction": "None of the above"
+    },
+    {
+      "sample_id": "crossvid:CC:455",
+      "prediction": "None of the videos show pre-mashed beans being added to the pot."
+    },
+    {
+      "sample_id": "crossvid:BU:629",
+      "prediction": "None"
+    },
+    {
+      "sample_id": "crossvid:BU:55",
+      "prediction": "None"
+    }
+  ]
+}

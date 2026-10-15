@@ -1,0 +1,1007 @@
+{
+  "version": 2,
+  "dataset": "mvagent-multibench-broad-v1",
+  "seed": 20260828,
+  "samples": [
+    {
+      "sample_id": "crossvid:BU:683",
+      "split": "train",
+      "group_id": "media_ef3c618f07502ae22211"
+    },
+    {
+      "sample_id": "crossvid:CC:149",
+      "split": "train",
+      "group_id": "media_54ee0443b549a92bd48c"
+    },
+    {
+      "sample_id": "crossvid:CCQA:329",
+      "split": "train",
+      "group_id": "media_c90e63fd5c4ed2a3610e"
+    },
+    {
+      "sample_id": "crossvid:FSA:698",
+      "split": "train",
+      "group_id": "media_74121519e964c5d97482"
+    },
+    {
+      "sample_id": "crossvid:MOC:558",
+      "split": "train",
+      "group_id": "media_f666668277f29c1d07e1"
+    },
+    {
+      "sample_id": "crossvid:MSR:514",
+      "split": "train",
+      "group_id": "media_e42040cd652567e7f913"
+    },
+    {
+      "sample_id": "crossvid:NC:13",
+      "split": "train",
+      "group_id": "media_3765f47752f8f3611533"
+    },
+    {
+      "sample_id": "crossvid:PEA:796",
+      "split": "train",
+      "group_id": "media_26092426b0a4f0b30e0b"
+    },
+    {
+      "sample_id": "crossvid:PI:124",
+      "split": "train",
+      "group_id": "media_ea5c26f7fa30d017c8b9"
+    },
+    {
+      "sample_id": "crossvid:PSS:313",
+      "split": "train",
+      "group_id": "media_b1974567c6efa7181616"
+    },
+    {
+      "sample_id": "cvbench:709",
+      "split": "train",
+      "group_id": "media_292d824c8ed89a609e7d"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1674",
+      "split": "train",
+      "group_id": "media_60de9c7ae7f64823419b"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:422",
+      "split": "train",
+      "group_id": "media_4f10bece1f00731d540f"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:653",
+      "split": "train",
+      "group_id": "media_3ab02dc78f39966b73ed"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:207",
+      "split": "train",
+      "group_id": "media_cabc8910022067d237bc"
+    },
+    {
+      "sample_id": "mvu_eval:OR:1182",
+      "split": "train",
+      "group_id": "media_cd8120e3ca953676a0a8"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:1770",
+      "split": "train",
+      "group_id": "media_f16f08b63ae1b1fae3a5"
+    },
+    {
+      "sample_id": "mvu_eval:SU:1033",
+      "split": "train",
+      "group_id": "media_cab45574e3920e83aad5"
+    },
+    {
+      "sample_id": "mvu_eval:TR:1453",
+      "split": "train",
+      "group_id": "media_f621739308eacdfac1b1"
+    },
+    {
+      "sample_id": "crossvid:BU:103",
+      "split": "train",
+      "group_id": "media_c1b39dd8225c5270803f"
+    },
+    {
+      "sample_id": "crossvid:CC:18",
+      "split": "train",
+      "group_id": "media_d6ae1bacddcc8c907f64"
+    },
+    {
+      "sample_id": "crossvid:CCQA:393",
+      "split": "train",
+      "group_id": "media_22c6d9dcb0d155b0b498"
+    },
+    {
+      "sample_id": "crossvid:FSA:1858",
+      "split": "train",
+      "group_id": "media_dd8338ec5fbfa9f6de4d"
+    },
+    {
+      "sample_id": "crossvid:MOC:333",
+      "split": "train",
+      "group_id": "media_01afe2e21690bc6a736e"
+    },
+    {
+      "sample_id": "crossvid:MSR:266",
+      "split": "train",
+      "group_id": "media_9c72ba5257322da250cf"
+    },
+    {
+      "sample_id": "crossvid:NC:444",
+      "split": "train",
+      "group_id": "media_e460798bbd038209a014"
+    },
+    {
+      "sample_id": "crossvid:PEA:116",
+      "split": "train",
+      "group_id": "media_73f01eedb314ea3127ca"
+    },
+    {
+      "sample_id": "crossvid:PI:153",
+      "split": "train",
+      "group_id": "media_e112ae74a9f0af44312a"
+    },
+    {
+      "sample_id": "crossvid:PSS:287",
+      "split": "train",
+      "group_id": "media_cb5f2135061d295ffa93"
+    },
+    {
+      "sample_id": "cvbench:132",
+      "split": "train",
+      "group_id": "media_7efb54b00f05a25605cb"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1219",
+      "split": "train",
+      "group_id": "media_c26f2fad33a53ea6a651"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:1035",
+      "split": "train",
+      "group_id": "media_fe71cc92b6cba85f16be"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:685",
+      "split": "train",
+      "group_id": "media_d8415a52c6f4bad0fde3"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:229",
+      "split": "train",
+      "group_id": "media_d48a7f3cbcf432e23fc9"
+    },
+    {
+      "sample_id": "mvu_eval:OR:776",
+      "split": "train",
+      "group_id": "media_027c0c297438748f12c1"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:899",
+      "split": "train",
+      "group_id": "media_3fc89313498ea9e21c39"
+    },
+    {
+      "sample_id": "mvu_eval:SU:1222",
+      "split": "train",
+      "group_id": "media_a2b3c9e84eb1e76bf881"
+    },
+    {
+      "sample_id": "mvu_eval:TR:1521",
+      "split": "train",
+      "group_id": "media_9f8b1f319d2885fad47a"
+    },
+    {
+      "sample_id": "crossvid:BU:620",
+      "split": "train",
+      "group_id": "media_f3ad88f534b819ec8f53"
+    },
+    {
+      "sample_id": "crossvid:CC:681",
+      "split": "train",
+      "group_id": "media_1e38c84fce934a355770"
+    },
+    {
+      "sample_id": "crossvid:CCQA:131",
+      "split": "train",
+      "group_id": "media_b01b9e464b9a6aa92fc8"
+    },
+    {
+      "sample_id": "crossvid:FSA:469",
+      "split": "train",
+      "group_id": "media_00523fe934fa71b07a55"
+    },
+    {
+      "sample_id": "crossvid:MOC:73",
+      "split": "train",
+      "group_id": "media_b7923eee5a3b4bbe73ed"
+    },
+    {
+      "sample_id": "crossvid:MSR:324",
+      "split": "train",
+      "group_id": "media_2c928f85a924573c474e"
+    },
+    {
+      "sample_id": "crossvid:NC:1067",
+      "split": "train",
+      "group_id": "media_b2ff509ac497571dc1f6"
+    },
+    {
+      "sample_id": "crossvid:PEA:322",
+      "split": "train",
+      "group_id": "media_19472fa19c62c8f7575c"
+    },
+    {
+      "sample_id": "crossvid:PI:117",
+      "split": "train",
+      "group_id": "media_07b3b8d2a01763e80de9"
+    },
+    {
+      "sample_id": "crossvid:PSS:518",
+      "split": "train",
+      "group_id": "media_496f6a30c49227ca9851"
+    },
+    {
+      "sample_id": "cvbench:159",
+      "split": "train",
+      "group_id": "media_6352f4e00a09dcab8fbb"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1716",
+      "split": "train",
+      "group_id": "media_613e20d74be8f4bcb4db"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:3",
+      "split": "train",
+      "group_id": "media_eb5d5ce706ca9277028a"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:650",
+      "split": "train",
+      "group_id": "media_da96b4f4a3ea0c96f633"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:534",
+      "split": "train",
+      "group_id": "media_1b37631444f1fe5c1456"
+    },
+    {
+      "sample_id": "mvu_eval:OR:416",
+      "split": "train",
+      "group_id": "media_08ab1ba486eb710286b9"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:944",
+      "split": "train",
+      "group_id": "media_f6393d9467ce8a3fcf0d"
+    },
+    {
+      "sample_id": "mvu_eval:SU:1032",
+      "split": "train",
+      "group_id": "media_04b11498baa90e768e9d"
+    },
+    {
+      "sample_id": "mvu_eval:TR:1477",
+      "split": "train",
+      "group_id": "media_6a22ac87e486eeaae472"
+    },
+    {
+      "sample_id": "crossvid:BU:240",
+      "split": "train",
+      "group_id": "media_18b9eb4945dac74f9c11"
+    },
+    {
+      "sample_id": "crossvid:CC:637",
+      "split": "train",
+      "group_id": "media_a95366a32411f9fa605b"
+    },
+    {
+      "sample_id": "crossvid:CCQA:363",
+      "split": "train",
+      "group_id": "media_2513058a7d519c6b63b0"
+    },
+    {
+      "sample_id": "crossvid:FSA:723",
+      "split": "train",
+      "group_id": "media_342ec5d88125dfdac8fe"
+    },
+    {
+      "sample_id": "crossvid:MOC:524",
+      "split": "train",
+      "group_id": "media_cfb02c35b534a60466e3"
+    },
+    {
+      "sample_id": "crossvid:MSR:468",
+      "split": "train",
+      "group_id": "media_e6f502b82c2a6e272f17"
+    },
+    {
+      "sample_id": "crossvid:NC:1114",
+      "split": "train",
+      "group_id": "media_8d5b6ceae574aca9c7a0"
+    },
+    {
+      "sample_id": "crossvid:PEA:168",
+      "split": "train",
+      "group_id": "media_9a8ce26bedf84a4bdbc7"
+    },
+    {
+      "sample_id": "crossvid:PI:74",
+      "split": "train",
+      "group_id": "media_528792525e9629648016"
+    },
+    {
+      "sample_id": "crossvid:PSS:305",
+      "split": "train",
+      "group_id": "media_4ce715182aea96d1cdbb"
+    },
+    {
+      "sample_id": "cvbench:572",
+      "split": "train",
+      "group_id": "media_625ce4ab5992eb04cf9c"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1662",
+      "split": "train",
+      "group_id": "media_1391eaaa5db28444e631"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:62",
+      "split": "train",
+      "group_id": "media_d334d3817a3d166a7147"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:673",
+      "split": "train",
+      "group_id": "media_78c787a1afbe6b3af40e"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:243",
+      "split": "train",
+      "group_id": "media_904ab51687d6cfa011ab"
+    },
+    {
+      "sample_id": "mvu_eval:OR:406",
+      "split": "train",
+      "group_id": "media_b029a01a802807d6ba44"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:1821",
+      "split": "train",
+      "group_id": "media_f61069306e811cc2595d"
+    },
+    {
+      "sample_id": "mvu_eval:SU:817",
+      "split": "train",
+      "group_id": "media_d1d5bd6937dfd7f5e337"
+    },
+    {
+      "sample_id": "mvu_eval:TR:1393",
+      "split": "train",
+      "group_id": "media_60c5db8bc3b635f59458"
+    },
+    {
+      "sample_id": "crossvid:BU:553",
+      "split": "train",
+      "group_id": "media_3d8378936af1c1ce7d12"
+    },
+    {
+      "sample_id": "crossvid:CC:87",
+      "split": "train",
+      "group_id": "media_6b7032ed7b4f56dba981"
+    },
+    {
+      "sample_id": "crossvid:CCQA:374",
+      "split": "train",
+      "group_id": "media_a1ff95f02e5b717bf4ea"
+    },
+    {
+      "sample_id": "crossvid:FSA:1337",
+      "split": "train",
+      "group_id": "media_c1fe70c7ff2915c65aa7"
+    },
+    {
+      "sample_id": "crossvid:MOC:415",
+      "split": "train",
+      "group_id": "media_e8df0721d295bf341d45"
+    },
+    {
+      "sample_id": "crossvid:MSR:516",
+      "split": "train",
+      "group_id": "media_8e131d6d02d23882bfe2"
+    },
+    {
+      "sample_id": "crossvid:NC:807",
+      "split": "train",
+      "group_id": "media_295edf6e26b51c05b729"
+    },
+    {
+      "sample_id": "crossvid:PEA:734",
+      "split": "train",
+      "group_id": "media_713eb9ff7abe4a703f2d"
+    },
+    {
+      "sample_id": "crossvid:PI:11",
+      "split": "train",
+      "group_id": "media_abc61bbcaf9bd7c8d87d"
+    },
+    {
+      "sample_id": "crossvid:PSS:209",
+      "split": "train",
+      "group_id": "media_1fc9a58c095b7832e702"
+    },
+    {
+      "sample_id": "cvbench:899",
+      "split": "train",
+      "group_id": "media_638b7ee74d4347a066ed"
+    },
+    {
+      "sample_id": "crossvid:BU:223",
+      "split": "train",
+      "group_id": "media_753745be3f6aa8a35f0d"
+    },
+    {
+      "sample_id": "crossvid:CC:396",
+      "split": "train",
+      "group_id": "media_5ba8ea92d8be466a4c0b"
+    },
+    {
+      "sample_id": "crossvid:CCQA:580",
+      "split": "train",
+      "group_id": "media_7d8aaa2564f208f3b830"
+    },
+    {
+      "sample_id": "crossvid:FSA:1809",
+      "split": "train",
+      "group_id": "media_843c7868b0cd412ac166"
+    },
+    {
+      "sample_id": "crossvid:MOC:184",
+      "split": "train",
+      "group_id": "media_aaf62466d445c7c50cf9"
+    },
+    {
+      "sample_id": "crossvid:MSR:257",
+      "split": "train",
+      "group_id": "media_5012d4b555725640fd35"
+    },
+    {
+      "sample_id": "crossvid:NC:1193",
+      "split": "train",
+      "group_id": "media_0f7b93139122db337bed"
+    },
+    {
+      "sample_id": "crossvid:PEA:376",
+      "split": "train",
+      "group_id": "media_6beabf34746b1ae786a0"
+    },
+    {
+      "sample_id": "crossvid:PI:207",
+      "split": "train",
+      "group_id": "media_e4b520c3ba7a2072a776"
+    },
+    {
+      "sample_id": "crossvid:PSS:265",
+      "split": "train",
+      "group_id": "media_4807ec2e43fc2a76d75b"
+    },
+    {
+      "sample_id": "cvbench:790",
+      "split": "train",
+      "group_id": "media_03a2e6866781e6601659"
+    },
+    {
+      "sample_id": "crossvid:CCQA:147",
+      "split": "train",
+      "group_id": "media_8faa8b71f5c47a5eac98"
+    },
+    {
+      "sample_id": "crossvid:FSA:414",
+      "split": "train",
+      "group_id": "media_d1421397fc6fc6d96924"
+    },
+    {
+      "sample_id": "crossvid:PSS:637",
+      "split": "train",
+      "group_id": "media_9f4ff468db44f42ea3fe"
+    },
+    {
+      "sample_id": "cvbench:446",
+      "split": "train",
+      "group_id": "media_dd8cf9b0641b75ae6844"
+    },
+    {
+      "sample_id": "crossvid:CCQA:495",
+      "split": "train",
+      "group_id": "media_812041d5836a08a3a874"
+    },
+    {
+      "sample_id": "crossvid:FSA:65",
+      "split": "train",
+      "group_id": "media_8857867d9d1b299d0367"
+    },
+    {
+      "sample_id": "crossvid:PSS:577",
+      "split": "train",
+      "group_id": "media_49f72189b9bc7579fa87"
+    },
+    {
+      "sample_id": "cvbench:810",
+      "split": "train",
+      "group_id": "media_6515068e57a3c4dc92e3"
+    },
+    {
+      "sample_id": "crossvid:CCQA:551",
+      "split": "train",
+      "group_id": "media_a23693217e492b68485f"
+    },
+    {
+      "sample_id": "crossvid:FSA:372",
+      "split": "train",
+      "group_id": "media_bdec482c4f2513095c2f"
+    },
+    {
+      "sample_id": "crossvid:PSS:356",
+      "split": "train",
+      "group_id": "media_016c0a29c6c3ebcdfe9d"
+    },
+    {
+      "sample_id": "cvbench:183",
+      "split": "train",
+      "group_id": "media_7a4f73c137f327907bbe"
+    },
+    {
+      "sample_id": "crossvid:CCQA:419",
+      "split": "train",
+      "group_id": "media_2633caea8797d91d32ff"
+    },
+    {
+      "sample_id": "crossvid:FSA:776",
+      "split": "train",
+      "group_id": "media_11d03f8c95e9182098cc"
+    },
+    {
+      "sample_id": "crossvid:PSS:557",
+      "split": "train",
+      "group_id": "media_3134a48c221f3368940c"
+    },
+    {
+      "sample_id": "cvbench:515",
+      "split": "train",
+      "group_id": "media_5d98442595c8dace6ff8"
+    },
+    {
+      "sample_id": "crossvid:CCQA:474",
+      "split": "train",
+      "group_id": "media_50c4c1942cc5e039aec7"
+    },
+    {
+      "sample_id": "crossvid:FSA:1358",
+      "split": "train",
+      "group_id": "media_93ed5194bb331bf79fc8"
+    },
+    {
+      "sample_id": "crossvid:PSS:95",
+      "split": "train",
+      "group_id": "media_5fb43aef8366ed5636db"
+    },
+    {
+      "sample_id": "cvbench:768",
+      "split": "train",
+      "group_id": "media_393f8d784dc543389fb9"
+    },
+    {
+      "sample_id": "crossvid:CCQA:192",
+      "split": "train",
+      "group_id": "media_50623b4175b4d852fbfa"
+    },
+    {
+      "sample_id": "crossvid:FSA:805",
+      "split": "train",
+      "group_id": "media_ebf32f8a02b017240b20"
+    },
+    {
+      "sample_id": "crossvid:PSS:529",
+      "split": "train",
+      "group_id": "media_b006d529bc7dd61a9500"
+    },
+    {
+      "sample_id": "cvbench:835",
+      "split": "train",
+      "group_id": "media_756ff3516ab26f9cf892"
+    },
+    {
+      "sample_id": "cvbench:372",
+      "split": "train",
+      "group_id": "media_411e144d094478d139f1"
+    },
+    {
+      "sample_id": "cvbench:344",
+      "split": "train",
+      "group_id": "media_2f327260e201991e3021"
+    },
+    {
+      "sample_id": "cvbench:135",
+      "split": "train",
+      "group_id": "media_d096b8f7dc8c9acef5b7"
+    },
+    {
+      "sample_id": "cvbench:205",
+      "split": "train",
+      "group_id": "media_d38b5e88f49a66dbc8d3"
+    },
+    {
+      "sample_id": "cvbench:464",
+      "split": "train",
+      "group_id": "media_67734b3147cf57c81af6"
+    },
+    {
+      "sample_id": "cvbench:278",
+      "split": "train",
+      "group_id": "media_052e8c7a180bcd03b1e9"
+    },
+    {
+      "sample_id": "cvbench:258",
+      "split": "train",
+      "group_id": "media_899b3897e8e0deed9c1c"
+    },
+    {
+      "sample_id": "cvbench:297",
+      "split": "train",
+      "group_id": "media_8511366255bcc7a1419e"
+    },
+    {
+      "sample_id": "crossvid:BU:684",
+      "split": "eval",
+      "group_id": "media_03c03c5f82e5f4723b5d"
+    },
+    {
+      "sample_id": "crossvid:CC:478",
+      "split": "eval",
+      "group_id": "media_b97d052f0790ad9d4e0b"
+    },
+    {
+      "sample_id": "crossvid:CCQA:257",
+      "split": "eval",
+      "group_id": "media_8b6413055963296897d0"
+    },
+    {
+      "sample_id": "crossvid:FSA:676",
+      "split": "eval",
+      "group_id": "media_2c6bf784e091caf3a07f"
+    },
+    {
+      "sample_id": "crossvid:MOC:217",
+      "split": "eval",
+      "group_id": "media_d365c3fd4c0bc1c281df"
+    },
+    {
+      "sample_id": "crossvid:MSR:370",
+      "split": "eval",
+      "group_id": "media_a05ec59e159374cfa175"
+    },
+    {
+      "sample_id": "crossvid:NC:996",
+      "split": "eval",
+      "group_id": "media_ff7600c8a9c70b25102b"
+    },
+    {
+      "sample_id": "crossvid:PEA:130",
+      "split": "eval",
+      "group_id": "media_9837de370aafa4ce9b01"
+    },
+    {
+      "sample_id": "crossvid:PI:226",
+      "split": "eval",
+      "group_id": "media_b7e4538515504f404812"
+    },
+    {
+      "sample_id": "crossvid:PSS:624",
+      "split": "eval",
+      "group_id": "media_30037690d5f08793e924"
+    },
+    {
+      "sample_id": "cvbench:398",
+      "split": "eval",
+      "group_id": "media_f5a24bc56be0df2b9cf8"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1748",
+      "split": "eval",
+      "group_id": "media_f76344cbe1579f9f4c19"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:63",
+      "split": "eval",
+      "group_id": "media_f7ee8f0469b174824c95"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:740",
+      "split": "eval",
+      "group_id": "media_585da5a17e85865139db"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:383",
+      "split": "eval",
+      "group_id": "media_4eb2183d430ca3b79794"
+    },
+    {
+      "sample_id": "mvu_eval:OR:1186",
+      "split": "eval",
+      "group_id": "media_70e28723d9cfa185073b"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:1362",
+      "split": "eval",
+      "group_id": "media_23a8c62d34b22c95df3e"
+    },
+    {
+      "sample_id": "mvu_eval:SU:584",
+      "split": "eval",
+      "group_id": "media_7386d1a63a4cceb556aa"
+    },
+    {
+      "sample_id": "mvu_eval:TR:1590",
+      "split": "eval",
+      "group_id": "media_3e84f0abe863df3b7e04"
+    },
+    {
+      "sample_id": "crossvid:BU:755",
+      "split": "eval",
+      "group_id": "media_c4bb1ba00848b62b6c7f"
+    },
+    {
+      "sample_id": "crossvid:CC:715",
+      "split": "eval",
+      "group_id": "media_eefb7a7c8038a77d7165"
+    },
+    {
+      "sample_id": "crossvid:CCQA:486",
+      "split": "eval",
+      "group_id": "media_1e53cfedb08c28f65e69"
+    },
+    {
+      "sample_id": "crossvid:FSA:646",
+      "split": "eval",
+      "group_id": "media_24ebb9710f0b791c36f1"
+    },
+    {
+      "sample_id": "crossvid:MOC:376",
+      "split": "eval",
+      "group_id": "media_da44d1fc2325ca31f51b"
+    },
+    {
+      "sample_id": "crossvid:MSR:198",
+      "split": "eval",
+      "group_id": "media_d5d7bf1a7baab75dcdb9"
+    },
+    {
+      "sample_id": "crossvid:NC:120",
+      "split": "eval",
+      "group_id": "media_ce366f0002987a6d4e97"
+    },
+    {
+      "sample_id": "crossvid:PEA:482",
+      "split": "eval",
+      "group_id": "media_49f5c323480aff817e23"
+    },
+    {
+      "sample_id": "crossvid:PI:54",
+      "split": "eval",
+      "group_id": "media_4d98792526994b940e2a"
+    },
+    {
+      "sample_id": "crossvid:PSS:473",
+      "split": "eval",
+      "group_id": "media_943ed5c228f6acf2f18a"
+    },
+    {
+      "sample_id": "cvbench:599",
+      "split": "eval",
+      "group_id": "media_0f45bb44efc8bc5f3995"
+    },
+    {
+      "sample_id": "mvu_eval:Comparison:1703",
+      "split": "eval",
+      "group_id": "media_706d7e43770e0149e522"
+    },
+    {
+      "sample_id": "mvu_eval:Counting:1054",
+      "split": "eval",
+      "group_id": "media_ff3a6fe179f943294659"
+    },
+    {
+      "sample_id": "mvu_eval:ICL:683",
+      "split": "eval",
+      "group_id": "media_9589610e056284d9dc02"
+    },
+    {
+      "sample_id": "mvu_eval:KIR:347",
+      "split": "eval",
+      "group_id": "media_d4a41d5b65a0f3105cdb"
+    },
+    {
+      "sample_id": "mvu_eval:OR:443",
+      "split": "eval",
+      "group_id": "media_61264b57191b3a1c8d4d"
+    },
+    {
+      "sample_id": "mvu_eval:RAG:1006",
+      "split": "eval",
+      "group_id": "media_beb98a3811b6b636da13"
+    },
+    {
+      "sample_id": "mvu_eval:SU:1068",
+      "split": "eval",
+      "group_id": "media_dd071dd4080b77a85018"
+    },
+    {
+      "sample_id": "mvu_eval:TR:1539",
+      "split": "eval",
+      "group_id": "media_2c0367c3244041f32325"
+    },
+    {
+      "sample_id": "crossvid:BU:402",
+      "split": "eval",
+      "group_id": "media_8d8dd53b0c668ca012ac"
+    },
+    {
+      "sample_id": "crossvid:CC:638",
+      "split": "eval",
+      "group_id": "media_98dee4e6c3a0be0d73c3"
+    },
+    {
+      "sample_id": "crossvid:CCQA:459",
+      "split": "eval",
+      "group_id": "media_e9088b26bb5e19419227"
+    },
+    {
+      "sample_id": "crossvid:FSA:1149",
+      "split": "eval",
+      "group_id": "media_4d60e8ed76079ecdd873"
+    },
+    {
+      "sample_id": "crossvid:MOC:314",
+      "split": "eval",
+      "group_id": "media_1e9b7de5762775f7ad7d"
+    },
+    {
+      "sample_id": "crossvid:MSR:114",
+      "split": "eval",
+      "group_id": "media_f421d3c0249b0df2e2e8"
+    },
+    {
+      "sample_id": "crossvid:NC:1137",
+      "split": "eval",
+      "group_id": "media_8955e8ab7354cf82df7a"
+    },
+    {
+      "sample_id": "crossvid:PEA:266",
+      "split": "eval",
+      "group_id": "media_3b187981d0b54af45c0d"
+    },
+    {
+      "sample_id": "crossvid:PI:91",
+      "split": "eval",
+      "group_id": "media_8b1f7b9521c5a0318950"
+    },
+    {
+      "sample_id": "crossvid:PSS:478",
+      "split": "eval",
+      "group_id": "media_8af33bfaf747172f1f29"
+    },
+    {
+      "sample_id": "cvbench:546",
+      "split": "eval",
+      "group_id": "media_4313658628b6fec02968"
+    },
+    {
+      "sample_id": "crossvid:CCQA:367",
+      "split": "eval",
+      "group_id": "media_b7eade3cc2f7c757e54f"
+    },
+    {
+      "sample_id": "crossvid:FSA:813",
+      "split": "eval",
+      "group_id": "media_ba71fe91b3e0dec27c94"
+    },
+    {
+      "sample_id": "crossvid:PSS:582",
+      "split": "eval",
+      "group_id": "media_03e1e2125f8947b96f34"
+    },
+    {
+      "sample_id": "cvbench:415",
+      "split": "eval",
+      "group_id": "media_5e4c7c80b7dd8df33532"
+    },
+    {
+      "sample_id": "crossvid:CCQA:594",
+      "split": "eval",
+      "group_id": "media_15c80019cd7c234f3e9c"
+    },
+    {
+      "sample_id": "crossvid:FSA:1758",
+      "split": "eval",
+      "group_id": "media_88295533823e757f0345"
+    },
+    {
+      "sample_id": "crossvid:PSS:598",
+      "split": "eval",
+      "group_id": "media_3a76ab3a8de510bc669b"
+    },
+    {
+      "sample_id": "cvbench:448",
+      "split": "eval",
+      "group_id": "media_4c428ae0734e1f21c679"
+    },
+    {
+      "sample_id": "crossvid:CCQA:53",
+      "split": "eval",
+      "group_id": "media_432037c9dafc8e5923ec"
+    },
+    {
+      "sample_id": "crossvid:FSA:1408",
+      "split": "eval",
+      "group_id": "media_ccef9252c0b55425f27f"
+    },
+    {
+      "sample_id": "crossvid:PSS:631",
+      "split": "eval",
+      "group_id": "media_5944cbb162127f809d00"
+    },
+    {
+      "sample_id": "cvbench:671",
+      "split": "eval",
+      "group_id": "media_d56e1e49b642019fcb4d"
+    },
+    {
+      "sample_id": "cvbench:983",
+      "split": "eval",
+      "group_id": "media_768871c2b0ba58d1295f"
+    },
+    {
+      "sample_id": "cvbench:218",
+      "split": "eval",
+      "group_id": "media_9c1a5370013c41152ae3"
+    },
+    {
+      "sample_id": "cvbench:335",
+      "split": "eval",
+      "group_id": "media_a0e3c27850910e25b7c3"
+    },
+    {
+      "sample_id": "cvbench:288",
+      "split": "eval",
+      "group_id": "media_ebd60a37c9d669e8f43b"
+    },
+    {
+      "sample_id": "cvbench:19",
+      "split": "eval",
+      "group_id": "media_54843ac82139337bb3c0"
+    },
+    {
+      "sample_id": "cvbench:498",
+      "split": "eval",
+      "group_id": "media_bf997b7858d53d58911a"
+    },
+    {
+      "sample_id": "cvbench:486",
+      "split": "eval",
+      "group_id": "media_fee29030a0d0cb2f9915"
+    },
+    {
+      "sample_id": "cvbench:537",
+      "split": "eval",
+      "group_id": "media_c8c2965496a5a25e42a1"
+    },
+    {
+      "sample_id": "cvbench:484",
+      "split": "eval",
+      "group_id": "media_6636a4562731776c1aff"
+    }
+  ]
+}

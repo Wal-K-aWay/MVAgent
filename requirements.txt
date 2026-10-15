@@ -1,0 +1,35 @@
+# Complete project environment: MVAgent + skill evolution + local vLLM + E2E runners.
+# Reference platform: Linux x86_64, Python 3.12, NVIDIA GPU for local inference.
+# Shared runtime, optimizer, model API and scoring dependencies.
+PyYAML==6.0.3
+jsonschema==4.26.0
+numpy==2.2.6
+scipy>=1.13,<2
+# Offline question-graph clustering diagnostics; already installed in the baseline environment.
+networkx==3.6.1
+# No-fixed-K offline clustering; diagnostics install this into an isolated environment.
+scikit-learn==1.7.2
+Pillow==12.2.0
+opencv-python-headless==4.13.0.92
+imageio-ffmpeg==0.6.0
+psutil==7.2.2
+packaging==26.0
+openai==2.24.0
+httpx==0.28.1
+requests==2.34.2
+dashscope==1.25.23
+json-repair==0.63.4
+
+# Local model and compact structured-output stack, pinned to the baseline environment.
+vllm==0.19.1
+torch==2.10.0
+torchvision==0.25.0
+transformers==4.57.6
+xgrammar==0.2.2
+qwen-vl-utils==0.0.14
+
+# E2E benchmark preprocessing and media diagnostic scripts.
+av==17.1.0
+# Upstream wheel has a Python-tag metadata issue; see README before E2E evaluation.
+decord==0.6.0
+tqdm==4.68.3

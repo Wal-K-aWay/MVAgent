@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-conflict-check",
+    "role": "global",
+    "stages": [
+      "evidence"
+    ]
+  },
+  "when_to_use": "Resolve an explicit answer-changing contradiction in existing reports about the same entity, time and relation; not generic uncertainty. Existing evidence contains mutually incompatible claims about the same entity, time and relation, and resolving them could change the answer. Different times or generic uncertainty alone do not qualify.",
+  "strategy": "1. First check whether video identity, wording or time scope explains the apparent conflict using existing evidence.\n2. If it remains consequential, request a neutral observation that distinguishes the claims: analyze_videos for a local fact or watch_videos for a cross-video relation.\n3. Ground ranges in known anchors and stop when the conflict is resolved. Do not repeat a check merely because the new report is uncertain.\n\nConstraints:\nDo not ask a leading confirmation question. A newer report is not automatically more reliable."
+}

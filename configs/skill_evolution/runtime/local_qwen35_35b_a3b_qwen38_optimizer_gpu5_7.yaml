@@ -1,0 +1,60 @@
+runtime:
+  output_dir: outputs
+  cache_dir: .cache/mvagent
+  video_concurrency: 2
+models:
+  qwen3_5_35b_a3b_local:
+    type: local_vllm
+    model_name: /home/kww/models/Qwen3.5/Qwen3.5-35B-A3B
+    dtype: auto
+    gpu_memory_utilization: 0.9
+    max_model_len: 262144
+    reasoning_parser: qwen3
+    enable_thinking: false
+    temperature: 0.0
+    top_p: 1.0
+    max_tokens: 2048
+    max_videos_per_request: 8
+    max_video_frames_per_request: 512
+    video_mode: video_url
+    timeout_sec: 120
+    max_retries: 2
+  qwen3_8_27b_optimizer:
+    type: api_vlm
+    provider: openai_compatible
+    model_name: qwen3_8_27b_optimizer
+    api_base: http://127.0.0.1:8101/v1
+    api_key: EMPTY
+    temperature: 0.2
+    top_p: 1.0
+    max_tokens: 8192
+    timeout_sec: 600
+    max_retries: 2
+  qwen35_judge_fixed:
+    type: api_vlm
+    provider: openai_compatible
+    model_name: qwen3_5_35b_a3b_local
+    api_base: http://127.0.0.1:8102/v1
+    api_key: EMPTY
+    temperature: 0.0
+    top_p: 1.0
+    max_tokens: 2048
+    timeout_sec: 300
+    max_retries: 2
+agents:
+  global_agent:
+    model:
+      model_type: qwen3_5_35b_a3b_local
+    max_steps: 5
+    max_videos_per_watch: 4
+    skill:
+      enabled: false
+  video_agent:
+    planner:
+      model_type: qwen3_5_35b_a3b_local
+    observer:
+      model_type: qwen3_5_35b_a3b_local
+    max_steps: 5
+    max_ranges_per_action: 8
+    skill:
+      enabled: false

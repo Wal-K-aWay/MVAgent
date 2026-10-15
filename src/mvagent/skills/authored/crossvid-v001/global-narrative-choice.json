@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-narrative-choice",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Compare story events, character roles, motives or causal significance across narrative clips for one option label, including video-pair options. Not cooking attributes, observable-behavior multiselect, assembly errors or missing-middle inference. A single-choice question compares narrative events or their causal role across story clips. Exclude selecting multiple labels, cooking comparisons and reconstructing an omitted middle between a beginning and ending.",
+  "strategy": "1. Decompose each option into entities, event and requested relation; distinguish an event occurring from its causing the conflict or being pivotal.\n2. Use analyze_videos per clip to obtain relevant scenes and their preceding/following consequences. Request timestamped evidence about the relation, not just whether a topic appears.\n3. Compare all videos or pairs required by the options. If several share a theme, ask only the ambiguous videos for the event-to-consequence evidence that distinguishes them.\n4. Use targeted watch_videos where reports disagree on a visible scene. Select the full supported option; do not invent motives or unseen plot developments.\n\nConstraints:\nA phone appearing is not proof that it reveals the key clue. An option letter may name multiple clips."
+}

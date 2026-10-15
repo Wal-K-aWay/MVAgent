@@ -1,0 +1,28 @@
+question_workers: auto
+max_prepared_requests: auto
+question_timeout_sec: 1800
+question_retries: 1
+media_cache:
+  root: .cache/mvagent/media
+  max_bytes: 10737418240
+model_pools:
+  qwen3_5_27b_local:
+    replicas:
+    - gpus: [2]
+      endpoint: http://127.0.0.1:8105/v1
+      max_inflight: 1
+    - gpus: [3]
+      endpoint: http://127.0.0.1:8106/v1
+      max_inflight: 1
+    - gpus: [4]
+      endpoint: http://127.0.0.1:8101/v1
+      max_inflight: 1
+    - gpus: [5]
+      endpoint: http://127.0.0.1:8102/v1
+      max_inflight: 1
+    - gpus: [6]
+      endpoint: http://127.0.0.1:8100/v1
+      max_inflight: 1
+    - gpus: [7]
+      endpoint: http://127.0.0.1:8001/v1
+      max_inflight: 1

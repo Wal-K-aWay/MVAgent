@@ -1,0 +1,49 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "global-direct-detail-watch",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Directly compare fine visible details across videos with joint watch_videos. Use for appearance, small objects, contact or subtle motion that prose may obscure; not independent event totals, plot interpretation or synchronized event anchoring. The answer hinges on a fine visual distinction between videos, and the comparison target is already identifiable from the question. Prefer synchronized-event-check when a specific event in one view defines the instant to inspect in another.",
+      "strategy": "1. Start with watch_videos on the relevant videos. Copy their exact IDs. Use known target intervals from History; if locations are unknown, retain coverage rather than inventing timestamps. Respect the current video-count limit; for larger sets, retain a shared comparison anchor across groups.\n2. In instruction, name the comparison target and concrete discriminants: shape, material, contact, motion or other facts actually asked about. Preserve option distinctions and quantifiers, but request visual evidence and uncertainty, not an answer letter.\n3. Ask for attributed observations for each video. If a decisive detail is unresolved, rewatch the relevant shorter intervals with enough surrounding action to retain identity. Narrowing must follow observed locations.\n4. Answer once the supported differences discriminate the options. Use analyze_videos only if a remaining fact needs independent within-video tracing.\n\nConstraints:\nDo not copy the question wrapper’s final-answer command into watch. A brief snapshot cannot establish an event total. Never add fps or multiple clips for one video to a watch action."
+    },
+    {
+      "meta": {
+        "id": "global-independent-focused-analysis",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Use analyze_videos when a clear question can be decomposed into facts that each video can establish independently. Give each VideoAgent a self-contained local checklist; not fine joint visual comparison or unknown-stage exploration. The needed attributes, events or temporal relations are already specified, and each can be established from one video without seeing another video or a sibling report. Suitable for per-video event histories, explicit attribute checks and known local steps.",
+      "strategy": "1. Decompose the question into the smallest local evidence requirements. Call analyze_videos for only the relevant video IDs; each videoagent_request contains its own instruction.\n2. Each instruction states the target entities/events, required attributes or temporal condition, and requested evidence: observations, supporting source times and uncertainty. Include needed definitions from the question. Ask only about that video, never which video is best or how it differs from unseen videos. Keep combined instructions within the action budget.\n3. Preserve scope: an interval total needs full interval coverage and distinct-event accounting; a known local event may be checked in an explicit source-time window with surrounding context. Put requested windows in instruction, not an invented clip parameter.\n4. Global combines the reports and applies options/quantifiers. Request a targeted follow-up only for a missing fact that changes the answer; switch to joint watch when the unresolved issue is a direct visual distinction.\n\nConstraints:\nVideoAgents do not receive the original question, sibling reports or Global History automatically. Missing information is unknown, not absence. Do not assert the expected observation in an instruction."
+    },
+    {
+      "meta": {
+        "id": "global-survey-then-focus",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Use staged analyze_videos when relevant events, segments or roles must first be located before a useful detailed instruction can be written. Survey only question-relevant context, then focus; not an obligatory two-pass procedure for already clear local checks. A complex question requires discovering where the relevant evidence is or how the videos relate before deciding what to inspect closely. The initial uncertainty prevents a precise local checklist; length alone is insufficient to trigger this workflow.",
+      "strategy": "1. First use analyze_videos to obtain a brief question-directed map from each relevant video: relevant stages/events, their approximate source-time spans, and unresolved facts. Include content or style only when it helps answer this question; avoid generic full-video narration.\n2. Global identifies the candidate segments and remaining discriminants from those reports. If the reports already settle the question, answer without another pass.\n3. Otherwise call analyze_videos again on only the unresolved videos. Each new instruction includes the local question, target entities, the tentative interval from the survey and the exact missing evidence. Treat survey claims as hypotheses to verify. Permit expansion if the interval misses the event or its causal/temporal context.\n4. VideoAgent chooses observe ranges and sampling. Global cannot set observe directly or add clip/fps to analyze_videos. For a remaining fine cross-video difference, use joint watch on the located intervals instead. Stop when additional inspection would not change the supported answer.\n\nConstraints:\nA coarse report is not final evidence for a fine detail. Do not force a second pass, inspect every video again, or crop away necessary preconditions. Retained Video memory does not excuse an incomplete new instruction."
+    },
+    {
+      "meta": {
+        "id": "global-synchronized-event-check",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Use synchronized joint watch to locate a condition event in one view and inspect a target state in another at that instant. Covers snapshot counts, positions or separation; not cumulative event totals or unsynchronized procedure comparison. Videos are explicitly synchronized and the requested state is anchored to an event such as an object appearing, leaving or crossing another. The event view, target view and referenced identities must be matched in time.",
+      "strategy": "1. Extract the anchor event, its view, target entities/view and requested unit. When labels exist only at first appearance, initialize identities from those windows before following them.\n2. Use watch_videos with both views over matching source-time intervals. Start with coverage sufficient to locate the event; never guess a narrow event time from the wording.\n3. Once History brackets the event, rewatch both views with before/after context. instruction must ask to locate the event and report the target state at that same source time, distinguishing identity loss or occlusion from absence.\n4. Count objects only for a snapshot quantity, use target-view axes for direction, and the requested reference unit for separation. If the event or identity remains ambiguous, repair that uncertainty before refining spatial precision. Answer when the simultaneous state is supported.\n\nConstraints:\nDo not substitute a convenient frame from another time. Zero seconds can be valid. Distinct cameras are not automatically synchronized. Never infer an interval event total from the snapshot."
+    }
+  ]
+}

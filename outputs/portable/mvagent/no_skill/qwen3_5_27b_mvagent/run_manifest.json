@@ -1,0 +1,35 @@
+{
+  "status": "completed",
+  "started_at_utc": "2026-09-19T15:19:32.320059+00:00",
+  "git_commit": "c48060fc3f791e8c42e595b59f22481653567b4d",
+  "identity": {
+    "protocol": "mvagent-agent-eval-v2",
+    "runner_sha256": "f9032f217c828f79e3bf03bf101564c3371d2284e0044ae0b7bee7e993ce2a04",
+    "config_sha256": "7d34093fda771f408159aaffe427b9fb1f5bdd5e73cb778383342acf36204f2b",
+    "runtime_snapshot_sha256": "a6a6197e4c72d3f985672c31a91ab24c9d7d69944ee4ad26153d463d2268f35b",
+    "dataset_root": "/home/kww/datasets/Multi-Video",
+    "dataset_sha256": {
+      "cvbench": "e0c2970dc5b718fcb68cc30789832c17b64d52513281205135eee72787765af2",
+      "mvu_eval": "55f1f0790c84447caa36ab6e28958197c286ec765c31e19415c96de095257172",
+      "crossvid": "2d0be4c2b444363bd6197db185ea8064dc3259c38854934b451052f5a0bd9de8"
+    },
+    "sample_ids_sha256": "ce9aa2031b2cc8b4c39f619364118d379f10f42054b079bef0e3d012907bf861",
+    "sample_count": 5324,
+    "split_manifest": {
+      "path": "/home/kww/projects/MVAgent_API/configs/skill_evolution/splits/crossvid_lite2500_eval_seed20260919.json",
+      "sha256": "5e1cf0e4a0967e365b85f3ad0f5eddb4871beaebd24f421a1b09daac62b8262f"
+    },
+    "judge_model": null,
+    "defer_open_qa_judge": true
+  },
+  "scorer_identity": {
+    "choice": "strict-normalized-option-label-v1",
+    "ordering": "crossvid-sequence-exact-v1",
+    "temporal_localization": "crossvid-interval-iou-strict-v1",
+    "open_qa": {
+      "enabled": false,
+      "status": "deferred"
+    }
+  },
+  "finished_at_utc": "2026-09-20T14:53:25.284758+00:00"
+}

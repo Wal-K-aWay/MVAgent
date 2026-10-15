@@ -1,0 +1,126 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "global-context-supported-interpretation",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Use targeted analyze_videos to establish observations and consequences before judging a behavior’s function, an event’s plot role or a thematic contrast. Compare support in Global; not mere event presence, missing-middle reconstruction or explicit procedural error diagnosis. The question asks what a behavior achieves, whether an event resolves/drives a conflict, or how scene choices support a theme. Observing the named object or action alone cannot establish the required interpretation.",
+      "strategy": "1. Translate each interpretation into local observable support and possible contradictions. For each video, request relevant behavior/events plus preceding conditions, subsequent consequences and uncertainty. Keep interpretations distinct from facts.\n2. Use analyze_videos with that local evidence request. If events are not yet located, ask for a compact relevant event map, then focus only on the unresolved context rather than a generic plot summary.\n3. Global compares how strongly observations support each explanation. For visual style, ask for recurring interior/exterior contrasts and their context, then jointly watch located examples if the visual difference is unclear.\n4. Verify only interpretations whose missing support could change the answer. Return the required video count, option or explanation without inventing unobserved motives or treating temporal succession as causality.\n\nConstraints:\nA confession appearing is not proof that it resolves the conflict. A numeric answer may still require causal interpretation. A behavior can support a cautious functional inference without an observed predator attack."
+    },
+    {
+      "meta": {
+        "id": "global-direct-detail-watch",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Directly compare fine visible attributes, handling or contact across videos using watch_videos. Use when the discriminating visual feature is already specified; not event totals, synchronized event-time states, functional interval alignment or inferred narrative meaning. The question identifies a concrete visual distinction: tool shape, cloth use, placement, hand contact, material appearance or a subtle action. A text summary may omit the deciding detail. Long duration alone does not change this goal into a general survey.",
+      "strategy": "1. Start with watch_videos for the relevant comparison videos. Use full valid ranges when the location is unknown, or History-supported intervals when available. Preserve a common comparison target across groups if the videos exceed the watch limit.\n2. instruction names each video_id, target operation and the distinguishing option facts, including exclusions. Request attributed observations and uncertainty, not a final answer or option letter.\n3. A full-duration watch is only an initial pass for long videos: if sampling misses the detail, use reported event times for a narrower watch. If the location remains unknown, ask the relevant VideoAgent to locate that operation before joint reinspection. Do not guess clip times.\n4. Resolve only uncertainties that can change the comparison; then map facts to the required answer format. If a relevant property is not visually identifiable, retain uncertainty rather than inferring it from appearance.\n\nConstraints:\nDo not copy “only output the answer” into the visual instruction. A single option can name several videos. Watch accepts one clip per video, no fps, and at least two distinct videos."
+    },
+    {
+      "meta": {
+        "id": "global-independent-focused-analysis",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Use analyze_videos to check clearly specified visible facts independently in each video, then aggregate them in Global. Suitable for conjunctions, exclusions and per-video ingredient/action checklists; not fine joint detail, temporal relations, event totals or causal judgments. The question supplies a concrete local fact or checklist that one video can establish without seeing other videos. The main work is fact collection, not discovering an unknown event structure or interpreting why something matters.",
+      "strategy": "1. Convert the question and options into a consistent local checklist, preserving negation, conjunction and scope. Call analyze_videos only on relevant video IDs.\n2. Each videoagent_request.instruction contains all definitions needed for that video, asks for visible evidence with source times, and distinguishes supported, contradicted and unknown. Do not ask a VideoAgent which other video differs or which global option wins. Stay within the shared instruction budget.\n3. Global builds a video-by-criterion table and applies the requested intersection, difference, number of matching videos or option combination. Same-video co-presence must not be inferred by combining facts from different videos.\n4. Recheck only unresolved cells that change the result. If the remaining issue is a subtle visual difference, jointly watch the relevant videos/intervals instead of requesting another generic summary.\n\nConstraints:\nMissing from a report is not absent from the video. Do not guess an unlabeled ingredient’s identity or taste. Counting matching videos is not counting events through time."
+    },
+    {
+      "meta": {
+        "id": "global-interval-event-ledger",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Use VideoAgent analysis to track a defined event through an interval and count distinct occurrences or trace a final path. Use synchronized watch first only if another view defines the interval start; not snapshot counts or the number of videos matching a predicate. The question requires a cumulative pass/overtake count, a trajectory through time, or an event total after a trigger. Identity and coverage over the relevant interval matter; a single clear frame cannot establish the answer.",
+      "strategy": "1. Define the tracked entity, event unit, interval and filters such as color, direction or same-side traffic. Initialize any temporarily labeled identities from their visible label windows.\n2. If a cross-view trigger defines the interval, first locate it using synchronized watch; then pass its established source-time bound to the target VideoAgent. Otherwise directly analyze the relevant video.\n3. instruction requests an ordered ledger: event time, involved entity, before/after relation and possible duplicate or occlusion. Require full relevant coverage. For a path question, request state/lane changes and the final confirmed state rather than an invented count.\n4. Global deduplicates observations of the same event and checks gaps. Request focused verification of ambiguous crossings or uncovered intervals; reappearance alone is not a new event. Answer only the quantity or state actually requested.\n\nConstraints:\nDo not count one physical event twice across cameras. Distinguish a snapshot of cars behind a truck from events over an interval. Lane-option questions may ask final lane even when the wording says trajectory."
+    },
+    {
+      "meta": {
+        "id": "global-local-temporal-relations",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Use analyze_videos to establish before/after, first occurrence or simultaneous overlap between named events within each video. Compare timestamped relations in Global; not cumulative event counts, synchronized cross-view snapshots or ordering supplied shuffled clips. The answer depends on how specified actions are ordered or whether they overlap, rather than merely whether both occur. The same local relation can be checked across unrelated videos.",
+      "strategy": "1. Define the two events and the exact relation from the question: before, after, first incorporation, or overlap. Preserve “first” and other scope constraints.\n2. Call analyze_videos with a self-contained instruction for each relevant video. Request source-time intervals for both events, whether they visibly overlap, and uncertainty at their boundaries. For “first”, request enough earlier coverage to exclude a prior occurrence.\n3. Global compares the reported intervals or explicit observed sequence. Both actions appearing somewhere is not evidence of overlap; events from separate videos cannot establish a within-video relation.\n4. If the decisive boundary is unclear, request targeted reinspection around it with neighboring context. Use watch only when a remaining cross-video visual distinction needs joint inspection. Apply the relation to each video, then return the requested count, labels or comparison.\n\nConstraints:\nReport-level sentence order is not event order. An uncertain boundary must not be converted into certain overlap. A later clear occurrence does not prove it is the first."
+    },
+    {
+      "meta": {
+        "id": "global-missing-event-bridge",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Use analyze_videos to establish observed states around a missing middle, then test which candidate event can connect them. Use joint watch for ambiguous boundary clues; not sorting supplied clips or claiming to observe the absent event. Only the beginning and ending are supplied and the question asks what most likely happened in the omitted middle. Candidate explanations must satisfy the observed endpoint constraints.",
+      "strategy": "1. Analyze both segments independently. For the beginning, request relevant entities, goals and unresolved state at its end; for the ending, request the earliest relevant state and visible consequences. Include the question’s candidate discriminants without asserting a candidate happened.\n2. Global compares the two reports to identify what changed: location, possession, freedom, injury, alliances or knowledge. Test each candidate against both endpoints, separating necessary support from contradictions and unknowns.\n3. If a decisive identity or state is unclear, watch the end of the beginning and start of the ending together using valid source-time clips. Expand into each segment when boundary snapshots omit required context.\n4. Choose the best-supported bridge and output the requested option. Keep unobserved middle events as inference, not visual evidence.\n\nConstraints:\nA genre-plausible twist is not evidence. Do not ask one VideoAgent to explain an unseen segment, infer a full-film timeline offset, or turn repeated candidate wording into a reported observation."
+    },
+    {
+      "meta": {
+        "id": "global-order-by-state-transitions",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Use per-segment analyze_videos to extract initial/final states, order supplied clips by prerequisites, and watch ambiguous transitions. Useful for shuffled procedures regardless of topic; not identifying a missing unobserved story segment. The task is to place all supplied segments in order. Changes in material, assembly or task state constrain which segment can precede another; file order and numbering are not chronological evidence.",
+      "strategy": "1. In one analyze_videos action, ask each segment’s VideoAgent for its initial state, main change, final state and any prerequisite visible in the segment. Keep each local instruction concise and independent.\n2. Global links compatible end/start states and checks operation prerequisites to propose an order containing each supplied ID once. Do not substitute a familiar recipe when the observed states disagree.\n3. For an uncertain adjacent pair, use watch_videos on the earlier candidate’s ending and the later candidate’s beginning. Choose source clips from observed transition locations, expanding when the boundary alone is insufficient.\n4. If more than two clips could fit, compare the ambiguous group within the watch limit rather than rewatch every segment. Resolve remaining incompatibilities, then output the required ID permutation.\n\nConstraints:\nInitial and final snapshots may omit a crucial middle operation: expand when they do not determine the transition. Watch permits one clip per video per call; beginning and ending of the same video cannot be two entries in one call."
+    },
+    {
+      "meta": {
+        "id": "global-procedure-error-check",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Use analyze_videos to record component/action state transitions, then apply the question’s error definition in Global. Use joint watch for uncertain placement/orientation; distinguish unnecessary removal from correction and required disassembly. The question asks which step/video/part exhibits an explicit procedural error, including wrong placement, unnecessary detachment or corrective rework. Mere frequency, detachment or disagreement between demonstrations does not define an error.",
+      "strategy": "1. Extract the candidate parts/actions and the error criterion from the question. Ask each relevant VideoAgent for observations around those operations: prior state, attachment/placement, subsequent removal or repositioning, and source times. Do not tell it a candidate is wrong.\n2. If locations are unknown, obtain a short relevant operation map first, then focus on the unresolved candidate spans. Put requested source windows in instruction and allow expansion to establish the prior state.\n3. Global checks whether the evidence actually meets the supplied error criterion. For an ambiguous fit or orientation, jointly watch corresponding operations; demonstrations need not perform them at the same times.\n4. Count matching videos/steps only after classification and map the supported part/action/video combination to the option. If an operation’s necessity remains unknown, do not infer error solely because it was reversed.\n\nConstraints:\nA common sequence is not automatically correct. Reattachment may fix a wrong placement, whereas another detachment may be necessary. A VideoAgent cannot know another demonstration unless Global explicitly supplies its relevant report."
+    },
+    {
+      "meta": {
+        "id": "global-reference-step-localization",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Use analyze_videos to identify a supplied reference operation, then locate its functional equivalent and refine boundaries in a target video. Use joint watch for ambiguous correspondence; not generic method comparison or copying reference timestamps to another video. The input gives a reference interval and asks where an equivalent functional step occurs in another video. The operation must be identified before the target receives a meaningful search instruction.",
+      "strategy": "1. Analyze the reference video: instruction names the supplied source-time interval and asks for the visible operation, object/material state before and after, and the functional outcome. Allow nearby context if needed to identify the operation.\n2. After receiving that report, analyze the target video with a self-contained description of the operation and outcome. Ask for candidate source-time intervals, supporting observations and uncertainty; never ask it to inspect an unseen reference video.\n3. Refine the best candidate’s start/end with before/during/after evidence through a targeted instruction. Do not copy the reference duration or align videos by their absolute timestamps.\n4. If several candidates remain, jointly watch the reference and one target candidate using independent source clips. Choose functional correspondence, then return only the target interval in the requested format.\n\nConstraints:\nReference and target analysis in the same batch cannot share newly discovered reference facts. Similar tools alone do not establish the same functional step. A zero start is not invalid by itself."
+    },
+    {
+      "meta": {
+        "id": "global-survey-then-focus",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Use a question-directed analyze_videos survey followed by focused analysis when a broad multi-part query does not yet identify which local evidence matters. Not a default extra pass for long videos or a replacement for a named comparison, count, alignment or diagnostic workflow. Several possible ingredients, stages, characters or scene features may matter, and a useful detailed local instruction depends on first mapping the content. If the question already identifies the exact predicate, event relation, error test or visual distinction, use that more specific procedure.",
+      "strategy": "1. Ask relevant VideoAgents for a short map tied to the question: candidate stages/entities/features, approximate source-time spans and unresolved facts. Request style only when the question concerns style; avoid an unrestricted narration of every video.\n2. Global selects the candidate dimensions and locations that discriminate the answers. If the survey already supplies sufficient evidence, answer immediately.\n3. Otherwise use analyze_videos on only the unresolved videos. The new instruction restates the local target, tentative survey interval and exact missing evidence, and asks the agent to verify the survey rather than accept it as fact. Allow expansion to adjacent context.\n4. Put suggested source-time ranges in instruction; VideoAgent controls observe. If fine cross-video discrimination remains, watch the located intervals jointly. Stop after the needed evidence is established, without requiring a fixed number of passes.\n\nConstraints:\nDo not narrow using invented times, treat a coarse report as verified fine detail, or repeat every video. Analyze has no clip/fps parameters. Complex-looking wording alone does not justify a survey."
+    },
+    {
+      "meta": {
+        "id": "global-synchronized-event-check",
+        "role": "global",
+        "stages": [
+          "initial"
+        ]
+      },
+      "when_to_use": "Use joint watch to locate a condition event in synchronized views, then read another view’s state at that exact time. Shares one workflow for snapshot quantity, position and separation; excludes interval totals and unsynchronized videos. A question anchors the requested state to an object appearing, leaving, aligning or crossing in synchronized views. First solve the time/identity correspondence, then read the requested state or unit.",
+      "strategy": "1. Extract the anchor event/view, target entities/view and requested unit. Initialize referenced identities from the provided label windows rather than matching by an unsupported guess.\n2. Use watch_videos on both views with matching source-time ranges. If the event time is unknown, retain coverage until located. instruction asks to identify the event and inspect the target state at that same time.\n3. If timing or state is unresolved, rewatch a History-supported narrower interval with before/after context. If identity is lost, recover it from labeled context before refining spatial precision.\n4. For a snapshot count enumerate qualifying visible objects; for direction use the target-view axes; for distance use the requested lane or vehicle-length unit. Distinguish occlusion from absence, then answer in the requested representation.\n\nConstraints:\nA convenient frame from another time is not a substitute. Zero seconds can be valid. Car lengths measure separation, not vehicle count. Different cameras are not automatically synchronized."
+    }
+  ]
+}

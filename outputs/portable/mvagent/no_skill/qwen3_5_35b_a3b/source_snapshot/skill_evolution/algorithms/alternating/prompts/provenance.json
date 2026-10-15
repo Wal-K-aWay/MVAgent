@@ -1,0 +1,72 @@
+{
+  "projects": {
+    "skillopt": {
+      "repository": "https://github.com/microsoft/SkillOpt",
+      "commit": "e7014cd18a18e11e6f6c10b897f7a009960d2e1b",
+      "license": "SkillOpt-LICENSE.txt"
+    },
+    "gepa": {
+      "repository": "https://github.com/gepa-ai/gepa",
+      "commit": "ba30ee24e8f63dfdb9e557ed8cfaaec7aa09a6df",
+      "license": "GEPA-LICENSE.txt"
+    }
+  },
+  "files": {
+    "analyst_error.md": {
+      "project": "skillopt",
+      "source_url": "https://github.com/microsoft/SkillOpt/blob/e7014cd18a18e11e6f6c10b897f7a009960d2e1b/skillopt/prompts/analyst_error.md",
+      "sha256": "40eaf561c7fdbdfc1c7a1febd9f7c3540270ca6d5e7e0a8798c7c90b8d303200"
+    },
+    "analyst_success.md": {
+      "project": "skillopt",
+      "source_url": "https://github.com/microsoft/SkillOpt/blob/e7014cd18a18e11e6f6c10b897f7a009960d2e1b/skillopt/prompts/analyst_success.md",
+      "sha256": "0ffc8f85e13af2b14e1b9f3307a44d30ecf60e9d803ccb9190fdd9785e43fabc"
+    },
+    "merge_failure.md": {
+      "project": "skillopt",
+      "source_url": "https://github.com/microsoft/SkillOpt/blob/e7014cd18a18e11e6f6c10b897f7a009960d2e1b/skillopt/prompts/merge_failure.md",
+      "sha256": "071313895da226840164ccda6e7f01d5f849ea128037d3f337cddab66ae799db"
+    },
+    "merge_success.md": {
+      "project": "skillopt",
+      "source_url": "https://github.com/microsoft/SkillOpt/blob/e7014cd18a18e11e6f6c10b897f7a009960d2e1b/skillopt/prompts/merge_success.md",
+      "sha256": "6b816bcf5526d31164b779921f3c8c847541bf92fbe26c6a38b555eb3b753712"
+    },
+    "merge_final.md": {
+      "project": "skillopt",
+      "source_url": "https://github.com/microsoft/SkillOpt/blob/e7014cd18a18e11e6f6c10b897f7a009960d2e1b/skillopt/prompts/merge_final.md",
+      "sha256": "b2c7b452032fbbe3b223e877b766ea6202775d685c3b32e68956a402e775b84b"
+    },
+    "ranking.md": {
+      "project": "skillopt",
+      "source_url": "https://github.com/microsoft/SkillOpt/blob/e7014cd18a18e11e6f6c10b897f7a009960d2e1b/skillopt/prompts/ranking.md",
+      "sha256": "8bf37725b7b328d8d54af7a8fb173179bdd0f02b57399ed2cc7a5b5d25edea8a"
+    },
+    "instruction_proposal.txt": {
+      "project": "gepa",
+      "source_url": "https://github.com/gepa-ai/gepa/blob/ba30ee24e8f63dfdb9e557ed8cfaaec7aa09a6df/src/gepa/strategies/instruction_proposal.py",
+      "constant": "InstructionProposalSignature.default_prompt_template",
+      "sha256": "c8125637a50786c335d73d2f0ac78b5463059d46a75843dae74576ddb8b28c80"
+    },
+    "SkillOpt-LICENSE.txt": {
+      "project": "skillopt",
+      "source_url": "https://github.com/microsoft/SkillOpt/blob/e7014cd18a18e11e6f6c10b897f7a009960d2e1b/LICENSE",
+      "sha256": "9515a04280cf50ce154eb3ab8fa375c7cc5e6b45ea5cb23b7ff3830737020c15"
+    },
+    "GEPA-LICENSE.txt": {
+      "project": "gepa",
+      "source_url": "https://github.com/gepa-ai/gepa/blob/ba30ee24e8f63dfdb9e557ed8cfaaec7aa09a6df/LICENSE",
+      "sha256": "10c47467a961feb40adf3294fe27dd9cba79d4d1b7cf27173b1c34586d4126c3"
+    },
+    "slow_update.md": {
+      "project": "skillopt",
+      "source_url": "https://github.com/microsoft/SkillOpt/blob/e7014cd18a18e11e6f6c10b897f7a009960d2e1b/skillopt/prompts/slow_update.md",
+      "sha256": "7f6f97d2283a370ad072a91ad61e152551f4f4eb4f519c9a1c5c60679b4782f2"
+    },
+    "meta_skill.md": {
+      "project": "skillopt",
+      "source_url": "https://github.com/microsoft/SkillOpt/blob/e7014cd18a18e11e6f6c10b897f7a009960d2e1b/skillopt/prompts/meta_skill.md",
+      "sha256": "b2bab7f7635cd2a94348de6adf15ceaa247ddabd0a2a8bb7c53eab5cfca7deba"
+    }
+  }
+}

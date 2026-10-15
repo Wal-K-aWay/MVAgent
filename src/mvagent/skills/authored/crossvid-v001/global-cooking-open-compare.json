@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "id": "global-cooking-open-compare",
+    "role": "global",
+    "stages": [
+      "initial"
+    ]
+  },
+  "when_to_use": "Produce an evidence-grounded free-text comparison of two cooking videos. Organize differences by the dimensions asked about; not option-letter questions or temporal interval answers. Two cooking videos are compared in an open-ended question requiring an explanation, not option labels. Exclude single-choice or interval-alignment requests.",
+  "strategy": "1. Identify the requested dimensions, such as ingredient, tool, action sequence, texture or result; do not add unrelated recipe details.\n2. Use analyze_videos on both videos with the same dimension checklist. Ask for visible facts, sequence and timestamps, distinguishing explicit identification from uncertainty.\n3. Align the evidence dimension by dimension. For an important missing detail or conflicting identity, use targeted analyze_videos or joint watch_videos; absence needs adequate coverage of the relevant step.\n4. Answer in words, explicitly attributing each supported difference to its video. Preserve unknowns; do not infer unseen ingredients, quantities or motivations.\n\nConstraints:\nDo not output a letter, assume every dimension differs, or fill missing facts with common recipe knowledge."
+}

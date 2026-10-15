@@ -1,0 +1,4422 @@
+{
+  "updated_at_utc": "2026-09-20T15:34:44.901785+00:00",
+  "task": "CCQA",
+  "scoring_protocol": "CrossVid official score_CCQA.py",
+  "official_source": "eval/e2e_eval/CrossVid/eval/score_CCQA.py",
+  "model": "deepseek-v4-flash",
+  "api_base": "https://api.deepseek.com",
+  "credential": "DEEPSEEK_API_KEY environment variable; value not persisted",
+  "generation": {
+    "max_tokens": "8192 (escalated to 32768 for reasoning-truncated retries)",
+    "temperature": 0.0,
+    "top_p": 0.95,
+    "stream": false
+  },
+  "system_prompt": "You are a helpful assistant.",
+  "qa_path": "/home/kww/datasets/Multi-Video/CrossVid/QA/CCQA.json",
+  "qa_sha256": "ec7b03f1a624741e20317a23e7c9d359bd884b7791f3db95fd59a11b35ae5b5e",
+  "scored_answer_count": 239,
+  "failed_ids": [],
+  "sum_score": 471.0,
+  "all_score": 1514,
+  "official_score": 0.31109643328929987,
+  "score_ratio_distribution": {
+    "0.0": 54,
+    "0.12": 8,
+    "0.17": 37,
+    "0.25": 8,
+    "0.33": 65,
+    "0.38": 4,
+    "0.5": 19,
+    "0.62": 2,
+    "0.67": 27,
+    "0.75": 3,
+    "0.83": 4,
+    "0.88": 1,
+    "1.0": 7
+  },
+  "samples": [
+    {
+      "id": 1,
+      "prediction": "In Video A, the chef prepares the potatoes by peeling them and then grating them raw directly into a mixing bowl without any prior cooking. In contrast, the chef in Video B peels the potatoes, boils them in a pot of water, drains them, and then grates the cooked potatoes into a bowl before adding them to the mixture.",
+      "coverage": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 8,
+      "prediction": "In Video A, the mixing process involves adding ingredients sequentially over time: first shredded potatoes, then a white powder, then a yellow liquid (egg), followed by repeated additions of various white substances (powders or granules) at approximately 10-second intervals, with stirring using a wooden spoon after each addition. In contrast, Video B shows all ingredients (mashed potatoes, egg, flour, salt, baking powder, and pepper) being added to the bowl first, followed by a single mixing phase using a metal fork with a stirring and folding motion until uniform. The key differences are the sequential vs. batch addition of ingredients, the use of a wooden spoon vs. a metal fork, and the repetitive stirring vs. single continuous mixing.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 9,
+      "prediction": "In Video A, the chef prepares the marinade by combining Sriracha sauce, a clear liquid (likely oil or vinegar), a white granular substance (likely sugar or salt), a dark liquid (possibly soy sauce), and minced garlic in a glass bowl, whisking them together, coating the chicken, and covering the bowl with plastic wrap. In Video B, the chef mixes Frank's RedHot sauce with a white liquid (likely buttermilk or milk) in a red bowl until pinkish-red, places the chicken in the mixture, and seals it in a plastic bag to brine for 3 hours. The key differences are the specific ingredients used (Video A uses a complex mix of sauces, liquids, and garlic; Video B uses only hot sauce and a dairy liquid) and the marinating vessel (plastic wrap over a bowl in Video A vs. a sealed plastic bag in Video B).",
+      "coverage": [
+        true,
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 12,
+      "prediction": "The coating preparation methods differ significantly in ingredients and sequence. Video A employs a double-coating technique using a dry seasoned flour mixture and a separate egg wash: the chicken is dredged in flour, dipped in egg wash, and then dredged in flour again. In contrast, Video B uses a seasoned liquid (likely buttermilk with spices mixed in) as the initial wet coating, followed by a unique step of dipping the chicken in a dark reddish-brown paste before finally dredging it in seasoned flour. Thus, Video A follows a dry-wet-dry sequence with egg wash, while Video B follows a wet-paste-dry sequence with seasoned buttermilk and an intermediate paste step.",
+      "coverage": [
+        true,
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 13,
+      "prediction": "The seasoning strategies differ primarily in the timing and location of application. In Video A, the cook employs a two-stage method: first, seasonings (a white granular substance, a brownish powder, and a clear liquid) are mixed into the rice in a bowl before it is added to the wok; then, additional seasonings (dark liquid, herbs, a liquid from a yellow-capped bottle, and a reddish-brown powder) are added directly to the wok during stir-frying. In contrast, Video B uses a single-stage method where all seasonings (curry powder, fish sauce, sugar, oyster sauce, and soy sauce) are added directly to the pan with the rice mixture, with no pre-seasoning step in a bowl.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 14,
+      "prediction": "In Video A, the chef prepares spicy elements by slicing whole red Thai chili peppers into thin rings and adding them to the wok during the stir-frying stage. In contrast, Video B shows no visible spicy ingredients being prepared or added; the cook only uses opaque seasonings from a container, with no chilies or other spicy components visibly identified.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 19,
+      "prediction": "In Video A, the potatoes are already shredded and are cooked immediately without any visible pre-cooking steps like squeezing or adding ingredients. In Video B, the grated potatoes are squeezed by hand to remove excess water, then mixed with a beaten egg, flour, salt, and black pepper before being refrigerated.",
+      "coverage": [
+        false,
+        true,
+        true
+      ],
+      "correctness": [
+        false,
+        true,
+        true
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 20,
+      "prediction": "In Video A, the hash browns are pan-fried in oil on medium heat until golden brown on both sides. In Video B, the hash browns are baked in an oven at 200°C for 10-15 minutes after being mixed with sautéed onions and butter.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 22,
+      "prediction": "In Video A, the chef prepares the sauce directly in the pan with the main ingredients (chicken and vegetables) by adding a dark liquid and a thickening agent, then stirring to coat everything evenly. In contrast, Video B shows the sauce being prepared separately in a wok with aromatics and liquids, thickened with cornstarch, but the video does not show the final step of incorporating this sauce into the main dish, leaving the incorporation method unobserved.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 26,
+      "prediction": "Video A's sauce contains 4 ingredients: a dark liquid (likely soy sauce), a white powder (likely cornstarch or sugar), a light-colored liquid (possibly rice vinegar or water), and another clear liquid (perhaps sesame oil). Video B's sauce contains 8 ingredients: soy sauce, sugar, a clear viscous liquid (possibly cornstarch slurry or honey), a light-colored powder (likely garlic or ginger powder), a dark paste (possibly hoisin or oyster sauce), chili flakes, a minced white ingredient (likely garlic or ginger), and a clear liquid (possibly rice vinegar or water). The main differences are that Video B includes sugar, a dark paste, chili flakes, and minced aromatics, which are not present in Video A's simpler 4-ingredient sauce.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 30,
+      "prediction": "In Video A, the chef builds flavor using a vegetable-based foundation, starting with sautéed chopped onions, followed by minced garlic, red pepper flakes, and dried herbs. In contrast, the chef in Video B uses a meat-based foundation, starting by rendering and sautéing chopped cured pork belly (guanciale or pancetta) in olive oil, without adding vegetables at this initial stage.",
+      "coverage": [
+        true,
+        true,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        true
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 31,
+      "prediction": "water and oil",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 36,
+      "prediction": "Both Video A and Video B use ginger as the sole tenderizing agent in their marinades. There is no difference in the type of tenderizing agent used between the two videos; both rely on the enzymatic properties of ginger.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 38,
+      "prediction": "Both Video A and Video B use minced ginger as the tenderizing agent in their marinades, relying on its enzymatic properties. There is no difference in the type of tenderizing agent used between the two videos.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 44,
+      "prediction": "Video A uses chicken (and the dish is not bulgogi), whereas Video B uses beef for bulgogi.",
+      "coverage": [
+        true,
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 55,
+      "prediction": "In Video A, the chef prepares flour tortillas by heating them in a black non-stick frying pan with oil on a gas stovetop, using tongs to press and flip them briefly on both sides until lightly browned. In Video B, the chef prepares hard taco shells by placing them directly on a wire rack inside an oven to heat or crisp them, without using a pan, oil, or flipping technique.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 56,
+      "prediction": "In Video A, the chef uses pre-minced garlic that is added directly from a small glass bowl into the pan. In Video B, the chef uses a whole, unpeeled garlic bulb, which she crushes by hand against the raw steak inside a bowl without peeling, mincing, or slicing it.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 57,
+      "prediction": "In Video A, the chef prepares soft flour tortillas by frying them in oil on a stovetop using tongs until they are lightly crispy. In Video B, the chef prepares hard taco shells by heating them in an oven on a baking sheet. The primary differences are the cooking method (frying vs. baking), the equipment used (stovetop and tongs vs. oven and baking sheet), and the type of tortilla (soft flour tortillas vs. hard shells).",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 59,
+      "prediction": "In Video A, the beef mixture is prepared using a Cuisinart multi-cooker (inner pot) and a wooden spoon. In Video B, the beef mixture is prepared in a black, non-stick frying pan on a gas stovetop using a metal slotted spatula.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 60,
+      "prediction": "In Video A, the chef prepares flour tortillas by frying them in oil on a stovetop using a non-stick pan and tongs, flipping them until golden brown and crispy. In Video B, the chef prepares hard taco shells by baking them in an oven on a baking sheet. The primary differences are the cooking method (frying vs. baking), the equipment used (stovetop pan vs. oven), and the type of tortilla (soft flour tortillas vs. hard taco shells).",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 73,
+      "prediction": "In Video A, the carrots are grated using a box grater into a bowl, and sliced red chili peppers are added to the mixture before pouring in a clear liquid. In Video B, the carrots are processed using a spiralizer to create long, thin strands, which are then placed in a bowl, sprinkled with a white granular substance (likely salt or sugar), and mixed with a clear liquid. The key differences are the cutting method (grating vs. spiralizing), the resulting vegetable shape (shreds vs. strands), and the additional ingredients (chili peppers in A vs. granular seasoning in B).",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 80,
+      "prediction": "In Video A, the cabbage is prepared for fermentation by shredding it, adding salt, massaging it to release juices, and packing it tightly into jars. In contrast, Video B does not show fermentation preparation; instead, the cabbage is shredded and then sautéed in a pan with oil and apple cider vinegar.",
+      "coverage": [
+        true,
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false,
+        false
+      ],
+      "score": 3.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 86,
+      "prediction": "In Video A, the chicken wings are marinated in a mixture of buttermilk, cayenne pepper, and salt, then coated in flour before cooking. In Video B, the wings are patted dry, cut into individual parts, and dried again with paper towels, with no marination or flour coating applied.",
+      "coverage": [
+        true,
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        true,
+        false
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 101,
+      "prediction": "In Video A, the tofu is cut on-camera from a block into roughly 1-inch cubes and added directly to the simmering broth after the miso paste has been added. In Video B, the tofu is pre-cut into smaller, uniform cubes (approximately 1-2 cm) and added to the water before the miso paste is introduced.",
+      "coverage": [
+        false,
+        true,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 102,
+      "prediction": "In Video A, the soup base is made using seaweed vegetables: Kombu (kelp) and Wakame. In contrast, Video B uses a combination of common root and leafy vegetables: onions, carrots, celery, and broccoli. The primary difference is that Video A relies on marine algae, while Video B uses terrestrial vegetables.",
+      "coverage": [
+        true,
+        false,
+        true,
+        true
+      ],
+      "correctness": [
+        true,
+        false,
+        false,
+        true
+      ],
+      "score": 5.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 105,
+      "prediction": "In Video A, the spices used are Turmeric powder, Red chili powder, Coriander powder, Garam masala, and Salt; no acidic elements are added. In Video B, the spices include Cumin seeds, Green chilies, Garam masala, Red chili powder, and Salt, along with acidic elements Amchur powder and Lemon juice. The key differences are that Video A uses Turmeric and Coriander powder but no acidic ingredients, whereas Video B uses Cumin seeds, Green chilies, and acidic ingredients (Amchur and Lemon juice) but omits Turmeric and Coriander powder.",
+      "coverage": [
+        false,
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        true,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 108,
+      "prediction": "In Video A, the meat used is bacon, which is sliced into strips and fried. The sauce is prepared by whisking egg yolks, whole eggs, grated cheese, black pepper, and chopped parsley in a bowl, then combining this mixture with the hot spaghetti and fried bacon in the pan to cook the eggs with residual heat. In Video B, the meat used is pancetta, diced into pink cubes. The sauce is prepared by whisking eggs and grated cheese in a measuring cup. The diced pancetta is cooked with minced garlic until crispy, then added to the pasta in a bowl, followed by the egg and cheese mixture, which is tossed to create the sauce. The main differences are the type and cut of meat (bacon strips vs. pancetta cubes), the inclusion of garlic in Video B's sauce base versus parsley and pepper in Video A, and the mixing vessel (pan in Video A vs. bowl in Video B).",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 109,
+      "prediction": "In Video A, the pasta water is seasoned with salt before the water starts boiling (added to cold water at 0:34). In Video B, the salt is added to the water after it has already started boiling (at 00:31). Both videos use only salt and no other ingredients like oil or herbs.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 112,
+      "prediction": "The chefs differ in three main ways: 1) Meat Choice: Video A uses bacon, while Video B uses guanciale. 2) Cutting: The bacon in Video A is cut into small rectangular pieces (lardons), whereas the guanciale in Video B is cut into small, thin strips. 3) Handling: In Video A, the bacon is fried until crispy and left in the pan with its rendered fat. In Video B, the guanciale is placed in a cold pan and fried slowly; once crispy, it is removed from the pan and drained on a cloth, leaving the fat behind.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 116,
+      "prediction": "The main differences in ingredients added during the blending process are: Video A includes tahina, which is not mentioned in Video B's summary. Video B includes garlic cloves, black pepper, and water, which are not confirmed to be added in Video A. Both videos share chickpeas, lemon juice, olive oil, and salt.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 117,
+      "prediction": "Video A includes tahini and black pepper in the hummus base, while Video B includes fresh parsley and red pepper flakes instead. Both videos use chickpeas, garlic, lemon juice, olive oil, and salt.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 118,
+      "prediction": "In Video A, the chef adds salt and black pepper to the hummus mixture. In Video B, the chef adds fresh parsley, red pepper flakes, salt, cumin, coriander, paprika, black pepper, garlic powder, onion powder, cayenne pepper, chili powder, oregano, thyme, rosemary, sage, marjoram, basil, dill, fennel, anise, caraway, mustard seed, and celery seed.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 120,
+      "prediction": "In Video A, a high-powered countertop blender (Blendtec WildSide+) is used, which operates via a control panel with a countdown timer and produces a smooth, bright green puree with a creamy, uniform consistency and no visible chunks. In Video B, a food processor is used, operated by securing a lid and turning the machine on, resulting in a uniform, thick, and smooth, creamy, light-colored paste. The impact of using a high-powered blender versus a food processor is evident in the final texture: the blender creates a finer, more liquid puree, while the food processor yields a thicker, denser paste, likely due to differences in blade design, motor power, and processing mechanics.",
+      "coverage": [
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 121,
+      "prediction": "Both recipes use canned diced tomatoes. The seasoning ingredients differ: Video A uses garlic powder, red pepper flakes, Hungarian paprika, and salt. Video B uses chopped onions, minced garlic, chopped red bell peppers, paprika, salt, black pepper, and a bay leaf.",
+      "coverage": [
+        false,
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 129,
+      "prediction": "In Video A, the base ingredient is cauliflower, which is prepared raw by finely chopping or grating it without any soaking or cooking. In Video B, the base ingredient is quinoa, which is prepared by cooking it in water on a stove before being added to the salad.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 3.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 130,
+      "prediction": "In both videos, the shrimp are added after the noodles but before the vegetables and herbs. The order of adding shrimp does not differ between the two videos.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 134,
+      "prediction": "In Video A, citrus flavors are added using fresh ingredients: both orange and lemon zest are grated directly into the marinade bowl, followed by the juice from both fruits being squeezed in. In contrast, Video B does not include any fresh citrus (no juice, zest, or slices); the marinade relies on olive oil, white vinegar, and a 'Grill Mates Zesty Herb' seasoning packet for flavor.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        true,
+        true,
+        false
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 136,
+      "prediction": "In Video A, the chef uses shrimp as the main protein and seasons it simply with salt and freshly ground black pepper directly applied before skewering, without a liquid marinade. In contrast, the chef in Video B uses cubed red meat as the main protein and employs a more complex seasoning approach involving a marinade created by grinding spices in a mortar and pestle, mixing them with a liquid (likely oil or vinegar) and salt, and thoroughly coating the meat before skewering.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 142,
+      "prediction": "In Video A, the chef uses a large clear glass mixing bowl, metal tongs, a green silicone spatula (resting), small clear glass bowls for liquids, and small square white ceramic dishes for solids. In Video B, the chef uses a large black stone mortar and pestle, a large chef's knife, a metal grater, a wooden spatula, wooden chopsticks, and various small ceramic and glass bowls for prepped ingredients.",
+      "coverage": [
+        true,
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        true,
+        false,
+        false
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 143,
+      "prediction": "In Video A, the shrimp are stir-fried alone in the wok first until they turn pink and opaque, and are only later combined with noodles, vegetables, and sauce. In contrast, in Video B, the shrimp are added to the wok simultaneously with other ingredients (garlic, shallots, tofu) and are stir-fried together from the start.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 147,
+      "prediction": "In Video A, the sauce is prepared by combining soy sauce, fish sauce, tamarind, sugar, and hot chilli sauce in a bowl and mixing them. In Video B, the sauce is made by mixing brown sugar, fish sauce, tamarind paste, lime juice, and chili flakes. The main differences are that Video A includes soy sauce and uses a liquid hot chilli sauce, while Video B includes lime juice and uses solid chili flakes instead of a sauce.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 151,
+      "prediction": "In Video A, the chef prepares the meat mixture by adding only dried green herbs and white granular seasonings (likely salt/garlic powder) to the ground meat, then mixing thoroughly by hand without adding any liquids or binders. In contrast, the chef in Video B adds a variety of ingredients including breadcrumbs, grated cheese, chopped fresh parsley, an egg, salt, pepper, and a splash of milk to the ground meat before mixing by hand. The primary differences are that Video B includes binders (breadcrumbs, egg, cheese) and liquid (milk) which are absent in Video A, and Video B uses fresh herbs while Video A uses dried herbs.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 155,
+      "prediction": "The meatball mixtures differ in several key ingredients. Video A uses minced meat, finely chopped onion, fresh basil leaves, egg, breadcrumbs, and salt. In contrast, Video B uses ground beef, grated Parmesan cheese, breadcrumbs, minced garlic, one egg, dried oregano, dried basil, salt, and black pepper. Specifically, Video A includes onion and fresh basil but omits cheese, garlic, oregano, and pepper. Video B includes cheese, garlic, dried herbs, and pepper but omits onion and fresh basil. Additionally, the meat type differs slightly (minced meat vs. ground beef).",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 156,
+      "prediction": "Video A uses ground meat, breadcrumbs, egg, Parmesan cheese, dried parsley, dried oregano, garlic powder, salt, black pepper, and a liquid. Video B uses ground meat, breadcrumbs, dried green herbs, red pepper flakes, salt, black pepper, egg, a liquid, and grated white cheese. The main differences are that Video A includes specific dried herbs (parsley, oregano) and garlic powder, whereas Video B includes red pepper flakes and generic green herbs. Additionally, Video A specifies Parmesan cheese, while Video B uses a generic white shredded cheese.",
+      "coverage": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 163,
+      "prediction": "In Video A, the chef prepares the sauce by cooking it directly in a pan on the stovetop: oil is heated, then minced garlic and red chili paste are added and sautéed until fragrant before the tofu is introduced. In contrast, in Video B, the chef prepares the sauce by mixing soy sauce, sugar, and chili sauce together in a bowl without any cooking or heating; this raw mixture is then poured into the pan along with the tofu and mushrooms later in the process.",
+      "coverage": [
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 165,
+      "prediction": "In Video A, the cooking liquid used is water (5 cups added after sautéing vegetables), and the protein ingredient is green peas. In Video B, the cooking liquid is chicken broth (poured at the start), and the protein ingredient is raw chicken breasts (added to the broth, cooked, chopped, and returned to the pan). The key differences are the use of water versus chicken broth for the liquid base, and green peas versus chicken breasts for the protein source.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 3.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 170,
+      "prediction": "In Video A, the chef incorporates red kidney beans as the protein source by draining and rinsing canned beans and adding them directly to the simmering vegetable and tomato mixture. In contrast, Video B shows no protein sources being used; the dish is a vegetable-based minestrone soup containing only onions, carrots, zucchini, and broth.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 172,
+      "prediction": "In Video A, the chef adds spices by first sprinkling yellow and red powders into sautéed onions, and later adding a pre-mixed paste of red and yellow spices. In contrast, the chef in Video B begins by blooming whole spices (cumin seeds, dried red chilies, bay leaves) in hot oil, then adds aromatics, and finally sprinkles multiple powdered spices (turmeric, red chili, coriander, garam masala) sequentially into the pan. The main differences are the use of blooming whole spices in Video B versus direct powder/paste addition in Video A, and the sequential addition of multiple distinct powders in Video B versus fewer, combined additions in Video A.",
+      "coverage": [
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 174,
+      "prediction": "In Video A, the chef chops white onions into small uniform pieces, sautés them in oil until translucent and slightly browned, and then adds finely minced garlic. In Video B, the chef first fries whole spices (bay leaves, cardamom, cumin) in hot oil, then adds sliced red onions (thin half-moons) along with finely grated ginger and garlic simultaneously, sautéing them together over high heat until the onions soften and brown. The main differences are the onion type and cut, the timing of adding garlic (after onions in A vs. with onions in B), the inclusion of whole spices and ginger in B, and the initial frying of spices in B.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 175,
+      "prediction": "Video A creates the sour flavor by squeezing fresh lime juice and adding it to the soup just before serving. In contrast, Video B creates the sour flavor by pouring vinegar directly into the pot while the soup is cooking, before adding other ingredients.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 176,
+      "prediction": "Video A creates the sour flavor using freshly squeezed lime juice, which is added to the soup just before serving. In contrast, Video B uses vinegar, which is poured into the pot while the noodles and vegetables are still cooking, before the soy sauce is added.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 178,
+      "prediction": "In Video A, the protein ingredient is Thai Peeled Prawns, which are added raw directly to the simmering soup and cooked by boiling until pink and opaque. In Video B, the protein ingredient is ground chicken, which is added raw to a pan after sautéing spring onions, then stirred and broken up to cook until no longer pink before other soup ingredients are added. The key differences are the type of protein (prawns vs. ground chicken) and the cooking method (boiling in the soup vs. sautéing in a pan as a base).",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 186,
+      "prediction": "In Video A, the grilled cheese is made with yellow cheese (likely cheddar or American) and contains no sweet ingredients. In Video B, the grilled cheese uses ricotta cheese and includes coconut sugar as a sweet ingredient. The key differences are the type of cheese (yellow vs. ricotta) and the presence of a sweet ingredient (none in Video A vs. coconut sugar in Video B).",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 188,
+      "prediction": "In Video A, the chef slices the bread, toasts it in an oven, then brushes it with oil or butter and seasons it with salt and pepper on a griddle before adding cheese. In Video B, the chef slices the bread and spreads butter on one side of each slice before assembling the sandwich with ham and cheese, without a pre-toasting or seasoning step.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 191,
+      "prediction": "In Video A, the meat is beef that appears to be marinated or pre-seasoned before cooking; it is stir-fried first, removed from the wok, and then reintroduced near the end of the cooking process. In Video B, the meat is pork sliced into thin strips with no visible marinating or pre-seasoning; it is stir-fried first and remains in the wok as other ingredients are added sequentially.",
+      "coverage": [
+        true,
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false,
+        false
+      ],
+      "score": 3.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 204,
+      "prediction": "In Video A, the chef prepares the white sauce using a traditional stovetop method: melting butter, adding flour to create a roux, whisking in milk, simmering until thickened, and finally incorporating grated cheese and Dijon mustard. In contrast, Video B shows a simplified, no-cook method where the chef mixes flour and milk directly in a mug and whisks them together without using a stovetop, butter, or additional flavorings like cheese or mustard.",
+      "coverage": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 210,
+      "prediction": "The methods differ primarily in the type of butter used, the order of operations, and the emulsification technique. In Video A, the chef uses a double boiler method starting with egg yolks and lemon juice whisked over simmering water until thickened, then slowly incorporates regular melted butter to emulsify. In Video B, the chef first melts and clarifies the butter, skimming off the clear fat. The egg yolks are then whisked with water and lemon juice in a separate bowl (not initially heated), and the clarified butter is slowly drizzled in to create the emulsion. Finally, the bowl in Video B is placed over simmering water to maintain temperature, whereas in Video A, the heat is applied from the start to cook the yolks.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 211,
+      "prediction": "The primary differences lie in the type of meat and the cooking method. In Video A, the chef uses Canadian bacon, which is fried in butter until cooked through. In Video B, the chef uses regular bacon strips, which are fried in oil or rendered fat until they become crispy and well-browned. Both chefs do not add visible seasoning during the cooking process.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 213,
+      "prediction": "In Video A, the method for making hollandaise sauce is not demonstrated; the sauce is used as a pre-made ingredient. In Video B, the sauce is made from scratch using a double boiler method, where egg yolks, lemon juice, and melted butter are whisked continuously over simmering water until emulsified and thickened.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 214,
+      "prediction": "In Video A, the chef uses raw ham slices that are pan-fried in a hot pan with oil or butter until browned before being assembled into the dish. In contrast, in Video B, the chef uses pre-sliced, pre-cooked ham (likely deli-style) and places it directly onto the toasted muffin halves without any additional cooking, marinating, or cutting steps. The primary difference is that the chef in Video A actively cooks the meat component, while the chef in Video B uses the meat as a ready-to-eat ingredient.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 218,
+      "prediction": "In Video A, the chef develops the curry base by frying a pre-made Laksa paste in oil, then adding boiling water, coconut cream, and milk. In contrast, Video B uses a more complex method: first frying prawn shells to create a fragrant oil, then grinding fresh aromatics (red chilies, garlic, shallots) into a paste, frying this fresh paste (along with some store-bought paste) in the prawn oil, and finally adding water/stock, coconut cream, and seasonings. The primary difference is that Video B builds flavor from scratch using fresh ground aromatics and prawn shell oil, while Video A relies on a single pre-made paste.",
+      "coverage": [
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        true,
+        false,
+        true
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 220,
+      "prediction": "Video A's pierogi filling consists of boiled and mashed potatoes, shredded cheese, and diced red peppers, seasoned with salt, pepper, and garlic powder. In contrast, Video B's filling uses diced potatoes and shredded yellow cheese (Baby Jack), with no visible spices or herbs added to the mixture itself; instead, a red mushroom sauce (Prego brand) is used as a topping for the cooked filling. The key differences are the inclusion of red peppers and specific dry seasonings (salt, pepper, garlic powder) in Video A versus the use of a mushroom sauce topping and lack of visible dry seasonings in the filling for Video B.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 223,
+      "prediction": "Video A's dough contains all-purpose flour, salt, sugar, baking powder, baking soda, citric acid, vinegar, lemon juice, water, oil, butter, milk, yogurt, cream, cheese, herbs, spices, seasoning, pepper, garlic, onion, tomato, and a wide variety of vegetables (carrot, potato, cabbage, spinach, lettuce, cucumber, bell pepper, mushroom, zucchini, eggplant, squash, pumpkin, sweet potato, yam, turnip, radish, beetroot, parsnip, rutabaga, kohlrabi, daikon, jicama, taro, cassava). Video B's dough contains only flour (type unspecified), salt, eggs, and water. The main differences are that Video A includes multiple leavening agents, fats, various liquids, and numerous vegetables/spices, whereas Video B includes eggs and lacks leavening agents, fats, and the extensive vegetable/spice list.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 225,
+      "prediction": "The main difference is that Video A uses a savory filling made of potatoes and cream cheese, while Video B uses a sweet filling made of red cherries and cottage cheese.",
+      "coverage": [
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        true,
+        false,
+        true
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 229,
+      "prediction": "In Video A, no fat is added to the batter during preparation (butter is only used as a topping), whereas in Video B, melted butter is added to the batter mixture.",
+      "coverage": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 231,
+      "prediction": "There is no main difference in flavoring ingredients between the two pancake recipes; both recipes only include basic ingredients like sugar and salt without any additional spices, extracts, or herbs.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 236,
+      "prediction": "In Video A, after boiling, the chef cools the spinach in an ice bath, drains it, and then chops it. In Video B, after boiling, the chef transfers the spinach to a bowl, squeezes it by hand to remove excess water, and then mixes it with seasoning.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 240,
+      "prediction": "In Video A, the chef uses a liquid oil (poured from a squeeze bottle) to start cooking the sausages, which allows for immediate sizzling and browning without a melting phase. In Video B, the chef uses solid butter (pats placed in the pan), which must melt before the onions and sausages can cook, likely contributing to a different browning profile and flavor development compared to the oil.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 241,
+      "prediction": "In Video A, the chef does not use any herbs with the vegetable components (potatoes and green beans). In contrast, the chef in Video B uses fresh rosemary, adding whole sprigs raw to the saucepan while sautéing sliced onions.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 243,
+      "prediction": "The main differences are: 1) Potato type: Video A uses unspecified potatoes, while Video B uses red-skinned potatoes. 2) Ingredients: Video A includes salt, pepper, and chopped green herbs (chives/parsley) in addition to butter and milk, whereas Video B only adds butter and milk. 3) Final step: Video B uniquely transfers the finished mashed potatoes into a slow cooker insert to keep them warm, a step not shown in Video A. Both videos use a potato masher and boil the potatoes.",
+      "coverage": [
+        false,
+        false,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 248,
+      "prediction": "Video A demonstrates a specific method for making gravy by caramelizing onions in a saucepan, then dissolving an 'Ox' stock cube and 'Knorr' gravy granules before adding a liquid and stirring to thicken. In contrast, Video B does not show any steps, ingredients, or techniques for making the gravy; it only shows the final dish being plated with gravy already prepared.",
+      "coverage": [
+        true,
+        true,
+        true
+      ],
+      "correctness": [
+        true,
+        false,
+        true
+      ],
+      "score": 5.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 251,
+      "prediction": "The chef in Video A prepares the mashed potatoes by boiling peeled potatoes, draining them, and mashing them with butter and milk to achieve a smooth, creamy texture, without adding cheese or egg. In contrast, the chef in Video B also boils and mashes the potatoes with butter and milk, but additionally incorporates grated cheese and a whisked egg, resulting in a smooth, creamy topping with visible cheese flecks and a yellow tint from the egg.",
+      "coverage": [
+        false,
+        false,
+        false,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 262,
+      "prediction": "The batter preparation differs in three main ways: 1) Ingredients: Video A uses only tempura flour and ice water, while Video B adds an egg to plain flour and ice-cold water. 2) Mixing technique: The chef in Video A whisks the batter until it is smooth, whereas the chef in Video B deliberately under-mixes the batter to leave small lumps for a lighter texture. 3) Consistency: Video A results in a smooth batter, while Video B results in a lumpy batter.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 268,
+      "prediction": "The chef in Video A cooks the assembled burritos by pan-frying them in a non-stick pan with butter on high heat, flipping them to brown both sides and pressing them down. In contrast, the chef in Video B cooks the assembled burritos by baking them in a glass dish in an oven preheated to 400°F until the cheese is melted and bubbly, without any flipping or pressing.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 269,
+      "prediction": "In Video A, the burritos are heated in a microwave for 1 minute and 20 seconds without any additional equipment like foil or oil. In Video B, the burritos are cooked by deep frying: they are placed in a perforated metal basket, submerged in hot oil until golden brown, then removed and drained on a paper towel-lined surface.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 279,
+      "prediction": "In Video A, the sushi is rolled using a bamboo mat with the rice placed on the outside of the nori (inside-out roll), where the nori is flipped so the rice faces down on the mat before rolling. In Video B, the sushi is rolled by hand without a bamboo mat, with the rice placed on the inside of the nori (traditional roll), using fingers to tuck and compress the roll as it is formed.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 282,
+      "prediction": "In Video A, the spicy tuna rolls are topped with sliced avocado and masago (flying fish roe). In Video B, the rolls are topped with shiso leaves and a light-colored creamy sauce (likely aioli). The key differences are that Video A features avocado and masago, whereas Video B features shiso leaves and a creamy sauce.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 283,
+      "prediction": "The chefs differ in both ingredients and arrangement. Video A's chef uses tuna, lettuce, and cucumber, arranging them by placing a strip of lettuce first, followed by cucumber strips, and then the tuna mixture. Video B's chef uses spicy tuna, lettuce, avocado, and cucumber, arranging them by placing lettuce first, followed by avocado slices and cucumber strips, and then the spicy tuna mixture. The primary difference is that Video B includes avocado, which is absent in Video A, and the vegetable layering order differs slightly.",
+      "coverage": [
+        false,
+        false,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        true
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 286,
+      "prediction": "In Video A, the bamboo mat is not used to roll the sushi; the roll is formed by hand first, and the mat is only used afterward to press and tighten the completed roll. In contrast, in Video B, the bamboo mat is used actively during the entire shaping process to lift, roll, and compact the ingredients into the final cylindrical shape.",
+      "coverage": [
+        true,
+        true,
+        true
+      ],
+      "correctness": [
+        true,
+        true,
+        true
+      ],
+      "score": 6.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 292,
+      "prediction": "In Video A, the chef uses a metal spoon to mix the dough. In Video B, no tool is used for mixing as the dough is already formed; the chef uses their hands to shape it and later a rolling pin to flatten it.",
+      "coverage": [
+        true,
+        true,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 3.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 293,
+      "prediction": "In Video A, the dough preparation begins with mixing salt into flour using a fork in a metal bowl, followed by adding water and then oil, with all kneading performed inside the bowl. In Video B, salt and water are added to flour in a clear plastic bowl and mixed by hand; the dough is kneaded first in the bowl and then transferred to the countertop, with no oil mentioned. Key differences include the mixing tool (fork vs. hand), the inclusion of oil (Video A only), the bowl material (metal vs. plastic), and the kneading location (bowl only vs. bowl then countertop).",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 294,
+      "prediction": "The initial dough preparation steps differ in several ways: 1. **Bowl Material**: Video A uses a metal bowl, while Video B uses a large clear plastic bowl. 2. **Mixing Tool**: In Video A, ingredients are initially mixed with a fork before being combined by hand; in Video B, mixing is done entirely by hand. 3. **Resting Step**: Video A explicitly shows the dough being placed back in the bowl, covered with a plastic lid, and set aside to rest before portioning. Video B's summary describes moving directly from kneading to rolling a small piece without mentioning a resting period. 4. **Rolling Surface**: Video A uses a floured dark countertop for rolling, whereas Video B uses a specific metal rolling board (chakla). Both videos use flour, salt, and water, and involve kneading in the bowl and on a surface, but the tools and specific sequence (fork mixing, resting) distinguish them.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 296,
+      "prediction": "In Video A, no oil is used during the visible dough preparation stage as the video begins with pre-made dough. In contrast, Video B shows oil being added directly to the flour before water is introduced, where it is then rubbed into the dry flour.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 302,
+      "prediction": "In Video A, the chef creates a creamy sauce base by sautéing onions, adding tomato paste, deglazing with liquid, and then thickening the mixture with a white liquid (likely coconut milk or cream). In contrast, the chef in Video B creates a broth-based sauce by sautéing garlic and onions, adding crushed tomatoes, deglazing with liquid, and seasoning with dried herbs, red pepper flakes, salt, and pepper, without adding any creamy thickener. The primary differences are the inclusion of a creamy element in Video A versus a herb-spiced broth in Video B, and the use of garlic in Video B's base.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 304,
+      "prediction": "In Video A, the chef creates the sauce base by sautéing onions, adding tomato paste, deglazing with liquid, then adding coconut milk/cream and seasoning before adding the mussels. In Video B, the chef sautés garlic and onions, adds crushed tomatoes and liquid, seasons, cooks the mussels in this broth, removes them, then adds coconut milk to the remaining sauce before returning the mussels. The main differences are: 1) Video B includes garlic in the initial sauté, while Video A does not. 2) In Video A, coconut milk is added to the sauce base before the mussels are introduced. In Video B, the mussels are first cooked in a tomato-based broth, removed, and then coconut milk is added to the remaining sauce to create the creamy base before the mussels are returned.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 305,
+      "prediction": "In Video A, the chef chops fresh parsley and stirs it into the mussels while they are cooking, integrating it fully into the dish. In Video B, the chef uses chopped parsley in two ways: half is added to the pot with sautéed onions and garlic to cook with the aromatics, and the remaining half is sprinkled over the finished mussel soup as a garnish.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 307,
+      "prediction": "The protein sources differ significantly: Video A's pasta salad uses only one protein source, Feta Cheese. In contrast, Video B's pasta salad includes three protein sources: Mozzarella cheese, Ham, and Pepperoni.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false
+      ],
+      "score": 3.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 308,
+      "prediction": "In Video A, the pasta salad dressings are oil-and-vinegar based, made by whisking together olive oil, red wine vinegar, garlic, and herbs separately before pouring over the pasta. In contrast, Video B uses a creamy dressing based on mayonnaise, combined with Dijon mustard and olive oil, which is added directly to the salad bowl and mixed in.",
+      "coverage": [
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 310,
+      "prediction": "In Video A, the vegetables (red, yellow, and orange bell peppers, white onions, and garlic) are prepared raw; the bell peppers and onions are diced, and the garlic is minced, with no pre-cooking steps before being added to the meat mixture. In contrast, Video B uses onions and celery that are chopped and then sautéed in oil before being added to the meat mixture.",
+      "coverage": [
+        true,
+        true,
+        true
+      ],
+      "correctness": [
+        false,
+        true,
+        true
+      ],
+      "score": 5.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 314,
+      "prediction": "In Video A, the meatloaf is prepared in a clear glass rectangular baking dish with straight sides and rounded corners, suitable for a single large loaf. In Video B, the meatloaf is prepared in a metal muffin tin with 12 round cups, resulting in individual mini meatloaves. The key differences are the material (glass vs. metal), shape (rectangular dish vs. round cups), and the resulting portion size (one large loaf vs. multiple small loaves).",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        true,
+        true,
+        false
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 317,
+      "prediction": "The main ingredients differ significantly. Video A features a traditional BLT with toasted multigrain bread, mayonnaise, crispy bacon, romaine lettuce, tomato slices, and dried herbs/pepper. Video B features a 'Chicken BLT' with toasted wheat bread, shredded poached chicken mixed with Hickory BBQ sauce, yellow cheddar cheese, crispy bacon, green leaf lettuce, tomato slices, sliced white onions, and ranch dressing. The primary differences are the addition of chicken and cheese in Video B, the use of wheat bread instead of multigrain, different condiments (ranch/BBQ vs. mayonnaise), and the inclusion of onions in Video B.",
+      "coverage": [
+        true,
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        true,
+        true,
+        true,
+        false
+      ],
+      "score": 6.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 321,
+      "prediction": "In Video A, the chef uses Caesar dressing, which is spooned onto the tomato slices layered on the sandwich. In Video B, the chef uses Kewpie Mayonnaise, which is squeezed from a bottle and spread evenly onto a slice of toasted bread.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 327,
+      "prediction": "The main differences are: 1) Ingredients: Video A uses beer and oil in the batter, while Video B uses milk and includes pepper. Video A does not mention pepper, and Video B does not include oil in the batter mix. 2) Preparation Method: In Video A, the wet ingredients (eggs, oil) are mixed first, followed by dry ingredients (salt, baking powder, flour) and then beer. In Video B, the dry ingredients (flour, salt, pepper, baking powder) are whisked together first, followed by the addition of wet ingredients (beaten egg and milk).",
+      "coverage": [
+        true,
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 330,
+      "prediction": "The main ingredients in Video A's batter are all-purpose flour, cornflour, red chili powder, salt, baking powder, and water. In contrast, Video B's batter uses flour, beer, paprika, salt, garlic powder, sugar, and black pepper. The key differences are that Video A includes cornflour, red chili powder, baking powder, and water, whereas Video B substitutes water with beer and includes paprika, garlic powder, sugar, and black pepper instead of cornflour, red chili powder, and baking powder.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false
+      ],
+      "score": 3.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 331,
+      "prediction": "In Video A, the chef does not remove the tuna skin at all; the skin remains attached to the fillet throughout the entire process of filleting and slicing. In contrast, in Video B, the chef actively removes the skin using a long, thin fillet knife. The chef in Video B first removes the bloodline, places the fillet skin-side down, holds the tail end firmly, inserts the knife tip between the flesh and skin, and uses a smooth sawing motion while pulling the knife toward the head end to separate the flesh cleanly from the skin.",
+      "coverage": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 335,
+      "prediction": "In Video A, butter is added to the drained potatoes before any mashing begins, and milk is added after the potatoes have been mashed and the butter incorporated, while continuing to mash. In Video B, butter is also added before mashing, but the potatoes are explicitly mashed *with* the butter first, and then milk (along with salt) is added to continue mashing until smooth. The primary difference is that Video B emphasizes mashing the potatoes together with the butter as a distinct step before adding milk, whereas Video A describes adding butter, then mashing, then adding milk during the mashing process.",
+      "coverage": [
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 339,
+      "prediction": "In Video A, the dressing uses lime juice, which is freshly squeezed by hand from a whole lime into olive oil, and is mixed with sumac, salt, and pepper. In Video B, the dressing uses pre-measured lemon juice (1/4 cup), which is combined with olive oil, balsamic vinegar, salt, and pepper. The primary differences are the citrus type (lime vs. lemon) and the additional flavoring agents (sumac in Video A vs. balsamic vinegar in Video B).",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 340,
+      "prediction": "The vegetables differ as follows: Video A uses cucumber, tomato, iceberg lettuce, green capsicum (bell pepper), parsley, spring onion greens, mint, and spring onion whites. Video B uses lettuce (green leafy), carrots, red bell pepper, cucumber, red onion, tomatoes, parsley, and mint. Key differences are that Video A includes green capsicum and spring onions but excludes carrots, red bell pepper, and red onion, while Video B includes carrots, red bell pepper, and red onion but excludes green capsicum and spring onions. Additionally, Video A specifies iceberg lettuce, whereas Video B uses generic green leafy lettuce.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 342,
+      "prediction": "In Video A, the dressing is prepared directly in the large mixing bowl containing the chopped vegetables. The cook adds specific ingredients one by one: pomegranate molasses, sumac, salt, fresh lemon juice, and olive oil, then tosses everything together to mix. In contrast, Video B shows a pre-prepared dark liquid dressing being poured from a separate small red bowl over the already assembled salad; the video does not show the dressing's preparation, ingredients, or mixing method.",
+      "coverage": [
+        true,
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        true,
+        true,
+        false,
+        true
+      ],
+      "score": 6.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 345,
+      "prediction": "In Video A, the chef seasons the veal cutlets by sprinkling salt and black pepper by hand from small white bowls. In contrast, in Video B, the chef seasons the cutlets by grinding salt and pepper directly onto the meat using stainless steel grinders.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 347,
+      "prediction": "In video A, the egg mixture consists of only eggs whisked together with a fork, with no additional ingredients. In video B, the egg mixture also starts with eggs whisked with a fork, but black pepper is added to the mixture using a pepper mill.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 348,
+      "prediction": "Both videos follow a standard three-step breading sequence: dredging in white flour, dipping in yellow egg wash, and coating in breadcrumbs, with the cook pressing the crumbs firmly onto the meat. Neither video shows a double-dipping technique. The key difference is that Video B explicitly includes a step where the raw meat cutlet is pounded flat between sheets of plastic wrap using a meat mallet before the breading process begins, whereas Video A begins with the meat already pounded and proceeds directly to the flour station.",
+      "coverage": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 358,
+      "prediction": "In Video A, the chef thickens the tomato soup by adding rice (1/4 cup) to the pot, which acts as a thickening agent, and later adds cream to further enrich and thicken the soup. In Video B, the chef uses a cornflour slurry (cornflour mixed with water) as the primary thickening agent, pouring it into the boiling soup and cooking it for a few minutes to activate the thickening, while cream is only used as a garnish.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 359,
+      "prediction": "In Video A, the tomato soup is blended using a countertop blender with raw ingredients (whole tomatoes, paste, spices, broth) before the mixture is heated. In Video B, the soup is blended using an immersion blender directly in the pot while the soup is hot on the stovetop.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        true,
+        true,
+        false
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 364,
+      "prediction": "The chefs differ in their egg preparation and cooking in the following ways: In Video A, the chef uses chopsticks to whisk the eggs in a small white bowl with black polka dots, scrambles them in a wok over medium-high heat, and removes them once cooked. In Video B, the chef uses a fork to whisk the eggs in a small metal bowl, scrambles them in a wok, removes them, and later adds them back into the wok to mix with rice and vegetables for fried rice. The primary differences are the whisking tool (chopsticks vs. fork), the bowl used, and the final application of the cooked eggs (standalone vs. ingredient in fried rice).",
+      "coverage": [
+        false,
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 366,
+      "prediction": "The chefs differ in three main ways: 1) Whisking tool: Video A uses chopsticks, while Video B uses a fork. 2) Bowl type: Video A uses a small white bowl with black polka dots, while Video B uses a metal bowl. 3) Cooking sequence: In Video A, the scrambled eggs remain in the wok as vegetables and rice are added directly to the same pan. In Video B, the scrambled eggs are removed from the wok and set aside in a separate bowl before being added back later with the rice and other ingredients.",
+      "coverage": [
+        false,
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        false,
+        true,
+        false,
+        true
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 367,
+      "prediction": "In Video A, the eggs are beaten, scrambled separately in the wok, removed and set aside, then added back to the rice later. In Video B, a whole egg is cracked directly onto the stir-fried rice and scrambled in place before adding other ingredients.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 377,
+      "prediction": "In Video A, the chef starts by melting a small cube of butter in the pan and immediately adds sliced onions to sauté. In Video B, the chef adds approximately 2 tablespoons of oil, heats it to temper whole spices (mustard seeds, cumin, coriander) and red chili powder, and then adds chopped onions. The key differences are the type of fat (butter vs. oil), the technique (melting for direct sautéing vs. heating for spice tempering), and the sequence of ingredient addition (onions immediately after fat in A vs. spices before onions in B).",
+      "coverage": [
+        true,
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false,
+        false
+      ],
+      "score": 3.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 379,
+      "prediction": "In Video A, the chef layers the biryani in a glass baking dish starting with a base of cooked vegetables (cauliflower, carrots, broccoli, potatoes, paneer), followed by chopped cilantro, partially cooked rice, a brown spice powder, and a pat of butter, then covers it with foil for oven cooking. In Video B, the chef layers the biryani in a stainless steel pot using a repeating sequence: cooked rice, fried onions, cooked vegetables, yogurt, fresh mint, fresh coriander, and red food coloring, finishing with a top layer of rice, fried onions, vegetables, and dry fruits (cashews, raisins), then seals the pot with dough for dum cooking. Key differences include the inclusion of yogurt, fried onions, and dry fruits in Video B versus butter in Video A, the specific layering order, and the cooking method (oven vs. dum).",
+      "coverage": [
+        true,
+        false,
+        true,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        false,
+        true
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 386,
+      "prediction": "In Video A, the chef incorporates flour by dredging the raw beef pieces in a bowl of flour before browning them. In Video B, the chef sprinkles flour directly over the browned meat and sautéed vegetables in the pan and stirs to coat them before adding any liquid.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        true,
+        true,
+        false
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 387,
+      "prediction": "In Video A, the chef prepares the beef by cutting it into cubes, seasoning it with salt, pepper, rosemary, garlic, red wine, carrots, and parsley, and then marinating it overnight in a zip-lock bag before cooking. In contrast, the chef in Video B cuts the beef into chunks and immediately browns/sears it in a hot pan without any visible marinating or additional seasoning steps prior to cooking.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 393,
+      "prediction": "In Video A, the calamari is seasoned by sprinkling black pepper and a light granular seasoning (likely salt), tossing to distribute, and then coating thoroughly in flour. In Video B, the calamari is seasoned in a bowl by sprinkling salt and a light powder (likely pepper or garlic powder), adding a clear liquid (likely oil or vinegar), and then tossing to marinate. The main differences are that Video A includes a flour coating step and no liquid, while Video B includes a liquid marinade and no flour coating.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 394,
+      "prediction": "In Video A, the calamari is coated using a three-step process with flour, beaten egg, and cornflake crumbs. In Video B, the coating process involves a batter made of flour, egg, and water, followed by a coating of panko bread crumbs seasoned with paprika, white pepper, and salt. The key differences are the use of cornflake crumbs in Video A versus seasoned panko bread crumbs in Video B, and the inclusion of water and specific seasonings in Video B's coating mixture.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 400,
+      "prediction": "In Video A, the chef prepares the butter mixture by chopping a block of butter into cubes, finely chopping fresh parsley, adding salt and black pepper, and mixing these ingredients into a coarse paste on a cutting board. In contrast, Video B does not show the preparation of a butter mixture for escargot at all; it features a different dish involving shrimp, mussels, and vegetables cooked in a pan.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 401,
+      "prediction": "In Video A, the chef prepares snails by sorting live specimens, purging them in water, extracting the meat from the shells with a fork, and rinsing the meat. In Video B, there is no snail preparation shown; the video instead depicts the preparation of a spinach and artichoke dip.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 409,
+      "prediction": "The main differences in ingredients for the dosa batter are: Video A uses Maida (all-purpose flour), Rice flour, Suji (semolina), Salt, Cumin seeds, chopped Green chillies, Grated coconut, and Milk. In contrast, Video B uses Raw Rice, Rice Flakes, Black Gram Dal, Fenugreek Seeds, Rava/Semolina, Salt, and Sugar. Video A relies on refined flours and fresh vegetables/dairy, while Video B uses whole grains, lentils, and specific spices like fenugreek and sugar.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 411,
+      "prediction": "In Video A, the chef places the potato filling in a line down the center of the dosa and folds it over to create a half-moon shape, pressing the edge to seal. In Video B, the chef also places the filling in a line across the center and folds it into a half-moon, but then proceeds to roll the folded dosa into a cylindrical shape to enclose the filling completely. The primary difference is that Video A ends with a folded half-moon dosa, while Video B results in a rolled cylindrical dosa.",
+      "coverage": [
+        true,
+        true,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        true
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 413,
+      "prediction": "In Video A, the chef prepares the eggs by boiling whole, uncracked eggs in pork juice for 10 minutes, then cooling them for 3 hours to create soft-boiled eggs with a set but slightly soft yolk. These eggs are peeled, halved, and placed on top of the noodles and broth. In Video B, the eggs are not shown being prepared; they appear already cooked and shredded (or scrambled). The chef takes a handful of these pre-cooked egg shreds and places them on top of the noodles as a topping, along with other ingredients, before drizzling sauce over them. The key differences are the cooking method (soft-boiled whole vs. pre-cooked shredded) and the form in which they are added (halved whole egg vs. scattered shreds).",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 415,
+      "prediction": "In Video A, flavorings (garlic powder, salt/stock powder, soy sauce, and another white powder) are added sequentially to a small bowl of broth before the broth is poured into a pot; all additions are stirred into the liquid. In contrast, Video B adds flavorings directly into the main broth pot in a sequence starting with fresh aromatics (green onions dropped in, minced garlic added, ginger grated in), followed by ground meat, pastes, and liquids, with stirring after each addition. The primary differences are that Video A pre-mixes dry and liquid seasonings in a small portion before cooking, whereas Video B adds fresh aromatics and various ingredients directly to the cooking broth.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 418,
+      "prediction": "In Video A, fresh ramen noodles (from a 'RAMEN SHOYU' package) are boiled in water and transferred to the bowl using a white slotted spoon. In Video B, dry spaghetti noodles are boiled in water and transferred to the bowl using chopsticks. The primary differences are the type of noodles (fresh ramen vs. dry spaghetti) and the utensil used for handling the cooked noodles (slotted spoon vs. chopsticks).",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 419,
+      "prediction": "Video A creates a clear broth by sautéing vegetables, simmering them in water, and then straining the liquid through a fine-mesh sieve to remove solids, achieving clarity solely through this filtration step without skimming or clarification agents. In contrast, Video B does not demonstrate a method for creating a clear broth; it shows the preparation of a creamy, opaque noodle soup using coconut milk, with no steps taken to clarify the liquid, such as skimming, straining for clarity, or using clarification agents.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 422,
+      "prediction": "In Video A, the chef creates a creamy texture by adding fresh cream to the lamb curry. In Video B, the chef achieves a creamy texture by stirring yogurt into the simmering mutton and gravy.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 433,
+      "prediction": "In Video A, the chef uses fresh rosemary, adding a whole sprig directly into the simmering soup. This method infuses the soup with rosemary flavor throughout the cooking process, though the sprig remains whole and does not significantly alter the soup's visual texture. In Video B, the chef uses three herbs: dried red chili pepper flakes are added to sautéing onions, providing heat and visible red specks in the base; fresh thyme (chopped) is sprinkled into the simmering broth, adding a green, leafy texture; and fresh parsley (chopped) is used as a garnish after plating, adding bright green color and a fresh finish to the dish.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 434,
+      "prediction": "In Video A, the only tool used for preparing beans is a stainless steel pot, which is used to boil water and cook the beans. In contrast, Video B utilizes three different tools: a stainless steel Cuisinart pressure cooker to cook the beans with broth and vegetables, a stainless steel Cuisinart food processor to chop aromatics (onions, carrots, celery) that are added to the beans, and an immersion blender to puree the cooked beans into a soup. The key differences are that Video B employs a pressure cooker instead of a standard pot, includes a food processor for ingredient preparation, and uses an immersion blender for the final texture, whereas Video A relies solely on a pot for boiling and cooking.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 438,
+      "prediction": "The chefs in both video A and video B do not differ in their choice of fat; both use butter to start their clam chowder bases.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 440,
+      "prediction": "In Video A, the chef places a whole, unseasoned, unbutterflied chicken breast between two sheets of plastic wrap before pounding. In Video B, the chef first slices the chicken breast horizontally to butterfly it into thinner pieces, then places one of the butterflied pieces between two sheets of plastic wrap before pounding.",
+      "coverage": [
+        false,
+        false,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        true
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 442,
+      "prediction": "In Video A, the chef prepares a wet batter by whisking eggs and milk, then adding flour, breadcrumbs, parmesan cheese, and a large variety of chopped herbs and aromatics, resulting in a thick, slightly lumpy pale yellow mixture. In contrast, Video B features a dry coating mixture where the chef combines breadcrumbs, shredded parmesan cheese, salt, and black pepper by stirring and tossing them, resulting in a loose, crumbly blend. The key differences are the inclusion of wet ingredients (eggs, milk) and flour in Video A versus only dry ingredients in Video B, the extensive use of herbs in Video A versus just salt and pepper in Video B, and the whisking technique for a batter in Video A versus stirring for a dry mix in Video B.",
+      "coverage": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 445,
+      "prediction": "In Video A, the chef uses pre-made yellow breadcrumbs mixed with dried herbs. The chicken is first dipped in a beaten egg mixture and then pressed into the seasoned breadcrumbs. In Video B, the chef makes the coating from scratch by blending a loaf of bread with two eggs, then mixing in parmesan cheese. The chicken is seasoned with salt and pepper and then coated directly in this mixture without a separate egg dip step.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 446,
+      "prediction": "In Video A, the bread crumbs are shown as pre-made and ready-to-use; no preparation steps such as mixing ingredients, seasoning, or toasting are depicted. In contrast, Video B explicitly shows the preparation process where dried herbs (likely oregano or Italian seasoning) are added to the bread crumbs and mixed by hand before coating the chicken.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 451,
+      "prediction": "In Video A, the chef adds chopped green onions, minced garlic, sesame oil, soy sauce, white pepper, salt, black pepper, and a white powder (likely cornstarch or sugar) directly to raw ground meat. In Video B, the chef sautés garlic and ginger in oil, then adds salt, black pepper, soy sauce, sesame oil, and fresh cilantro to a cooked vegetable mixture. The main differences are: Video A uses green onions and raw garlic with white pepper and a white powder, while Video B uses sautéed garlic and ginger with fresh cilantro and no white pepper or white powder.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 454,
+      "prediction": "In Video A, the chef uses pre-made, round dumpling wrappers and does not show any dough preparation or rolling process. In contrast, Video B demonstrates the complete manual process of making dumpling wrappers from scratch, including mixing flour, salt, and water to form dough, kneading it, cutting it into pieces, and rolling each piece into thin, round wrappers using a rolling pin.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        true,
+        true,
+        false
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 467,
+      "prediction": "In Video A, the Caesar salad dressing is made with garlic, anchovy fillets, lemon juice, Worcestershire sauce, Dijon mustard, grated Parmesan cheese, and olive oil. It is poured over the salad and tossed by hand. In Video B, the dressing is made with lemon juice, mayonnaise, Dijon mustard, Worcestershire sauce, minced garlic, and olive oil. It is poured over the salad and tossed with tongs. The main differences are that Video A includes anchovies and Parmesan cheese but no mayonnaise, while Video B includes mayonnaise but no anchovies or Parmesan. Additionally, the tossing method differs: by hand in Video A and with tongs in Video B.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 468,
+      "prediction": "In Video A, the dressing is prepared in a glass bowl by sequentially adding mayonnaise, Dijon mustard, fresh lemon juice, anchovy paste, Worcestershire sauce, and olive oil, then whisking them together. In Video B, the dressing is made in a glass measuring jug starting with a creamy base, followed by a beige paste, a dark liquid, and chopped bacon bits, which are then whisked until smooth. The main differences are the container used, the specific ingredients (Video A includes lemon juice, anchovy paste, and olive oil; Video B includes bacon bits and omits the explicit addition of lemon juice, anchovy paste, and olive oil), and the order of ingredient addition.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 470,
+      "prediction": "In Video A, the calamari is coated using a three-step breading process: first dredged in flour, then dipped in an egg wash, and finally pressed into cornflake crumbs. In contrast, Video B uses a simple dry coating method where the calamari is tossed directly in a mixture of flour, salt, and black pepper, with no egg wash or breadcrumbs involved.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 473,
+      "prediction": "In Video A, the chickpeas are prepared from dry, soaked in water with salt, and then cooked in a pressure cooker. In Video B, the chickpeas are already fully cooked and submerged in water when the video begins, indicating they were pre-cooked before the segment shown.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 483,
+      "prediction": "Video A uses ground pork and shelled shrimp as the main protein sources, whereas Video B uses chicken.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 494,
+      "prediction": "In Video A, the chef adds all dry ingredients (flour, cornmeal, salt, sugar, baking powder) directly into a mixing bowl without sifting and later mixes them with wet ingredients using a wire whisk. In Video B, the chef sifts each dry ingredient (cornmeal, baking soda, salt, sugar) individually through a fine-mesh sieve into the bowl before mixing them together with a wooden spoon. The main difference is that Video B involves sifting the dry ingredients, while Video A does not.",
+      "coverage": [
+        true,
+        true,
+        true
+      ],
+      "correctness": [
+        false,
+        true,
+        false
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 496,
+      "prediction": "In Video A, the chef uses a manual black-handled potato masher, employing a method of repeated vertical pressing with direct downward pressure and slight twisting motions to break down the potatoes in a pot. In contrast, Video B features a chef using a white stand mixer equipped with a wire whisk attachment; the method involves mechanically beating and aerating the potatoes rapidly until smooth and creamy, rather than manual mashing.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        true,
+        true,
+        false
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 497,
+      "prediction": "The main differences in ingredients are: 1) The meat: Video A uses specific 'Primo Double Smoked Leg Ham', whereas Video B uses generic 'sliced cooked meat (ham or turkey)'. 2) The cheese: Video A uses unspecified 'shredded cheese', while Video B specifies 'shredded white cheese (likely Gruyère or Swiss)'. 3) Cooking fat: Video B explicitly mentions using butter to grease the pan, which is not noted in Video A's assembly ingredients.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 498,
+      "prediction": "In Video A, the sandwich is toasted using a silver Russell Hobbs toaster. The assembled sandwich is placed directly into the toaster slots, and the lever is pushed down to activate the heating elements. No butter, oil, or other ingredients are added to the bread surface before toasting; the browning is achieved solely by the toaster's heat. In contrast, Video B uses a frying pan on a gas stovetop. Butter is melted in the pan, and the assembled sandwiches are cooked in the butter until golden brown on both sides. After pan-toasting, the sandwiches are transferred to a baking tray, topped with grated cheese, and placed under a grill (broiler) to melt the cheese. The key differences are the equipment (toaster vs. frying pan and grill), the heat source (electric heating elements vs. gas flame and broiler), and the use of butter in Video B versus no added fats in Video A.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 505,
+      "prediction": "In Video A, the chef demonstrates the full preparation of hollandaise sauce from scratch using a bain-marie method: whisking egg yolks and cold water over simmering water until thickened, then gradually emulsifying in cubed butter, followed by salt and lemon juice. In contrast, Video B does not show the preparation of the sauce; the chef uses a pre-made yellow sauce (likely béarnaise or hollandaise) to assemble Eggs Benedict, and the video concludes with a text prompt asking the viewer how they made the sauce, indicating the process is omitted.",
+      "coverage": [
+        true,
+        true,
+        true
+      ],
+      "correctness": [
+        true,
+        true,
+        true
+      ],
+      "score": 6.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 517,
+      "prediction": "In Video A, the chef uses canned chickpeas and adds baking powder as a leavening agent, combining all ingredients directly in a food processor. In Video B, the chef uses soaked chickpeas and does not add any leavening agents; the ingredients are blended in a food processor and then transferred to a bowl where flour is stirred in by hand. The main differences are the legume preparation (canned vs. soaked), the inclusion of a leavening agent (present in A, absent in B), and the final mixing method (processor-only vs. processor plus hand stirring).",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 519,
+      "prediction": "In Video A, the vegetables (romaine lettuce, parsley, tomato, cucumber, spring onions, radishes) are prepared raw by slicing, dicing, chopping, and tearing, then mixed with a dressing; the pita bread is crumbled from pre-toasted pieces. In Video B, the vegetables (tomatoes, cucumbers, parsley, red onion, green onions, garlic) are also prepared raw by cutting into wedges, dicing, chopping, and mincing, then mixed with a dressing; however, the pita bread is cut into chunks, seasoned, and baked in an oven to make chips before being added. The primary differences are the specific vegetable varieties used and the method of preparing the bread component (baking in Video B versus using pre-toasted bread in Video A).",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 523,
+      "prediction": "In Video A, the chef seasons the fattoush salad using a repetitive, multi-step technique involving the sequential addition of specific ingredients: a liquid (likely oil), salt, a red spice (likely paprika/chili), green herbs, a dark spice (likely pepper/sumac), and lemon juice. This cycle is repeated multiple times with small amounts sprinkled or poured directly into the bowl. In contrast, the chef in Video B uses a simpler method: after mixing vegetables and pita, they pour a clear liquid (likely lemon juice/vinegar) and then a light-colored dressing from a jar over the salad. Although a spice shaker and olive oil bottle are visible in Video B, they are not used. The primary differences are that Video A involves a complex, repetitive addition of multiple dry spices and liquids, while Video B relies on pouring pre-mixed or single liquids without adding dry spices during the process.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 525,
+      "prediction": "In Video A, the pita bread is first cut into small irregular squares and then fried in a pan with oil until golden brown and crispy. In contrast, Video B shows the whole pita bread being brushed with olive oil, toasted in a hot dry pan until brown spots appear, and then cut into triangular pieces after cooking. The main differences are the order of operations (cutting before cooking in A vs. after cooking in B) and the cooking method (frying in oil in A vs. dry toasting with brushed oil in B).",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 3.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 537,
+      "prediction": "In Video A, the chicken is coated using a single-step method where raw wings are simply tossed in a bowl with flour until coated, with no egg wash or breadcrumbs involved. In contrast, Video B employs a complex multi-step coating process: first, the chicken is marinated in a liquid mixture (likely buttermilk with red food coloring); second, it is dredged in a seasoned gluten-free rice flour blend; and third, a unique technique is used where the chicken is briefly dipped back into the liquid mixture after the initial flour coating before being fried.",
+      "coverage": [
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 542,
+      "prediction": "In Video A, the marinade base is prepared manually in a glass bowl by sequentially adding minced garlic, chopped white onions, brown sugar, another granular substance, soy sauce, sesame oil, and water, then stirring with a wooden spoon. In contrast, Video B prepares the base by first chopping green onions, a yellow pear, and a white onion, blending them with water in a food processor to create a puree, then adding soy sauce, honey, sesame oil, and black pepper to the puree in a bowl and stirring with a spatula. The main differences are the use of a food processor to puree ingredients (including a pear) in Video B versus manual mixing of chopped ingredients in Video A, and the use of honey in Video B versus sugar in Video A.",
+      "coverage": [
+        true,
+        true,
+        true
+      ],
+      "correctness": [
+        false,
+        true,
+        true
+      ],
+      "score": 5.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 543,
+      "prediction": "The main differences are: 1) Fruits: Video A uses Apple, while Video B uses Asian pear. 2) Additional Ingredients: Video A uses Sesame Oil, Soy Sauce, Sugar, Black Pepper, Water, and Honey. Video B uses a more complex set including aromatics (Ginger, Garlic), rice wines (Mirin, Cheongju), sweeteners (Black sugar, Rice syrup), and savory sauces (Soy sauce, Oyster sauce), along with Black pepper and Sesame seeds. Notably, Video B includes aromatics and multiple types of rice wine and sauces not present in Video A, while Video A includes water and honey which are not in Video B.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 550,
+      "prediction": "The vegetable choices differ significantly. Video A's recipe uses only snow peas (whole, trimmed) and garlic (minced). In contrast, Video B's recipe uses a wider variety of vegetables: broccoli (whole florets), red bell pepper (diced), onion (diced), and green onion (chopped). Video A focuses on a simple stir-fry with snow peas, while Video B incorporates a mix of diced and floret vegetables.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 559,
+      "prediction": "In Video A, the chefs prepare the cheese by slicing a block of orange cheddar into thick pieces and shredding a block of white cheese (likely Gruyère) using a box grater. In Video B, the chef prepares the cheese by shaving thin slices directly from a solid orange cheddar block using a metal peeler.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 565,
+      "prediction": "The ingredients used to bind the hash brown mixture do not differ in type between Video A and Video B; both videos use an egg and a white powdery substance (likely flour or starch) as binding agents.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 570,
+      "prediction": "In Video A, the hash browns are prepared by shredding raw potatoes, mixing them with ingredients, and frying the resulting patties in a pan on medium heat, flipping them to brown both sides. In Video B, the hash browns are made by boiling potatoes first, then grating them, mixing with ingredients, spreading the mixture into a baking tray, and baking it in an oven at 200°C without any stovetop frying or flipping.",
+      "coverage": [
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        true,
+        false,
+        true
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 572,
+      "prediction": "In Video A, a red plastic spiral cutter is used to spiral-cut the potato, and a metal skewer is used to hold the spiral together. In Video B, no tools are used for preparing potatoes because the video does not feature potatoes at all; it focuses on preparing Chicago-style hot dogs.",
+      "coverage": [
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        true,
+        false,
+        true
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 574,
+      "prediction": "In Video A, the tool used for slicing vegetables is a red, cylindrical, hand-cranked spiral slicer (tornado cutter) that creates spiral cuts using an internal blade mechanism. In Video B, two tools are used: a larger chef's knife with a black handle and Granton edge for cutting, and a white plastic vegetable chopper/slicer with measurement markings and a grid of blades for dicing. The primary difference is that Video A relies on a specialized mechanical spiral cutter, while Video B uses a traditional knife and a manual press-style chopper.",
+      "coverage": [
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 575,
+      "prediction": "In Video A, the main sausage component (pre-made hot dogs) is prepared by boiling them in a pot of water. In contrast, Video B does not show cooking; instead, it details the preparation of raw sausage links from ground meat mixed with seasonings, which are then extruded using a meat grinder and cut into links.",
+      "coverage": [
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        true,
+        false,
+        true
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 579,
+      "prediction": "In Video A, the chef uses canned chickpeas that are drained and patted dry but remain unpeeled and uncooked. In Video B, the chef soaks dry chickpeas, boils them until soft, and then peels off the skins before blending. This difference affects the final texture because the peeled, cooked chickpeas in Video B will likely produce a much smoother, creamier, and more uniform hummus, whereas the unpeeled, canned chickpeas in Video A may result in a slightly grainier or less refined texture due to the presence of the skins and the different cooking state.",
+      "coverage": [
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        true,
+        false,
+        true
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 580,
+      "prediction": "In Video A, the chef uses canned chickpeas that are drained and patted dry with a paper towel, keeping their skins intact before blending. In Video B, the chef soaks dry chickpeas, boils them until tender, and then removes the skins before blending. This difference affects the final texture because the peeled chickpeas in Video B will likely produce a much smoother, creamier hummus, whereas the skins left on the chickpeas in Video A can result in a slightly grainier or more textured final product.",
+      "coverage": [
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        true,
+        false,
+        true
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 585,
+      "prediction": "In Video A, the chef prepares the chicken by marinating it in a mixture of onion paste, garlic paste, ginger paste, yogurt, powdered spices (turmeric, chili, cumin, coriander, garam masala), salt, and mustard oil before cooking. In contrast, Video B does not show any pre-cooking preparation; the chef adds raw, unmarinated chicken pieces directly into the pan with sautéed onions, ginger, garlic, and spices.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 586,
+      "prediction": "In Video A, the onion-tomato base is created by first blending raw onions, tomatoes, ginger, garlic, and green chilies into a fine paste, which is then cooked in oil with whole spices (cumin, bay leaf, cinnamon, etc.) before adding tomato puree and powdered spices. In contrast, Video B creates the base by sautéing sliced onions in oil until browned, then adding ginger-garlic paste, spices, and finally tomato puree, simmering until the oil separates. The primary difference is that Video A uses a pre-blended raw paste of all aromatics and tomatoes, while Video B sautés sliced onions first and adds tomato puree later.",
+      "coverage": [
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 587,
+      "prediction": "In Video A, the chef uses only powdered spices (yellow, red, brownish, and greenish-brown powders) and no whole spices are observed. In contrast, the chef in Video B uses a combination of both whole and powdered spices; they start by adding whole spices (cloves, cinnamon stick, cardamom pods, bay leaf, and green chilies) before adding powdered spices (red chili powder, turmeric powder, coriander powder, and garam masala).",
+      "coverage": [
+        true,
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 591,
+      "prediction": "In Video A, the chef prepares the spices by mixing powdered spices (red chili powder, coriander powder, ginger powder, and salt) dry in a bowl without toasting or blooming them in oil. In contrast, in Video B, the chef prepares the spices by blooming whole spices (cardamom pods and cloves) directly in hot oil at the beginning of the cooking process.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false
+      ],
+      "score": 3.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 593,
+      "prediction": "In Video A, the chef prepares the spice mixture by first toasting whole spices (cinnamon, cloves, cardamom, cumin) in hot oil, then adding pre-ground spices (ginger, red chili, coriander) and cooking them together in the pan. In Video B, the chef combines whole spices (cloves, cardamom, cinnamon, cumin, black peppercorns), dried red chilies, garlic, ginger, salt, and vinegar in a bowl, then grinds all ingredients together into a raw paste. The main differences are: 1) Video A uses a cooking technique (toasting in oil) while Video B uses a raw grinding technique; 2) Video A uses pre-ground spices added to the pan, whereas Video B grinds whole spices and aromatics fresh; 3) Video B includes additional ingredients like garlic, ginger, salt, and vinegar, which are not present in Video A's spice mixture; 4) The final product in Video A is a cooked spice-oil mixture, while in Video B it is a raw spice paste.",
+      "coverage": [
+        true,
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 603,
+      "prediction": "Video A prepares the cheese sauce by first mixing seasonings (paprika/cayenne, mustard/turmeric, herbs, pepper) into milk, then melting shredded and cubed cheese into this seasoned milk mixture. Video B prepares the sauce by cooking the macaroni directly in a mixture of water and half-and-half, then melting cubed and shredded cheddar cheese into the hot cooking liquid. The main differences are: 1) Video A uses seasoned milk as the base, while Video B uses a water/half-and-half cooking liquid; 2) Video A adds cheese to a prepared liquid, while Video B adds cheese to the cooking pasta liquid; 3) Video A includes specific seasonings in the sauce base, while Video B relies on the cheese for flavor.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 606,
+      "prediction": "Video A uses a simpler blend of four cheeses: Sharp Cheddar, Monterey Jack, Colby Jack, and Mozzarella. In contrast, Video B uses a more complex seven-cheese blend including Muenster, mild Cheddar, sharp Cheddar, Monterey Jack, Mozzarella, Provolone, and Velveeta. The key differences are that Video B includes Muenster, Provolone, and Velveeta (absent in A), specifies both mild and sharp Cheddar (A only lists sharp), and omits Colby Jack (present in A).",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false
+      ],
+      "score": 3.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 608,
+      "prediction": "In Video A, the chef prepares the tofu by first pressing two rectangular blocks on a paper towel to remove excess moisture and then cutting them into small cubes. In Video B, the tofu is already cut into cubes when the video starts, and no pressing or other pre-cooking preparation steps are shown; the pre-cut cubes are added directly to the pan.",
+      "coverage": [
+        true,
+        true,
+        true
+      ],
+      "correctness": [
+        true,
+        true,
+        true
+      ],
+      "score": 6.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 615,
+      "prediction": "In Video A, chutney is added to the dosa first, followed by the potato masala. In Video B, the potato masala is added to the dosa first, followed by the chutney.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 617,
+      "prediction": "In Video A, the chef mashes the potatoes using a wooden spoon, employing a pressing and folding motion against the side of a metal bowl to achieve a smooth, creamy consistency, adding butter and milk during the process. In contrast, the chef in Video B uses a hand-held electric mixer with two beaters, pressing it down and moving it around to blend the potatoes, resulting in a smooth, creamy texture with visible flecks of black pepper, while adding butter, milk, salt, black pepper, and roasted garlic cloves during mashing.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 619,
+      "prediction": "In Video A, a metal potato ricer is used, which forces potatoes through small holes to create a fine, fluffy, and uniform texture resembling soft strands. In Video B, a metal potato masher with a grid-like head is used first, resulting in a rough, chunky consistency, which is then smoothed into a creamy texture using a wire whisk. The ricer in Video A produces a smoother, airier result immediately, while the masher in Video B requires additional steps to achieve a similar smoothness.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 3.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 627,
+      "prediction": "In Video A, the initial vegetable choices are limited to chopped onions and chopped carrots, which are added directly to a skillet. In contrast, Video B begins by displaying a wider variety of whole vegetables including spinach, carrots, celery, potatoes, onion, garlic, and fresh basil, with the first active preparation step involving cutting a carrot.",
+      "coverage": [
+        false,
+        true,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        true
+      ],
+      "score": 3.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 635,
+      "prediction": "In Video A, the broth is prepared using dashi stock with dried bonito flakes strained out; cubed tofu is added to the hot broth, and miso paste is dissolved directly into the pot using a strainer without bringing it to a boil. In Video B, the broth uses vegetable broth as the base, into which chopped shiitake mushrooms, grated carrots, and broccoli are cooked; the miso paste is dissolved separately in a small bowl with ladled hot broth before being poured back into the main pot.",
+      "coverage": [
+        false,
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 636,
+      "prediction": "In Video A, the initial aromatic ingredients include chopped garlic, finely chopped parsley, diced tomatoes, and dried red pepper flakes. In contrast, Video B uses minced garlic and diced onion as its initial aromatic ingredients. The key differences are that Video A includes parsley, tomatoes, and red pepper flakes which are absent in Video B, while Video B includes onion which is not used in Video A. Additionally, the garlic in Video A is chopped/sliced, whereas in Video B it is minced.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 638,
+      "prediction": "In Video A, the mussels are prepared using a stovetop method where they are steamed in a pan with a sauce made from sautéed aromatics (onions, shallots), a red paste, and a white liquid (likely coconut milk). In contrast, Video B uses an oven-based baking method where the mussels are arranged on a tray, baked at 200°C, topped with a thickened sauce, and baked again before garnishing.",
+      "coverage": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "correctness": [
+        true,
+        false,
+        true,
+        true
+      ],
+      "score": 7.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 645,
+      "prediction": "The methods differ significantly in ingredients, mixing technique, and tools. In Video A, the dough is prepared using the 'well method' on a wooden board: yeast is activated in warm water, then poured into a well made in flour (with salt added), followed by milk; it is mixed with a wooden spoon and kneaded by hand on a board and countertop, then covered with a checkered cloth to rise. In Video B, the dough is for garlic bread and includes pre-baked garlic, olive oil, eggs, sugar, salt, and baking powder; all ingredients are combined and mixed in a pot, kneaded by hand on a floured surface, and covered with plastic wrap to rise for 1 hour before being shaped and baked.",
+      "coverage": [
+        false,
+        true,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        true
+      ],
+      "score": 3.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 647,
+      "prediction": "In Video A, minced garlic is added as a topping at 02:57 and coriander leaves at 03:00, both applied to the raw rolled-out dough before baking. In Video B, grated garlic is added at 4:43 and coriander leaves at 5:06, both applied as toppings while the naan is already cooking on the tawa. The key difference is that Video A adds these ingredients to the raw dough prior to baking, whereas Video B adds them during the cooking process on the tawa.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 654,
+      "prediction": "Video A uses an extensive and experimental list of sauce ingredients including multiple soy-based sauces (soy sauce, tamari, coconut aminos, etc.), various seed and nut butters (peanut, almond, sesame, etc.), and numerous sweeteners (brown sugar, maple syrup, honey, etc.). In contrast, Video B uses a simple, traditional set of ingredients: a dark liquid (likely soy or tamarind), a reddish liquid (likely fish or chili sauce), sugar, and stock.",
+      "coverage": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 661,
+      "prediction": "In Video A, eggs are cracked directly into a bowl containing milk, then whisked together with the milk before dry ingredients and melted butter are added. In Video B, the eggs are separated; the yolks are mixed with milk and melted butter, while the whites are whipped separately to stiff peaks and then gently folded into the batter at the end.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        true,
+        true,
+        false
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 663,
+      "prediction": "In Video A, the batter is mixed using a single-step method where flour, egg, and milk are combined in a bowl and whisked vigorously with a metal whisk until smooth. In Video B, a multi-stage method is used: dry ingredients are whisked together, wet ingredients are whisked separately, the two are combined, and finally, stiffly beaten egg whites are gently folded into the batter using a spatula to maintain airiness.",
+      "coverage": [
+        false,
+        false,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        true
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 666,
+      "prediction": "Video A starts cooking by adding oil, followed by minced garlic and chopped onions as the first main ingredients. In contrast, Video B starts cooking by adding sausage meat (removed from casing) as the first main ingredient, followed by chopped onions. Thus, Video A begins with aromatics in oil, while Video B begins with a protein.",
+      "coverage": [
+        true,
+        true,
+        true
+      ],
+      "correctness": [
+        true,
+        true,
+        true
+      ],
+      "score": 6.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 667,
+      "prediction": "Video A starts cooking the vegetables by melting butter and adding chopped white onions, green celery, and shredded orange carrots. In contrast, Video B starts by sautéing only sliced white onions in oil or fat, without adding celery or carrots at the beginning.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 670,
+      "prediction": "Video A uses shrimp and imitation crab meat, while Video B uses canned tuna. The choice of protein affects the dish in several ways: Video A's shrimp provide a firm, slightly chewy texture and a sweet, briny flavor, while the imitation crab adds a flaky, mild sweetness and a distinct red-and-white visual appeal. Video B's canned tuna offers a softer, flaky texture and a more robust, savory fish flavor. The preparation also differs; the shrimp in Video A are cooked fresh (boiled), resulting in a firmer bite, whereas the tuna in Video B is pre-cooked and canned, making it softer and easier to mix into the salad without additional cooking.",
+      "coverage": [
+        true,
+        true,
+        true
+      ],
+      "correctness": [
+        false,
+        true,
+        false
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 674,
+      "prediction": "Video A uses fresh mint leaves (chopped and as a garnish) and black pepper. In contrast, Video B uses a wider variety of seasonings including salt (added to water, chicken, and sauce), black pepper (on chicken and in sauce), garlic powder, oregano, and parsley (all added to the sauce mixture). The key difference is that Video A relies on fresh mint for flavor, while Video B uses a combination of dried herbs (oregano, garlic powder) and fresh parsley, along with salt and pepper.",
+      "coverage": [
+        true,
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 676,
+      "prediction": "In Video A, the chef creates the tomato base by first sautéing fresh aromatics (chopped onions, green bell peppers, and minced garlic), then flambéing with vodka before adding crushed tomatoes and finally heavy cream. In contrast, the chef in Video B starts by adding heavy cream to the pan, followed by vodka, optional prosciutto cotto, and then incorporates a pre-made Rao's Homemade Marinara sauce, skipping the step of sautéing fresh aromatics or using crushed tomatoes.",
+      "coverage": [
+        true,
+        false,
+        true,
+        true
+      ],
+      "correctness": [
+        true,
+        false,
+        false,
+        true
+      ],
+      "score": 5.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 687,
+      "prediction": "In Video A, the pizza base is prepared using pre-packaged 'New York Texas Toast' bread (Garlic variety). The slices are toasted on one side on a buttered electric griddle until golden brown, then placed toasted-side down in the pan. In contrast, Video B shows the base being made from scratch using flour, yeast, sugar, salt, and water. The dough is mixed in a stand mixer, then rolled out by hand into a thin, circular shape on a floured surface and transferred to parchment paper without any pre-baking or toasting before toppings are added.",
+      "coverage": [
+        true,
+        true,
+        true
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 691,
+      "prediction": "In Video A, the chef uses a food processor to mix the flour and water into a shaggy dough before kneading it by hand, rolling it with a wooden rolling pin, and cutting circles with a round metal cutter. In Video B, the chef mixes and kneads the dough entirely by hand in a bowl and on a floured surface, then uses wooden rolling pins to roll it out, round metal cutters to shape the circles, and a knife to trim excess dough. The primary difference is the use of a food processor for mixing in Video A versus manual mixing in Video B.",
+      "coverage": [
+        false,
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 692,
+      "prediction": "Video A's dough ingredients are flour, water, salt, and oil. Video B's dough ingredients are flour, salt, an egg, and water. The main difference is that Video A uses oil instead of an egg, which is used in Video B.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 694,
+      "prediction": "In Video A, the chef uses a combination of their hands and a dark glass wine bottle as a makeshift rolling pin to flatten the dough. In contrast, the chef in Video B uses only their hands, pressing and stretching the dough manually without any tools like a rolling pin or bottle.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 695,
+      "prediction": "The chef in Video A uses a dark glass wine bottle as an improvised rolling pin to roll the dough on a cutting board, followed by hand-stretching. In contrast, the chef in Video B uses only his hands, pressing and stretching the dough on a stainless steel countertop without any rolling tool.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 3.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 697,
+      "prediction": "The two videos differ significantly in their tomato sauce preparation. In Video A, the sauce is cooked: canned San Marzano tomatoes are blended with fresh parsley, garlic, and red onion, then simmered in a pan with olive oil, salt, and pepper until thickened. In Video B, the sauce is raw: whole cherry tomatoes are tossed in a bowl with fresh basil, olive oil, salt, and pepper without any cooking or blending, resulting in a rustic mixture with distinct pieces of tomato and herbs.",
+      "coverage": [
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 3.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 698,
+      "prediction": "In Video A, the tomato sauce is not prepared on screen; it is already made and stored in a bowl, and the only action shown is spreading the pre-made sauce onto the pizza dough. In contrast, Video B demonstrates a two-step preparation method: first, garlic, rosemary, and thyme are infused in olive oil in a pot on the stovetop; second, raw chopped tomatoes, fresh basil, and a green chili are blended together in a food processor to create a chunky sauce, which is then applied to the dough. The key difference is that Video A uses a pre-existing sauce with no preparation shown, while Video B shows the creation of a raw, blended sauce with a separate herb-infused oil component.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        true,
+        true,
+        false
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 700,
+      "prediction": "In Video A, the pork is sliced into thin strips and marinated in a mixture of cornstarch, soy sauce, ginger, and sake/mirin for the duration of vegetable preparation. In contrast, Video B does not show any marinating process; the pork is presented as pre-prepared ground meat and is added directly to the wok for stir-frying without any prior marination.",
+      "coverage": [
+        false,
+        false,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        true
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 701,
+      "prediction": "In Video A, the chef prepares the pork by flattening a piece of raw pork with a rolling pin, cutting it into thin strips, and then marinating the strips in a mixture of cornstarch, soy sauce, sake/mirin, and grated ginger. In Video B, the pork is already in the form of ground meat when it appears in the video and is added directly to the wok without any visible cutting, marinating, or seasoning steps.",
+      "coverage": [
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 3.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 702,
+      "prediction": "In Video A, the vegetables used are onion, green onion, and tomato. All three are added to the pan before the pork (onion at 01:47, green onion at 01:50, tomato at 02:00), followed by the pork at 02:13, and then the rice at 02:35. In Video B, the vegetables used are red bell peppers, green onions, and garlic. The pork is added first (0:50-1:35), followed by the vegetables: red bell peppers at 1:48, green onions at 2:07, and garlic at 2:13, with the rice added last at 2:32. The key differences are: 1) Vegetable types: Video A uses onion and tomato, while Video B uses red bell peppers and garlic (both use green onions). 2) Addition timing: In Video A, vegetables are added before the pork; in Video B, vegetables are added after the pork is cooked.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 705,
+      "prediction": "In Video A, the chef uses pre-made dumpling wrappers that are already prepared and stacked, with no footage of the dough-making process. In contrast, the chef in Video B prepares the wrappers from scratch, starting by mixing flour, salt, and water, kneading the dough, cutting it into small pieces, and rolling each piece into a thin, round wrapper.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 717,
+      "prediction": "In Video A, the salmon is seasoned with salt and pepper, vacuum-sealed with oil, and cooked sous vide at 41.1°C for 27 minutes before slicing. In Video B, the salmon is served raw with no seasoning, marinating, or cooking steps performed before slicing.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 719,
+      "prediction": "In Video A, the chef fillets the salmon, removes the skin, and slices it into thin pieces at a slight diagonal angle, presenting the slices in overlapping rows on a white oval plate garnished with wasabi and pickled ginger. In Video B, the chef uses a smooth, single-motion draw cut to create 1/4-inch thick slices, initially arranging them in a fanned-out pattern on a rectangular plate without garnish, and later forming them into nigiri sushi by draping the fish over rice.",
+      "coverage": [
+        false,
+        true,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 721,
+      "prediction": "In Video A, the chef prepares the dough by adding maida, carom seeds, salt, and oil to a bowl, mixing them by hand, then gradually adding water and kneading until firm; no resting time is mentioned or shown. In Video B, the chef follows a similar process with the same ingredients in the same order (flour, carom seeds, salt, oil, water), mixing and kneading by hand to a firm consistency, but explicitly covers the dough with a bowl to let it rest after kneading. The primary difference is that the chef in Video B allows the dough to rest, whereas the chef in Video A does not show a resting step.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 722,
+      "prediction": "In Video A, a chef's knife is used to slice the cabbage into thin shreds, and a glass bowl and mason jar are used for mixing and packing. In Video B, a chef's knife is used to finely chop the cabbage into small pieces on a cutting board, with no additional tools like a bowl or jar shown for the preparation process. The primary difference is the cutting method (slicing vs. chopping) and the use of mixing/packing containers in Video A.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 723,
+      "prediction": "In Video A, the cabbage (white) is shredded, mixed with carrots, salt, spices, and sugar, then massaged by hand to release juices before being packed for fermentation. In Video B, the cabbage (green) is sliced into strips and then cooked in a frying pan with oil, apple cider vinegar, and salt, without any hand-massaging or fermentation packing steps.",
+      "coverage": [
+        true,
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        true,
+        true,
+        true,
+        false
+      ],
+      "score": 6.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 724,
+      "prediction": "Video A uses a stovetop pan method where eggs are beaten, cooked in melted butter with continuous stirring and folding to create soft curds, and finished with black pepper on a plate. Video B uses a microwave method where eggs are beaten, seasoned with salt and pepper before cooking, cooked in two 20-second intervals with stirring in between, and served on toast with ketchup. The primary differences are the cooking appliance (pan vs. microwave), the timing of seasoning (after cooking vs. before/during), the cooking technique (continuous stirring vs. interval cooking), and the final presentation (plate vs. toast with ketchup).",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 725,
+      "prediction": "In Video A, the chef uses milk or cream (poured into the pan with the eggs) and shredded cheese (added during cooking). In Video B, the chef uses only butter (melted in the pan before adding the eggs), with no milk, cream, or cheese added.",
+      "coverage": [
+        false,
+        true,
+        true
+      ],
+      "correctness": [
+        false,
+        true,
+        true
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 733,
+      "prediction": "In Video A, the chef prepares the meat (chicken) by cutting it into cubes, creating a liquid marinade with olive oil, lime juice, and spices (chili powder, garlic powder, cumin, salt, pepper), adding bell peppers, coating the meat and vegetables in the marinade, and letting it marinate before skewering. In contrast, in Video B, the chef cuts the meat (beef) into cubes and threads it onto skewers with vegetables (corn, tomatoes, peppers, onions) without any visible marinating or seasoning steps prior to grilling.",
+      "coverage": [
+        true,
+        true,
+        true
+      ],
+      "correctness": [
+        true,
+        false,
+        true
+      ],
+      "score": 5.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 736,
+      "prediction": "In Video A, the chef uses shrimp as the main protein, seasoning it by directly sprinkling salt and pepper onto the raw shrimp and mixing by hand, without a liquid marinade. In Video B, the chef uses cubed red meat as the main protein, seasoning it by creating a marinade from ground spices (including dried lavender buds) mixed with liquid ingredients, then tossing the meat in this mixture to coat it before skewering.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 737,
+      "prediction": "The main difference in ingredients is the protein and the produce used: Video A uses chicken breasts and bell peppers (green and red) with a chili-lime marinade, while Video B uses shrimp and lemon wedges with a garlic-lemon marinade.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 739,
+      "prediction": "In Video A, the chef uses a microplane grater to grate garlic cloves and citrus zest directly into the bowl, a chef's knife to chop fresh rosemary, and a white spatula to mix the ingredients. In contrast, the chef in Video B uses a food processor to chop a whole head of garlic and then blend it with other marinade ingredients (powders and liquids) into a smooth mixture. The primary difference is the use of manual tools (grater, knife) in Video A versus an electric appliance (food processor) in Video B for processing the garlic and combining the marinade.",
+      "coverage": [
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        true
+      ],
+      "score": 3.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 740,
+      "prediction": "The main difference in ingredients is the protein and the accompanying produce: Video A uses chicken breasts and bell peppers (green and red) with a chili-lime marinade, while Video B uses shrimp and lemon wedges with a garlic-lemon marinade.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 742,
+      "prediction": "In Video A, the chef prepares chicken by cutting it into cubes, creating a liquid marinade with olive oil, lime juice, and spices, mixing the meat with the marinade and peppers, and refrigerating it for 30 minutes before skewering. In Video B, the chef uses pre-cut round steak, applies a dry seasoning (Taco Bell brand) directly to the meat, tosses to coat, and skewers it immediately with vegetables, without any liquid marinating or refrigeration step.",
+      "coverage": [
+        true,
+        true,
+        true
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 752,
+      "prediction": "In Video A, the liquid ingredients used for the tempura batter are water and a dark brown liquid (likely soy sauce). In Video B, the liquid ingredients are eggs and milk. The main difference is that Video A uses water and a savory seasoning liquid, while Video B uses eggs and milk.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 763,
+      "prediction": "In Video A, the prawns are already peeled and deveined with tails intact before being added directly to the wok to be stir-fried with the curry paste base. In Video B, the prawns are peeled and deveined (using a toothpick) from their raw state, then poached separately in boiling water for 2-3 minutes before being added to the finished laksa broth and served over noodles.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 764,
+      "prediction": "In Video A, the prawns are already peeled and deveined with tails intact when introduced; they are cooked by stir-frying them in a wok with sautéed onions and red curry paste until they turn pink. In Video B, the prawns start raw and are manually peeled (with shells reserved) and deveined using a toothpick; they are then poached in boiling water for 2-3 minutes before being added to the laksa broth. The main differences are that Video A uses pre-prepared prawns cooked via stir-frying in a paste, while Video B shows the full preparation from raw prawns cooked via poaching.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 772,
+      "prediction": "Video A uses chicken breast as the protein, which is sliced, marinated in a yellow powder (likely curry powder), and stir-fried directly in the wok before adding vegetables and noodles. Video B uses prawns as the primary protein, which are marinated in a white powder (likely cornstarch), stir-fried and set aside, then added back later; it also includes egg omelet as an additional protein. The key differences are the protein types (chicken vs. prawns and egg) and the preparation sequence (chicken cooked continuously vs. prawns cooked separately and reintroduced).",
+      "coverage": [
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        true,
+        false,
+        true
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 774,
+      "prediction": "Video A uses only chicken breast as the protein, which is sliced, marinated with turmeric and seasonings, and then stir-fried. Video B uses two proteins: prawns and egg. The prawns are marinated and stir-fried, while the egg is whisked, cooked into an omelet, rolled, and sliced into strips before being combined with the noodles.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 776,
+      "prediction": "Video A creates the sour flavor using freshly squeezed lime juice, which is extracted from whole limes and poured into the soup just before serving. In contrast, Video B creates the sour flavor using vinegar, which is poured from a bottle into the pot while the noodles and vegetables are cooking, before the soy sauce is added.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 778,
+      "prediction": "In Video A, the protein ingredient is Thai peeled prawns (200g), which are added raw directly into the simmering soup broth and cooked by boiling, turning from greyish-pink to opaque white and pink. In Video B, the protein ingredient is ground chicken, which is first stir-fried in a pan with spring onions and garlic until it turns white and fully cooked, then mixed with chili paste and stock to form the soup base. The key differences are the type of protein (prawns vs. ground chicken) and the cooking method (boiling raw in soup vs. pre-cooking via stir-frying before soup assembly).",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 779,
+      "prediction": "In Video A, the chef creates a sour flavor by adding vinegar. In Video B, the chef creates a sour flavor using a combination of kaffir lime leaves, fresh lime juice, and halved cherry tomatoes.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 785,
+      "prediction": "In Video A, the protein ingredient is Thai Peeled Prawns, which are added raw directly to the simmering soup and cooked by boiling until pink and opaque. In Video B, the protein ingredient is ground chicken, which is added raw to a pan after sautéing spring onions, then stirred and broken up to cook until no longer pink before other soup ingredients are added. The key differences are the type of protein (prawns vs. ground chicken) and the cooking method (boiling in the soup vs. sautéing in a pan as a base).",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": true
+    },
+    {
+      "id": 790,
+      "prediction": "The main protein in Video A is chicken, which is added as bite-sized, white pieces of cooked meat. In contrast, the main protein in Video B is prawns, which are added raw, peeled, and deveined, cooking until they turn opaque and pink.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 794,
+      "prediction": "Video A shows the preparation of a meatball mixture using ground turkey, rolled oats, an egg, chopped fresh parsley, grated carrot, salt, black pepper, and a liquid ingredient. In contrast, Video B does not show the preparation of a meatball mixture; instead, it depicts a sausage-based dish where ingredients like chopped red bell pepper, onion, garlic, tomato puree, dried herbs, and agave nectar are added to a sauce, with sausages fried separately and added later. Therefore, the primary difference is that Video A uses ingredients for turkey meatballs, while Video B uses ingredients for a sausage and sauce dish, with no meatball mixture shown.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 796,
+      "prediction": "In Video A, the chef prepares the meatball mixture by first pulsing fresh bread slices in a food processor to make crumbs, then adding ground meat, an egg, a liquid (likely milk or water), fresh chopped herbs (parsley/basil), grated cheese, salt, and pepper, mixing by hand. In Video B, the chef uses pre-made breadcrumbs, adds ground meat, an egg, dried parsley flakes, grated Parmesan cheese, garlic powder, and salt, mixing by hand without adding any liquid or soaking the bread. The key differences are: Video A uses fresh breadcrumbs made on-site, fresh herbs, and includes a liquid ingredient, whereas Video B uses pre-made breadcrumbs, dried herbs, garlic powder, and no added liquid.",
+      "coverage": [
+        false,
+        false,
+        false,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 797,
+      "prediction": "In Video A, the eggs are beaten with grated cheese using a metal whisk, whereas in Video B, the eggs and cheese are beaten together using a fork. Both videos then proceed similarly by removing the pan from the heat, pouring the egg mixture over the hot pasta, and vigorously tossing with tongs to create the sauce without scrambling the eggs.",
+      "coverage": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 800,
+      "prediction": "Both videos use the same method: eggs are beaten with cheese in a bowl beforehand, the pan is removed from the heat, the mixture is poured over the hot pasta, and it is tossed vigorously off-heat to prevent scrambling. There are no differences in the method of adding eggs between the two videos.",
+      "coverage": [
+        true,
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 801,
+      "prediction": "In Video A, the additional ingredients (red sauce, yellow-orange sauce, and shredded cheese) are all placed on top of the rice layer before the roll is formed. In Video B, the additional ingredients are placed differently: black sesame seeds are sprinkled on the outside of the rice layer (which becomes the exterior of the inside-out roll), while red bell pepper strips are placed on top of the tuna filling inside the roll, underneath the rice layer.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 802,
+      "prediction": "In Video A, the rice rolling technique involves using a bamboo sushi mat covered with plastic wrap. The chef places the nori (rice-side down) on the mat, adds fillings, and rolls by lifting the mat's edge, tucking it over the fillings, and applying even pressure with both hands to form a tight cylinder, then squeezing through the mat for final shaping. In contrast, Video B demonstrates a hand-rolling technique without any mat. The chef spreads rice on the nori, adds fillings, and manually lifts the nori edge, tucking and shaping the roll entirely with fingers and hand pressure to achieve a tight cylindrical shape.",
+      "coverage": [
+        true,
+        true,
+        true
+      ],
+      "correctness": [
+        true,
+        true,
+        true
+      ],
+      "score": 6.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 804,
+      "prediction": "In Video A, the sushi is rolled using a bamboo mat with the rice side facing down on the mat, and the roll is formed by lifting the mat and rolling away from the person while applying pressure with the mat. In Video B, the sushi is rolled by hand without a bamboo mat, with the rice side facing up on the nori, and the roll is formed by lifting the nori edge and using fingers to tuck and compress the roll continuously.",
+      "coverage": [
+        true,
+        false,
+        true
+      ],
+      "correctness": [
+        true,
+        false,
+        true
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 809,
+      "prediction": "In Video A, the chef uses chicken, which is sliced into thin strips, marinated with a clear liquid, and stir-fried before being set aside and later added to the fried rice. In Video B, the chef uses shrimp, which are used whole (peeled and deveined) without any marinating or cutting, stir-fried briefly until pink, set aside, and then added to the fried rice. The main differences are the protein type, the cutting method (sliced vs. whole), and the presence of a marinating step in Video A but not in Video B.",
+      "coverage": [
+        false,
+        false,
+        true
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 813,
+      "prediction": "In Video A, the chef does not use any paste; instead, they add flavor using a dark brown liquid sauce poured over the rice and ingredients. In Video B, the chef uses green curry paste, which is added to hot oil in the wok and stir-fried until fragrant before other ingredients are added.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 819,
+      "prediction": "In Video A, the garlic is used as whole, unpeeled cloves that are added directly to the pan and boiled in water with the other ingredients. In Video B, the garlic is used as whole bulbs that are smashed with a knife, then roasted in the oven along with tomatoes and onions before being added to the soup pot. The main differences are the form (cloves vs. bulbs), the preparation (unprepared vs. smashed), and the cooking method (boiling vs. roasting).",
+      "coverage": [
+        true,
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        true,
+        false,
+        false
+      ],
+      "score": 3.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 820,
+      "prediction": "In Video A, the tomato soup is blended using a countertop blender with room-temperature ingredients before the mixture is heated. In Video B, the soup is blended using an immersion blender directly in the pot while the soup is hot on the stovetop.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        true,
+        true,
+        false
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 823,
+      "prediction": "In Video A, the tomato soup is blended using a countertop blender with room-temperature ingredients before the mixture is heated. In Video B, the soup is blended using an immersion blender directly in the pot while the soup is still hot.",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        true,
+        true,
+        false
+      ],
+      "score": 4.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 826,
+      "prediction": "In Video A, the tomato soup is thickened by blending the cooked mixture with an immersion blender to create a smooth puree. In contrast, Video B thickens the soup by adding a cornflour slurry (cornflour mixed with water) to the simmering liquid.",
+      "coverage": [
+        true,
+        true,
+        true
+      ],
+      "correctness": [
+        true,
+        true,
+        true
+      ],
+      "score": 6.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 832,
+      "prediction": "In Video A, the chef begins by trimming the outer layer of flesh from the top and sides of the tuna loin to create a flat, even surface, without explicitly removing the skin first. In contrast, the chef in Video B starts by explicitly removing the skin from the tuna block, followed by trimming the dark bloodline, tendons, and blood vessels from the sides.",
+      "coverage": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "correctness": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "score": 8.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 834,
+      "prediction": "The two videos differ significantly in both toppings and presentation. In Video A, the tuna sashimi is presented on a black rectangular plate in a minimalist style. The toppings—thin slices of green cucumber, a mound of wasabi, and pickled ginger—are arranged as side garnishes beside the tuna, not on top of it. In contrast, Video B features toppings applied directly onto the tuna slices: sesame seeds are sprinkled first, followed by chopped green onions, and finally shredded seaweed (nori) is placed on the dish. The presentation in Video B uses a white oval plate where the tuna is arranged in a fan shape on one side, topped with the ingredients, while the seaweed is piled on the opposite side, accompanied by a small bowl of dipping sauce.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 836,
+      "prediction": "In Video A, the broth is prepared by mixing a pre-made 'Instant Noodle Broth concentrate' with water in a pot and simmering it, with spring onions added directly to the simmering liquid. In contrast, Video B prepares the broth by dissolving 'Shiro Miso paste' in a separate bowl using hot broth and a whisk, while vegetables are cooked in the broth in a pot before being combined with the miso mixture. The primary differences are the base ingredient (concentrate vs. miso paste), the method of incorporation (simmering in the pot vs. whisking in a separate bowl), and the handling of additional ingredients.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 842,
+      "prediction": "In Video A, the main protein source is chicken, accompanied by aburage (fried tofu pouches), shiitake mushrooms, and green onions. In Video B, the main protein source is beef, accompanied by onion, garlic, ginger, bok choy, and pickled mustard greens. The chefs differ by using chicken versus beef as the primary protein and selecting distinct vegetable profiles: Video A features mushrooms and tofu, while Video B features aromatics (onion, garlic, ginger) and leafy greens (bok choy, mustard greens).",
+      "coverage": [
+        true,
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 846,
+      "prediction": "The two chefs prepare the spice and vegetable paste differently in several key ways. In Video A, the chef starts by sautéing chopped onions and ginger-garlic paste, then adds chopped tomatoes and ground spices (including red chili powder) to form a thick paste. Vegetables like peas, cauliflower, and green chilies are added later to this cooked paste. In contrast, the chef in Video B begins by heating oil and adding whole spices (bay leaves, cinnamon), then sautés a mix of chopped vegetables (carrots, green beans, onions, cabbage) before adding powdered spices (red chili, turmeric, coriander, cumin, garam masala). A key difference is that the Video B chef incorporates yogurt into the mixture, whereas the Video A chef does not. Additionally, Video A uses a tomato-based paste foundation, while Video B builds the base directly from sautéed vegetables and spices without a tomato puree step.",
+      "coverage": [
+        false,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 0.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 860,
+      "prediction": "In Video A, the chef cuts the grapes directly off their stems using a large knife onto a baking tray and then roasts them in an oven. In contrast, in Video B, the chef removes the grapes from their stems by hand, keeping them whole, and uses them raw in a salad without any cooking or cutting.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        true,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 862,
+      "prediction": "The chefs differ significantly in their sauce base preparation. In Video A, the chef uses a simple method: heating a dark liquid (likely soy sauce or broth) in a small saucepan and dissolving white granules (sugar or salt) by stirring. In contrast, the chef in Video B prepares a more complex sauce by first stir-frying minced garlic in oil in a wok, then adding a combination of sweet soy sauce (Kecap Manis), sesame oil, light soy sauce, and oyster sauce, simmering the mixture until it thickens. The key differences are the use of aromatics (garlic) and multiple sauces in Video B versus a single liquid and granules in Video A, as well as the cooking technique (stir-frying/simmering in a wok vs. simple heating in a saucepan).",
+      "coverage": [
+        true,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 2.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 865,
+      "prediction": "In Video A, the broth is seasoned by adding sliced garlic directly into the pot before pouring in the chicken broth. In contrast, Video B seasons the broth by adding 1 tablespoon of soy sauce directly into the pot of boiling chicken broth.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    },
+    {
+      "id": 868,
+      "prediction": "In video A, the egg mixture consists of only eggs whisked together with a fork, with no additional ingredients. In video B, the egg mixture also starts with eggs whisked with a fork, but black pepper is added to the mixture using a pepper mill.",
+      "coverage": [
+        false,
+        true,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": true
+    },
+    {
+      "id": 870,
+      "prediction": "The cooking sequences differ significantly in preparation methods and order of operations. In Video A, the dish is prepared entirely via stir-frying in a single wok using pre-cooked noodles; no boiling is involved. The sequence involves sautéing garlic, then adding chicken, green onions, shrimp, and finally the pre-cooked noodles, followed by sauces. In contrast, Video B involves multiple preparation steps before stir-frying: ingredients like pork, vegetables, and mushrooms are sliced, and a sauce is mixed separately. Crucially, the udon noodles are boiled in a kettle and set aside, and bok choy is blanched in the same kettle. The stir-fry sequence then starts with pork, followed by red onions, then carrots, mushrooms, and bok choy, before adding the boiled noodles and the prepared sauce. Thus, Video A is a one-pot stir-fry with pre-cooked noodles, while Video B involves boiling/blanching steps and a more complex ingredient preparation sequence before the final stir-fry.",
+      "coverage": [
+        true,
+        false,
+        false
+      ],
+      "correctness": [
+        false,
+        false,
+        false
+      ],
+      "score": 1.0,
+      "status": "ok",
+      "error": "",
+      "cached": false
+    }
+  ]
+}
