@@ -18,6 +18,6 @@
 
 本轮由同一GPU控制器完成推理、官方评分、token/输入审计及汇总，不再另起需要Modal SDK的收尾子进程。最终输出`final_summary.json`、`report.md`、逐方法`scores.json`和`analysis.json`。报告包含各benchmark官方聚合分、已评分题数、覆盖任务、成功题平均/中位耗时、所有尝试累计耗时、失败清单及批次墙钟；模型启动与Judge评分单独计时。并行请求累计时间不当作墙钟。
 
-资源为独立8×H100：RSI六副本、VAM一副本、原Embedding一张卡，整题固定副本，单卡单请求。任务结束停止服务并由idle watchdog释放。DEVBOX_NAME=`mvagent-external-native-images-20261015`；host入口`launch-original-images-20261015`。不配置持续通知或独立巡检。
+资源为独立8×H100：RSI六副本、VAM一副本、原Embedding一张卡，整题固定副本，单卡单请求。任务结束停止服务并由idle watchdog释放。Sandbox=`sb-FheMotX5Sn5j6N8tN6crwM`，控制器PID41；DEVBOX_NAME=`mvagent-external-native-images-20261015`；host入口`launch-original-images-20261015`。不配置持续通知或独立巡检。
 
-当前阶段：独立冻结与启动准备，尚无本轮分数或速度结论。原云服务未公开的处理/数值默认值仍不能认证完全相同；VAM每benchmark仅一题属于冒烟，不代表全量准确率。
+14:18北京时间首批检查：模型启动281.64秒，RSI已5/65成功、VAM已1/3成功，均0运行失败。CV764的RSI实际图像768×1364，答案B，整题墙钟95.29秒（内部94.36秒）；VAM TR1585实际图像1280×720，答案B，墙钟37.57秒（内部29.99秒）。7个Actor副本的manifest均已移除448宽高提示，Embedding实际max_pixels=1843200。两题共6次实际响应的完整token与输入SHA审计通过；证据startup_verification.json。尚无完整准确率/吞吐结论。原云服务未公开的处理/数值默认值仍不能认证完全相同；VAM每benchmark仅一题属于冒烟，不代表全量准确率。
