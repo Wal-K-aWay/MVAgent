@@ -26,21 +26,26 @@ def main(root):
             result_path = sample/'result.json'
             result = json.loads(result_path.read_text()) if result_path.exists() else {}
             calls = prompt_tokens = output_tokens = cached_tokens = 0
+            call_seconds = []
             requests = sample/'requests.jsonl'
             if requests.exists():
                 with requests.open() as stream:
                     for line in stream:
                         request = json.loads(line)
                         response = request['response']
-                        wire = json.dumps(request['request'], ensure_ascii=False).encode()
+                        wire = json.dumps(request['request']).encode()
                         token_audit(response, wire)
                         usage = response['usage']
                         calls += 1
                         prompt_tokens += usage['prompt_tokens']
                         output_tokens += usage['completion_tokens']
                         cached_tokens += usage.get('prompt_tokens_details', {}).get('cached_tokens', 0)
+                        if request.get('seconds') is not None:
+                            call_seconds.append(request['seconds'])
             rows.append(dict(**row, model_calls=calls, prompt_tokens=prompt_tokens,
                 output_tokens=output_tokens, cached_tokens=cached_tokens,
+                model_http_seconds=sum(call_seconds) if len(call_seconds) == calls else None,
+                agent_seconds=result.get('seconds'),
                 index_seconds=result.get('index_seconds'), query_seconds=result.get('query_seconds')))
         report['methods'][method] = dict(successful=progress['successful'], expected=3,
             batch_seconds=progress_path.stat().st_mtime-datetime.fromisoformat(progress['started_at']).timestamp(),
