@@ -63,7 +63,8 @@ Prompt 与中文镜像同步的完整规则统一保存在 [.claude/rules/prompt
 - 实验结果只存在 Modal 的 runs volume（`wxu-evolve-agent-runs-20261006`）；Lightsail 只放代码和 md 报告，不把结果拷回本地
   （查看与分析方法见 `mvagent-environment` skill）。
   用户2026-10-13明确授权的例外：三模型最终E2E回答、评分、Judge缓存与配套元数据可保存在
-  `outputs/e2e_final_20261013/`供本地轻量分析；迁入文件须核对大小与SHA256，媒体/权重/冻结运行环境仍留Modal。
+  `outputs/e2e/`供本地轻量分析；迁入文件须核对大小与SHA256，媒体/权重/冻结运行环境仍留Modal。
+  用户2026-10-15追加授权将MVU官方指令移后复测的原始回答、评分和配套元数据归入同总目录的对应模型目录（文件名标识提示位置）及analysis/reports；同样核对大小/SHA256并保留Modal原件。
 - 复用过的开发数据称为"开发集"，结论要区分"已测到的"和"尚不能声称的"。
 - 凭据（`BIGMODEL_API_KEY`、`DEEPSEEK_API_KEY`）只从环境变量或 Modal Secret 读取。
 - 计算与模型推理都放在 Modal 上；使用 GPU 时，Modal app 名统一为 `wxu-sglang-baseline-gpu-test-*`，
@@ -144,14 +145,14 @@ Prompt 与中文镜像同步的完整规则统一保存在 [.claude/rules/prompt
 - **GlobalAgent** 接收问题和视频（只看到 video_id 与时长），每步输出 `reason/action/parameters`：
   - `analyze_videos`：并发调用若干 VideoAgent，每个视频给一条 instruction；
   - `watch_videos`：直接观看若干视频的指定片段并做比较；
-  - `answer`：参数为空，由 Runtime 把问题和公开 History 交给独立回答器生成答案。
+  - `answer`：在同一次决策的 `parameters.answer` 中直接提交最终答案；Runtime 不再额外调用回答器。
 - **VideoAgent** 接收 instruction，返回对它的回应报告：
   - `observe`：给出观察内容（what）、有序的起止时间段和 FPS，有针对性地观看；
   - `finish`：若干轮观察后提交报告（至少要有一次成功观察）。
 - **信息边界**：
   - VideoAgent 对 GlobalAgent 是黑盒：输入 instruction，输出报告。
   - VideoAgent 只看到自己的 instruction 和自己此前被调用时的内部轨迹（action+参数+结果）。
-  - 达到步数上限时，Runtime 用已保留的证据做终止性总结。
+  - 达到步数上限时，Global 复用同一决策接口并仅开放 `answer`，Video 用已保留的证据做终止性总结。
 - **Skill 运行时**：
   - 两个库都是 schema_version 3 的 JSON，每张卡为 `meta={id, role, stages}` + `when_to_use` + `strategy`，
     合计不超过 1200 words。
@@ -170,13 +171,13 @@ Prompt 与中文镜像同步的完整规则统一保存在 [.claude/rules/prompt
 - **基线设置**：Actor Qwen3.5-35B-A3B，temperature 0，thinking 关闭，2048 输出 token，512 帧，
   Global/Video 各最多 5 步。基线分数见 `.claude/benchmarks.md`。
 - **最终回答的理由长度**：终答 `reason` 不设字符硬上限，保留简洁、非空要求；每次完整响应仍受2048输出token预算限制。
-  普通决策的reason仍限1200字符，analyze指令预算不变。此改动会影响答案与耗时；历史限长版成绩不能视作新协议成绩。
-- **Global 基础提示**：决策与终答各有独立 System，分别约束证据获取/结束决策与最终判断；规则不绑定字段名、题型或模型。
-  决策阶段用可用的检查核实关键证据冲突；分析完成或报告肯定不等于证据完整，重复论证不能替代观察。
-  进一步行动须解决具体不确定点，没有新增信息时调整检查重点；终答阶段依现有证据提交最佳判断并交代重要限制。
-  两阶段都要求保留题目定义、区分观察与推断、简洁保留关键比较。User、schema、预算保持原契约，skill 继续承载具体策略。
-  决策解释要求一到两句，保留决定性证据/缺口及行动目的；不复述历史或反复纠结。终答须完成题目要求的结果，不用缺证据的讨论替代结果。
-  空库对照与进化库评估须使用同一 System 版本；提示变化后的答案和耗时不能直接沿用历史成绩。
+  取证决策的reason仍限1200字符，analyze指令预算不变；answer决策直接携带终答。此改动会影响动作、答案与耗时；历史独立回答器成绩不能视作新协议成绩。
+- **Global 基础提示**：只有决策 System 与决策模板，answer 动作直接提交 `reason/action/parameters.answer`；
+  不保留独立终答 System、模板、schema 或模型调用。取证阶段核实关键冲突，每次检查针对具体不确定点，
+  一到两句说明决定性证据/缺口与行动目的，不重复论证。answer 动作依现有证据提交最佳判断，按题目要求表达结果，
+  在reason中简洁保留重要限制；不靠通用选项枚举限制答案。步数耗尽时同一接口仅开放answer。
+  skill仍注入决策提示，因此也能影响直接终答；卡片重点放在可复用策略，不重复运行时的通用格式要求。
+  空库与进化库评估必须使用同一提示与回答协议。正在运行的全量任务沿用其独立回答器冻结源码；新协议另建运行目录，不能混算成绩。
 - **进化实验的运行时**（`configs/skill_evolution/runtime/dynamic_35b_embedding.yaml`）：Global 和 Video 共用同一个库文件，
   按 `meta.role` 区分；进化时由算法替换成当前候选库（runtime 配置中的 `dynamic-v003` 路径会被覆盖）。
   不传 `--skills` 时两类卡都为空，Video 卡保持不变（为空，或为 `--skills` 初始库中的 Video 卡）。

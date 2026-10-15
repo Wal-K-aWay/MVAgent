@@ -56,66 +56,34 @@ The supplied Actor configurations now wait 1860 seconds per request (the shared 
 limit is 1800 seconds), and the supplied execution YAMLs allow 7200 seconds per question.
 This changes wall-clock limits only, preserving the model, generation budget and Agent policy.
 `status: ok` records a completed runtime call; it does not establish answer-format validity.
-The final-answer schema currently accepts any nonblank answer string, including invalid
+The answer action schema accepts any nonblank answer string, including invalid
 choice/interval answers. Report model/structured errors, repeatability and answer format
 separately; see the [current runtime check](../../outputs/validation_history.md#mvagent_runtime_check_20261013-readme).
 
-The terminal answerer's `reason` no longer has a character limit in either its schema or
-prompt. It must remain nonblank and concise; the complete response retains its 2048-token
-budget. Other decision reasons keep their 1200-character limits and `answer` remains an
-open nonblank string. This changes the Agent output protocol, so use a new output directory.
-The 35B eight-question diagnostic passed two full runs (16 trajectories, 198 calls,
-99 paired calls, no differences). It improved answer-form compliance on that selected panel
-from 3/8 to 6/8, but two questions still failed the answer-form check and two required the
-existing JSON repair after hitting the token budget. See the [reason-length experiment](../../outputs/reason_relaxation_20261013/README.md).
+GlobalAgent submits its final answer in the same decision: `reason`, `action="answer"`,
+`parameters.answer`. Runtime returns the existing `{answer, reason, status}` result directly;
+there is no separate final-answer prompt or model call. At the step limit, Runtime calls the
+same decision interface with only `answer` available, preserving `forced_with_gaps` and the
+`terminal_answer` trajectory marker. Evidence decisions still use a 1200-character reason;
+answer decisions have no reason character cap. All responses retain the 2048-token budget,
+and `parameters.answer` remains an open nonblank string with a 2400-character limit.
 
-GlobalAgent now has separate general System policies for decisions and final responses.
-The decision policy asks it to verify material evidence conflicts through available
-observations: a completed analysis or a confident report does not prove that nothing was
-missed. Each further action should address a specific uncertainty; a check that adds no
-information calls for a changed focus. Decision explanations should use one or two short
-sentences stating the decisive evidence or gap and the action's purpose, then act instead
-of repeating the conflict. The final-response policy asks for the most
-defensible judgment from existing evidence, with material limitations made clear.
-Both preserve task definitions, distinguish observation from inference and retain decisive
-comparisons in a few short sentences, without retelling the full history or repeatedly
-reconsidering the same possibilities. A final response must supply the requested result;
-uncertainty belongs in an explanation where permitted, rather than replacing that result.
-These rules do not depend on field names or benchmark formats;
-User prompts, schemas, action contracts and budgets are unchanged. Skill text still supplies
-task strategies through the existing decision prompt. Compare empty and evolved skill banks
-using the same System version, and use a fresh output directory for this prompt change.
-Earlier prompt experiments and scores describe their frozen versions, not this policy.
-The latest decision-System-only study tested three variants with 12 frozen requests and
-seven new full trajectories (123 model calls), retaining the second variant. Its complete
-CV712 run had no capped decision reasons, but used 18 rather than 14 calls. Counting88
-still produced a capped reason and a non-choice answer; its initial explanation was only
-a comma. The retained variant had no model/structured errors, repairs or token truncation
-in its two full questions. This is a partial improvement, not established general
-reliability or accuracy noninferiority; see the [decision System study](../../outputs/decision_system_20261013/README.md).
-Before these more explicit brevity/completion instructions, the first 35B System smoke
-completed eight frozen-request calls and one full question (12 calls,
-79.45 seconds), with no model/structured errors or repairs. However, all four frozen
-decisions still concluded, three reasons reached the character cap and two of four final
-responses did not supply the requested choice. See the [System prompt smoke report](../../outputs/validation_history.md#final_system_smoke_20261013-readme).
-With the previous explicit instructions, the same four frozen final responses used 338 rather than
-580 tokens, but only two still supplied the requested choice. One frozen decision changed
-to further observation; three reasons still reached the character cap. A complete CV712
-run returned `C` in 14 calls / 174.10 seconds, with no model or structured errors, but its
-final explanation remained long (2555 characters). These are small development checks,
-without accuracy scoring or another repeatability run; see the [revised System report](../../outputs/validation_history.md#concise_system_smoke_20261013-readme).
-An isolated budget check compared 2048/1200 with 4096/1200 and 4096/2400 (response tokens /
-Global decision-reason characters). Increasing only tokens left all eight frozen outputs
-identical; the larger reason cap still produced capped reasons. Complete CV712 used more
-calls and output tokens with the same final letter. Production defaults remain 2048/1200;
-see the [budget experiment](../../outputs/output_budget_20261013/README.md).
-An experimental Global schema emits the primary result before a 480-character reason,
-preserving the original prompts and API fields. Four reused terminal checkpoints changed
-from one to three correct answers, and complete CV712 returned reference `A` in 12 calls.
-A punctuation-only answer and capped explanations remained; accuracy noninferiority and
-general format reliability are unproven. Separate explanation summarization preserved
-primary fields but introduced a factual error. Neither change is enabled in production;
-see the [output-stability study](../../outputs/output_stability_20261013/README.md).
+A single Global System policy preserves task definitions, checks material evidence conflicts,
+and asks for concise decision explanations. The answer action submits the best-supported
+judgment in the requested form; uncertainty belongs in its explanation. Selected skill text
+is visible to these decisions, including direct answers. Public trajectories now expose the
+submitted answer parameter; ordinary answer-parameter faults can be localized by the optimizer.
+
+This changes the answer protocol and may change upstream choices as well as answers. Use a new
+output directory and compare empty/evolved skill banks with the same protocol. Running jobs
+and resumes continue using their original frozen sources. The prior 25-question fixed-evidence
+comparison is a development diagnostic, not the accuracy of this full integration; see the
+[protocol comparison](../../outputs/answer_ablation_20261015/README.md).
+Current integration checks use `scripts/test_direct_answer.py` and `scripts/verify_direct_answer.py`.
+
+Historical standalone-answer prompt, reason-budget and repeatability experiments retain their
+original evidence in the [validation history](../../outputs/validation_history.md) and dated
+reports. Their results do not certify the new direct-answer protocol.
 
 The small formal HTTP regression (`scripts/verify_formal_repro.py`, 2026-10-12) passed:
 all three BF16 models completed two questions twice through this public CLI, totaling

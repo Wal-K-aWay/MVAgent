@@ -142,8 +142,8 @@ exact video IDs and durations, and public History. It never sees a VideoAgent's 
 Observe calls or intermediate observations. It may choose `analyze_videos`,
 `watch_videos` when available, or `answer`. `analyze_videos` sends independent
 self-contained instructions to selected single-video agents. `watch_videos` selects at
-least two distinct video clips for one joint visual comparison. `answer` returns the
-final response. Its strategy can improve action choice, video/clip selection,
+least two distinct video clips for one joint visual comparison. `answer` directly submits
+the final response in `parameters.answer`. Its strategy can improve action choice, video/clip selection,
 single-video instructions, use of returned evidence, and answer timing. Available
 actions and their parameter schemas are fixed by Runtime. Decisions repeat across
 ordinary rounds and each completed action result enters public History, so a later
@@ -401,7 +401,7 @@ def _render_action(
         payload = {"answer": _inline_text(answer)}
         if answer_reason not in (None, ""):
             payload["reason"] = _inline_text(answer_reason)
-        return f"answer() -> {_compact_json(payload)}"
+        return f"answer {_compact_json(dict(parameters))} -> {_compact_json(payload)}"
 
     if action == "finish":
         return "finish"
@@ -456,7 +456,7 @@ def render_global_steps(steps: Sequence[Mapping[str, Any]]) -> str:
         marker = ' (runtime finalizer; not editable)' if step.get('editable') is False else ''
         execution = step.get('execution', {})
         action = decision.get('action', 'None')
-        call = 'answer' if action == 'answer' else f'{action} {parameters}'
+        call = f'{action} {parameters}'
         line = f"Step {step['step']}{marker}: action={call}"
         outcomes = execution.get('outcomes', []) if isinstance(execution, Mapping) else []
         if decision.get('action') == 'analyze_videos' and outcomes:
@@ -468,7 +468,7 @@ def render_global_steps(steps: Sequence[Mapping[str, Any]]) -> str:
         elif decision.get('action') == 'answer':
             answer = execution.get('answer') if isinstance(execution, Mapping) else None
             if answer is None:
-                # Historical rollouts stored the produced answer in the decision record.
+                # The decision retains the submitted answer when no execution view is supplied.
                 answer = decision.get('parameters', {}).get('answer')
             lines.append(line + (f' | output={answer}' if answer is not None else ''))
         else:

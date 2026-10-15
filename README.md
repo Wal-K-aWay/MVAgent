@@ -75,7 +75,7 @@ Skill hashes for each run. Keep frozen run sources and scored outputs together.
 ```bash
 python -m pip check
 python demo.py --help
-PYTHONPATH=src python -m unittest discover -s tests -p 'test_historical_action_contracts.py'
+PYTHONPATH=src python scripts/test_direct_answer.py
 ```
 
 Tests that compile local structured-output grammars require the full environment,

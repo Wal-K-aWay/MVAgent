@@ -51,6 +51,14 @@ def engine(max_steps=1):
 
 
 class DirectAnswerTests(unittest.TestCase):
+    def test_public_steps_show_submitted_answer_without_private_reason(self):
+        from skill_evolution.infra.trajectory import render_global_steps
+        text = render_global_steps([dict(step=1,editable=True,
+            decision=answer('B','Private reasoning'),execution=dict(answer='B'))])
+        self.assertIn('action=answer {"answer": "B"}',text)
+        self.assertIn('output=B',text)
+        self.assertNotIn('Private reasoning',text)
+
     def test_decoder_compiles_both_action_contracts(self):
         import json
         from models.vlm.api.providers.openai_compatible import _compact_vllm_grammar, _vllm_generation_schema
