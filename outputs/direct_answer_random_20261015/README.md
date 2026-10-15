@@ -8,4 +8,4 @@
 
 独立8H100实验，结果仅Modal runs volume的devbox/direct_answer_random_20261015；本地仅代码和Markdown。主指标按官方task聚合，另报样本均分、格式/空答案计数、逐题改善与退步，并给配对分层bootstrap区间。本批仍是开发面板，不是全量或独立留出集。
 
-准备与实测结果待补。
+CPU准备已通过（ap-fPeeyPWRw8a00zMtVAmSzb）：9B复用32/新增268、27B32/268、35B34/266，共98复用/802新推理。相同推理源码、历史分数和复制SHA已核对；35B的额外两条复用来自随机抽中的已测诊断题。独立H100!:8已启动；首个Sandbox sb-ka1WgSIZTFrXn6tUuiegXq在9B加载期被平台抢占（poll137，0新增题），日志和manifest归档到attempts/initial_preemption_20261015。随后在sb-UzfywedKN69H18jGSt6ioJ从原冻结源码恢复，11:59:21 UTC开始加载，未重新抽题或修改推理。配对bootstrap常量效应测试通过。
