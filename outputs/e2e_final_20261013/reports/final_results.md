@@ -102,7 +102,7 @@ CVBench为排除3道损坏视频题后的997题均分；CrossVid总分为十类�
 5472条结果的题目覆盖、模型权重和数值配置、实际服务身份、完整输出token及客户端/服务端日志均核对通过。
 28次输出达到token上限，均保留并评分；它们与请求错误分开统计。9B旧基线服务超时为600秒，本轮沿用1800秒恢复版，数值设置相同。
 本轮是复用开发集上的单遍提示位置对照，未重新运行重复性矩阵。
-[完整MVU报告](../mvu_instruction_after_20261014/final_results.md)包含逐题型对照、协议与核查范围。
+[完整MVU报告](mvu_instruction_after.md)包含逐题型对照、协议与核查范围。
 
 ## CrossVid Lite2500 分项
 
@@ -122,7 +122,7 @@ CVBench为排除3道损坏视频题后的997题均分；CrossVid总分为十类�
 ## 数据来源与迁移核对
 
 - 原位置结果：本目录的 `9B/`、`27B/`、`35B-A3B/`，原有文件保留。CVBench和CrossVid总览取自这些结果。
-- MVU指令移后结果：`mvu_instruction_after_20261014/{9B,27B,35B-A3B}/`，含原始回答、逐题评分、汇总及输入/模型元数据。
-- 新增29个文件、18,117,891字节，逐文件大小与SHA256一致；清单与校验记录位于该子目录的 `transfer_manifest.json`、`transfer_verification.json`。
+- MVU指令移后结果：各模型目录的`raw/mvu_eval_instruction_after.jsonl`、`scored/mvu_eval_instruction_after.json`和`*_mvu_instruction_after.json`；原位置文件保留，按文件名区分。
+- 复测迁入29个文件、18,117,891字节，整理后大小与SHA256仍一致；清单与校验记录为总目录的`transfer_manifest_mvu_instruction_after.json`、`transfer_verification_mvu_instruction_after.json`。共享分析在`analysis/`，报告在`reports/`；原分组子目录已删除。
 - Modal原件仍在 `wxu-evolve-agent-runs-20261006` 的 `devbox/mvu_instruction_after_20261014/`；媒体、权重、冻结运行环境及服务日志未迁入本机。
 - `reports/audit.md` 中原有逐题比较与Judge说明属于原位置基线；本次MVU复测不调用Judge，不改变CrossVid分数。

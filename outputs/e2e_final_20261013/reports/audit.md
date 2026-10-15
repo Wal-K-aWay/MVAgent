@@ -6,9 +6,9 @@
 ## 2026-10-15补充：MVU指令移后迁入
 
 - 三模型各1824题，共5472条有效响应、0请求错误；原始输入校验、模型配置、完整输出token及服务端记录配对全部通过。
-- 本次迁入29个文件、18,117,891字节，逐文件大小与SHA256匹配；清单和校验记录在`../mvu_instruction_after_20261014/`。
-- 原位置基线的671个数据文件继续保留；新增结果使用独立子目录，没有覆盖原回答、评分或汇总。
-- MVU复测不调用Judge；CrossVid及其下述Judge缓存差异保持原样。详细结果见[复测报告](../mvu_instruction_after_20261014/final_results.md)。
+- 本次迁入29个文件、18,117,891字节，逐文件大小与SHA256匹配；清单和校验记录为总目录的`transfer_manifest_mvu_instruction_after.json`及`transfer_verification_mvu_instruction_after.json`。
+- 原位置基线的671个数据文件继续保留；新增结果现归入对应模型目录，使用`instruction_after`文件名标识，没有覆盖原回答、评分或汇总；旧分组子目录已删除。
+- MVU复测不调用Judge；CrossVid及其下述Judge缓存差异保持原样。详细结果见[复测报告](mvu_instruction_after.md)。
 
 ## 实际核对范围
 

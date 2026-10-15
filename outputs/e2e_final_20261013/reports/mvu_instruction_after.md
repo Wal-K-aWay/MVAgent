@@ -77,7 +77,7 @@ CPU分析核验5472条完整输出token及客户端/服务端请求记录，缺�
 
 这是复用开发集上的提示位置对照，不代表未见数据泛化，也没有重新执行重复性矩阵。9B旧基线采用600秒服务超时，新轮沿用1800秒恢复版；正常响应的数值配置相同，截断与基础设施错误另列。
 
-Modal原件与冻结源码：/runs/devbox/mvu_instruction_after_20261014。2026-10-15按用户授权将原始回答、评分和配套元数据复制到outputs/e2e_final_20261013/mvu_instruction_after_20261014/；媒体、权重和冻结环境仍留Modal。
+Modal原件与冻结源码：/runs/devbox/mvu_instruction_after_20261014。2026-10-15按用户授权将原始回答、评分和配套元数据归入outputs/e2e_final_20261013/的对应模型目录，以instruction_after文件名标识；共享分析/报告在analysis/与reports/，旧分组目录已删除；媒体、权重和冻结环境仍留Modal。
 
 ## 运行与核查来源
 
@@ -86,3 +86,9 @@ Modal原件与冻结源码：/runs/devbox/mvu_instruction_after_20261014。2026-
 - 分析代码提交：`f2ea20e`；远端 `analysis/analysis.json`、`analysis/analysis_source.py`、`analysis/report.md`。
 - 2026-10-15迁入29个文件、18,117,891字节，逐文件大小及SHA256一致；原始回答含token，评分JSON与配套元数据可本地轻量分析。Modal原件保留，媒体、权重、冻结源码未下载。
 - 独立检查代理按用户要求在10月14日11:29退出对话时停止；此次仅执行CPU分析，没有重跑模型或Judge。
+
+## 本地文件整理（2026-10-15）
+
+原位置结果仍为各模型目录的raw/mvu_eval.jsonl和scored/mvu_eval.json；移后结果为raw/mvu_eval_instruction_after.jsonl和scored/mvu_eval_instruction_after.json。
+汇总、清单、manifest、input_audit和comparison使用*_mvu_instruction_after.json。共同分析为analysis/mvu_instruction_after.json。
+总目录的transfer_manifest_mvu_instruction_after.json记录当前相对路径及原导入位置，29个迁入文件和671个原位置文件的大小/SHA256均保持一致。
