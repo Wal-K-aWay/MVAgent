@@ -46,8 +46,8 @@ def main():
              patch.object(runner,'run_item',run_item), patch('urllib.request.urlopen',urlopen):
             rsi.main()
         config = json.loads((root/'output/effective_config.json').read_text())['config']
-        assert config['services']['timeout_seconds'] == 1860
-    assert timeouts == [1860,1860]
+        assert config['services']['timeout_seconds'] == 600
+    assert timeouts == [600,600]
     good = {'response':{'choices':[{}]},'error':None}
     assert retry_reason({'sample_id':'cvbench:1','success':True},[good]) is None
     assert retry_reason({'sample_id':'cvbench:1','success':True},[{'error':'TimeoutError'}])

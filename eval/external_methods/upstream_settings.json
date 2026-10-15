@@ -1,5 +1,5 @@
 {
-  "status": "native method image settings restored; current evaluation root external_original_images_20261015",
+  "status": "native method images; local RSI HTTP 600 seconds and VAM chat HTTP 240 seconds; completed 1860-second run remains historical",
   "sources": {
     "Video-RSI": {
       "url": "https://github.com/bingjunluo/Video-RSI",
@@ -201,7 +201,7 @@
   "user_approved_exceptions": [
     "local Qwen3.5 Actor endpoints/model identity",
     "generic nonempty RSI answer strings",
-    "RSI local HTTP timeout 1860 seconds; upstream reference remains 240 seconds",
+    "RSI local HTTP timeout 600 seconds; upstream reference remains 240 seconds",
     "multi-video concat and two-decimal timing prompt"
   ],
   "client_environments": {

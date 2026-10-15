@@ -40,7 +40,7 @@ def main():
                 raise
             time.sleep(60)
     assert ready['rsi_image_width']==768 and ready['vam_image_pixels']==1280*1280
-    assert ready['embedding_image_pixels']==1800*32*32 and ready['rsi_http_timeout_seconds']==1860
+    assert ready['embedding_image_pixels']==1800*32*32 and ready['rsi_http_timeout_seconds']==600
     env = dict(os.environ,DEVBOX_NAME='mvagent-external-native-images-20261015')
     subprocess.run([sys.executable,str(devbox/'devbox.py'),'up','--gpu','H100!:8',
         '--hours','8','--idle','10','--no-pool'],cwd=devbox,env=env,check=True)

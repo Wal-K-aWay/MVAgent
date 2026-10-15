@@ -1,5 +1,7 @@
 # 本地生成速度、重复输出与超时分析
 
+后续决定：用户已采纳RSI HTTP600秒、VAM保持240秒，当前源码已更新。下文保留提出建议时的历史分析；600秒调用检查使用独立目录`devbox/external_call_audit_20261015`，不改写本批1860秒结果。
+
 2026-10-15，北京时间。分析已完成的原图像设置批次，未新增模型调用或Judge，也未修改运行协议。原始请求、逐token输出及派生JSON仅在Modal runs volume：`devbox/external_original_images_20261015/latency_audit_20261015/`。代码为`eval/external_methods/experiments/20261015/analyze_latency.py`，原始推理源仍使用该批次冻结快照。
 
 ## 实测速度与范围

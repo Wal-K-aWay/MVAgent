@@ -1,6 +1,6 @@
 # Video-RSI / VAM：本地 Qwen 评测
 
-2026-10-15 用户最新确认：取消额外448限制，Video-RSI和VAM恢复各自原项目图像设置；保留多视频拼接、两位小数时间说明、通用答案适配和RSI HTTP1860秒。MetaVideoAgent不测。当前入口为experiments/20261015/original_images.py，结果目录devbox/external_original_images_20261015。
+2026-10-15 用户最新确认：Video-RSI单次HTTP等待改为600秒，VAM保持原240秒。两方法保留原项目图像设置、多视频拼接、两位小数时间说明和通用答案适配；不因重复输出改动原提示词、采样或输出预算。MetaVideoAgent不测。65题RSI/3题VAM的原图像批次已完成，冻结结果目录devbox/external_original_images_20261015仍记录当时的1860秒；后续运行使用新目录。
 
 ## 原始设置与实际设置
 
@@ -10,16 +10,17 @@
 |---|---|
 | RSI 规划 / 视觉输出上限 | 均直接读取原配置的 8192 |
 | RSI 步数 / 服务调用 / 帧暴露上限 | 原版 11 / 64 / 256 |
-| RSI 温度 / HTTP 超时 / provider 重试 | 0 / 1860 秒 / 1 次重试；仅 HTTP 等待由用户批准从原版 240 秒延长 |
+| RSI 温度 / HTTP 超时 / provider 重试 | 0 / 600 秒 / 1 次重试；仅 HTTP 等待由用户批准从原版 240 秒延长 |
 | RSI 抽帧 | 原版串行流程、宽度768、保持比例 |
 | VAM 输出上限 | 原调用点的 220、300、500、700 等；不注入统一 2048 fallback |
 | VAM 温度 | 原调用点的 0、0.1、0.2 |
+| VAM HTTP 超时 | 原聊天请求240秒、连接60秒；Embedding请求60秒、连接10秒 |
 | VAM 采样、过滤、记忆、检索 | 原版流程与默认参数；视频采样默认 0.5 fps |
 | VAM 图像限制 | 原版1280×1280像素面积、5MB；没有额外448覆盖 |
 | Actor | 两方法的语言/视觉角色均替换为本地 Qwen3.5-35B-A3B |
-| Embedding | 本地原 Qwen3-VL-Embedding-8B；原 VAM 请求结构与批次边界，官方默认1800×32×32像素上限；实际值写入manifest |
+| Embedding | 本地Qwen3-VL-Embedding-8B（仓库默认；论文用Gemini Embedding 2）；原VAM请求结构与批次边界，官方默认1800×32×32像素上限 |
 
-RSI 复用上游 `PinnedProvider.chat`，VAM 复用上游 `OpenRouterClient._chat_impl` 与 embedding 客户端。审计钩子只记录实际请求和耗时。RSI 本地 HTTP 等待由用户批准延长至1860秒；上游240秒记录仍保存在审计基准中，整题1800秒预算、服务端1800秒时限及1次重试不变。VAM 的时限不变。VAM embedding 请求只改为本地端点；原云服务内部默认值并不公开，本地使用官方 Qwen embedder 的默认指令，不能声称向量与云端逐位一致。
+RSI 复用上游 `PinnedProvider.chat`，VAM 复用上游 `OpenRouterClient._chat_impl` 与 embedding 客户端。审计钩子只记录实际请求和耗时。RSI本地HTTP等待现为600秒；上游240秒记录仍保存在审计基准中，整题1800秒预算、服务端1800秒时限及1次重试不变。VAM的时限不变。HTTP等待缩短不意味着服务端会自动取消已经开始的生成。VAM embedding请求改为本地端点；当前仓库与论文的Embedding模型不同，不声称论文模型与本地向量等价。
 
 VAM 使用原 TUI/WebSocket 的 `vam.agent.stream_agent_response`：先经顶层路由器选择检索、总结或直接回答，再执行原工具流程。视频帧ID前缀恢复原版 `v`，索引状态轮询恢复TUI的0.25秒。每题使用独立记忆库和空会话，避免跨题污染。
 
@@ -34,11 +35,11 @@ VAM 使用原 TUI/WebSocket 的 `vam.agent.stream_agent_response`：先经顶层
 - 多视频按题目顺序拼接为一个视频，prompt 开头明确说明多视频任务及拼接方式；各视频起止时间保留两位小数，内部记录保留完整精度。题目及最终回答的时间指向原视频坐标。
 - RSI 原版只接受单个选项；用户明确保留非空字符串的通用答案适配，以支持多选、排序、定位、数字和自然语言。没有改变工具策略或技能库。
 - RSI抽帧Services恢复上游原文件，宽度768；VAM读取原版1280²/5MB图像设置，Embedding也不覆盖官方默认。外部方法模型服务移除共享MVAgent的448宽高提示；共享MVAgent服务文件和其他实验不变。
-- RSI 仅将 HTTP 等待改为1860秒。旧冻结批次继续使用240秒；依赖审计发现旧环境不符上游锁定版本，因此新环境完整重跑65题，不再复用旧轮成功题。新旧结果和耗时分别保存。
+- RSI仅将HTTP等待改为600秒。历史240/1860秒批次保持各自冻结配置；已完成的65题结果不改写为600秒测量。
 - 本地模型端点、Python/OCR 路径、VAM 临时文件路径按 Modal 环境调整。Modal 缺少 Landlock，RSI 保留 candidate seccomp 与外层 Sandbox，但不具备上游相同的文件系统 fence。
 - VAM 的原始缺失 `re` 导入补丁保留。这些运行环境修正均列入有效配置，不能称为逐字未改的上游代码。
 
-当前65题RSI和3题VAM以新目录完整重跑，复用已校验的拼接媒体（含修复NC80），不复用448协议答案。推理后在同一控制器内运行官方评分与汇总，生成final_summary.json及report.md，无需另起依赖Modal SDK的收尾子进程。
+65题RSI和3题VAM已完成原图像协议重跑、评分和审计，复用已校验的拼接媒体（含修复NC80），未复用448协议答案；结果为final_summary.json及report.md。当前调用检查与600秒最小冒烟使用独立目录devbox/external_call_audit_20261015。
 
 ## 客户端依赖
 

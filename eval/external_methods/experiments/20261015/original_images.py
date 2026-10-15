@@ -44,7 +44,7 @@ def prepare():
     write(ROOT/'client_environments.json', {method:json.loads((dependencies/(method+'_manifest.json')).read_text())
                                           for method in ('rsi','vam')})
     write(frozen/'source_manifest.json', dict(parent=str(REPAIRED/'runtime_repo'),
-        reason='User removed all additional 448 image restrictions; keep concatenation, generic answers and HTTP1860',
+        reason='Native method images; keep concatenation and generic answers; local RSI HTTP600',
         files={str(p.relative_to(frozen)):sha256(p) for p in frozen.rglob('*') if p.is_file()}))
     env = dict(os.environ, PYTHONPATH=f'{SUPPORT}/deps:{frozen}/src')
     subprocess.run([sys.executable,'-m','compileall','-q',str(frozen/'eval/external_methods')],env=env,check=True)
@@ -67,7 +67,7 @@ print('Native image defaults and service profile checked')
     subprocess.run([sys.executable,'-c',check,str(frozen/'eval/external_methods'),
                     str(frozen/'external_sources/Visual-Agentic-Memory')],env=env,check=True)
     write(ROOT/'ready.json', dict(rsi_image_width=768, vam_image_pixels=1280*1280,
-        embedding_image_pixels=1800*32*32, rsi_http_timeout_seconds=1860,
+        embedding_image_pixels=1800*32*32, rsi_http_timeout_seconds=600,
         source_manifest_sha256=sha256(frozen/'source_manifest.json'), samples=65))
     write(REPAIRED/'superseded.json', dict(at=datetime.now(timezone.utc).isoformat(),
         reason='User requested native image settings; 448 run superseded', replacement=str(ROOT)))
