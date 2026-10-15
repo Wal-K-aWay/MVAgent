@@ -19,6 +19,22 @@
 - CPU app：`ap-6dyTzuBUHk1de0CxE0LzzM`。末尾`git diff --check`因CPU镜像不含git未执行成功；同一检查已在本机隔离工作树通过，未因此安装依赖或重复模型测试。
 - 独立H100!:1：`mvagent-direct-answer-smoke-20261015` / `sb-KuD9GkfwHrBDP5Ogh10kaG`，结果`devbox/direct_answer_smoke_20261015`，不连接生产端点。
 - 冻结驱动`scripts/verify_direct_answer.py`，9B/CV664、27B/MVU Comparison818、35B-A3B/CrossVid MOC521，每模型两次完整Agent和两次固定证据强制收尾。记录输入hash、全token、轨迹、实际worker与错误；不启动Judge、不评准确率。
-- 9B已完成：两次完整Agent及两次强制收尾均B；8实际调用、4配对均一致，0服务/结构错误、0截断。其余模型正在运行，最终结果待补。
+- 三模型均已完成，逐请求输入hash、完整输出token、文本与结束原因全部一致；完整轨迹与最终答案一致。
 
-这个集成不是之前25题固定终答探针的逐字复制：正常Global仍可选择取证，保留视频元数据与已选skill。Prompt/契约变化可能改变取证路径；不能把旧探针60%准确率当作新完整Agent成绩。
+| 模型 | 样例 | 两次完整Agent答案 | 两次强制收尾答案 | 实际模型调用 | 配对比较 |
+|---|---|---|---|---:|---:|
+| Qwen3.5-9B | CVBench 664 | B / B | B / B | 8 | 4 |
+| Qwen3.5-27B | MVU-Eval Comparison 818 | C / C | C / C | 84 | 42 |
+| Qwen3.5-35B-A3B | CrossVid MOC 521 | C / C | C / C | 12 | 6 |
+
+共6条完整Agent轨迹、6次固定证据强制收尾，104次实际模型调用、52组配对，差异0、模型错误0、结构化错误0、截断0。完整Agent分别经过2/4/3轮Global决策；27B包含多轮VideoAgent调用，并非只验证最终文本。
+
+实际正常终答格式为`{"reason":"...","action":"answer","parameters":{"answer":"B"}}`；Runtime返回的顶层answer仍为`B`、status为`answered`。逐条核对最终答案来自最后一次decision参数，没有额外独立终答请求，也没有旧global_answer响应schema。强制收尾仍保留既有轨迹标记。
+
+实际服务均为`qwen35-bf16-flashinfer-sync`、BF16、TP1、并发1、seed0、temperature0、2048输出token，prefix/MM cache关闭，FlashInfer GDN与原生GemmaRMSNorm；104次响应的实际cached_tokens均为0。三个模型依次在同一张H100加载，未测试跨卡或8卡调度变更。vLLM0.19.1、torch2.10.0、transformers4.57.6、xgrammar0.2.2、flashinfer0.6.6；服务源码SHA256为`30ec2146bba040c0db5ecb7b6ab3090aa1faec4b4f70ec12569bbe93dd5bd713`。
+
+运行于2026-10-15 09:14:31至09:38:01 UTC。最终`audit.json`/`audit_source.py`、manifest、各模型report及原始轨迹保存在runs volume的`devbox/direct_answer_smoke_20261015/`；经外部Volume接口核对audit持久化后，09:44 UTC已释放该独立Sandbox。未释放或重启生产评测Sandbox。
+
+模型调用相关的5个改动文件（engine、GlobalAgent agent/prompts/schema、共享schema）与实际冻结源码逐一SHA256相同。后续只涉及离线公开轨迹渲染与对应单测，不改变本次实测请求。原始结果留在Modal，本地仅此Markdown报告。
+
+这个集成不是之前25题固定终答探针的逐字复制：正常Global仍可选择取证，保留视频元数据与已选skill。Prompt/契约变化可能改变取证路径；不能把旧探针60%准确率当作新完整Agent成绩。本次每模型仅1题重复两遍，skill保留路径由单测覆盖；未做新协议全量准确率评测，也不据有限样本声称任意输入绝对一致或永不出现格式错误。
