@@ -1,24 +1,39 @@
 # MVAgent 全量测试：两组8×H100并行
 
-用户授权新增8张H100。原组继续27B，并在完成后为9B/27B补CCQA评分；新组独立执行35B-A3B和自己的评分。
-每个模型均使用原冻结runtime和相同5321题（CV997/MVU1824/CrossVid2500），8个独立TP1/DP1/C1、BF16、seed0、temperature0。
-改变的是跨模型调度，Actor/Prompt/schema/推理配置不变，不重跑一致性矩阵。
+2026-10-15 11:19北京时间已验证两组实际并行推理。新增组11:11获卡、11:16开始正式35B推理；原27B推理和模型服务没有中断。两组均沿用同一冻结runtime和固定评测方案，只改变跨模型调度。
 
-- 原目录：devbox/mvagent_full_20261014_transport，最终scope只含9B/27B。
-- 35B目录：devbox/mvagent_full_35b_parallel_20261015，独立runtime/media cache和日志。
-- 合并目录：devbox/mvagent_parallel_20261015。plan.json明确唯一模型所有者；全部推理和评分完成后由最后完成组的host watcher生成progress.json与comparison.md。
-- 调度代码run_mvagent_partition.py只调用原冻结runner、服务启动器、Judge与比较函数，独立保存自己的代码SHA和模型分工。
-- 原组通过校验PID、Agent CLI命令和输出目录后接管运行中的27B CLI；原父控制器暂停到Sandbox释放，不中断这条CLI。此后原组不会启动35B。
-- 两个host watcher各自负责23小时续接、有限异常恢复及释放自己所属的GPU实例；不同时写另一个模型的结果目录。
+| 模型 | 已完成推理 | 运行错误 | 负责组 |
+|---|---:|---:|---|
+| 9B | 5321/5321 | 0 | 原组，待CCQA最终评分 |
+| 27B | 3769/5321（11:18） | 0 | 原8张H100 |
+| 35B-A3B | 7/5321（11:18） | 0 | 新增8张H100 |
 
-远端CPU检查：脚本语法、进程接管/拒绝错误归属、完成后合并、GPU分配等待共3项测试，以及原生命周期自检已通过。
+三模型各CVBench997可测题、MVU1824题、CrossVid2500题；不重跑已完成9B。
+原组27B完成后补9B/27B评分，新组负责35B及其评分，最后完成的组汇总全部三模型。历史35B吞吐估计剩余约26–30小时含加载/评分余量；首批太少，不据此重估稳定吞吐。
 
-## 2026-10-15 11:09 北京时间部署状态
+## 协议与实测验证
 
-- 原组Sandbox `sb-avRFplVDedzMxeQh67o88z`：原27B CLI PID5950保持运行，新partition控制器38454、host watcher2047322；只读检查alive/job_alive均为true。
-- 9B推理5321/5321完成，27B已完成3743/5321，运行错误均为0；CCQA最终评分待本组推理结束后进行。
-- 新组Sandbox `sb-XfN8flgJKz3hyX3j6Fj3nU`已申请H100!:8，但尚未分配execution container，不能称为16卡已经运行。
-- 新组host watcher2050602使用`--start-existing`等待已申请实例，03:08:37 UTC记录queued；获卡后自动启动35B。此前等待中的一次提交客户端已取消，Sandbox申请保留，没有重复提交。
-- 两组watcher的tag分别为`mvagent_full_20261014_transport`和`mvagent_full_35b_parallel_20261015`，日志在modal-gpu的`~/wxu-evolve-agent/devbox/watch-<tag>.log`。停止某组须先SIGTERM其watcher，watcher会释放该组Sandbox。
+- BF16、8个独立TP1/DP1副本、每卡并发1、seed0、temperature0、thinking关闭；FlashInfer GDN、原生GemmaRMSNorm，prefix/MM processor cache关闭。Actor、Prompt、schema和输入预算不变。
+- 两组冻结源码均为`/runs/devbox/mvagent_full_20261014_transport/frozen_repo`。现有任务保留该快照的历史profile标识；没有改名或连接另一版服务。
+- 两组samples.json SHA256相同：`1267acf601cd4488b68135c41cc42e8737c6bcd94bc9a5b835875ae3a0328c05`。
+- 独立调度脚本`/runs/devbox/mvagent_parallel_20261015/run_mvagent_partition.py`的SHA256：`13d9d1cd570ad5c01e757f4c990753dcc97312fa1ddec2ea9ab4550fffeb8af2`。它复用原冻结runner、服务启动器、Judge和比较函数，不改推理实现。
+- 新组8个manifest已核对：8张独立UUID的H10080GB、8个独立单卡worker、模型身份/缓存设置/seed/数值配置和冻结sync_server源码哈希一致。证据在新组`startup_validation.json`及runtime_cache中。
+- 首批7条完整记录均成功，实际token ID长度等于completion_tokens且forward_calls大于0；不是仅启动或健康检查。样例：`cvbench:215`最终答案`C`，4次模型调用/318输出token；`cvbench:246`最终答案`B`，15次调用/1297输出token；`crossvid:FSA:1374`答案`137,147`，4次调用/205输出token。这些只是运行证据，不作准确率或全局确定性结论。
+- 远端3项CPU测试通过：合法进程接管/错误归属拒绝、完成后合并、分配等待；生命周期自检和相关脚本语法检查通过。没有重新运行一致性矩阵。
 
-分配等待是当前唯一启动阻塞。尚未验证新增组的8卡服务manifest和首条35B输出；获得GPU后应检查，不能把CPU控制器测试当模型运行成功。沿用历史35B整题吞吐预估约26小时推理，另留加载/评分时间；排队时长未知，新组实测后再更新。原冻结E2E比较来源未改为后来的MVU提示位置复测。
+## 后台任务与结果路径
+
+所有原始结果保留在Modal runs volume `wxu-evolve-agent-runs-20261006`。
+
+| 组 | DEVBOX_NAME | Sandbox | 结果tag | 分工 |
+|---|---|---|---|---|
+| 原组 | mvagent-full-20261013 | sb-avRFplVDedzMxeQh67o88z | mvagent_full_20261014_transport | 9B、27B |
+| 新组 | mvagent-full-35b-20261015 | sb-XfN8flgJKz3hyX3j6Fj3nU | mvagent_full_35b_parallel_20261015 | 35B-A3B |
+
+原27B CLI PID5950保持运行，新partition控制器38454接管；原父控制器3079暂停到Sandbox释放，避免它再启动35B。新组partition PID36。两个host watcher初始PID为2047322和2050602，只读检查alive/job_alive均为true；PID会在恢复时变化。
+
+host watcher在modal-gpu运行，日志为`~/wxu-evolve-agent/devbox/watch-<tag>.log`，各自处理23小时续跑、有限异常恢复及所属组完成后释放GPU。新组先以`--start-existing`等待同一申请，随后自动启动；等待中的旧提交客户端已取消，没有重复提交。停止某组须先SIGTERM其watcher，watcher会释放对应Sandbox。
+
+合并目录`devbox/mvagent_parallel_20261015`中plan.json记录唯一模型所有者；两组推理和评分全部完成后生成三模型progress.json与comparison.md。原目录最终model_scope只有9B/27B，不能把该组completed当作三模型全完。原冻结E2E比较来源保持不变，没有改用后来的MVU提示位置复测。
+
+代码与本说明备份在`codex/parallel-full-mvagent-20261015`。状态笔记和环境skill仅本机保存。会话期间Luna独立终检确认两组进展；会话结束后由host控制器持续管理，不宣称代理仍有无人值守的15分钟巡检。
