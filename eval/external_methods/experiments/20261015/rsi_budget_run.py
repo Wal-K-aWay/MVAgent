@@ -1,6 +1,6 @@
 """Paired visual-token experiment: same GPU per pair, alternating order, official scoring."""
 import argparse
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import json
 import os
@@ -58,9 +58,9 @@ def main(root):
     items = json.loads((prepared/'items.json').read_text())
     hashes = json.loads((prepared/'input_hashes.json').read_text())
     random.Random(0).shuffle(items)
-    assert len(items) == 66
+    assert len(items) == 65
     state = dict(phase='starting_actor', started_at=now(), completed=0, successful=0,
-                 expected=132, pairs=[], inference_seed=0, selection_seed=0)
+                 expected=2*len(items), pairs=[], inference_seed=0, selection_seed=0)
     if (root/'progress.json').exists():
         raise FileExistsError('Refusing to overwrite an experiment')
     write(root/'progress.json', state)
@@ -131,7 +131,7 @@ def main(root):
                 write(root/'progress.json', state)
                 time.sleep(10)
             state['pairs'] = [pair for future in futures for pair in future.result()]
-        state.update(completed=132, successful=sum(r['success'] for p in state['pairs'] for r in p['runs']),
+        state.update(completed=2*len(items), successful=sum(r['success'] for p in state['pairs'] for r in p['runs']),
                      inference_finished_epoch=time.time(), phase='starting_judge')
         write(root/'progress.json', state)
         stop(telemetry)
@@ -147,7 +147,7 @@ def main(root):
         for cap in (8192, 2048):
             subprocess.run([sys.executable, str(ADAPTERS/'score.py'), '--prepared', str(prepared),
                 '--run', str(root/f'cap{cap}'), '--judge-endpoint', 'http://127.0.0.1:8110/v1'], check=True)
-        state.update(phase='completed' if state['successful']==132 else 'completed_with_errors', finished_at=now())
+        state.update(phase='completed' if state['successful']==state['expected'] else 'completed_with_errors', finished_at=now())
     except BaseException as exc:
         state.update(phase='failed', error=repr(exc), finished_at=now())
         raise

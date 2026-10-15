@@ -1,5 +1,7 @@
 # Video-RSI / VAM 效率实测
 
+后续决定：用户已要求将 RSI 视觉描述默认上限改为 2048，并扩大准确率对照；见[新的预算实验](../rsi_budget_20261015/README.md)。下文的“默认 8192”描述本轮探针完成时的状态。
+
 用户要求测当前评测效率并寻找提速办法。保持Qwen3.5-35B-A3B、BF16、seed=0、temperature=0、thinking/prefix关闭、原方法帧数/步数/token预算；不启动Judge、不评准确率。
 
 ## 已恢复的整题测量

@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 from types import SimpleNamespace
 
-from prepare import timeline
+from prepare import timeline, verify_concat_clock
 from rsi import Provider
 
 
@@ -33,6 +33,14 @@ def main():
     text = timeline([dict(video_id='video_2', start=10.25, end=30.75, original_duration=20.5)])
     assert text.startswith('This is a multi-video understanding task.')
     assert '10.25 seconds' in text and '30.75 seconds' in text and 'subtract its start offset' in text
+    assert verify_concat_clock([(0, .0407)], [0], .04) == .0407
+    for clock in ([(.001, .04)], [(0, .042)], [(0, .04), (.04, .04)]):
+        try:
+            verify_concat_clock(clock, [0], .04)
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError('Accepted changed timestamps, packet count, or excessive duration drift')
     class Client:
         def chat(self, messages, max_tokens):
             return dict(usage={}, model='contract-test', budget=max_tokens)

@@ -51,6 +51,10 @@ Question and answer timestamps remain in the named original video's coordinate s
 Offsets come from actual video packet timing, not container duration metadata that may
 include a longer audio track. Per-segment packet counts/timestamps are checked against
 the sources, then checked again after concatenation. A new output directory is required.
+Frame timestamps must match within two microseconds. The old FFmpeg image has a
+millisecond MP4 movie clock: only terminal duration metadata may differ by less than
+one millisecond. This rounding is recorded separately; the timeline uses the verified
+segment extents, and no timestamp or packet-count mismatch is accepted.
 Use `--selection <previous selection.json>` to retain exactly the same evaluation panel.
 
 The previous `external_methods_20261014` results used 448x448 letterboxing and 30fps.

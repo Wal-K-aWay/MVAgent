@@ -132,7 +132,9 @@ def main(root):
             simulated_video_duration_priority_seconds=simulate([r['seconds'] for r in sorted(
                 ordered, key=lambda r:items[r['sample_id']]['duration'], reverse=True)]),
             oracle_measured_duration_lpt_seconds=simulate(sorted(costs, reverse=True)),
-            ideal_work_conservation_lower_bound_seconds=max(sum(costs)/8,max(costs)))
+            ideal_work_conservation_lower_bound_seconds=max(sum(costs)/8,max(costs)),
+            simulated_replica_counts={str(n):dict(seconds=simulate(costs, n),
+                allocated_gpu_seconds=n*simulate(costs, n)) for n in (4,8,16)})
     wall = progress['inference_finished_epoch'] - progress['inference_started_epoch']
     all_rows = [r for by_id in runs.values() for r in by_id.values()]
     report['actual_paired_schedule'] = dict(seconds=wall,

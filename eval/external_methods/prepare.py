@@ -83,6 +83,15 @@ def verify_frames(expected, actual, label):
     return count
 
 
+def verify_concat_clock(actual, expected, duration):
+    assert len(actual) == len(expected), 'Concatenation changed the packet count'
+    assert all(abs(t-wanted) < .000002 for (t, _), wanted in zip(actual, expected)), 'Frame timestamps changed'
+    container_duration = max(t+d for t, d in actual)
+    # This FFmpeg's MP4 movie clock is 1 kHz; terminal duration metadata can round by <1 ms.
+    assert abs(container_duration-duration) < .001, (container_duration, duration)
+    return container_duration
+
+
 def timeline(segments):
     lines = ['This is a multi-video understanding task. The original videos have been '
              'concatenated into one complete video in the order listed below.',
@@ -156,10 +165,8 @@ def prepare(record, output):
                     '-map', '0:v:0', '-c:v', 'copy', '-an', '-video_track_timescale', '1000000',
                     '-n', str(video)], check=True, timeout=120)
     combined_clock = packet_clock(video)
-    assert len(combined_clock) == len(clocks)
-    assert all(abs(t-expected) < .000002 for (t, _), expected in zip(combined_clock, clocks))
-    duration = max(t+d for t, d in combined_clock)
-    assert abs(duration-offset) < .000002, (duration, offset)
+    container_duration = verify_concat_clock(combined_clock, clocks, offset)
+    duration = offset
     if transcode:
         expected_frames = (frame for segment in segments
                            for frame in frame_signatures(segment['source'],
@@ -169,6 +176,7 @@ def prepare(record, output):
         question=timeline(segments) + '\n\nOriginal question:\n' + record.sample.question,
         options={chr(65+i): value for i, value in enumerate(record.sample.options)})
     write(target / 'timeline.json', dict(segments=segments, duration=duration,
+        container_reported_duration=container_duration, terminal_duration_rounding=container_duration-duration,
         video_sha256=sha256(video), preprocessing=(
             ('lossless H.264 normalization; ' if transcode else '') +
             'stream-copy concat; native dimensions and frame timing; visual only'),
