@@ -31,7 +31,6 @@ async def infer(args):
     from vam.config import get_settings
     settings = get_settings()
     settings.llm_model = settings.siliconflow_model_id = card['id']
-    settings.llm_max_image_pixels = 448*448
     settings.dashscope_api_key = settings.openrouter_api_key = ''
     settings.siliconflow_api_key = 'local-no-auth'
     settings.siliconflow_base_url = args.endpoint.rstrip('/')
@@ -40,8 +39,7 @@ async def infer(args):
         llm_parameter_policy='Original per-call max_tokens, temperature, retries and timeouts; no 2048 fallback',
         agent_entrypoint='vam.agent.stream_agent_response (same as upstream TUI and websocket)',
         adaptations=['local Qwen endpoint/model', 'local original embedding model transport',
-                     'temporary files share memory-store filesystem', 'upstream missing re import',
-                     'user-approved 448 input limit']))
+                     'temporary files share memory-store filesystem', 'upstream missing re import']))
     audit_httpx(args.output/'requests.jsonl', 'http://127.0.0.1:8200/v1')
     from vam.video import index_video_async
     from vam.jobs import manager as job_manager

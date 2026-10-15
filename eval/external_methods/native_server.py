@@ -39,6 +39,8 @@ def configure():
                     generation_policy='preserve upstream explicit temperature and max_tokens; local seed=0, thinking disabled')
 
     base.PROFILE = PROFILE
+    # The shared MVAgent profile's 448 geometry hints do not belong to these methods.
+    base.ENGINE_CONFIG = dict(base.ENGINE_CONFIG, limit_mm_per_prompt={'image': 512, 'video': 8})
     base.validate_request = validate
     base.execution_profile = profile
     return base

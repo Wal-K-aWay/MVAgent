@@ -84,17 +84,6 @@
  
  Time arguments accept numeric seconds or explicit "MM:SS" / "HH:MM:SS" strings.
  For example "15:04" means 904 seconds, while 15.04 means 15.04 seconds, not
---- a/solver_full_workspace/engine/services.py
-+++ b/solver_full_workspace/engine/services.py
-@@ -252,7 +252,7 @@
-                 raise ServiceError("invalid frame timestamp")
-             fid = "frame_%06d" % len(self.frames)
-             path = self.scratch / (fid + ".jpg")
--            subprocess.run([ffmpeg, "-v", "error", "-ss", str(timestamp), "-i", str(self.media["video_path"]), "-frames:v", "1", "-vf", "scale=768:-2", "-threads", "1", "-y", str(path)], capture_output=True, check=True, timeout=60)
-+            subprocess.run([ffmpeg, "-v", "error", "-ss", str(timestamp), "-i", str(self.media["video_path"]), "-frames:v", "1", "-vf", "scale=448:-2", "-threads", "1", "-y", str(path)], capture_output=True, check=True, timeout=60)
-             if not path.is_file() or path.stat().st_size == 0:
-                 raise ServiceError("frame extraction produced no image")
-             self.frames[fid] = {"timestamp": timestamp, "path": path}
 --- a/solver_full_workspace/engine/worker.py
 +++ b/solver_full_workspace/engine/worker.py
 @@ -40,8 +40,8 @@

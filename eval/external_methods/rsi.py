@@ -47,9 +47,10 @@ def main():
         provider = LocalProvider()
         audit_urllib(args.output/'requests.jsonl')
     write(args.output/'effective_config.json', dict(config=config,
+        image_policy='upstream Services unchanged: width 768, aspect ratio preserved',
         adaptations=['local model identity and loopback endpoint', 'local Python/OCR paths',
                      'Modal isolation: seccomp retained, Landlock unavailable',
-                     'user-approved generic answer contract and 448-wide model images',
+                     'user-approved generic answer contract',
                      'user-approved local HTTP timeout 1860 seconds (upstream 240)'],
         protocol='upstream budgets, sampling, retries and serial extraction; explicit user-approved adapters'))
     services = Services(item, {'video_path': item['video_path']}, config,

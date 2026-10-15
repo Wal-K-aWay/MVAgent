@@ -1,5 +1,5 @@
 {
-  "status": "upstream sources and runtime audited; native VAM agent restored; per-method dependency constraints verified; aligned matrix pending",
+  "status": "native method image settings restored; current evaluation root external_original_images_20261015",
   "sources": {
     "Video-RSI": {
       "url": "https://github.com/bingjunluo/Video-RSI",
@@ -201,7 +201,6 @@
   "user_approved_exceptions": [
     "local Qwen3.5 Actor endpoints/model identity",
     "generic nonempty RSI answer strings",
-    "448 model input limit",
     "RSI local HTTP timeout 1860 seconds; upstream reference remains 240 seconds",
     "multi-video concat and two-decimal timing prompt"
   ],
@@ -214,5 +213,11 @@
       "scipy": "1.14.1"
     }
   },
-  "vam_entrypoint": "vam.agent.stream_agent_response, as used by upstream TUI and websocket"
+  "vam_entrypoint": "vam.agent.stream_agent_response, as used by upstream TUI and websocket",
+  "image_policy": {
+    "rsi": "upstream Services scale=768:-2, unchanged source hash",
+    "vam": "upstream Settings llm_max_image_pixels=1280*1280 and 5MB",
+    "embedding": "official Qwen3VLEmbedder default max_pixels=1800*32*32; no override",
+    "local_server": "no width/height geometry hints; original client images enter the Qwen processor"
+  }
 }

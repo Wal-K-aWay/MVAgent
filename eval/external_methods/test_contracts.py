@@ -30,7 +30,7 @@ def main():
             else:
                 raise AssertionError(f'Accepted invalid answer {bad!r}')
         name = 'solver_full_workspace/engine/services.py'
-        assert (target/name).read_text() == (source/name).read_text().replace('scale=768:-2', 'scale=448:-2')
+        assert (target/name).read_text() == (source/name).read_text()
     text = timeline([dict(video_id='video_2', start=10.25, end=30.75, original_duration=20.5)])
     assert text.startswith('This is a multi-video understanding task.')
     assert '10.25 seconds' in text and '30.75 seconds' in text and 'subtract its start offset' in text
@@ -43,6 +43,7 @@ def main():
         else:
             raise AssertionError('Accepted changed timestamps, packet count, or excessive duration drift')
     server = configure()
+    assert server.ENGINE_CONFIG['limit_mm_per_prompt'] == {'image':512, 'video':8}
     for temperature, maximum in ((0,8192), (.1,700), (.1,500), (0,220), (.2,500)):
         body = dict(model='local', messages=[dict(role='user', content='test')],
                     temperature=temperature, max_tokens=maximum, thinking={'type':'disabled'})
