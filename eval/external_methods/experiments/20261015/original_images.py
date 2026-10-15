@@ -74,18 +74,18 @@ print('Native image defaults and service profile checked')
     print('Prepared native-image 65+3 matrix',flush=True)
 
 
-def summarize():
-    labels = json.loads((ROOT/'prepared/private_labels.json').read_text())
-    analysis = json.loads((ROOT/'analysis.json').read_text())
-    report = dict(at=datetime.now(timezone.utc).isoformat(), protocol=json.loads((ROOT/'ready.json').read_text()),
-                  methods={}, phase_timing=json.loads((ROOT/'progress.json').read_text()))
+def summarize(root=ROOT):
+    labels = json.loads((root/'prepared/private_labels.json').read_text())
+    analysis = json.loads((root/'analysis.json').read_text())
+    report = dict(at=datetime.now(timezone.utc).isoformat(), protocol=json.loads((root/'ready.json').read_text()),
+                  methods={}, phase_timing=json.loads((root/'progress.json').read_text()))
     markdown = ['# Native-image RSI / VAM evaluation', '',
         'Development panel; official scoring. Runtime failures are separate from incorrect answers.', '',
         '| Method | Benchmark | Scored / attempted | Official score | Successful mean / median seconds | Failed |',
         '|---|---|---:|---:|---:|---:|']
     for method in ('rsi','vam'):
-        progress = json.loads((ROOT/method/'progress.json').read_text())
-        score = json.loads((ROOT/method/'scores.json').read_text())
+        progress = json.loads((root/method/'progress.json').read_text())
+        score = json.loads((root/method/'scores.json').read_text())
         assert progress['completed'] == progress['expected'] and not score['pending_judge']
         assert len(score['rows'])+len(score['failed']) == progress['expected']
         datasets = {}
@@ -110,9 +110,11 @@ def summarize():
             request_errors=sum(row['request_errors'] for row in analysis['methods'][method]['samples']))
     markdown += ['', 'Timing excludes model startup and scoring; batch wall time and every failed attempt are saved separately.',
                  'CrossVid uses task macro; CVBench/MVU use official population weighting on this panel.',
-                 'VAM has only one question per benchmark, so its scores are smoke results.']
-    write(ROOT/'final_summary.json', report)
-    (ROOT/'report.md').write_text('\n'.join(markdown)+'\n')
+                 'These are development-panel results, not full-benchmark accuracy.']
+    if len(report['methods']['vam']['predictions'])+len(report['methods']['vam']['failures'])==3:
+        markdown.append('VAM has only one question per benchmark, so its scores are smoke results.')
+    write(root/'final_summary.json', report)
+    (root/'report.md').write_text('\n'.join(markdown)+'\n')
     print(json.dumps({method:{dataset:{k:v for k,v in d.items() if k!='failed'}
                             for dataset,d in value['datasets'].items()} for method,value in report['methods'].items()},indent=2),flush=True)
 

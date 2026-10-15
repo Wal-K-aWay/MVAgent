@@ -2,6 +2,8 @@
 
 2026-10-15 用户最新确认：Video-RSI单次HTTP等待改为600秒，VAM保持原240秒。两方法保留原项目图像设置、多视频拼接、两位小数时间说明和通用答案适配；不因重复输出改动原提示词、采样或输出预算。MetaVideoAgent不测。65题RSI/3题VAM的原图像批次已完成，冻结结果目录devbox/external_original_images_20261015仍记录当时的1860秒；后续运行使用新目录。
 
+后续用户已要求VAM扩大到相同65题：后台入口`experiments/20261015/launch_vam_expanded.py`，新结果`devbox/external_vam65_20261015`。VAM65题完整新跑，RSI复用已评分65题并注明历史实际HTTP1860秒；所有历史RSI请求均低于600秒。自动评分、审计、对比报告及资源释放，详见[本轮运行说明](../../outputs/external_vam65_20261015/README.md)。
+
 ## 原始设置与实际设置
 
 `sources.json` 固定上游 commit，`upstream_settings.json` 保存原始配置、关键源文件 SHA256 和 VAM 各调用点的温度/token 上限。它是原始设置的审计基准，不能替代远端实际生效证据。

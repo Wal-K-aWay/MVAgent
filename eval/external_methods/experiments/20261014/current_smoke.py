@@ -64,15 +64,16 @@ def prepare(output):
     print(json.dumps(dict(smoke=selected, expanded=65, output=str(output))), flush=True)
 
 
-def infer(output, *, frozen=None, prepared=None):
+def infer(output, *, frozen=None, prepared=None, vam_only=False):
     frozen = frozen or output/'frozen_repo'
     prepared = prepared or output/'prepared'
     env = dict(os.environ, PYTHONPATH=f'{SUPPORT}/deps:{frozen}/src')
     scripts = frozen/'eval/external_methods'
     processes, streams = [], []
     started = time.monotonic()
+    expected = dict(vam=len(json.loads((prepared/'items.json').read_text()))) if vam_only else dict(rsi=65,vam=3)
     state = dict(phase='starting_models', started_at=datetime.now(timezone.utc).isoformat(),
-                 expected=dict(rsi=65, vam=3), protocol='upstream parameters with approved adapters')
+                 expected=expected, protocol='upstream parameters with approved adapters')
     write(output/'progress.json', state)
     try:
         commands = [
@@ -104,17 +105,18 @@ def infer(output, *, frozen=None, prepared=None):
         state.update(phase='running', model_startup_seconds=time.monotonic()-started)
         write(output/'progress.json', state)
         inference_started = time.monotonic()
-        print('Models ready; RSI 65 questions and VAM three benchmark anchors.', flush=True)
+        print(f'Models ready; expected={expected}', flush=True)
         def batch(method, ports):
             command = [sys.executable, str(scripts/'run_batch.py'), method, '--prepared', str(prepared),
                        '--output', str(output/method), '--ports', ports]
-            if method == 'vam':
+            if method == 'vam' and not vam_only:
                 command.append('--smoke')
             run(command, output/(method+'.log'), env)
             return json.loads((output/method/'progress.json').read_text())
         with ThreadPoolExecutor(max_workers=2) as pool:
-            futures = {method: pool.submit(batch, method, ports) for method, ports in
-                       [('rsi', '8100,8101,8102,8103,8104,8105'), ('vam', '8106')]}
+            jobs = ([('vam','8100,8101,8102,8103,8104,8105,8106')] if vam_only else
+                    [('rsi','8100,8101,8102,8103,8104,8105'),('vam','8106')])
+            futures = {method: pool.submit(batch, method, ports) for method, ports in jobs}
             summary = {method: future.result() for method, future in futures.items()}
         state.update(phase='inference_completed', inference_seconds=time.monotonic()-inference_started,
                      methods={method:{key:value[key] for key in ('expected','successful','failed','batch_seconds')}
@@ -134,7 +136,7 @@ def infer(output, *, frozen=None, prepared=None):
             stream.close()
 
 
-def score(output, prepared=None, *, frozen=None):
+def score(output, prepared=None, *, frozen=None, methods=('rsi','vam')):
     frozen = frozen or output/'frozen_repo'
     scripts = frozen/'eval/external_methods'
     env = dict(os.environ, PYTHONPATH=f'{SUPPORT}/deps:{frozen}/src')
@@ -143,7 +145,7 @@ def score(output, prepared=None, *, frozen=None):
     labels = json.loads((prepared/'private_labels.json').read_text())
     needs_judge = any(json.loads(path.read_text())['success'] and
         labels[json.loads(path.read_text())['sample_id']]['sample']['task']=='open_qa'
-        for method in ('rsi','vam') for path in (output/method).glob('*/execution.json'))
+        for method in methods for path in (output/method).glob('*/execution.json'))
     judge = None
     started = time.monotonic()
     try:
@@ -168,7 +170,7 @@ def score(output, prepared=None, *, frozen=None):
         state.update(phase='scoring', judge_startup_seconds=time.monotonic()-started)
         write(output/'progress.json', state)
         scoring_started = time.monotonic()
-        for method in ('rsi','vam'):
+        for method in methods:
             command = [sys.executable,str(scripts/'score.py'),'--prepared',str(prepared),
                        '--run',str(output/method)]
             if needs_judge:
@@ -176,7 +178,8 @@ def score(output, prepared=None, *, frozen=None):
             run(command, output/(method+'_score.log'), env)
         state.update(phase='scored', scoring_seconds=time.monotonic()-scoring_started)
         write(output/'progress.json', state)
-        run([sys.executable,str(scripts/'experiments/20261014/summarize_current.py'),'--output',str(output)],
+        run([sys.executable,str(scripts/'experiments/20261014/summarize_current.py'),'--output',str(output),
+             '--methods',*methods],
             output/'analysis.log',env)
         state.update(phase='completed_with_errors' if any(v['failed'] for v in state['methods'].values()) else 'completed',
                      finished_at=datetime.now(timezone.utc).isoformat())

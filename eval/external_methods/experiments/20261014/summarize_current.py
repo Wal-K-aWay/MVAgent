@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 
 
-def main(root):
+def main(root, methods=('rsi','vam')):
     sys.path[:0] = [str(root/'frozen_repo/src'), str(root/'frozen_repo/eval/external_methods')]
     from native_server import configure
     token_audit = configure().token_audit
@@ -15,7 +15,7 @@ def main(root):
         report['media'].append(dict(sample_id=item['sample_id'], duration=item['duration'],
             segments=[{key: s[key] for key in ('video_id', 'start', 'end', 'processing', 'original_stream')}
                       for s in timeline['segments']]))
-    for method in ('rsi', 'vam'):
+    for method in methods:
         directory = root/method
         progress_path = directory/'progress.json'
         progress = json.loads(progress_path.read_text())
@@ -69,4 +69,6 @@ def main(root):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
-    main(parser.parse_args().output)
+    parser.add_argument('--methods', nargs='+', choices=['rsi','vam'], default=['rsi','vam'])
+    args=parser.parse_args()
+    main(args.output,args.methods)
