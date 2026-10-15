@@ -3,8 +3,10 @@ import importlib.util
 from pathlib import Path
 import subprocess
 import tempfile
+from types import SimpleNamespace
 
 from prepare import timeline
+from rsi import Provider
 
 
 def main():
@@ -31,6 +33,14 @@ def main():
     text = timeline([dict(video_id='video_2', start=10.25, end=30.75, original_duration=20.5)])
     assert text.startswith('This is a multi-video understanding task.')
     assert '10.25 seconds' in text and '30.75 seconds' in text and 'subtract its start offset' in text
+    class Client:
+        def chat(self, messages, max_tokens):
+            return dict(usage={}, model='contract-test', budget=max_tokens)
+    for visual_budget in (2048, 8192):
+        provider = Provider(Client(), visual_budget)
+        provider.meter = SimpleNamespace(events=[])
+        assert provider.chat('qwen', [])['budget'] == visual_budget
+        assert provider.chat('deepseek', [])['budget'] == 8192
     print('Adapter contracts passed')
 
 

@@ -12,7 +12,7 @@ import subprocess
 from common import sha256, write
 
 
-def select(root):
+def candidate_groups(root):
     groups = defaultdict(list)
     lite_path = root / 'configs/skill_evolution/splits/crossvid_lite2500_eval_seed20260919.json'
     lite = {r['sample_id'] for r in json.loads(lite_path.read_text())['samples']}
@@ -28,6 +28,11 @@ def select(root):
             if sid in {'cvbench:64', 'cvbench:65', 'cvbench:66'} or (dataset == 'crossvid' and sid not in lite):
                 continue
             groups[dataset, task].append(sid)
+    return groups
+
+
+def select(root):
+    groups = candidate_groups(root)
     rng = random.Random(0)
     chosen = [rng.choice(sorted(groups[key])) for key in sorted(groups)]
     assert len(chosen) == len(set(chosen)) == 33

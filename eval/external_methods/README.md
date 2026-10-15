@@ -74,16 +74,18 @@ or correctness; normal answers with the wrong task format remain scorer inputs.
 
 ## Method-specific changes
 
-- **Video-RSI:** use `artifacts/final_harness`, with original 11 steps, 256 total frame
-  exposures and 8192 output tokens per model call. Both language and vision roles use local
+- **Video-RSI:** use `artifacts/final_harness`, with original 11 steps and 256 total frame
+  exposures. Since the user's 2026-10-15 decision, visual reports default to 2048 output
+  tokens; the planner retains 8192. `rsi.py --vision-max-tokens 8192` provides the explicit
+  baseline for paired comparisons. Both language and vision roles use local
   35B. The recorded patch replaces the single-choice-only answer boundary with a nonempty
   string, preserving multi-choice, ordering, localization and open answers. Frames use the
   project 448-pixel limit. Extraction uses four concurrent FFmpeg tasks with one thread
   each for decoding/filtering/encoding; handles and timestamps retain the original order.
   Six-input media checks preserved image bytes and a four-run Agent comparison preserved
   all requests/output tokens. See `outputs/external_efficiency_20261015/README.md` for
-  component and end-to-end timings; the optional 2048-token visual-report probe was not
-  adopted, so both model roles retain the original 8192-token budget.
+  component and end-to-end timings. The initial 2048-token probe was kept experimental;
+  the subsequent user decision adopts it and requests an expanded accuracy/time comparison.
   Modal lacks Landlock: inference retains candidate seccomp and the
   outer Modal sandbox, but does not reproduce upstream's Landlock filesystem fence.
 - **MetaVideoAgent:** use official unlabeled five-frame distribution profiling, codegen
