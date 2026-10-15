@@ -3,7 +3,9 @@
 Requested on 2026-10-14 (Asia/Shanghai): repeat all 1,824 MVU-Eval questions for
 Qwen3.5-9B, 27B and 35B-A3B, moving the unchanged official answer instruction
 after the options. This is an experiment-specific change; default prompts stay as
-they are. Scores and comparisons will be added after actual inference completes.
+they are. All three models completed inference and scoring at 2026-10-14 14:53 Asia/Shanghai;
+the final audit passed on October 15 after SSH access recovered. See the
+[final results](mvu_instruction_after_20261014_results.md).
 
 The controller `scripts/run_mvu_instruction_after.py` reuses the frozen runtime
 and orchestration helpers from `/runs/devbox/e2e_full_20261013_timeout/frozen_repo`.
