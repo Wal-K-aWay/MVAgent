@@ -4,6 +4,8 @@
 
 2026-10-15 12:59 北京时间更新：用户已批准仅将本地RSI的HTTP等待从240延长至1860秒。当前代码已保存，远端上游HTTP调用检查确认1860生效且8192/token、温度、重试和solver预算未变。旧65题冻结批次继续完成；后台控制器等待其完成及NC80媒体准备，然后冻结新runtime，用4×H100（3 Actor+1原Embedding）补跑所有失败/含请求错误的RSI题、NC80以及VAM三题。无请求错误的成功题保留原240秒来源记录，不重测。补跑按新运行单独计时，不据混合来源估计一次全新1860配置的整批吞吐。
 
+13:08 北京时间，1860秒等待的实际完整题验证已完成：`mvu_eval:TR:1585` 返回 **B**，Agent耗时 **482.05秒**，5次模型调用、0请求错误；其中8192 token视觉响应耗时 **447.81秒**，超过旧240秒仍正常返回。5次实际输入SHA和完整token审计通过。该题只验证调用链，不新增Judge或准确率结论；单独保存在 `devbox/external_timeout_probe_20261015`，不计入65题规范面板的新增样本。整题1800秒预算仍不变，延长HTTP等待不保证任意题都能完成。
+
 原始参数及源码SHA保存在 `eval/external_methods/upstream_settings.json`，上游commit见 `eval/external_methods/sources.json`。每题运行前保存 `effective_config.json` 和 `service_card.json`，实际HTTP请求/输出/耗时保存为 `requests.jsonl`，不是仅依赖配置声明。
 
 | 参数 | RSI | VAM |
