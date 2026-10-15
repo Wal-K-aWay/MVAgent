@@ -86,48 +86,15 @@
  For example "15:04" means 904 seconds, while 15.04 means 15.04 seconds, not
 --- a/solver_full_workspace/engine/services.py
 +++ b/solver_full_workspace/engine/services.py
-@@ -1,5 +1,6 @@
- """Model-provider and media services. No tool selection or evidence interpretation."""
- import base64
-+from concurrent.futures import ThreadPoolExecutor
- import json
- import math
- import os
-@@ -245,17 +246,24 @@
-             timestamps = [start + (end - start) * (i + .5) / count for i in range(count)]
-         if not isinstance(timestamps, list) or not timestamps or len(self.frames) + len(timestamps) > self.config["solver"]["max_frames"]:
-             raise ServiceError("invalid or excessive frame extraction")
--        output = []
--        for timestamp in timestamps:
--            timestamp = float(timestamp)
--            if not math.isfinite(timestamp) or not 0 <= timestamp < duration:
--                raise ServiceError("invalid frame timestamp")
--            fid = "frame_%06d" % len(self.frames)
-+        timestamps = [float(timestamp) for timestamp in timestamps]
-+        if any(not math.isfinite(t) or not 0 <= t < duration for t in timestamps):
-+            raise ServiceError("invalid frame timestamp")
-+        handles = [("frame_%06d" % (len(self.frames) + i), timestamp)
-+                   for i, timestamp in enumerate(timestamps)]
-+
-+        def extract(handle):
-+            fid, timestamp = handle
+@@ -252,7 +252,7 @@
+                 raise ServiceError("invalid frame timestamp")
+             fid = "frame_%06d" % len(self.frames)
              path = self.scratch / (fid + ".jpg")
 -            subprocess.run([ffmpeg, "-v", "error", "-ss", str(timestamp), "-i", str(self.media["video_path"]), "-frames:v", "1", "-vf", "scale=768:-2", "-threads", "1", "-y", str(path)], capture_output=True, check=True, timeout=60)
 +            subprocess.run([ffmpeg, "-v", "error", "-ss", str(timestamp), "-i", str(self.media["video_path"]), "-frames:v", "1", "-vf", "scale=448:-2", "-threads", "1", "-y", str(path)], capture_output=True, check=True, timeout=60)
              if not path.is_file() or path.stat().st_size == 0:
                  raise ServiceError("frame extraction produced no image")
--            self.frames[fid] = {"timestamp": timestamp, "path": path}
--            self.meter.events.append({"kind": "extraction", "frames": 1})
--            output.append({"id": fid, "timestamp": timestamp})
-+            return fid, timestamp, path
-+
-+        output = []
-+        with ThreadPoolExecutor(max_workers=min(4, len(handles))) as pool:
-+            for fid, timestamp, path in pool.map(extract, handles):
-+                self.frames[fid] = {"timestamp": timestamp, "path": path}
-+                self.meter.events.append({"kind": "extraction", "frames": 1})
-+                output.append({"id": fid, "timestamp": timestamp})
-         return output
+             self.frames[fid] = {"timestamp": timestamp, "path": path}
 --- a/solver_full_workspace/engine/worker.py
 +++ b/solver_full_workspace/engine/worker.py
 @@ -40,8 +40,8 @@

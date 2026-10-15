@@ -1,169 +1,58 @@
-# External video-agent smoke evaluation
+# Video-RSI / VAM：本地 Qwen 评测
 
-Adapters for the released Video-RSI final harness, a locally generated initial MetaVideoAgent,
-and Visual-Agentic-Memory (VAM). Upstream code lives in `reference/`; `sources.json` pins its
-provenance. The Modal source snapshot includes `external_sources/` as well as all adapters.
+2026-10-15 用户确认：保留通用答案适配、448 输入限制，以及多视频拼接与两位小数时间说明；其余方法参数恢复原工程。MetaVideoAgent 已取消后续测试。
 
-On 2026-10-14 the user discontinued further MetaVideoAgent evaluation. Ongoing scoring
-and subsequent evaluation scope retain Video-RSI and VAM only. Meta code and existing
-outputs remain as historical artifacts; its unfinished panel is not resumed.
+## 原始设置与实际设置
 
-The first experiment uses Qwen3.5-35B-A3B BF16 with the existing synchronous v2 server,
-seed/temperature 0, thinking disabled and prefix caching off (explicit user decision on
-2026-10-14). Each question owns one replica. VAM also uses the original
-Qwen3-VL-Embedding-8B through the official Qwen implementation, on a separate reserved GPU.
-This is an adapted development smoke evaluation, not reproduction of published paper scores.
+`sources.json` 固定上游 commit，`upstream_settings.json` 保存原始配置、关键源文件 SHA256 和 VAM 各调用点的温度/token 上限。它是原始设置的审计基准，不能替代远端实际生效证据。
 
-## Input and scoring
+| 项目 | 当前约定 |
+|---|---|
+| RSI 规划 / 视觉输出上限 | 均直接读取原配置的 8192 |
+| RSI 步数 / 服务调用 / 帧暴露上限 | 原版 11 / 64 / 256 |
+| RSI 温度 / HTTP 超时 / provider 重试 | 原版 0 / 240 秒 / 1 次重试 |
+| RSI 抽帧 | 原版串行流程；只保留用户确认的宽度 448 例外 |
+| VAM 输出上限 | 原调用点的 220、300、500、700 等；不注入统一 2048 fallback |
+| VAM 温度 | 原调用点的 0、0.1、0.2 |
+| VAM 采样、过滤、记忆、检索 | 原版流程与默认参数；视频采样默认 0.5 fps |
+| VAM 图像限制 | 用户确认的 448×448 像素面积限制 |
+| Actor | 两方法的语言/视觉角色均替换为本地 Qwen3.5-35B-A3B |
+| Embedding | 本地原 Qwen3-VL-Embedding-8B；使用原 VAM embedding 请求结构与批次边界 |
 
-`prepare.py` selects one question per native task (seed 0, 33 questions: CrossVid 10,
-CVBench 15, MVU-Eval 8). CrossVid is restricted to the existing Lite2500 manifest;
-the three known corrupt CVBench inputs are excluded before sampling.
+RSI 复用上游 `PinnedProvider.chat`，VAM 复用上游 `OpenRouterClient._chat_impl` 与 embedding 客户端。审计钩子只记录实际请求和耗时，不改其温度、预算、重试或超时。VAM embedding 请求只改为本地端点；原云服务内部默认值并不公开，本地使用官方 Qwen embedder 的默认指令，不能声称向量与云端逐位一致。
 
-The current preparation protocol preserves per-segment dimensions and frame timing,
-without scaling, padding or FPS conversion. Questions whose videos all use H.264, or
-all use MPEG-4 Part 2, retain the checked stream-copy path without re-encoding.
-Mixed codecs and other codecs are first normalized segment by segment to lossless
-H.264 (`libx264`, QP 0, preset fast), then concatenated by stream copy. All segments
-in that question use the same normalization path, including existing H.264 segments.
-A common microsecond container clock allows unlike source time bases to be joined.
-H.264 parameter sets and MPEG-4 sequence headers are retained at segment boundaries.
-Audio remains excluded from this visual-only experiment.
+每题保存 `effective_config.json`、`service_card.json`、`requests.jsonl`、`result.json` 和 `execution.json`。模型服务另存模型/权重/数值配置与源码身份。原始输出先落盘，再由 `score.py` 调用共享官方评分协议。正常格式错误与运行故障分开报告。
 
-Normalization uses timestamp passthrough, no B-frame reordering, no automatic rotation
-or scaling, and `-pix_fmt +` to retain the source pixel format. Unsupported formats
-fail explicitly instead of reducing bit depth or chroma resolution. Each normalized
-segment and the final concatenation are decoded and checked against the originals
-for frame count, size, pixel format, RGB pixel hashes and timestamps; segment duration
-is also checked. These checks stream through frames without keeping the video in RAM.
-This costs CPU time and lossless files may be substantially larger. The manifest
-records each segment's processing mode, exact command and source/output metadata.
-After the user resumed testing, homogeneous and mixed-codec/VFR checks passed on
-Modal (93 decoded frames, eight seeks). The image's FFmpeg requires `-vsync 0` for
-timestamp passthrough; its unsupported `-fps_mode` spelling was removed. Current
-two-method smoke evidence is tracked in `outputs/external_methods_current_20261014/README.md`.
+`native_server.py` 是独立的外部方法入口：保留 BF16、单卡单请求、seed=0、thinking/prefix cache 关闭和原固定数值后端，但允许原方法指定非零温度，接受 RSI 的原生 `thinking=disabled` 请求字段。它使用单独的 `qwen35-bf16-external-upstream` 身份；不是既有只接受 temperature=0 的固定评测端点，不混用旧轨迹。
 
-Every question first identifies the task as multi-video understanding and explains that
-the original videos have been concatenated into one complete video. It then lists
-original-video identities and measured segment start/end offsets, formatted to two
-decimal places in the prompt. Stored timing metadata retains its original precision.
-Question and answer timestamps remain in the named original video's coordinate system.
-Offsets come from actual video packet timing, not container duration metadata that may
-include a longer audio track. Per-segment packet counts/timestamps are checked against
-the sources, then checked again after concatenation. A new output directory is required.
-Frame timestamps must match within two microseconds. The old FFmpeg image has a
-millisecond MP4 movie clock: only terminal duration metadata may differ by less than
-one millisecond. This rounding is recorded separately; the timeline uses the verified
-segment extents, and no timestamp or packet-count mismatch is accepted.
-Use `--selection <previous selection.json>` to retain exactly the same evaluation panel.
+## 明确保留的适配
 
-The previous `external_methods_20261014` results used 448x448 letterboxing and 30fps.
-They remain historical results under that preprocessing protocol. Model-side image
-limits and each method's own frame sampling are unchanged: the native concatenated
-file is distinct from the sampled/resized media submitted to the model.
+- 多视频按题目顺序拼接为一个视频，prompt 开头明确说明多视频任务及拼接方式；各视频起止时间保留两位小数，内部记录保留完整精度。题目及最终回答的时间指向原视频坐标。
+- RSI 原版只接受单个选项；用户明确保留非空字符串的通用答案适配，以支持多选、排序、定位、数字和自然语言。没有改变工具策略或技能库。
+- 输入图像保持已确认的 448 限制。取消额外的四路抽帧优化，不把速度实验改动混入原方法参数测试。
+- 本地模型端点、Python/OCR 路径、VAM 临时文件路径按 Modal 环境调整。Modal 缺少 Landlock，RSI 保留 candidate seccomp 与外层 Sandbox，但不具备上游相同的文件系统 fence。
+- VAM 的原始缺失 `re` 导入补丁保留。这些运行环境修正均列入有效配置，不能称为逐字未改的上游代码。
 
-Answer-free input JSON and private labels are saved separately. Raw outputs precede
-`score.py`, which reuses project official scorers and task-stratified aggregation. CrossVid's
-full macro requires all ten tasks, including CCQA with the fixed local Qwen3-30B Judge.
-Infrastructure failures are reported separately and never converted into zero-scored answers.
-Meta's raw upstream `gt_answer` is intentionally empty; its derived `is_correct=false`
-is therefore not an accuracy result. Only the separate official scorer uses private labels.
+## 视频准备
 
-The adapted RSI and native VAM answer contracts accept nonempty strings, not an option
-enum. Their agent control messages remain JSON: RSI uses `type=answer` with `answer`,
-and VAM uses `action=answer` with `response`. The saved final `answer` can contain a
-choice, multiple choices, an ordering, a time interval, a number or natural language,
-as requested by the original question. Format support does not guarantee compliance
-or correctness; normal answers with the wrong task format remain scorer inputs.
+拼接不缩放、不补边、不改 FPS。相同 H.264 或 MPEG-4 编码走 stream copy；混合/其他编码走逐片段无损 H.264 统一，像素格式不支持时直接报错。原始音频不提供给这次视觉理解评测。
 
-## Method-specific changes
+2026-10-15 扩样发现，部分 H.264 视频在串流完整、PTS 正确的情况下，拼接后随机 seek 仍会用错后续片段的解码参数。当前准备器在每段的每个关键帧重复 SPS/PPS，再拼接；CVBench432 的实际失败位置及另外五个位置已解码成功。旧 `prepared_r2` 媒体不能因包数/PTS 校验通过就当作任意 seek 已验收。
 
-- **Video-RSI:** use `artifacts/final_harness`, with original 11 steps and 256 total frame
-  exposures. Since the user's 2026-10-15 decision, visual reports default to 2048 output
-  tokens; the planner retains 8192. `rsi.py --vision-max-tokens 8192` provides the explicit
-  baseline for paired comparisons. Both language and vision roles use local
-  35B. The recorded patch replaces the single-choice-only answer boundary with a nonempty
-  string, preserving multi-choice, ordering, localization and open answers. Frames use the
-  project 448-pixel limit. Extraction uses four concurrent FFmpeg tasks with one thread
-  each for decoding/filtering/encoding; handles and timestamps retain the original order.
-  Six-input media checks preserved image bytes and a four-run Agent comparison preserved
-  all requests/output tokens. See `outputs/external_efficiency_20261015/README.md` for
-  component and end-to-end timings. The initial 2048-token probe was kept experimental;
-  the subsequent user decision adopts it and requests an expanded accuracy/time comparison.
-  Modal lacks Landlock: inference retains candidate seccomp and the
-  outer Modal sandbox, but does not reproduce upstream's Landlock filesystem fence.
-- **MetaVideoAgent:** use official unlabeled five-frame distribution profiling, codegen
-  context, ABI validation, module injection and runtime. Local Qwen generates and repairs
-  the bundle; the initial three profile questions have no labels and remain development
-  inputs. No evolution rounds or held-out claim. LLM/VLM/OCR use local Qwen; audio and
-  embedding capabilities are marked unavailable in this visual-only initial profile.
-  The transport fixes numerical generation settings; upstream request token budgets remain.
-  A completed answer must also pass upstream behavioral assessment. Early bundles that
-  returned a hardcoded `A` after tool errors are excluded from valid predictions.
-- **VAM:** preserve its 0.5 fps extraction, adaptive filtering, original visual embedding,
-  hierarchical memory, event finalization and agentic retrieval. Only model transports and
-  the temporary-file location change. Data URIs are decoded to PIL images before the official
-  embedder, and missing visual tensors or changed batch size are errors; upstream's silent
-  `NULL` text fallback is not accepted as a visual embedding. Temporary video files share
-  the memory store's filesystem so atomic rename works on a Modal volume.
+每帧 PTS 仍须匹配到 2 微秒；旧 FFmpeg 的 MP4 movie 时钟导致末尾时长元数据可以有小于 1 毫秒的舍入，单独记录，不放宽帧数或 PTS 检查。混合编码无损路径另做逐帧尺寸/像素/格式校验；扩大到 3 秒的混合编码回归检查尚在修复，当前发现的问题不能静默跳过。
 
-## Execution
+`prepare.py --selection <selection.json>` 保持原抽样。原始 33 题为各原生任务一题，seed=0；扩大面板原定 66，首轮因 NC808 混合编码准备超时排除该新增题后为 65（CrossVid19/CVBench30/MVU16），不补抽。开发面板不能当作独立 Test 或全量 benchmark 成绩。
 
-Use the `mvagent-environment` skill and the `modal-gpu` dev box. Never run model inference,
-video preparation, dependency installation or the full test suite on Lightsail.
+## 耗时与执行
 
-`freeze.py` creates a new immutable project/upstream snapshot and applies the recorded RSI
-and VAM patches. Run `run_batch.py rsi|meta|vam` from that snapshot, with `--prepared`, `--output`,
-`--ports`, and optionally `--smoke`; Meta also needs `--bundle`. `meta.py generate` builds
-its initial bundle, and `embedding_server.py` hosts VAM's supporting model. Preserve failed
-attempts and use a new output directory for changed adapters. Dependencies, media, snapshots,
-raw requests/responses, generated bundles and results stay in the Modal runs volume.
+- 媒体 metadata 记录 `preprocessing_seconds`。
+- `requests.jsonl` 记录每次模型请求的实际输入/输出和 HTTP 耗时；服务审计记录处理耗时与完整 token。
+- `result.json` 记录 Agent 内部耗时；VAM 另记录索引与查询耗时。
+- `execution.json` 记录整题墙钟；`progress.json` 记录整批墙钟、逐题均值/中位数/最大值。
+- 模型启动单独计时，不混入逐题推理时间；完整评测还应单列评分时间。HTTP 请求有重叠时，不把耗时之和当作墙钟。
 
-For example, inside the Modal sandbox, rerun the accepted Meta bundle into a **new** directory:
+所有重负载经 `mvagent-environment` skill 和 `modal-gpu` dev box 放到 Modal。`freeze.py` 保存不可变源码、配置与适配补丁；`run_batch.py rsi|vam` 必须连接上述外部方法专用服务。模型与数据、原始请求和结果只保存在 runs volume；Lightsail 仅保存源码和 Markdown 报告。
 
-```bash
-EXPERIMENT=/runs/devbox/external_methods_20261014
-FROZEN="$EXPERIMENT/r9/frozen_repo"
-export PYTHONPATH="$EXPERIMENT/support/deps:$FROZEN/src"
-python "$FROZEN/eval/external_methods/run_batch.py" meta \
-  --prepared "$EXPERIMENT" --output "$EXPERIMENT/meta_new_run" \
-  --ports 8100,8101,8102 --bundle "$EXPERIMENT/meta_repair_r3/bundle.json"
-python "$FROZEN/eval/external_methods/score.py" \
-  --prepared "$EXPERIMENT" --run "$EXPERIMENT/meta_new_run" \
-  --judge-endpoint http://127.0.0.1:8110/v1
-```
+此前 2048 对照 `devbox/rsi_budget_20261015_r2` 已因随机 seek 故障及错误路径进入 prompt 被标记无效并停止，未完成准确率评测；随后用户又明确恢复原项目预算。该目录与历史速度实验保留为证据，不能混入本次按原参数测试的结果。
 
-The selected Actor endpoints must already serve the fixed 35B v2 profile; port 8110 must
-serve the project's fixed CCQA Judge. Use `rsi` with R4 or `vam` with R7 for the other
-accepted protocols. VAM also requires `embedding_server.py` on port 8200. `--smoke` restricts
-execution to one shortest selected question per benchmark. Never reuse an output directory
-containing predictions, or share an Actor endpoint between concurrent batches.
-
-The current experiment and known limitations are tracked in
-`outputs/external_methods_20261014/README.md`. No full benchmark or evolved-MetaVideoAgent
-accuracy is established by these smoke runs.
-
-## Backup checkpoint
-
-The `codex/external-methods-prompts-20261014` branch backs up these adapters and the one-off
-completion scripts. The shared worktree's independent inference-runtime/configuration
-changes and local environment skills are outside this checkpoint. Reproducing the
-submitted runs requires their full Modal frozen snapshots, not this branch alone.
-
-## Inspect the prompts
-
-`preview_prompts.py --item <prepared item.json> --sources <frozen external_sources>
---output <preview.md>` renders the exact shared question plus the patched Video-RSI
-system prompt and VAM planner system/user templates. `<runtime ...>` fields denote
-live tool evidence and state; the preview does not call a model or invent responses.
-Actual request/response JSONL remains in the run volume.
-
-The local `outputs/external_methods_native_20261014/prompt_example.md` preview applies
-the current two-decimal template to the prepared sample metadata. Frozen `prepared_r2`
-inputs retain their original prompt text; no model run has used this latest wording.
-
-The native-concat CPU check is `test_native_concat.py`: homogeneous H.264/MPEG-4 and
-mixed-codec inputs with unlike dimensions and FPS, including variable frame timing,
-must preserve all decoded frame pixels, sizes and timestamps, including after seeking.
-The original 33-question preparation covers stream copy; the later synthetic checks
-also cover lossless normalization. Do not treat those as full Agent evaluation results.
+代码备份分支为 `codex/external-methods-prompts-20261014`。共享工作区其他推理/runtime 改动不属于此分支；精确恢复实验以 Modal 冻结快照为准。

@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 import random
 import subprocess
+import time
 
 from common import sha256, write
 
@@ -76,7 +77,7 @@ def verify_frames(expected, actual, label):
         if before is None or after is None:
             raise ValueError(f'{label}: decoded frame count changed at frame {count}')
         if abs(before[0] - after[0]) >= .000002 or before[1:] != after[1:]:
-            raise ValueError(f'{label}: frame {count} pixels, format, size or timestamp changed')
+            raise ValueError(f'{label}: frame {count} changed: {before!r} -> {after!r}')
         count += 1
     if not count:
         raise ValueError(f'{label}: no decoded video frames')
@@ -107,6 +108,7 @@ def timeline(segments):
 
 
 def prepare(record, output):
+    started = time.monotonic()
     target = output / 'media' / record.sample_id.replace(':', '_')
     target.mkdir(parents=True, exist_ok=True)
     parts, segments, clocks, offset = [], [], [], 0.0
@@ -129,7 +131,10 @@ def prepare(record, output):
                         '-bf', '0', '-threads', '1', '-noautoscale']
         else:
             command += ['-c:v', 'copy']
-        if not transcode and original['codec_name'] == 'mpeg4':
+        if transcode or original['codec_name'] == 'h264':
+            # MP4 keeps one global header; repeat each segment's SPS/PPS at every keyframe for seeking.
+            command += ['-bsf:v', 'h264_mp4toannexb,dump_extra=freq=keyframe']
+        elif original['codec_name'] == 'mpeg4':
             command += ['-bsf:v', 'dump_extra=freq=keyframe']
         command += ['-n', str(destination)]
         subprocess.run(command, check=True, timeout=1200)
@@ -176,11 +181,12 @@ def prepare(record, output):
         question=timeline(segments) + '\n\nOriginal question:\n' + record.sample.question,
         options={chr(65+i): value for i, value in enumerate(record.sample.options)})
     write(target / 'timeline.json', dict(segments=segments, duration=duration,
+        preprocessing_version='native_concat_repeated_headers_v2',
         container_reported_duration=container_duration, terminal_duration_rounding=container_duration-duration,
         video_sha256=sha256(video), preprocessing=(
             ('lossless H.264 normalization; ' if transcode else '') +
             'stream-copy concat; native dimensions and frame timing; visual only'),
-        container_time_base='1/1000000'))
+        container_time_base='1/1000000', preprocessing_seconds=time.monotonic()-started))
     for part in parts:
         part.unlink()
     write(output / 'items' / (record.sample_id.replace(':', '_')+'.json'), item)

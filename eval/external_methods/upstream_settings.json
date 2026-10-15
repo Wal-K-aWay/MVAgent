@@ -1,0 +1,207 @@
+{
+  "status": "upstream reference audited; restored runtime pending remote smoke verification",
+  "sources": {
+    "Video-RSI": {
+      "url": "https://github.com/bingjunluo/Video-RSI",
+      "commit": "5ad014499a5e009b75e3ef05ac83595b78adda09",
+      "source": "git shallow clone"
+    },
+    "MetaVideoAgent": {
+      "url": "https://github.com/Alibaba-VELLDEPTH/MetaVideoAgent",
+      "commit": "c4c1279dca07c5dd7b1a28a2121dd5d27c5c1a70",
+      "source": "git shallow clone"
+    },
+    "Visual-Agentic-Memory": {
+      "url": "https://github.com/yiliu-li/Visual-Agentic-Memory",
+      "commit": "4f759407945674e0b296ecee22bd53cf910ae39b",
+      "source": "GitHub API source archive after three git TLS failures"
+    },
+    "Qwen3-VL-Embedding": {
+      "url": "https://github.com/QwenLM/Qwen3-VL-Embedding",
+      "commit": "393e2978d27852b0d0230d6994f37f9c15bed73c",
+      "source": "git shallow clone; VAM support model implementation"
+    }
+  },
+  "source_sha256": {
+    "rsi_config": "93c903e5d082fb5697eaae17af3d3a883a6af180bb92cff5c9103e84f2905067",
+    "rsi_services": "4a3933a4396d8221d6bb559948860013a725d0c6f33bc7d64d23da44c9183b9c",
+    "rsi_prompt": "ed6e5c2480dfb0259de518ba9cad1221f10b7bdce560a4444e22032c0c1ae53d",
+    "vam_settings": "03f9ca7b31f1d9aa6d2e4a29a3906887ace40a0d4f1b3dae89cbca6091519d8a"
+  },
+  "rsi": {
+    "protocol": "full-candidate-v1",
+    "evolution": {
+      "max_rounds": 20
+    },
+    "solver": {
+      "max_steps": 11,
+      "max_service_calls": 64,
+      "max_frames": 256,
+      "timeout_seconds": 1800
+    },
+    "execution": {
+      "concurrency": 16,
+      "linux_isolation": true,
+      "python": "SET_ABSOLUTE_PYTHON_PATH"
+    },
+    "services": {
+      "endpoint_env": "API_BASE",
+      "key_env": "API_KEY",
+      "deepseek": {
+        "request_model": "deepseek-v4-pro",
+        "max_tokens": 8192
+      },
+      "qwen": {
+        "request_model": "qwen3.6-plus",
+        "max_tokens": 8192
+      },
+      "temperature": 0,
+      "timeout_seconds": 240,
+      "provider_retries": 1,
+      "ffmpeg": "imageio-ffmpeg",
+      "ocr_model_root": "SET_LOCAL_OCR_MODEL_DIRECTORY"
+    },
+    "editor": {
+      "max_provider_calls": 160,
+      "timeout_seconds": 3600,
+      "pause_after_plan": false,
+      "harness_root": "SET_DEEPSEEK_HARNESS_DIRECTORY",
+      "node_binary": "SET_ABSOLUTE_NODE_PATH"
+    },
+    "investigation": {
+      "max_frames": 1024
+    },
+    "gate": {
+      "policy": "accuracy_gain_10pct_or_save_20pct_drop1_v1",
+      "max_mean_frames": null
+    }
+  },
+  "vam": {
+    "default_settings": {
+      "app_name": "Visual Agentic Memory",
+      "app_version": "0.1.0",
+      "websocket_path": "/ws/agent",
+      "openrouter_api_key": "",
+      "siliconflow_api_key": "",
+      "dashscope_api_key": "",
+      "llm_model": "Qwen/Qwen3-VL-8B-Instruct",
+      "embedding_model": "Qwen/Qwen3-VL-Embedding-8B",
+      "frame_store_path": "data/frame_store.sqlite3",
+      "openrouter_model_id": "",
+      "openrouter_model_id_main": "",
+      "openrouter_model_id_light": "",
+      "openrouter_base_url": "https://openrouter.ai/api/v1",
+      "openrouter_embedding_model": "",
+      "openrouter_embedding_dimensions": 0,
+      "openrouter_model_id_vlm": "",
+      "siliconflow_model_id": "",
+      "siliconflow_model_id_main": "Qwen/Qwen3-VL-8B-Instruct",
+      "siliconflow_model_id_light": "Qwen/Qwen3.5-9B",
+      "siliconflow_model_id_vlm": "Qwen/Qwen3-VL-8B-Instruct",
+      "siliconflow_base_url": "https://api.siliconflow.cn/v1",
+      "siliconflow_embedding_model": "Qwen/Qwen3-VL-Embedding-8B",
+      "siliconflow_embedding_dimensions": 0,
+      "dashscope_model_id": "qwen3-vl-plus",
+      "dashscope_embedding_model": "qwen3-vl-embedding",
+      "dashscope_embedding_dimensions": 0,
+      "dashscope_base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "enable_retrieval": true,
+      "video_fps": 0.5,
+      "video_max_frames": null,
+      "video_laplacian_min": 20.0,
+      "video_diff_threshold": 20.0,
+      "video_ssim_threshold": 0.92,
+      "video_hist_threshold": 0.0,
+      "video_similarity_threshold": 0.88,
+      "video_event_threshold": 0.8,
+      "video_event_max_duration_s": 300.0,
+      "memory_recent_window_s": 3600.0,
+      "memory_mid_window_s": 86400.0,
+      "memory_recent_min_gap_s": 1.0,
+      "memory_mid_min_gap_s": 20.0,
+      "memory_long_min_gap_s": 120.0,
+      "memory_mid_max_side": 768,
+      "memory_long_max_side": 512,
+      "memory_mid_jpeg_quality": 70,
+      "memory_long_jpeg_quality": 45,
+      "llm_max_image_size_mb": 5.0,
+      "llm_max_image_pixels": 1638400,
+      "llm_max_video_base64_mb": 10.0,
+      "query_include_latest_segment_video": true,
+      "query_latest_segment_video_path": ""
+    },
+    "explicit_chat_parameters": [
+      {
+        "file": "vam/agent.py",
+        "line": 33,
+        "temperature": 0.0,
+        "max_tokens": 300
+      },
+      {
+        "file": "vam/memory/session_memory.py",
+        "line": 96,
+        "temperature": 0.2,
+        "max_tokens": 500
+      },
+      {
+        "file": "vam/retrieval/agent_search.py",
+        "line": 1375,
+        "temperature": 0.1,
+        "max_tokens": 500
+      },
+      {
+        "file": "vam/retrieval/agent_search.py",
+        "line": 1397,
+        "temperature": 0.0,
+        "max_tokens": 500
+      },
+      {
+        "file": "vam/retrieval/frame_store.py",
+        "line": 2669,
+        "temperature": 0.0,
+        "max_tokens": 220
+      },
+      {
+        "file": "vam/retrieval/frame_store.py",
+        "line": 2349,
+        "temperature": 0.1,
+        "max_tokens": 700
+      },
+      {
+        "file": "vam/retrieval/frame_store.py",
+        "line": 2408,
+        "temperature": 0.1,
+        "max_tokens": 700
+      },
+      {
+        "file": "vam/retrieval/frame_store.py",
+        "line": 2615,
+        "temperature": 0.1,
+        "max_tokens": 500
+      },
+      {
+        "file": "vam/retrieval/frame_store.py",
+        "line": 2627,
+        "temperature": 0.1,
+        "max_tokens": 500
+      },
+      {
+        "file": "vam/retrieval/frame_store.py",
+        "line": 2360,
+        "temperature": 0.1,
+        "max_tokens": 700
+      }
+    ]
+  },
+  "necessary_adaptations": [
+    "Local Qwen model endpoints and model identity",
+    "User-requested multi-video concatenation and timestamp prompt",
+    "Modal filesystem paths and candidate isolation differences, recorded explicitly"
+  ],
+  "user_approved_exceptions": [
+    "local Qwen3.5 Actor endpoints/model identity",
+    "generic nonempty RSI answer strings",
+    "448 model input limit",
+    "multi-video concat and two-decimal timing prompt"
+  ]
+}

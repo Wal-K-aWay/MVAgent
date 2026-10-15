@@ -8,6 +8,7 @@ import queue
 import subprocess
 import sys
 import time
+import statistics
 import urllib.request
 
 from common import write
@@ -37,15 +38,14 @@ def main():
         endpoint = f'http://127.0.0.1:{int(port)}/v1'
         with urllib.request.urlopen(endpoint+'/models',timeout=30) as response:
             card = json.load(response)['data'][0]
-        from models.vlm.local.sync_server import validate_card
+        from native_server import validate_card
         validate_card(card)
-        if card['execution']['profile'] != 'qwen35-bf16-flashinfer-sync-v2':
-            raise ValueError('User confirmed v2 for this experiment')
         cards.append(dict(endpoint=endpoint,card=card))
         endpoints.put(endpoint)
     write(args.output/'service_cards.json',cards)
     state = dict(method=args.method, phase='running', started_at=datetime.now(timezone.utc).isoformat(),
                  expected=len(items), completed=0, successful=0, failed=0, samples=[])
+    batch_started = time.monotonic()
     write(args.output/'progress.json',state)
 
     def one(item):
@@ -83,6 +83,10 @@ def main():
             write(args.output/'progress.json',state)
             print(json.dumps(row,ensure_ascii=False),flush=True)
     state['phase'] = 'completed' if state['failed']==0 else 'completed_with_errors'
+    seconds = [row['seconds'] for row in state['samples']]
+    state.update(finished_at=datetime.now(timezone.utc).isoformat(), batch_seconds=time.monotonic()-batch_started,
+                 question_seconds=dict(total=sum(seconds), mean=statistics.mean(seconds),
+                                       median=statistics.median(seconds), maximum=max(seconds)))
     write(args.output/'progress.json',state)
 
 

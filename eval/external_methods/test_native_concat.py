@@ -32,7 +32,7 @@ def main():
             paths = []
             for i, (codec, size, fps) in enumerate(zip(codecs, ('320x240', '480x272'), (10, 15))):
                 path = root/f'{name}_{i}.mp4'
-                command = ['ffmpeg','-v','error','-f','lavfi','-t','1',
+                command = ['ffmpeg','-v','error','-f','lavfi','-t','3',
                            '-i',f'testsrc2=size={size}:rate={fps}']
                 if variable_timing:
                     command += ['-vf', "select='not(eq(mod(n,4),1))'", '-vsync', '0']
@@ -57,18 +57,18 @@ def main():
                         for s,frames in zip(segments,originals) for w,h,t,digest in frames]
             assert len(actual) == len(expected), (name,len(actual),len(expected))
             if not variable_timing:
-                assert len(actual) == 25
+                assert len(actual) == 75
             for a,e in zip(actual,expected):
                 assert (a[0],a[1],a[3]) == (e[0],e[1],e[3]), (name,a,e)
                 assert abs(a[2]-e[2]) < .000002, (name,a[2],e[2])
-            for target in (.7, segments[1]['start']+.2):
+            for target in (.7, segments[1]['start']+.2, segments[1]['start']+2.2):
                 with av.open(item['video_path']) as container:
                     stream = container.streams.video[0]
                     container.seek(int(target / stream.time_base), stream=stream, backward=True)
                     frame = next(f for f in container.decode(stream) if float(f.pts*f.time_base) >= target-.000002)
                     reference = next(e for e in expected if e[2] >= target-.000002)
                     assert hashlib.sha256(frame.to_ndarray(format='rgb24').tobytes()).hexdigest() == reference[3]
-            print(name, f'{len(actual)} decoded frames and two seeks: sizes/pixels/timing preserved')
+            print(name, f'{len(actual)} decoded frames and three seeks: sizes/pixels/timing preserved')
 
 
 if __name__ == '__main__':

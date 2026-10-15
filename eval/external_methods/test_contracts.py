@@ -3,10 +3,10 @@ import importlib.util
 from pathlib import Path
 import subprocess
 import tempfile
-from types import SimpleNamespace
+import json
 
 from prepare import timeline, verify_concat_clock
-from rsi import Provider
+from native_server import configure
 
 
 def main():
@@ -20,16 +20,17 @@ def main():
         spec = importlib.util.spec_from_file_location('rsi_answers', target/'artifacts/final_harness/answers.py')
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        for answer in ('AB', '2->4->1->3', '12.5,19', 'The second video uses a lid.'):
-            import json
+        for answer in ('AB', '2->4->1->3', '12.5,19', 'A natural-language answer'):
             assert module.parse_decision(json.dumps({'type':'answer','answer':answer}), {})['answer'] == answer
         for bad in ('', None, 3):
             try:
-                module.parse_decision(json.dumps({'type':'answer','answer':bad}), {})
+                module.parse_decision(json.dumps({'type':'answer','answer':bad}), {'A':'one','B':'two'})
             except ValueError:
                 pass
             else:
                 raise AssertionError(f'Accepted invalid answer {bad!r}')
+        name = 'solver_full_workspace/engine/services.py'
+        assert (target/name).read_text() == (source/name).read_text().replace('scale=768:-2', 'scale=448:-2')
     text = timeline([dict(video_id='video_2', start=10.25, end=30.75, original_duration=20.5)])
     assert text.startswith('This is a multi-video understanding task.')
     assert '10.25 seconds' in text and '30.75 seconds' in text and 'subtract its start offset' in text
@@ -41,14 +42,20 @@ def main():
             pass
         else:
             raise AssertionError('Accepted changed timestamps, packet count, or excessive duration drift')
-    class Client:
-        def chat(self, messages, max_tokens):
-            return dict(usage={}, model='contract-test', budget=max_tokens)
-    for visual_budget in (2048, 8192):
-        provider = Provider(Client(), visual_budget)
-        provider.meter = SimpleNamespace(events=[])
-        assert provider.chat('qwen', [])['budget'] == visual_budget
-        assert provider.chat('deepseek', [])['budget'] == 8192
+    server = configure()
+    for temperature, maximum in ((0,8192), (.1,700), (.1,500), (0,220), (.2,500)):
+        body = dict(model='local', messages=[dict(role='user', content='test')],
+                    temperature=temperature, max_tokens=maximum, thinking={'type':'disabled'})
+        before = json.dumps(body)
+        actual = server.validate_request(body, 'local')
+        assert actual['temperature'] == temperature and actual['max_tokens'] == maximum
+        assert json.dumps(body) == before
+    try:
+        server.validate_request(dict(body, temperature=float('nan')), 'local')
+    except ValueError:
+        pass
+    else:
+        raise AssertionError('Accepted an invalid temperature')
     print('Adapter contracts passed')
 
 

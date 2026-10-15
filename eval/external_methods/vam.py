@@ -10,38 +10,10 @@ import tempfile
 import time
 import urllib.request
 
-from common import LocalQwen, write
+from common import write
+from native_server import validate_card
+from transport_audit import audit_httpx
 
-
-class Embeddings:
-    name = 'local-Qwen3-VL-Embedding-8B'
-
-    def _embed(self, inputs):
-        vectors = []
-        for start in range(0,len(inputs),8):
-            request = urllib.request.Request('http://127.0.0.1:8200/embeddings',
-                data=json.dumps({'inputs':inputs[start:start+8]}).encode(),
-                headers={'Content-Type':'application/json'})
-            with urllib.request.urlopen(request, timeout=600) as response:
-                result = json.load(response)
-            vectors.extend(result['vectors'])
-        if not vectors or len(vectors) != len(inputs):
-            raise ValueError('Missing VAM embeddings')
-        return vectors, len(vectors[0])
-
-    def embed_text(self, text, *, instruction):
-        vectors, dim = self.embed_texts_batch([text], instruction=instruction, batch_size=8)
-        return vectors[0], dim
-
-    def embed_texts_batch(self, texts, *, instruction, batch_size):
-        return self._embed([dict(text=text, instruction=instruction) for text in texts])
-
-    def embed_image_base64(self, image_base64_or_data_uri, *, instruction):
-        vectors, dim = self.embed_images_base64_batch([image_base64_or_data_uri], instruction=instruction, batch_size=8)
-        return vectors[0], dim
-
-    def embed_images_base64_batch(self, images_base64_or_data_uris, *, instruction, batch_size):
-        return self._embed([dict(image=image, instruction=instruction) for image in images_base64_or_data_uris])
 
 
 async def infer(args):
@@ -52,22 +24,24 @@ async def infer(args):
     tempfile.tempdir = str(temporary)
     sys.path.insert(0, str(args.source))
     os.environ['FRAME_STORE_PATH'] = str(args.output/'memory.sqlite3')
-    client = LocalQwen(args.endpoint, args.output/'requests.jsonl')
+    with urllib.request.urlopen(args.endpoint.rstrip('/')+'/models', timeout=30) as response:
+        card = json.load(response)['data'][0]
+    validate_card(card)
+    write(args.output/'service_card.json', card)
     from vam.config import get_settings
     settings = get_settings()
-    settings.llm_model = settings.siliconflow_model_id = client.model
+    settings.llm_model = settings.siliconflow_model_id = card['id']
     settings.llm_max_image_pixels = 448*448
-    from vam.llm.openrouter import OpenRouterClient
-    import vam.vision.backends
-    vam.vision.backends.get_backend = lambda: Embeddings()
-
-    async def chat(self, messages, *, temperature=None, max_tokens=None, stream=False, extra_params=None):
-        if stream or extra_params:
-            raise ValueError('Unexpected VAM streaming/native-tool request')
-        value = await asyncio.to_thread(client.chat, messages, max_tokens or 2048)
-        return value['choices'][0]['message']['content'], value
-
-    OpenRouterClient._chat_impl = chat
+    settings.dashscope_api_key = settings.openrouter_api_key = ''
+    settings.siliconflow_api_key = 'local-no-auth'
+    settings.siliconflow_base_url = args.endpoint.rstrip('/')
+    write(args.output/'effective_config.json', dict(settings=settings.model_dump(
+        exclude={'openrouter_api_key', 'siliconflow_api_key', 'dashscope_api_key'}),
+        llm_parameter_policy='Original per-call max_tokens, temperature, retries and timeouts; no 2048 fallback',
+        adaptations=['local Qwen endpoint/model', 'local original embedding model transport',
+                     'temporary files share memory-store filesystem', 'upstream missing re import',
+                     'user-approved 448 input limit']))
+    audit_httpx(args.output/'requests.jsonl', 'http://127.0.0.1:8200/v1')
     from vam.video import index_video_async
     from vam.jobs import manager as job_manager
     from vam.retrieval.frame_store import get_store

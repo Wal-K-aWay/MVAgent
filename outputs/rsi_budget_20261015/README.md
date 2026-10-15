@@ -1,3 +1,7 @@
+# 已停止：2048 预算对照，保留诊断证据
+
+2026-10-15 03:03 UTC 后发现 CVBench432 的拼接媒体随机 seek 解码失败，且错误消息携带 cap8192/cap2048 不同目录，污染后续 prompt。本次运行已停止，未完成整批评分，不能作为纯预算对照结论。之后用户明确要求恢复原项目参数（保留通用答案和448限制），不再继续此2048对照。GPU模型服务已停止并提交释放；最新设置见 `eval/external_methods/README.md`。下文为历史计划与提交记录。
+
 # Video-RSI 视觉描述预算对照（2026-10-15）
 
 用户已决定将默认视觉描述上限改成 2048 token；规划器仍为 8192 token。本次比较旧视觉上限 8192 与新上限 2048。
@@ -10,7 +14,7 @@
 
 运行目录：Modal runs volume `devbox/rsi_budget_20261015_r2/`。冻结源码、私有标签、拼接视频、原始请求/token、逐题结果与评分留在该 volume。独立 GPU sandbox：`sb-2hPetsLlITj6IAaVwoHP0R`，`DEVBOX_NAME=mvagent-rsi-budget-20261015`。
 
-当前为准备/提交阶段，尚无本次准确率或耗时结论。代码入口为 `eval/external_methods/experiments/20261015/rsi_budget_{panel,run,analysis}.py`。正式运行与评分结束后补充实测结果；小样本不支持宣称准确率无损。
+65 个输入准备及远端适配器检查、项目 compileall 均通过。2026-10-15 02:50 UTC 已启动唯一后台任务（PID 64），自动完成 130 条推理、两组官方评分与分析；当前处于模型启动阶段，尚无本次准确率或耗时结论。代码入口为 `eval/external_methods/experiments/20261015/rsi_budget_{panel,run,analysis}.py`。正式运行与评分结束后补充实测结果；小样本不支持宣称准确率无损。初步预计从模型启动到评分完成约 1–2 小时；按实际轨迹长度变化。任务结束后模型服务自动停止，Sandbox 由无活动退出机制释放；没有新增定期监控。
 
 ## 调度与并行化分析（代码已核对，数值待本轮实测）
 
