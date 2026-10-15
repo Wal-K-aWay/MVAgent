@@ -64,8 +64,9 @@ def prepare(output):
     print(json.dumps(dict(smoke=selected, expanded=65, output=str(output))), flush=True)
 
 
-def infer(output):
-    frozen = output/'frozen_repo'
+def infer(output, *, frozen=None, prepared=None):
+    frozen = frozen or output/'frozen_repo'
+    prepared = prepared or output/'prepared'
     env = dict(os.environ, PYTHONPATH=f'{SUPPORT}/deps:{frozen}/src')
     scripts = frozen/'eval/external_methods'
     processes, streams = [], []
@@ -105,7 +106,7 @@ def infer(output):
         inference_started = time.monotonic()
         print('Models ready; RSI 65 questions and VAM three benchmark anchors.', flush=True)
         def batch(method, ports):
-            command = [sys.executable, str(scripts/'run_batch.py'), method, '--prepared', str(output/'prepared'),
+            command = [sys.executable, str(scripts/'run_batch.py'), method, '--prepared', str(prepared),
                        '--output', str(output/method), '--ports', ports]
             if method == 'vam':
                 command.append('--smoke')
@@ -133,8 +134,8 @@ def infer(output):
             stream.close()
 
 
-def score(output, prepared=None):
-    frozen = output/'frozen_repo'
+def score(output, prepared=None, *, frozen=None):
+    frozen = frozen or output/'frozen_repo'
     scripts = frozen/'eval/external_methods'
     env = dict(os.environ, PYTHONPATH=f'{SUPPORT}/deps:{frozen}/src')
     state = json.loads((output/'progress.json').read_text())

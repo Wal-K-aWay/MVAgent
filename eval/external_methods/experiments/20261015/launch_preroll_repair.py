@@ -18,16 +18,16 @@ def main():
     with lock.open('x') as stream:
         stream.write(str(os.getpid()))
     # Freeze the overlay now; other sessions may replace the shared repo while this launcher waits.
-    source = devbox/'external-repair-source-timeout-20261015'
+    source = devbox/'external-repair-source-upstream-agent-20261015'
     source.mkdir(exist_ok=False)
-    for name in ('rsi.py','vam.py','embedding_server.py','common.py','upstream_settings.json','README.md',
+    for name in ('rsi.py','vam.py','embedding_server.py','run_batch.py','common.py','upstream_settings.json','README.md',
                  'experiments/20261014/current_smoke.py','experiments/20261015/repair_preroll.py'):
         target = source/'eval/external_methods'/name
         target.parent.mkdir(parents=True,exist_ok=True)
         shutil.copy2(devbox.parent/'repo/eval/external_methods'/name,target)
     (source/'source_manifest.json').write_text(json.dumps({str(p.relative_to(source)):
         hashlib.sha256(p.read_bytes()).hexdigest() for p in source.rglob('*') if p.is_file()},indent=2))
-    cpujob = devbox/'external_repair_cpujob_20261015.py'
+    cpujob = devbox/'external_repair_cpujob_upstream_agent_20261015.py'
     template = (devbox/'cpujob.py').read_text()
     setting = 'REPO = os.path.expanduser("~/wxu-evolve-agent/repo")'
     assert template.count(setting) == 1
@@ -66,7 +66,7 @@ def main():
     ready = read_json(prefix+'/runtime_ready.json')
     assert ready['actor_image_pixels'] == ready['embedding_image_pixels'] == 448*448
     assert ready['rsi_http_timeout_seconds'] == 1860
-    subprocess.run([sys.executable,str(devbox/'devbox.py'),'up','--gpu','H100!:4',
+    subprocess.run([sys.executable,str(devbox/'devbox.py'),'up','--gpu','H100!:8',
         '--hours','4','--idle','5','--no-pool'],env=env,cwd=devbox,check=True)
     root = '/runs/'+prefix
     command = (f'export PYTHONPATH=/runs/devbox/external_methods_20261014/support/deps:{root}/runtime_repo/src; '

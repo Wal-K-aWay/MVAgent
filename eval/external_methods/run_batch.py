@@ -3,6 +3,7 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 import json
+import os
 from pathlib import Path
 import queue
 import subprocess
@@ -26,6 +27,12 @@ def main():
     script_dir = Path(__file__).resolve().parent
     frozen = script_dir.parents[1]
     upstream = frozen/'external_sources'/dict(rsi='Video-RSI',meta='MetaVideoAgent',vam='Visual-Agentic-Memory')[args.method]
+    env = dict(os.environ)
+    if args.method in ('rsi','vam'):
+        dependencies = Path('/runs/devbox/external_methods_20261014/support/upstream_clients_20261015')
+        manifest = json.loads((dependencies/(args.method+'_manifest.json')).read_text())
+        env['PYTHONPATH'] = str(dependencies/args.method)+os.pathsep+env.get('PYTHONPATH','')
+        write(args.output/'client_environment.json',manifest)
     items = json.loads((args.prepared/'items.json').read_text())
     # Start with the shortest selected question in each benchmark; expand unchanged afterward.
     smoke = {}
@@ -64,7 +71,7 @@ def main():
             command += ['--source',str(upstream),'--item',str(args.prepared/'items'/(sid.replace(':','_')+'.json')),
                         '--output',str(output),'--endpoint',endpoint]
             with (output/'job.log').open('w') as log:
-                result = subprocess.run(command,stdout=log,stderr=subprocess.STDOUT,timeout=7200)
+                result = subprocess.run(command,stdout=log,stderr=subprocess.STDOUT,timeout=7200,env=env)
             record = json.loads((output/'result.json').read_text()) if (output/'result.json').exists() else {}
             row = dict(sample_id=sid, success=result.returncode==0, returncode=result.returncode,
                        answer=record.get('answer'), seconds=time.monotonic()-started, endpoint=endpoint)

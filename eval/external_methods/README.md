@@ -21,6 +21,10 @@
 
 RSI 复用上游 `PinnedProvider.chat`，VAM 复用上游 `OpenRouterClient._chat_impl` 与 embedding 客户端。审计钩子只记录实际请求和耗时。RSI 本地 HTTP 等待由用户批准延长至1860秒；上游240秒记录仍保存在审计基准中，整题1800秒预算、服务端1800秒时限及1次重试不变。VAM 的时限不变。VAM embedding 请求只改为本地端点；原云服务内部默认值并不公开，本地使用官方 Qwen embedder 的默认指令，不能声称向量与云端逐位一致。
 
+VAM 使用原 TUI/WebSocket 的 `vam.agent.stream_agent_response`：先经顶层路由器选择检索、总结或直接回答，再执行原工具流程。视频帧ID前缀恢复原版 `v`，索引状态轮询恢复TUI的0.25秒。每题使用独立记忆库和空会话，避免跨题污染。
+
+2026-10-15复核更正：旧3题实际Actor与Embedding均已启用448面积限制，之前“漏用448”的说明错误。旧适配器真正跳过的是顶层路由，直接调用了 `search_generator`；旧结果仅代表这一内部检索入口，不计为完整原版VAM。当前源码已修正，新复测另行冻结。
+
 每题保存 `effective_config.json`、`service_card.json`、`requests.jsonl`、`result.json` 和 `execution.json`。模型服务另存模型/权重/数值配置与源码身份。原始输出先落盘，再由 `score.py` 调用共享官方评分协议。正常格式错误与运行故障分开报告。
 
 `native_server.py` 是独立的外部方法入口：保留 BF16、单卡单请求、seed=0、thinking/prefix cache 关闭和原固定数值后端，但允许原方法指定非零温度，接受 RSI 的原生 `thinking=disabled` 请求字段。它使用单独的 `qwen35-bf16-external-upstream` 身份；不是既有只接受 temperature=0 的固定评测端点，不混用旧轨迹。
@@ -30,9 +34,13 @@ RSI 复用上游 `PinnedProvider.chat`，VAM 复用上游 `OpenRouterClient._cha
 - 多视频按题目顺序拼接为一个视频，prompt 开头明确说明多视频任务及拼接方式；各视频起止时间保留两位小数，内部记录保留完整精度。题目及最终回答的时间指向原视频坐标。
 - RSI 原版只接受单个选项；用户明确保留非空字符串的通用答案适配，以支持多选、排序、定位、数字和自然语言。没有改变工具策略或技能库。
 - 两方法输入图像保持已确认的 448 限制；VAM 视频帧数读取原项目配置。取消额外的四路抽帧优化，不把速度实验改动混入原方法参数测试。
-- RSI 仅将 HTTP 等待改为1860秒。旧冻结批次继续使用240秒，完成后自动补跑失败题及含请求错误的成功题；无请求错误的成功题复用，逐题记录来源与实际时限。补跑耗时独立于旧批次，不将两次运行拼成一次吞吐结果。
+- RSI 仅将 HTTP 等待改为1860秒。旧冻结批次继续使用240秒；依赖审计发现旧环境不符上游锁定版本，因此新环境完整重跑65题，不再复用旧轮成功题。新旧结果和耗时分别保存。
 - 本地模型端点、Python/OCR 路径、VAM 临时文件路径按 Modal 环境调整。Modal 缺少 Landlock，RSI 保留 candidate seccomp 与外层 Sandbox，但不具备上游相同的文件系统 fence。
 - VAM 的原始缺失 `re` 导入补丁保留。这些运行环境修正均列入有效配置，不能称为逐字未改的上游代码。
+
+## 客户端依赖
+
+两方法使用独立依赖目录：`/runs/devbox/external_methods_20261014/support/upstream_clients_20261015/{rsi,vam}`。RSI逐项匹配原`requirements-lock.txt`的22项固定版本；VAM满足原`pyproject.toml`的13项适用要求，包括NumPy 1.26.4和OpenCV 4.10.0.84。`run_batch.py`仅为客户端子进程设置相应目录，并保存`client_environment.json`；模型服务继续使用固定Qwen环境，不向其注入两套互相冲突的客户端库。旧环境13/22项不匹配RSI锁文件，且NumPy/OpenCV不满足VAM约束，不能称为原环境复现。
 
 ## 视频准备
 

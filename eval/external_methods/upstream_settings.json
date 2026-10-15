@@ -1,5 +1,5 @@
 {
-  "status": "upstream reference audited; restored runtime pending remote smoke verification",
+  "status": "upstream sources and runtime audited; native VAM agent restored; per-method dependency constraints verified; aligned matrix pending",
   "sources": {
     "Video-RSI": {
       "url": "https://github.com/bingjunluo/Video-RSI",
@@ -204,5 +204,12 @@
     "448 model input limit",
     "RSI local HTTP timeout 1860 seconds; upstream reference remains 240 seconds",
     "multi-video concat and two-decimal timing prompt"
-  ]
+  ],
+  "client_environments": {
+    "root": "/runs/devbox/external_methods_20261014/support/upstream_clients_20261015",
+    "rsi": "all 22 versions from upstream requirements-lock.txt",
+    "vam": "all 13 applicable pyproject dependency constraints; numpy 1.26.4, opencv-python 4.10.0.84",
+    "model_server": "unchanged local Qwen BF16 runtime; not a reproduction of unknown cloud backend defaults"
+  },
+  "vam_entrypoint": "vam.agent.stream_agent_response, as used by upstream TUI and websocket"
 }
