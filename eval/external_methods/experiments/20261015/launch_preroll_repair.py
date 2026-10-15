@@ -1,8 +1,10 @@
 """Run on modal-gpu: freeze and execute NC80/VAM repairs, then finalize on CPU."""
 import base64
 import json
+import hashlib
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import time
@@ -15,6 +17,21 @@ def main():
     lock = devbox/'launch-preroll-repair-20261015.pid'
     with lock.open('x') as stream:
         stream.write(str(os.getpid()))
+    # Freeze the overlay now; other sessions may replace the shared repo while this launcher waits.
+    source = devbox/'external-repair-source-timeout-20261015'
+    source.mkdir(exist_ok=False)
+    for name in ('rsi.py','vam.py','embedding_server.py','common.py','upstream_settings.json','README.md',
+                 'experiments/20261014/current_smoke.py','experiments/20261015/repair_preroll.py'):
+        target = source/'eval/external_methods'/name
+        target.parent.mkdir(parents=True,exist_ok=True)
+        shutil.copy2(devbox.parent/'repo/eval/external_methods'/name,target)
+    (source/'source_manifest.json').write_text(json.dumps({str(p.relative_to(source)):
+        hashlib.sha256(p.read_bytes()).hexdigest() for p in source.rglob('*') if p.is_file()},indent=2))
+    cpujob = devbox/'external_repair_cpujob_20261015.py'
+    template = (devbox/'cpujob.py').read_text()
+    setting = 'REPO = os.path.expanduser("~/wxu-evolve-agent/repo")'
+    assert template.count(setting) == 1
+    cpujob.write_text(template.replace(setting, 'REPO = '+repr(str(source))))
     volume = modal.Volume.from_name('wxu-evolve-agent-runs-20261006', environment_name='zheng-dev')
     def read_json(path):
         for attempt in range(6):
@@ -43,7 +60,7 @@ def main():
     env = dict(os.environ, DEVBOX_NAME='mvagent-external-upstream-nc80-20261015')
     command = ('export PYTHONPATH=/repo/src; '
                'python /repo/eval/external_methods/experiments/20261015/repair_preroll.py freeze_runtime')
-    subprocess.run([str(Path.home()/'.local/bin/modal'),'run','--env','zheng-dev',str(devbox/'cpujob.py'),
+    subprocess.run([str(Path.home()/'.local/bin/modal'),'run','--env','zheng-dev',str(cpujob),
         '--b64',base64.b64encode(command.encode()).decode()],cwd=devbox,check=True)
     # cpujob reports child exit codes in stdout, so require its expected output before allocating GPUs.
     ready = read_json(prefix+'/runtime_ready.json')
@@ -59,7 +76,7 @@ def main():
     # This is a finite pipeline dependency wait; no periodic user notifications or duplicate submissions.
     command = ('export PYTHONPATH=/repo/src; '
                'python /repo/eval/external_methods/experiments/20261015/repair_preroll.py finalize')
-    subprocess.run([str(Path.home()/'.local/bin/modal'),'run','--env','zheng-dev',str(devbox/'cpujob.py'),
+    subprocess.run([str(Path.home()/'.local/bin/modal'),'run','--env','zheng-dev',str(cpujob),
         '--b64',base64.b64encode(command.encode()).decode()],cwd=devbox,check=True)
     final = read_json('devbox/external_upstream_20261015/final_analysis.json')
     print('Canonical summary saved:', final['status'], flush=True)
