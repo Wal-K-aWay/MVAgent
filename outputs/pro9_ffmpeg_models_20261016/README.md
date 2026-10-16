@@ -2,6 +2,13 @@
 
 状态：9B已完成；27B、35B-A3B正在运行，各330题（闭式300＋CCQA30），不是全量benchmark。
 
+2026-10-16 08:13 UTC最后一次定期读取：27B为85/330，35B-A3B为74/330，两组持续产出。
+当时预计剩余约1–1.5小时，少数长轨迹可能延至2小时；包括后续Judge和汇总，不保证准确完成时间。
+用户要求正常运行后退出、不持续监视，已停止进度轮询与独立巡检。
+modal-gpu上的一次性finish_large.py等待既有pipeline结束，逐组释放GPU，再调用Modal CPU完成评分、核查与三模型汇总。
+它不提交或重试Actor；若pipeline或评分失败，保留错误日志并停止，不将失败记为零分。
+收尾日志为devbox/pro9_ffmpeg_large_finish_20261016.log（devbox主机），正式结果仍仅在Modal。
+
 三模型使用同一旧9B src快照，只有media.py改用FFmpeg。105个src文件SHA与已完成9B实验完全相同。
 固定BF16/H100/TP1/C1/seed0/temperature0/thinking关闭/FlashInfer GDN/native GemmaRMSNorm/prefix与MM缓存关闭。
 每模型整题固定副本。27B/35B各8卡并行，9B此前16卡；总体墙钟不能直接用于比较模型速度。
