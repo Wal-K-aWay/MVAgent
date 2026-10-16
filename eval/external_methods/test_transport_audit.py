@@ -1,5 +1,4 @@
 """Remote CPU check: HTTP audit preserves upstream payloads and actual wire hashes."""
-import asyncio
 import hashlib
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
@@ -32,30 +31,24 @@ def main():
         endpoint = f'http://127.0.0.1:{server.server_port}/v1'
         path = Path(temporary)/'requests.jsonl'
         payload = dict(model='local', messages=[dict(role='user', content='保持原参数')], temperature=.1, max_tokens=700)
-        original_urlopen, original_send, original_post = urllib.request.urlopen, httpx.AsyncClient.send, httpx.post
+        original_urlopen, original_send = urllib.request.urlopen, httpx.Client.send
         try:
             audit_urllib(path)
-            audit_httpx(path, endpoint)
+            audit_httpx(path)
             with urllib.request.urlopen(urllib.request.Request(endpoint+'/chat/completions', data=json.dumps(payload).encode()), timeout=5) as response:
                 assert json.load(response)['choices'][0]['message']['content'] == 'ok'
 
-            async def request():
-                async with httpx.AsyncClient() as client:
-                    assert (await client.post(endpoint+'/chat/completions', json=payload)).status_code == 200
-
-            asyncio.run(request())
-            embedding = dict(model='original-embedding', input=['one','two'], encoding_format='float', input_type='search_query')
-            httpx.post('http://unused.invalid/v1/embeddings', json=embedding, timeout=5)
+            with httpx.Client() as client:
+                assert client.post(endpoint+'/chat/completions', json=payload).status_code == 200
             rows = [json.loads(line) for line in path.read_text().splitlines()]
-            assert len(rows) == 2 and len(received) == 3
+            assert len(rows) == len(received) == 2
             assert received[1][1] == json.dumps(payload, ensure_ascii=False, separators=(',', ':'), allow_nan=False).encode()
             for row, (url, wire) in zip(rows, received):
                 assert row['request'] == payload and row['seconds'] >= 0
                 assert row['request_sha256'] == hashlib.sha256(wire).hexdigest()
                 assert url == '/v1/chat/completions'
-            assert received[-1][0] == '/v1/embeddings' and json.loads(received[-1][1]) == embedding
         finally:
-            urllib.request.urlopen, httpx.AsyncClient.send, httpx.post = original_urlopen, original_send, original_post
+            urllib.request.urlopen, httpx.Client.send = original_urlopen, original_send
             server.shutdown()
             worker.join()
     print('Native transport payload and timing audit checks passed')

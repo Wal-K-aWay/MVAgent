@@ -4,15 +4,17 @@ import io
 import json
 from pathlib import Path
 import time
+import threading
 import urllib.request
 
+_record_lock = threading.Lock()
 
 def record(path, wire, started, response=None, error=None, status=None):
     row = dict(request_sha256=hashlib.sha256(wire).hexdigest(), request=json.loads(wire),
                seconds=time.monotonic()-started, response=response, error=error, http_status=status)
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open('a') as stream:
+    with _record_lock, path.open('a') as stream:
         stream.write(json.dumps(row, ensure_ascii=False)+'\n')
 
 
@@ -35,22 +37,16 @@ def audit_urllib(path):
     urllib.request.urlopen = urlopen
 
 
-def audit_httpx(path, embedding_endpoint):
+def audit_httpx(path):
     import httpx
-    original = httpx.AsyncClient.send
-    original_post = httpx.post
+    original = httpx.Client.send
 
-    def post(url, *args, **kwargs):
-        if str(url).endswith('/embeddings'):
-            url = embedding_endpoint.rstrip('/')+'/embeddings'
-        return original_post(url, *args, **kwargs)
-
-    async def send(client, request, *args, **kwargs):
+    def send(client, request, *args, **kwargs):
         if request.url.path != '/v1/chat/completions':
-            return await original(client, request, *args, **kwargs)
+            return original(client, request, *args, **kwargs)
         started = time.monotonic()
         try:
-            response = await original(client, request, *args, **kwargs)
+            response = original(client, request, *args, **kwargs)
             try:
                 value = response.json()
             except ValueError:
@@ -61,5 +57,4 @@ def audit_httpx(path, embedding_endpoint):
             record(path, request.content, started, error=type(exc).__name__)
             raise
 
-    httpx.AsyncClient.send = send
-    httpx.post = post
+    httpx.Client.send = send

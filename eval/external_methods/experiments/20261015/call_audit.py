@@ -32,15 +32,6 @@ def prepare():
     for command in ([sys.executable,'-m','compileall','-q','src','eval/agent_eval','eval/external_methods'],
                     [sys.executable,'eval/external_methods/test_rsi_timeout.py',str(frozen/'external_sources/Video-RSI')]):
         subprocess.run(command,cwd=frozen,env=env,check=True)
-    # Check VAM's actual timeout factory; its client implementation is unchanged.
-    check = '''import sys
-sys.path.insert(0,sys.argv[1])
-from vam.llm.openrouter import _read_timeout_env
-assert _read_timeout_env("DASHSCOPE_REQUEST_TIMEOUT_S","SILICONFLOW_REQUEST_TIMEOUT_S","240")==240
-assert _read_timeout_env("DASHSCOPE_CONNECT_TIMEOUT_S","SILICONFLOW_CONNECT_TIMEOUT_S","60")==60
-print("VAM chat timeout remains 240 seconds, connect timeout 60")
-'''
-    subprocess.run([sys.executable,'-c',check,str(frozen/'external_sources/Visual-Agentic-Memory')],env=env,check=True)
     sys.path[:0]=[str(frozen/'src'),str(frozen/'eval/external_methods'),
                   str(frozen/'external_sources/Video-RSI/artifacts/final_harness')]
     from native_server import configure
@@ -104,7 +95,7 @@ print("VAM chat timeout remains 240 seconds, connect timeout 60")
             finish_reason=response['choices'][0]['finish_reason']))
         save(sid.replace(':','_')+'_request.json',row)
     defaults=SamplingParams(temperature=0,top_p=1,max_tokens=8192,seed=0)
-    summary=dict(rsi_http_seconds=600,vam_http_seconds=240,
+    summary=dict(rsi_http_seconds=600,
         generations=dict(generations),finish_reasons=dict(end_reasons),max_input_tokens=max(lengths),
         model_context_limit=card['execution']['config']['max_model_len'],
         sampling_defaults={name:getattr(defaults,name) for name in

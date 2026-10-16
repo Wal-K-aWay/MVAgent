@@ -24,7 +24,7 @@ def main():
         project_commit=(root/'.devbox_head').read_text().strip() if (root/'.devbox_head').exists() else 'see source hashes',
         upstream=json.loads((root/'eval/external_methods/sources.json').read_text()),
         files={str(path.relative_to(temporary)):sha256(path) for path in sorted(temporary.rglob('*')) if path.is_file()}))
-    for repository, patch_name in [('Video-RSI','video_rsi.patch'), ('Visual-Agentic-Memory','visual_agentic_memory.patch')]:
+    for repository, patch_name in [('Video-RSI','video_rsi.patch'), ('LensWalk','lenswalk.patch')]:
         with (temporary/'eval/external_methods'/patch_name).open() as patch:
             subprocess.run(['patch','-p1'],cwd=temporary/'external_sources'/repository,stdin=patch,check=True)
     write(temporary/'adapted_source_sha256.json',{str(path.relative_to(temporary)):sha256(path)

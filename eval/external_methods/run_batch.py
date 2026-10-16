@@ -17,18 +17,19 @@ from common import write
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('method', choices=['rsi','meta','vam'])
+    p.add_argument('method', choices=['rsi','meta','lenswalk'])
     p.add_argument('--prepared', type=Path, required=True)
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--ports', default='8100,8101,8102,8103,8104,8105,8106,8107')
     p.add_argument('--bundle', type=Path)
+    p.add_argument('--client-python', default=sys.executable, help='Isolated method client Python; LensWalk requires 3.9–3.11')
     p.add_argument('--smoke', action='store_true')
     args = p.parse_args()
     script_dir = Path(__file__).resolve().parent
     frozen = script_dir.parents[1]
-    upstream = frozen/'external_sources'/dict(rsi='Video-RSI',meta='MetaVideoAgent',vam='Visual-Agentic-Memory')[args.method]
+    upstream = frozen/'external_sources'/dict(rsi='Video-RSI',meta='MetaVideoAgent',lenswalk='LensWalk')[args.method]
     env = dict(os.environ)
-    if args.method in ('rsi','vam'):
+    if args.method == 'rsi':
         dependencies = Path('/runs/devbox/external_methods_20261014/support/upstream_clients_20261015')
         manifest = json.loads((dependencies/(args.method+'_manifest.json')).read_text())
         env['PYTHONPATH'] = str(dependencies/args.method)+os.pathsep+env.get('PYTHONPATH','')
@@ -45,7 +46,10 @@ def main():
         endpoint = f'http://127.0.0.1:{int(port)}/v1'
         with urllib.request.urlopen(endpoint+'/models',timeout=30) as response:
             card = json.load(response)['data'][0]
-        from native_server import validate_card
+        if args.method == 'lenswalk':
+            from lenswalk_server import validate_card
+        else:
+            from native_server import validate_card
         validate_card(card)
         cards.append(dict(endpoint=endpoint,card=card))
         endpoints.put(endpoint)
@@ -65,7 +69,7 @@ def main():
         endpoint = endpoints.get()
         started = time.monotonic()
         try:
-            command = [sys.executable,str(script_dir/f'{args.method}.py')]
+            command = [args.client_python,str(script_dir/f'{args.method}.py')]
             if args.method=='meta':
                 command += ['infer','--bundle',str(args.bundle)]
             command += ['--source',str(upstream),'--item',str(args.prepared/'items'/(sid.replace(':','_')+'.json')),
