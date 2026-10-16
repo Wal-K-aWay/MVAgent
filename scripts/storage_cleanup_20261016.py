@@ -1,6 +1,6 @@
 """Authorized, fixed-scope cleanup. Run only from modal-gpu with Modal CPU.
 
-Phases: test, prepare, finalize, inspect. Archives must be persisted and checked
+Phases: test, prepare, finalize. Archives must be persisted and checked
 through the Volume API between prepare and finalize. No GPU or dataset writes.
 """
 import hashlib
@@ -65,7 +65,7 @@ def totals(rows):
 def compare(archive, base, source, expected):
     assert inventory(source) == expected, f'Source changed: {source}'
     # GNU tar compares every archived file's contents and link/metadata state.
-    subprocess.run(['tar', '--compare', '--gzip', '--file', str(archive),
+    subprocess.run(['tar', '--blocking-factor=2048', '--compare', '--gzip', '--file', str(archive),
                     '--directory', str(base)], check=True)
     assert inventory(source) == expected, f'Source changed during comparison: {source}'
 
@@ -104,8 +104,11 @@ def prepare():
     assert not (AUDIT / 'prepared.json').exists(), 'Already prepared; do not repeat'
     AUDIT.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(__file__, AUDIT / 'cleanup_source.py')
-    removed = []
-    for rel in CACHE_ROOTS:
+    bytecode = AUDIT / 'bytecode.json'
+    removed = json.loads(bytecode.read_text()) if bytecode.exists() else []
+    if removed:
+        assert all(not (BASE / p).exists() for p, _ in removed), 'Bytecode removal was incomplete'
+    for rel in ([] if removed else CACHE_ROOTS):
         root = BASE / rel
         for parent, dirs, files in os.walk(root):
             # Only bytecode is disposable; preserve unexpected files in cache dirs.
@@ -132,10 +135,26 @@ def prepare():
         rows = inventory(source)
         archive = source.with_name(source.name + '.tar.gz')
         partial = archive.with_name(archive.name + '.partial')
-        assert not archive.exists() and not partial.exists(), archive
+        assert not archive.exists(), archive
+        if partial.exists():
+            save(AUDIT / (source.name + '_interrupted_archive.json'),
+                 dict(bytes=partial.stat().st_size, source_totals=totals(rows),
+                      reason='Interrupted before verification; retry with 1 MiB tar records'))
+            runs.commit()
+            partial.unlink()
         print('ARCHIVING', rel, totals(rows), flush=True)
-        subprocess.run(['tar', '--use-compress-program=gzip -1', '-cf', str(partial),
-                        '-C', str(BASE), rel], check=True)
+        # Default 10 KiB tar reads were measured at only about 15 MB/s on this Volume.
+        proc = subprocess.Popen(['tar', '--blocking-factor=2048',
+                                 '--use-compress-program=gzip -1', '-cf', str(partial),
+                                 '-C', str(BASE), rel])
+        while proc.poll() is None:
+            try:
+                proc.wait(timeout=30)
+            except subprocess.TimeoutExpired:
+                print('ARCHIVE_BYTES', rel, partial.stat().st_size, flush=True)
+        if proc.returncode:
+            raise subprocess.CalledProcessError(proc.returncode, proc.args)
+        print('COMPARING', rel, flush=True)
         compare(partial, BASE, source, rows)
         partial.rename(archive)
         record = dict(source=rel, archive=str(archive.relative_to(BASE)),

@@ -61,6 +61,20 @@ the deleted download is still present.
 
 No additional experiment deletion is included in this authorization.
 
+The read-only candidate inventory found:
+
+| Directory under `devbox/` | Bytes | Regular files | Directories |
+|---|---:|---:|---:|
+| `tp8_cache_20261014` | 236,634,252 | 2,805 | 832 |
+| `tp8_cache_20261014_r2` | 790,068,550 | 2,926 | 913 |
+| `tp8_cache_20261014_r3` | 558,472,404 | 2,403 | 736 |
+| `repro_expanded_session_20261012_r2` (retain) | 3,268,155,195 | 9,219 | 2,507 |
+
+The earlier whole-volume scan measured `external_vam65_20261015` at
+5,785,626,465 bytes; this operation removes 1,379,425 bytes of its bytecode.
+The remaining VAM data plus the three TP8 directories total 7,369,422,246 bytes.
+This is candidate input size, **not** an estimate of archive savings.
+
 ## Execution status
 
 In progress. Final reclaimed bytes, file counts and verification results will
