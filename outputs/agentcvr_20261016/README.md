@@ -1,5 +1,18 @@
 # AgentCVR作者公开8B：CVBench / MVU-Eval
 
+## 当前：按用户要求切换8×H100
+
+2026-10-16用户指定改用8个H100。旧H200 r4已主动停止并释放，最终124条answered记录完整保留（CV39/MVU85），hardware_migration.json记录原因。新运行仅更换GPU和独立目录/app，模型、T0.5、官方题面、适配System、8192输出预算、上下文长度及工具逻辑保持原冻结设置；不将H200结果纳入H100成绩。
+
+- GPU实际核验：8×NVIDIA H100 80GB HBM3（每卡81,559MiB），H100!:8，CPU32核/内存256GiB。
+- 冻结代码2596390，app ap-BkD0GPDeVjShel9RbVuh7m，GPU container ta-01M51VC1QV1YCMM0FJP5XZGGPR。
+- 结果devbox/agentcvr_eval_h100_20261016；控制器PID2652001，日志agentcvr-eval-h100-20261016.log。
+- inputs、Agent System和资产manifest与H200逐SHA相同，审计hardware_migration_audit.json已保存。
+- 首套Master＋Vision已在同一张H100启动，Whisper已加载并实际调用；正在完成两个benchmark各一道首测，随后加载其余副本进入8路全量。尚未给出H100最终成绩。
+
+以下是此前H200阶段的记录；费用与准确率快照均不作为H100测量结果。
+
+
 **设置核对更正**：当前并非完全复现论文设置。论文temperature=0，公开代码默认及实际请求为0.5；当前8192是单次输出上限，总上下文40,960/131,072，不能等同于论文最大长度8192。统一改写CC System属于本项目跨benchmark适配。详见[逐项核对与真实请求证据](official_settings_audit.md)。本轮应称公开代码默认参数的适配评测。
 
 本轮只测试AgentCVR，不运行AdSeek或CrossVid。目标为CVBench的997道可测题（官方64–66三题媒体损坏单列）及MVU-Eval的1824题，共2821题。GPU预算已获用户授权：8张；实际配置为H200:8，每卡一套Master、视觉服务和按需Whisper，共8路独立答题。
