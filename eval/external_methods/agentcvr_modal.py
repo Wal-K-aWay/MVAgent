@@ -16,8 +16,8 @@ assets = modal.Volume.from_name('wxu-evolve-agent-inf-asset-20261006')
 runs = modal.Volume.from_name('wxu-evolve-agent-runs-20261006')
 volumes = {'/weights': weights.with_mount_options(read_only=True),
            '/assets': assets.with_mount_options(read_only=True), '/runs': runs}
-app = modal.App('wxu-sglang-baseline-gpu-test-agentcvr-20261016')
-OUTPUT = '/runs/devbox/agentcvr_eval_20261016_r4'
+app = modal.App('wxu-sglang-baseline-gpu-test-agentcvr-h100-20261016')
+OUTPUT = '/runs/devbox/agentcvr_eval_h100_20261016'
 
 
 @app.function(image=image, cpu=4, memory=16384, timeout=1800, volumes=volumes)
@@ -31,7 +31,7 @@ def prepare():
     return json.loads((Path(OUTPUT) / 'progress.json').read_text())
 
 
-@app.function(image=image, gpu='H200:8', cpu=32, memory=262144, timeout=86400,
+@app.function(image=image, gpu='H100!:8', cpu=32, memory=262144, timeout=86400,
               volumes=volumes, max_containers=1, scaledown_window=10)
 def evaluate(smoke_only: bool = False):
     import os

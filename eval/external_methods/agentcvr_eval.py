@@ -96,7 +96,7 @@ def prepare(output):
         upstream_commit='568b402c51254a04149d49d0bc4ad7c9d2fcf2f1',
         master_revision='0ca8538758507589a5bada39d2377847649adc09',
         master='author released Qwen3-8B RL; differs from paper Qwen3-VL description',
-        vision='Qwen3-VL-8B-Thinking', audio='Whisper large-v3', gpu='H200:8',
+        vision='Qwen3-VL-8B-Thinking', audio='Whisper large-v3', gpu='H100!:8',
         replicas=8, max_turns=20, temperature=.5, max_tokens=8192, seed=0, question_timeout_seconds=3600,
         benchmark_prompts='Verbatim CVBench mvr_doc_to_text; MVU question/instruction/options original order',
         protocol_adaptation='CC role paragraph removed; video-index bound generalized; final format follows Query',
