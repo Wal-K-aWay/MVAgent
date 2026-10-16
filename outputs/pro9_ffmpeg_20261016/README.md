@@ -100,5 +100,5 @@ BF16、16个独立TP1/并发1 worker、整题固定副本、seed0、temperature0
 最终评分CPU app为`ap-R8sUdINgt6e7t5wA3EApHo`；首次最终审计`ap-X9W3a2KwSS9TUhfENw0MFf`，补充终答来源统计及completed状态的收尾`ap-U2MOoxkphpgMKcLpeZSczx`，均rc0。
 两组Sandbox `sb-d9oJJrFjKbKcpMQYtzHSrF`与`sb-5VLkroN5v9cTZiXcq1Kz7W`均已显式终止并以SDK poll=137确认退出；独立巡检已停止。
 
-实验入口与环境说明见[README](../../experiments/pro9_ffmpeg/README.md)。本机及Git只保存代码和Markdown，没有下载原始结果。
+实验入口与环境说明见[README](https://github.com/Wal-K-aWay/MVAgent/blob/7594d31/experiments/pro9_ffmpeg/README.md)。本机及Git只保存代码和Markdown，没有下载原始结果。
 本轮没有测试27B/35B，也没有运行全量benchmark；尤其不能把闭式点估计改善推广成所有模型、所有任务上的稳定收益。
