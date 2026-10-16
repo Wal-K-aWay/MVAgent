@@ -18,14 +18,14 @@
 | 观察工具 | 原版 scan / segment / stitched；默认帧预算180 / 32 / 128，原版最长边512，无额外448限制 |
 | 生成参数 | Observer显式temperature=0.2；Planner未指定温度；两者都未指定输出token上限。保留原请求，缺省值由标准vLLM API规则解析（默认temperature=1，输出最多剩余上下文），不套用MVAgent的2048或RSI的8192 |
 | 本地模型 | Qwen3.5-35B-A3B，BF16/H100/TP1/C1，seed=0，thinking与prefix/MM cache关闭；同一题固定单个模型副本 |
-| 工具接口 | 独立 `lenswalk_server.py`，复用固定数值后端及官方qwen3_coder工具解析器；完整原始文本、token、输入hash和实际生效采样参数落盘 |
+| 工具接口 | 独立 `lenswalk_server.py`，复用固定数值后端及官方qwen3_coder工具解析器，仅解析时展开本地schema引用，模型看到的工具schema不变；完整原始文本、token、输入hash和实际生效采样参数落盘 |
 | 时限 | 本地服务单请求600秒；冒烟执行器单题1800秒，超时单列，不改写为错误答案 |
 | 客户端 | 按上游Python>=3.9,<3.12建立独立3.11环境；模型服务保留已验收的3.12环境，各自版本清单留档 |
 | 输入 | 复用已验证的原视频拼接，不缩放、不补边、不改FPS；提示说明多视频任务和各视频起止位置，时间两位小数，终答使用原视频坐标 |
 
 论文20次工具调用与公开代码默认5轮不是同一个设置。本次验证采用仓库默认，不声称复现论文的全部配置或分数。未指定的云API默认值无法证明与本地数值实现完全等价。
 
-首批6题来自原65题开发面板：CVBench764、MVU TR1585、CrossVid MSR361，再按时长选该面板最短的排序、时间定位、开放问答题。只验证接入与输出，闭式题可附官方逐题分；开放题留存答案、不为接入冒烟单独启动Judge。实际完成情况以 `devbox/external_lenswalk_20261016/progress.json` 为准，当前正在准备与验证。
+首批6题来自原65题开发面板：CVBench764、MVU TR1585、CrossVid MSR361，再按时长选该面板最短的排序、时间定位、开放问答题。只验证接入与输出，闭式题可附官方逐题分；开放题留存答案、不为接入冒烟单独启动Judge。实际完成情况以 `devbox/external_lenswalk_20261016_r2/progress.json` 为准，当前正在实测。第一轮发现本地工具解析器未解析schema的`$ref`、结果整理未排除`tool_raw`重复事件；修复只作用于传输/日志读取，原失败记录保留在不带`_r2`目录。
 
 ## Video-RSI 保留的设置
 
@@ -64,7 +64,7 @@
 
 AVP实读main=`a2b6f2854ee4232be5ce49fe07a02691e413a8df`。论文默认Gemini-2.5-Pro，也报告Qwen3-VL-8B；low/medium的66/258视觉token每帧属于Gemini语义，不能直接当作Qwen像素大小。当前代码给low 512帧、medium/high 128帧；多数调用依赖SDK生成默认值，并非所有参数均可与本地服务一一等价。另`MCQ_SCHEMA.selected_option`枚举A–F，`extract_answer`优先提取该字段；README称可不提供options，但覆盖多选/排序/时间定位/开放QA仍需明确的通用答案适配。[论文](https://arxiv.org/html/2512.05774v2)、[schema](https://github.com/SalesforceAIResearch/ActiveVideoPerception/blob/main/avp/prompt.py)、[提取器](https://github.com/SalesforceAIResearch/ActiveVideoPerception/blob/main/avp/eval_dataset.py)
 
-LensWalk实读release=`c3cdf13a6ffc6b1ce21af3a0c7813178d17fac77`；`finish.answer`为string，批处理支持开放题分支。论文描述20次工具调用，当前发布入口默认5轮并限制scan次数，subject registry可选；部署前必须区分论文配置与公开代码默认，冻结采用的版本，不能声称二者逐项相同。[论文](https://arxiv.org/html/2603.24558v1)、[工具schema](https://github.com/likanchuan09171/LensWalk/blob/release/tool_configs/vcs_standard.yaml)、[评测入口](https://github.com/likanchuan09171/LensWalk/blob/release/eval/infer_bench_summ_vcs.py)
+LensWalk实读release=`c3cdf13a6ffc6b1ce21af3a0c7813178d17fac77`；`finish.answer`为string，批处理支持开放题分支。论文描述20次工具调用，当前发布入口默认5轮，scan次数限制默认关闭（启用后默认1次），subject registry可选；部署前必须区分论文配置与公开代码默认，冻结采用的版本，不能声称二者逐项相同。[论文](https://arxiv.org/html/2603.24558v1)、[工具schema](https://github.com/likanchuan09171/LensWalk/blob/release/tool_configs/vcs_standard.yaml)、[评测入口](https://github.com/likanchuan09171/LensWalk/blob/release/eval/infer_bench_summ_vcs.py)
 
 多视频优先考虑[AgentCVR](https://github.com/wang-jh24/AgentCVR)（实读main=`568b402c51254a04149d49d0bc4ad7c9d2fcf2f1`）：Master调用视觉与Whisper音频工具，支持CrossVid十类，Master经脚本模拟GRPO训练；4B/8B是论文训练模型规模，不是Python框架只能使用这些规模。代码端点可配置，也允许off-the-shelf Master。统一Qwen3.5对比应标记为AgentCVR architecture / w/o RL；完整训练版需使用原checkpoint。仓库README、releases及Hugging Face模型检索本次未找到可下载的官方AgentCVR训练权重，不把“论文有4B/8B”写成“权重已发布”。论文8B架构未RL 37.20%、完整RL 42.03%的CrossVid结果说明两者不能混称；不同模型/音频配置下的论文分数不可与本项目小样本直接比较。[论文及消融](https://arxiv.org/html/2605.29643v1)、[运行文档](https://github.com/wang-jh24/AgentCVR/blob/main/agent_system/README.md)
 

@@ -35,6 +35,23 @@ def input_digest(body):
     return base.digest(dict(request=body, seed=0, enable_thinking=False, profile=PROFILE))
 
 
+def extraction_request(request):
+    # vLLM's XML parser needs explicit types; keep the original schemas in the prompt.
+    parsed = request.model_copy(deep=True)
+    for tool in parsed.tools or []:
+        parameters = tool.function.parameters
+        for field in parameters.get('properties', {}).values():
+            if '$ref' in field:
+                reference = field['$ref']
+                if not reference.startswith('#/'):
+                    raise ValueError('Tool parameter references must be local')
+                target = parameters
+                for key in reference[2:].split('/'):
+                    target = target[key.replace('~1', '/').replace('~0', '~')]
+                field.update(target)
+    return parsed
+
+
 def configure():
     if base.PROFILE == PROFILE:
         return base
@@ -88,7 +105,7 @@ class Engine(base.Engine):
         if self.forward_calls <= 0:
             raise RuntimeError('No real model forward was observed')
         generated = output.outputs[0]
-        parsed = parser.extract_tool_calls(generated.text, request) if tools else None
+        parsed = parser.extract_tool_calls(generated.text, extraction_request(request)) if tools else None
         message = dict(role='assistant', content=parsed.content if parsed else generated.text)
         if parsed and parsed.tools_called:
             message['tool_calls'] = [call.model_dump() for call in parsed.tool_calls]

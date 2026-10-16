@@ -59,7 +59,8 @@ def main():
         raise RuntimeError(f'Expected one LensWalk output, found {len(conversations)}')
     rows=[json.loads(line) for line in conversations[0].read_text().splitlines()]
     assert len(rows)==1 and rows[0]['question']==item['question']
-    calls=[json.loads(line) for line in (conversations[0].parent/'all_tool_calls.jsonl').read_text().splitlines()]
+    calls=[row for line in (conversations[0].parent/'all_tool_calls.jsonl').read_text().splitlines()
+           if 'event' not in (row := json.loads(line))]
     visual=[r for r in calls if r['tool_name']!='finish']
     answer=rows[0]['answer']
     result=dict(sample_id=item['sample_id'], answer=answer, seconds=time.monotonic()-started,

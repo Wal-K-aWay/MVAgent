@@ -14,7 +14,7 @@ ADAPTERS=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ADAPTERS))
 from common import sha256, write
 
-ROOT=Path('/runs/devbox/external_lenswalk_20261016')
+ROOT=Path('/runs/devbox/external_lenswalk_20261016_r2')
 BASE=Path('/runs/devbox/external_original_images_20261015/prepared')
 
 
