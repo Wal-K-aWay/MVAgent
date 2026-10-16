@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Finish deferred CCQA judging without changing frozen Actor results."""
 import argparse
-from collections import Counter, defaultdict
+from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import importlib.metadata
 import json
@@ -25,6 +26,7 @@ KNOWN_HIDDEN_FAILURES = {'crossvid:PEA:510', 'crossvid:PEA:838'}
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--aggregate-only', action='store_true', help='Reuse completed Judge reports on CPU')
     args = parser.parse_args()
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
@@ -62,13 +64,21 @@ def main():
             'actor_manifests': {m: core.read(p / 'run_manifest.json') for m, p in ORIGINALS.items()},
             'versions': {name: importlib.metadata.version(name) for name in
                          ['vllm', 'torch', 'transformers', 'openai']},
-            'gpu': subprocess.check_output(['nvidia-smi', '--query-gpu=name,uuid',
-                                            '--format=csv,noheader'], text=True),
+            'gpu': None if args.aggregate_only else subprocess.check_output(
+                ['nvidia-smi', '--query-gpu=name,uuid', '--format=csv,noheader'], text=True),
             'policy': 'Frozen official scorer; no Actor rerun; original records remain unchanged. '
                       'Primary comparison excludes top-level Actor errors. Known hidden 9B failures '
                       'remain in recorded scores, with separate clean-subset sensitivity.',
         }
-        if not (output / 'manifest.json').exists():
+        if args.aggregate_only:
+            previous = core.read(output / 'manifest.json')
+            for key in ['source_hashes', 'originals']:
+                assert manifest[key] == previous[key], key
+            assert all(state['models'][m]['judge_complete'] for m in ORIGINALS)
+            core.write(output / 'aggregation_manifest.json', manifest)
+            if Path(__file__).resolve() != (output / 'aggregation_controller.py').resolve():
+                shutil.copy2(__file__, output / 'aggregation_controller.py')
+        elif not (output / 'manifest.json').exists():
             core.write(output / 'manifest.json', manifest)
             shutil.copy2(__file__, output / 'controller.py')
         else:
@@ -84,11 +94,13 @@ def main():
             assert records.resolve() == (original / 'records').resolve()
             ccqa = list(records.glob('crossvid/crossvid:CCQA:*/result.json'))
             assert len(ccqa) == 239, (model, len(ccqa))
-            assert all(core.read(p)['status'] == 'ok' for p in ccqa), model
+            if not args.aggregate_only:
+                assert all(core.read(p)['status'] == 'ok' for p in ccqa), model
 
-        save('judge_loading')
-        run(['bash', str(SOURCE / source_files[1]), '0-7', '8100'], 'judge_startup.log',
-            {**os.environ, 'JUDGE_LOG_DIR': str(output / 'judge')})
+        if not args.aggregate_only:
+            save('judge_loading')
+            run(['bash', str(SOURCE / source_files[1]), '0-7', '8100'], 'judge_startup.log',
+                {**os.environ, 'JUDGE_LOG_DIR': str(output / 'judge')})
         for model in ORIGINALS:
             if state['models'].get(model, {}).get('judge_complete'):
                 continue
@@ -103,13 +115,19 @@ def main():
 
         save('aggregating')
         analysis = {'models': {}, 'scope': manifest['policy'], 'source': str(SOURCE)}
+        def load_record(path):
+            content = path.read_bytes()
+            return core.compact(json.loads(content)), hashlib.sha256(content).hexdigest()
+
         for model, original in ORIGINALS.items():
             rows, hashes = [], {}
-            for path in sorted((original / 'records').glob('*/*/result.json')):
-                content = path.read_bytes()
-                row = json.loads(content)
-                hashes[row['sample_id']] = hashlib.sha256(content).hexdigest()
-                rows.append(core.compact(row))
+            with ThreadPoolExecutor(max_workers=8) as readers:
+                paths = sorted((original / 'records').glob('*/*/result.json'))
+                for row, digest in readers.map(load_record, paths):
+                    hashes[row['sample_id']] = digest
+                    rows.append(row)
+                    if len(rows) % 1000 == 0:
+                        print(f'{model}: aggregated {len(rows)}/5321', flush=True)
             assert len(rows) == len(hashes) == 5321
             expected_ids = set(core.read(original.parent / 'samples.json'))
             assert set(hashes) == expected_ids
