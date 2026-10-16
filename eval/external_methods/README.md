@@ -29,7 +29,7 @@
 
 有效结果为`devbox/external_lenswalk_20261016_r3`，此前两轮接口失败原件保留。实验GPU已释放，开放题未启动Judge。逐题输出、分数、耗时、设置与局限见[完整报告](../../outputs/external_lenswalk_20261016/README.md)。
 
-全量任务目录为 `devbox/lenswalk_full_35b_20261016`，使用8个独立H100副本及固定题目清单，自动续跑并在推理后评分。当前仍待调度，不能把提交当作完成；[运行说明](../../outputs/lenswalk_full_35b_20261016/README.md)。
+全量任务目录为 `devbox/lenswalk_full_35b_20261016`，使用8个独立H100副本及固定题目清单，自动续跑并在推理后评分。2026-10-16 08:24 UTC已处理216/5321，当前CV53.49%、MVU29.69%、Cross九类macro20.19%，8题CCQA待Judge；样本小且完成顺序有偏，不能视作全量成绩。长视频无损预处理正在拖慢进度；[运行说明与统计口径](../../outputs/lenswalk_full_35b_20261016/README.md)。
 
 ## Video-RSI 保留的设置
 
