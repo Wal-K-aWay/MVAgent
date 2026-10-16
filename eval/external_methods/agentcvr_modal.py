@@ -17,7 +17,7 @@ runs = modal.Volume.from_name('wxu-evolve-agent-runs-20261006')
 volumes = {'/weights': weights.with_mount_options(read_only=True),
            '/assets': assets.with_mount_options(read_only=True), '/runs': runs}
 app = modal.App('wxu-sglang-baseline-gpu-test-agentcvr-20261016')
-OUTPUT = '/runs/devbox/agentcvr_eval_20261016_r2'
+OUTPUT = '/runs/devbox/agentcvr_eval_20261016_r3'
 
 
 @app.function(image=image, cpu=4, memory=16384, timeout=1800, volumes=volumes)
@@ -25,7 +25,7 @@ def prepare():
     root = Path('/code/eval/external_methods')
     subprocess.run([sys.executable, str(root / 'test_agentcvr.py')], check=True)
     subprocess.run([sys.executable, '-m', 'compileall', '-q', '/code/src', '/code/scripts',
-                    '/code/eval/agent_eval', str(root)], check=True)
+                    '/code/eval/agent_eval', '/code/demo.py', str(root)], check=True)
     subprocess.run([sys.executable, str(root / 'agentcvr_eval.py'), 'prepare', '--output', OUTPUT], check=True)
     runs.commit()
     return json.loads((Path(OUTPUT) / 'progress.json').read_text())

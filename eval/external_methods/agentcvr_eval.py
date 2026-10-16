@@ -169,7 +169,7 @@ def run(output, smoke_only=False):
                     '--seed', '0', '--tensor-parallel-size', '1', '--max-num-seqs', '1',
                     '--gpu-memory-utilization', memory, '--max-model-len', length,
                     '--no-enable-prefix-caching', '--mm-processor-cache-gb', '0',
-                    '--enforce-eager', '--disable-log-requests']
+                    '--enforce-eager', '--no-enable-log-requests']
                 if kind == 'vision':
                     command += ['--limit-mm-per-prompt', '{"image":4096,"video":0}']
                 with (episode / f'{rank}-{kind}.log').open('w') as log:
@@ -220,6 +220,9 @@ def run(output, smoke_only=False):
         assert sum(x['completed'] for x in totals.values()) == 2821
         write(output / 'progress.json', dict(phase='completed', expected=2821, completed=2821,
             datasets=totals, updated=time.time()))
+    except BaseException as exc:
+        progress('failed', error=f'{type(exc).__name__}: {exc}')
+        raise
     finally:
         for proc in workers+processes:
             stop(proc)
