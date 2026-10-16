@@ -10,4 +10,25 @@
 
 CVBench/MVU按题平均，CrossVid十任务macro，CCQA按评分点加权。推理后同一节点切换固定Qwen3-30B-A3B-Instruct-2507 Judge，失败报错不填零。原始数据、冻结源码、输入/模型/依赖元数据均留Modal runs volume。
 
-计划目录`devbox/rsi_full_35b_20261016`，DEVBOX_NAME=`mvagent-rsi-full-35b-20261016`。复用`watch_full_mvagent.py`在后台管理24小时实例、约23小时续跑、跳过已保存记录，并在完成或明确失败后释放GPU。启动前CPU检查和首批GPU实测尚待完成，不将代码准备视为已开始推理。
+固定目录`devbox/rsi_full_35b_20261016`，DEVBOX_NAME=`mvagent-rsi-full-35b-20261016`。复用`watch_full_mvagent.py`在后台管理24小时实例、约23小时续跑、跳过已保存记录，并在完成或明确失败后释放GPU。
+
+## 已启动与实测证据
+
+2026-10-16 13:37 UTC：已进入8路真实推理，首批12/5321题全部产生终答（CV7/MVU4/Cross1），75次模型调用、0 HTTP错误、0基础设施失败。样本很少且优先复用已准备媒体，不能据此估计最终准确率。
+
+| 实际输出例子 | 答案 | 官方逐题分 | 推理时间 |
+|---|---|---:|---:|
+| CVBench335 | B | 1 | 96.15秒 |
+| MVU-Eval KIR526 | A | 0 | 84.07秒 |
+| CrossVid BU806 | A | 0 | 100.11秒 |
+
+实际8张NVIDIA H100 80GB、8个独立worker身份均已核验；服务profile为`qwen35-bf16-external-upstream`，底层固定BF16数值配置，prefix/MM cache关闭。逐题审计通过完整token、请求/输入hash与固定worker；从原始未压缩tar复读effective_config确认HTTP600、8192/8192、T0、11步/64调用/256帧/1800秒及宽768。证据为`startup_verification.json`和`episodes/1792157338090871141/pool_verification.json`。
+
+- Sandbox：`sb-ePIHdBg91VaZ6W113TVdQG`，13:27:47 UTC分配，driver PID41，13:28:58启动。
+- modal-gpu watcher：PID2775586，日志`~/wxu-evolve-agent/devbox/watch-rsi_full_35b_20261016.log`；管理器源码SHA为`ceb088e3c556c2564e8484df05b9ebc5e0288a31e89e5193be187660cc970dc3`。
+- 生产代码提交：`cc18f7798fb13030c2bbeb1053d205f0adede6c0`；driver SHA为`76dbe0b96835b415e0db18b4e359a593514759e3a0878fb7a27d8b4f70922808`。
+- 5321题清单SHA为`4287d2221aac79865d24016dbd0d0a34d137a5b42745856d55f62aecf1915bd2`，与既有LensWalk全量清单逐字一致；初始化复用569组媒体，全部共4298个有序组合。
+- CPU检查app `ap-Et7d88W4ug4GWckDhJbQgn` rc0：准备、真实RSI响应审计、模型失败/基础设施错误分离、归档字节、缓存题面隔离、官方聚合、HTTP参数与完整语法编译通过。
+- 首CPU app `ap-q9lb1oDLNwpFGVa7LyoHPT`因CPU镜像缺git命令，在提交元数据阶段退出；0推理结果保留于`rsi_full_35b_20261016_prepare_initial`。后续读取同步好的commit文件修复，不安装新依赖。
+
+本轮全量尚未完成，CCQA Judge在Actor结束后自动执行。会话内独立检查结束后，只有modal-gpu管理器继续常驻；不宣称会话外有独立15分钟巡检。
