@@ -104,9 +104,13 @@ def initialize(output,method='lenswalk'):
                 cache[path.stem]=value
     for name in ('media_cache','prepared/items',method,'episodes'):(output/name).mkdir(parents=True,exist_ok=True)
     for key,value in cache.items():write(output/'media_cache'/f'{key}.json',value)
-    # Start with cached media, then keep a fixed shuffled schedule for the remaining panel.
-    random.Random(0).shuffle(ids)
-    ids.sort(key=lambda sid:media_key(records[sid].sample.videos) not in cache)
+    if method=='rsi':
+        reference=read('/runs/devbox/lenswalk_full_35b_20261016/samples.json')
+        assert len(reference)==len(ids) and set(reference)==set(ids)
+        ids=reference
+    else:
+        random.Random(0).shuffle(ids)
+        ids.sort(key=lambda sid:media_key(records[sid].sample.videos) not in cache)
     write(output/'samples.json',ids)
     write(output/'prepared/private_labels.json',{sid:dict(dataset=r.dataset,task=r.native_task,
         sample=r.sample.to_dict(),reference_answer=r.reference_answer,judge_question=r.judge_question,
@@ -114,7 +118,7 @@ def initialize(output,method='lenswalk'):
     write(output/'manifest.json',dict(created_at=now(),method=method,expected=EXPECTED,sample_count=len(ids),
         samples_sha256=sha256(output/'samples.json'),source_snapshot=str(SMOKE/'frozen_repo'),
         adapter_commit='af42adb024b364be0e2260d37b24e112e27b3aaf',
-        driver_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=SOURCE,text=True).strip(),
+        driver_commit=(SOURCE/'.git/HEAD').read_text().strip(),
         driver_sha256=sha256(frozen/'eval/external_methods/lenswalk_full.py'),
         source_hashes={str(p.relative_to(frozen)):sha256(p) for p in frozen.rglob('*')
                        if p.is_file() and '__pycache__' not in p.parts},
