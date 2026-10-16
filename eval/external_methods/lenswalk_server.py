@@ -37,7 +37,7 @@ def input_digest(body):
 
 def extraction_request(request):
     # vLLM's XML parser needs explicit types; keep the original schemas in the prompt.
-    parsed = request.model_copy(deep=True)
+    parsed = request.model_copy(update={'tools':[tool.model_copy(deep=True) for tool in request.tools or []]})
     for tool in parsed.tools or []:
         parameters = tool.function.parameters
         for field in parameters.get('properties', {}).values():

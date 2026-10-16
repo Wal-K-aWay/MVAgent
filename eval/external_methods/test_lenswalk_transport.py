@@ -32,6 +32,10 @@ parser=ToolParserManager.get_tool_parser('qwen3_coder')(tokenizer,referenced.too
 parsed=parser.extract_tool_calls('<tool_call>\n<function=scan>\n<parameter=interval>\n{"start_sec":0,"end_sec":6.58}\n</parameter>\n<parameter=query>\n{"keep":"string"}\n</parameter>\n</function>\n</tool_call>',extraction_request(referenced))
 assert json.loads(parsed.tool_calls[0].function.arguments)=={'interval':{'start_sec':0,'end_sec':6.58},'query':'{"keep":"string"}'}
 assert referenced.model_dump()==before
+from collections.abc import Iterable
+from pydantic import TypeAdapter
+referenced.messages[0]['content']=TypeAdapter(Iterable[dict]).validate_python([{'type':'text','text':'rendered history'}])
+assert extraction_request(referenced).messages is referenced.messages
 for bad in (dict(body,seed=1),dict(body,enable_thinking=True),dict(body,unknown=True)):
     try: request_of(bad,'local')
     except ValueError: pass
