@@ -72,3 +72,34 @@ VAM 使用原 TUI/WebSocket 的 `vam.agent.stream_agent_response`：先经顶层
 此前 2048 对照 `devbox/rsi_budget_20261015_r2` 已因随机 seek 故障及错误路径进入 prompt 被标记无效并停止，未完成准确率评测；随后用户又明确恢复原项目预算。该目录与历史速度实验保留为证据，不能混入本次按原参数测试的结果。
 
 代码备份分支为 `codex/external-methods-prompts-20261014`。共享工作区其他推理/runtime 改动不属于此分支；精确恢复实验以 Modal 冻结快照为准。
+
+## 后续基线选择调研（2026-10-16）
+
+本次只调研论文/官方源码并分析既有结果，没有替换方法或启动新推理。旧版MVAgent同题63条与RSI的比较见[结果报告](../../outputs/external_vam65_20261015/README.md#与旧版-mvagent-的同题比较2026-10-16)：准确率各有胜负，RSI耗时更高；当前直接回答协议只有一题交集，不能据异题分数排名。
+
+建议保留RSI，以AVP替换VAM作为主要单视频主动理解对照；若能增加一个方法，优先LensWalk。VAM的定位是持续在线索引、层级记忆与回溯检索，论文评测OVO-Bench及月尺度MM-Lifelong；当前每题独立建库的一次性离线QA不体现其记忆复用价值，低分本身不是排除基线的依据。[VAM论文](https://arxiv.org/html/2605.16481v1)
+
+| 候选 | 核心设计 / 当前公开状态 | 对本项目的建议 |
+|---|---|---|
+| [AVP](https://github.com/SalesforceAIResearch/ActiveVideoPerception) | 免训练的plan–observe–reflect；3轮、阈值0.7；官方提供并行评测与错误重试 | 优先替代VAM；保留多视频拼接。需适配Gemini原生视频/分辨率接口及通用答案 |
+| [LensWalk](https://github.com/likanchuan09171/LensWalk/tree/release) | 免训练reason–plan–observe；扫描、局部精看、非连续片段拼接复核；现成兼容API接口与并行入口 | 最值得增加的第二个主动单视频基线；终答工具接收开放字符串，接口迁移比AVP直接 |
+| [DVD](https://github.com/microsoft/DeepVideoDiscovery) | 多粒度描述数据库＋迭代工具检索；有正式复现材料 | 可作为不同机制的检索型补充，但建库耗时要计入；公开版明确有别于论文的global_browse实现 |
+| [VideoTree](https://github.com/Ziyang412/VideoTree) / [VideoAgent](https://github.com/wxh1996/VideoAgent) | 公开的经典自适应树表示 / LLM主动检索框架 | 可作历史参考；已有RSI后，新增优先级低于AVP、LensWalk |
+| [PACE](https://github.com/HKUST-KnowComp/PACE) | 问题条件索引＋利用选项差异检索验证；有Qwen3-VL实验 | 较新的强选择题候选，但依赖候选答案，不适合作为覆盖CrossVid开放题/排序/定位的唯一基线 |
+| [VCA](https://arxiv.org/abs/2412.10471) | 好奇心驱动树搜索、模型自评奖励 | 方向合适，本次未找到可确认的作者官方实现，不优先自写复现 |
+| [LongVideoAgent](https://github.com/longvideoagent/LongVideoAgent) | RL训练Master，字幕定位＋视觉观察；代码/权重已公开 | 更偏影视/字幕场景，替换训练Master不能代表完整方法，不是当前视觉主表首选 |
+| [VideoExplorer](https://github.com/RUC-NLPIR/VideoDeepResearch) | 规划、定位、感知循环，SFT＋轨迹偏好优化 | 属于训练过的Agent，不能把任意Qwen接入当作原版；还需权重与数据核对 |
+| [VideoXAgent](https://github.com/go-agent-x/VideoXAgent) | 按问题即时探索，43个MCP服务覆盖视觉/音频/OCR等 | 比较通用，但工具依赖重、模态不同，示例配置自称不等于论文配置；暂不作为最小主矩阵 |
+| [LongVU](https://github.com/Vision-CAIR/LongVU) / [LongVILA](https://github.com/NVlabs/VILA/tree/main/longvila) | 原生长视频压缩 / 长上下文模型，提供权重与评测入口 | 可作异模型系统补充；其视觉结构和训练权重是方法的一部分，无法直接换成Qwen3.5而保留原方法 |
+
+AVP实读main=`a2b6f2854ee4232be5ce49fe07a02691e413a8df`。论文默认Gemini-2.5-Pro，也报告Qwen3-VL-8B；low/medium的66/258视觉token每帧属于Gemini语义，不能直接当作Qwen像素大小。当前代码给low 512帧、medium/high 128帧；多数调用依赖SDK生成默认值，并非所有参数均可与本地服务一一等价。另`MCQ_SCHEMA.selected_option`枚举A–F，`extract_answer`优先提取该字段；README称可不提供options，但覆盖多选/排序/时间定位/开放QA仍需明确的通用答案适配。[论文](https://arxiv.org/html/2512.05774v2)、[schema](https://github.com/SalesforceAIResearch/ActiveVideoPerception/blob/main/avp/prompt.py)、[提取器](https://github.com/SalesforceAIResearch/ActiveVideoPerception/blob/main/avp/eval_dataset.py)
+
+LensWalk实读release=`c3cdf13a6ffc6b1ce21af3a0c7813178d17fac77`；`finish.answer`为string，批处理支持开放题分支。论文描述20次工具调用，当前发布入口默认5轮并限制scan次数，subject registry可选；部署前必须区分论文配置与公开代码默认，冻结采用的版本，不能声称二者逐项相同。[论文](https://arxiv.org/html/2603.24558v1)、[工具schema](https://github.com/likanchuan09171/LensWalk/blob/release/tool_configs/vcs_standard.yaml)、[评测入口](https://github.com/likanchuan09171/LensWalk/blob/release/eval/infer_bench_summ_vcs.py)
+
+多视频优先考虑[AgentCVR](https://github.com/wang-jh24/AgentCVR)（实读main=`568b402c51254a04149d49d0bc4ad7c9d2fcf2f1`）：Master调用视觉与Whisper音频工具，支持CrossVid十类，Master经脚本模拟GRPO训练；4B/8B是论文训练模型规模，不是Python框架只能使用这些规模。代码端点可配置，也允许off-the-shelf Master。统一Qwen3.5对比应标记为AgentCVR architecture / w/o RL；完整训练版需使用原checkpoint。仓库README、releases及Hugging Face模型检索本次未找到可下载的官方AgentCVR训练权重，不把“论文有4B/8B”写成“权重已发布”。论文8B架构未RL 37.20%、完整RL 42.03%的CrossVid结果说明两者不能混称；不同模型/音频配置下的论文分数不可与本项目小样本直接比较。[论文及消融](https://arxiv.org/html/2605.29643v1)、[运行文档](https://github.com/wang-jh24/AgentCVR/blob/main/agent_system/README.md)
+
+[AdSeek](https://arxiv.org/html/2610.03099v1)是多视频电商比较Agent，Qwen3-VL-8B策略＋4B视觉工具＋Whisper，使用RL→轨迹修正SFT→RL。可作为领域训练系统的补充，但本次未核实到官方代码/权重下载入口；混合训练明确使用MVU-Eval视频和AgentCVR脚本，不能直接把该checkpoint的MVU-Eval成绩当作独立测试。若可获得AdsCVR-only checkpoint与训练清单，才优先考虑无重合子集。论文CrossVid 31.55与其AgentCVR复现28.24，和AgentCVR原论文42.03来自不同实验，不作跨论文排名。
+
+AgentCVR现成评测入口针对CrossVid十类，各自读取`master_BU.prompt`、`master_FSA.prompt`等专用提示；默认构造器引用的`master_autonomous.prompt`未在当前源码树中提供。扩展到CVBench/MVU-Eval需要明确的数据入口和提示适配，不能称三个benchmark原生开箱即用。原版音频工具与本项目视觉输入权限不同：主表如禁用音频须标记vision-only消融，保留原版音频的系统成绩单列。
+
+推荐主比较统一Qwen3.5及官方评分，保留各方法原策略/预算并披露适配：E2E原多视频、E2E拼接、RSI拼接、AVP拼接、MVAgent空库/skill库；资源允许时加入LensWalk和AgentCVR w/o RL。完整AgentCVR或AdSeek使用独立的原模型系统表，注明训练数据、额外视觉模型及音频权限。对原生多视频方法保留独立视频和各自时间轴，不强制拼接。费用同时报逐题耗时、GPU资源、模型调用、输入/输出token、视觉帧数和运行/格式失败；冷启动索引与可复用索引分别计时。该建议未自动转成新的实验任务。

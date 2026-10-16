@@ -27,6 +27,22 @@ VAM的CVBench30题只有16条最终答案是单个选项字母；原RSI为30/30�
 
 复核仅使用已有输出，未新增推理或Judge。`result_review.json`保留阶段耗时、答案形式描述、共同64题复核与例子；对应分析脚本为`eval/external_methods/experiments/20261015/review_vam65.py`。原始rollout、模型/源码/输入hash和逐题评分仍在Modal。
 
+## 与旧版 MVAgent 的同题比较（2026-10-16）
+
+只读取已有答案，在 Modal CPU 上复算。MVAgent 来源为 `devbox/mvagent_full_35b_parallel_20261015/35B-A3B`，使用历史独立回答器；不是当前直接回答协议。两者均为本地 Qwen3.5-35B-A3B，题目原文、原始视频路径及参考答案逐条一致，各方法保留自身提示、视觉输入设置与调用预算。
+
+| Benchmark | 共同已评分题数 | Video-RSI | 旧版 MVAgent | RSI 平均秒/题 | MVAgent 平均秒/题 |
+|---|---:|---:|---:|---:|---:|
+| CrossVid 九类闭式任务 | 17 | 37.83% | 33.92% | 407.67 | 94.63 |
+| CVBench | 30 | 56.00% | 64.85% | 171.92 | 65.93 |
+| MVU-Eval | 16 | 67.24% | 67.11% | 192.29 | 85.21 |
+
+65题中只有两题CCQA（73、725）的旧MVAgent答案尚未Judge评分，因此双方比较均排除这两题；不填零、不新增Judge，也不把本表的Cross九类分与上方十类分直接比较。CV/MVU仍采用同一task人口加权。得分改善题数（MVAgent/RSI）分别为2/4、6/4、2/2，其余相等。结论是旧版同题准确率各有胜负、MVU近似持平；RSI本批平均耗时约为旧MVAgent的2.3–4.3倍。这不是等帧数/等token预算、独立控制服务负载的性能实验。
+
+当前直接回答35B的300题面板只与RSI面板重合`cvbench:39`一题，无法据此判断当前版本总体优劣。此前MVAgent 66题pilot、当前300题面板和RSI65题面板不是同一批题，不能横向拼表排名。
+
+派生结果及分析源码仅在runs volume `devbox/baseline_survey_20261016/{summary.json,paired.json,compare_saved_baselines.py}`；CPU app `ap-gX5aKljdZk3GeUPLjajuyy`完成，rc0。检查复算的RSI全65题聚合与原报告完全一致、共同63题身份/题面/视频路径/参考一致、仅两题CCQA被排除。没有修改原始结果或运行设置。代码备份为`eval/external_methods/experiments/20261016/compare_saved_baselines.py`；后续基线选择调研见[评测说明](../../eval/external_methods/README.md#后续基线选择调研2026-10-16)。
+
 ## 运行范围与历史启动记录
 
 | Benchmark | Video-RSI题数 | 本轮VAM题数 |
