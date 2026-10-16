@@ -2,7 +2,7 @@
 
 本轮只测试AgentCVR，不运行AdSeek或CrossVid。目标为CVBench的997道可测题（官方64–66三题媒体损坏单列）及MVU-Eval的1824题，共2821题。GPU预算已获用户授权：8张；实际配置为H200:8，每卡一套Master、视觉服务和按需Whisper，共8路独立答题。
 
-当前状态（2026-10-16 07:22 UTC）：r4已完成首个端到端单元，CVBench363答A、MVU-Eval KIR377答C，官方评分均正确；2/2821有效，0请求错误。实际14次请求逐条保留输入/输出token，首请求Query与官方生成文本完全相同。两题均自行选择Whisper音频工具，尚未覆盖视觉工具实际推理，不能以2题推断全量分数。8H200已分配，正在加载其余模型副本。app ap-7RJFtaklNqyNCfLQyAEhRD，控制器PID2628400；实际阶段以Modal progress为准。
+当前状态（2026-10-16 07:30 UTC）：r4已进入8路全量推理，10/2821有效：CVBench 3/4正确、MVU-Eval 4/6正确，均已终答，0基础设施错。70次模型调用（59 Master、11 Vision）HTTP错误/截断均0；官方Query、输入hash及输入/输出token数核对均0差异，审计留在first_batch_audit.json。这是小样本进度，不是最终成绩。app ap-7RJFtaklNqyNCfLQyAEhRD，控制器PID2628400，container ta-01M51S0RZMQQ4B1SFP5VJCC6FR；实际阶段以Modal progress为准。
 
 ## 模型及方法身份
 
@@ -39,3 +39,7 @@ CVBench调用官方正则评分；MVU-Eval使用官方首字符评分，同时�
 modal-gpu控制器日志 `~/wxu-evolve-agent/devbox/agentcvr-eval-20261016-r4.log`，PID文件同名前缀。源码在独立 `agentcvr_repo`，不修改其他会话的活动服务。独立Luna代理每15分钟只读检查；其存活仅限当前会话，不等于无人值守承诺。
 
 CPU验证已经通过：2821条官方输入、130道CV Yes/No指令、标签隔离、传输tool_call_id的token等价，以及完整项目语法编译。GPU首测已有真实输出：CV363为A（5次Master调用，84.70秒，13,308输入/4,287输出token）；MVU KIR377为C（9次Master调用，163.65秒，31,907输入/10,867输出token）。最终有效样本数、分数和全量耗时仍待完成。
+
+## 费用口径
+
+按2026-10-16查询的[Modal公开定价](https://modal.com/pricing)，H200每秒$0.001261，8卡为$36.3168/小时；申请的32 CPU核及256GiB内存合计约$3.5551/小时，本任务约$39.87/小时，另外计存储与实际超出请求的资源使用。加载、失败启动及空闲等待均发生费用；最终按实际运行段时长估算，不把两道冒烟的耗时外推成保证。模型均本地推理，无额外按token计费的模型API/Judge。实际账单折扣、额度和税费未核实。
