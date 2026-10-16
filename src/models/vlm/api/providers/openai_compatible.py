@@ -1,14 +1,6 @@
 from __future__ import annotations
 
 import json
-import hashlib
-import os
-import re
-from functools import lru_cache
-import time
-from models.execution import emit_event, remaining_timeout
-from contextlib import nullcontext
-from models.pool import get_pool
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -23,64 +15,12 @@ def _is_loopback_endpoint(url: str) -> bool:
     return is_loopback_host(urllib.parse.urlparse(url).hostname)
 
 
-def _token_audit_fields(data, body):
-    tokens = data['choices'][0].get('token_ids')
-    prompt = data.get('prompt_token_ids')
-    for name, values in [('output', tokens), ('prompt', prompt)]:
-        if not isinstance(values, list) or any(type(v) is not int or v < 0 for v in values):
-            raise ApiVLMError(f'vLLM token audit requires actual {name} token IDs')
-    if len(tokens) != data['usage']['completion_tokens']:
-        raise ApiVLMError('vLLM token audit received an incomplete output token sequence')
-    return {'token_ids': tokens, 'request_sha256': hashlib.sha256(body).hexdigest(),
-            'prompt_token_ids_sha256': hashlib.sha256(json.dumps(prompt, separators=(',', ':')).encode()).hexdigest()}
-
-
-def _vllm_generation_schema(
-    json_schema: Any,
-) -> Any:
-    """Preserve action unions and bounds; validate nonblank text after generation.
-
-    Installed xgrammar replaces string length constraints with its pattern grammar.
-    Omit only the runtime nonblank pattern so maxLength stays active.
-    Array contains/count constraints are also response-only: xgrammar does not
-    enforce them. The original schema is always used to validate responses.
-    """
-    if isinstance(json_schema, dict):
-        return {
-            key: _vllm_generation_schema(value)
-            for key, value in json_schema.items()
-            if not (key == "pattern" and value == r"[\s\S]*\S[\s\S]*")
-            and not (key == "allOf" and value and all(
-                set(item) == {"contains", "minContains", "maxContains"} for item in value
-            ))
-        }
-    if isinstance(json_schema, list):
-        return [_vllm_generation_schema(value) for value in json_schema]
-    return json_schema
-
-
-@lru_cache(maxsize=128)
-def _compact_vllm_grammar(schema_json: str) -> str:
-    """Compile once per schema; local vLLM supplies the xgrammar dependency."""
-    from xgrammar import Grammar
-
-    grammar = str(Grammar.from_json_schema(
-        schema_json, any_whitespace=False, separators=(",", ":"),
-    ))
-    # xgrammar renders numeric enums with 17 digits (0.1 -> 0.10000000000000001).
-    # Shorten standalone numeric terminals to the same round-trip float value.
-    # JSON string enums contain escaped quotes and are not matched here.
-    return re.sub(r'(?<![\\])"(-?\d+\.\d+(?:[eE][+-]?\d+)?)"',
-                  lambda match: json.dumps(str(float(match.group(1)))), grammar)
-
-
 class OpenAICompatibleProvider:
     default_api_base: str | None = None
     supported_video_modes = {"video_url"}
 
     def __init__(self, cfg: Any) -> None:
         self.cfg = cfg
-        self.pool = get_pool(cfg.model_name, cfg.api_base)
 
     def _content_item(self, item: Dict[str, Any]) -> Dict[str, Any]:
         item_type = item.get("type")
@@ -147,20 +87,14 @@ class OpenAICompatibleProvider:
             "max_tokens": max_tokens,
         }
         if json_schema:
-            if self.pool is not None:
-                # Every managed vLLM request, including API-configured local Judges,
-                # uses the same compact grammar. Full response validation is unchanged.
-                schema_json = json.dumps(_vllm_generation_schema(json_schema), ensure_ascii=False)
-                payload["structured_outputs"] = {"grammar": _compact_vllm_grammar(schema_json)}
-            else:
-                payload["response_format"] = {
-                    "type": "json_schema",
-                    "json_schema": {
-                        "name": str(schema_name or "mvagent_response"),
-                        "schema": json_schema,
-                        "strict": True,
-                    },
-                }
+            payload["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": str(schema_name or "mvagent_response"),
+                    "schema": json_schema,
+                    "strict": True,
+                },
+            }
         extra_body = dict(extra_body or {})
         reserved = set(payload).intersection(extra_body)
         if reserved:
@@ -178,34 +112,17 @@ class OpenAICompatibleProvider:
         return f"{api_base.rstrip('/')}/chat/completions"
 
     def chat(self, request: ApiVLMRequest) -> str:
-        started = time.monotonic()
-        prepared_at = time.time()
-        endpoint = self._endpoint()
-        self.pool = self.pool or get_pool(self.cfg.model_name, self.cfg.api_base)
-        pool = self.pool
-        payload = self.build_payload(messages=request.messages, temperature=request.temperature,
-            top_p=request.top_p, max_tokens=request.max_tokens, json_schema=request.json_schema,
-            schema_name=request.schema_name, extra_body=request.extra_body)
-        if pool is not None and (pool.cards or os.environ.get('MVAGENT_RECORD_TOKEN_IDS') == '1'):
-            payload.update(return_token_ids=True, seed=0)
-        emit_event("model_request", payload=payload)
+        payload = self.build_payload(
+            messages=request.messages,
+            temperature=request.temperature,
+            top_p=request.top_p,
+            max_tokens=request.max_tokens,
+            json_schema=request.json_schema,
+            schema_name=request.schema_name,
+            extra_body=request.extra_body,
+        )
         body = json.dumps(payload).encode("utf-8")
-        emit_event("request_prepared", model=self.cfg.model_name, started_at=prepared_at,
-                   seconds=time.monotonic() - started, body_bytes=len(body))
-        emit_event("model_start", model=self.cfg.model_name, schema=request.schema_name)
-        try:
-            slot = pool.acquire(self.cfg.timeout_sec) if pool else nullcontext(None)
-            with slot as lease:
-                endpoint = lease.endpoint + "/chat/completions" if lease else endpoint
-                return self._chat(request, endpoint, body, lease)
-        except Exception as exc:
-            emit_event("model_error", endpoint=endpoint, error=str(exc))
-            raise
-        finally:
-            emit_event("model_end", endpoint=endpoint, schema=request.schema_name,
-                       seconds=time.monotonic() - started)
-
-    def _chat(self, request, endpoint, body, lease):
+        endpoint = self._endpoint()
         http_request = urllib.request.Request(
             endpoint,
             data=body,
@@ -216,23 +133,16 @@ class OpenAICompatibleProvider:
             },
             method="POST",
         )
-        sent_at = time.time()
-        sent = time.monotonic()
+
         try:
-            if lease:
-                lease.sent()
             if _is_loopback_endpoint(endpoint):
                 opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
-                response_handle = opener.open(http_request, timeout=remaining_timeout(self.cfg.timeout_sec))
+                response_handle = opener.open(http_request, timeout=self.cfg.timeout_sec)
             else:
-                response_handle = urllib.request.urlopen(http_request, timeout=remaining_timeout(self.cfg.timeout_sec))
+                response_handle = urllib.request.urlopen(http_request, timeout=self.cfg.timeout_sec)
             with response_handle as response:
                 response_body = response.read().decode("utf-8")
-            if lease:
-                lease.complete()
         except urllib.error.HTTPError as exc:
-            if lease:
-                lease.complete(unhealthy=exc.code >= 500)
             error_body = exc.read().decode("utf-8", errors="replace")
             transient = exc.code == 429 or 500 <= exc.code <= 599
             excerpt = sanitize_error_excerpt(error_body)
@@ -249,26 +159,10 @@ class OpenAICompatibleProvider:
                 f"API VLM transport failed for provider {self.cfg.provider} model {self.cfg.model_name}: {exc}",
                 transient=True,
             ) from exc
-        finally:
-            emit_event("http_end", endpoint=endpoint, started_at=sent_at,
-                       seconds=time.monotonic() - sent)
 
         try:
             data = json.loads(response_body)
             content = data["choices"][0]["message"]["content"]
-            if self.pool is not None and self.pool.cards:
-                from models.vlm.local.sync_server import token_audit
-                audit = token_audit(data, body)
-                card = self.pool.cards[endpoint.removesuffix('/chat/completions')]
-                if data['model'] != card['id'] or any(audit['worker'].get(k) != v for k, v in card['worker'].items()):
-                    raise ApiVLMError('Response worker does not match the admitted replica')
-            else:
-                audit = (_token_audit_fields(data, body)
-                         if self.pool is not None and os.environ.get('MVAGENT_RECORD_TOKEN_IDS') == '1' else {})
-            emit_event("model_response", schema=request.schema_name,
-                       model=data.get("model"), request_id=data.get("id"),
-                       finish_reason=data["choices"][0].get("finish_reason"),
-                       usage=data.get("usage"), text=content, **audit)
         except (json.JSONDecodeError, KeyError, IndexError, TypeError) as exc:
             raise ApiVLMError(
                 f"Malformed API VLM response from provider {self.cfg.provider} model {self.cfg.model_name}"
@@ -283,7 +177,7 @@ class OpenAICompatibleProvider:
                 elif isinstance(item, str):
                     text_parts.append(item)
             return "".join(text_parts)
-        return "" if content is None else str(content)
+        return str(content)
 
 
 __all__ = [

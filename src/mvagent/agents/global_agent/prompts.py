@@ -1,9 +1,5 @@
 from __future__ import annotations
 
-from mvagent.skills.prompts import render_skill_text
-
-from mvagent.schema import with_text_limits, ANALYZE_TEXT_BUDGET, TEXT_LIMITS
-
 from collections.abc import Iterable, Mapping, Sequence
 from typing import Any
 
@@ -12,45 +8,9 @@ from mvagent.utils.tools import format_seconds
 from .schema import available_global_action_names
 
 
-GLOBAL_AGENT_SYSTEM_PROMPT = """You coordinate the task by choosing actions that turn observations into a supported judgment.
-
-- Preserve the task's definitions, constraints, identifiers, and required output. Use available evidence; separate observations, inferences, and unknowns. Missing information is not evidence of absence.
-- Check conflicting evidence before concluding. When observations or reports disagree with each other or leave the required judgment unsupported, use an available observation to verify the specific point. A completed analysis may still be incomplete or mistaken; confidence in a report does not resolve a contradiction.
-- Each check must address a named uncertainty. If it adds no information, change the focus rather than repeat it. Finish when the judgment is supported or further checks cannot add useful information, retaining material uncertainty.
-- Keep each explanation to one or two short sentences: the decisive evidence or unresolved point and the purpose of the next action. State the conflict once, then take the action. Do not rehearse alternatives, guess what the task intended, or invent missing facts.
-- Return the complete required response.
-""".strip()
+GLOBAL_AGENT_SYSTEM_PROMPT = """You are a coordinator for multi-video question answering. You cannot view videos directly. Your visual evidence consists only of successful single-video summaries and completed joint-watch results in History. Preserve video identities and choose one available action that either obtains missing evidence or returns the final answer."""
 
 GLOBAL_ANSWER_SYSTEM_PROMPT = """You are the final answerer for a multi-video question. Use only the supplied question and successful evidence in History, and do not invent unseen visual facts."""
-
-GLOBAL_ANSWER_PROMPT_TEMPLATE = """
-# Final answer
-
-## Task
-Return the best supported final answer from the evidence already gathered. No further evidence action is available.
-
-## Inputs
-
-### Question
-{question}
-
-## History
-{action_history}
-
-## Evidence rules
-- Use only facts stated in successful single-video summaries and completed `watch_videos` results. Within a partially succeeded analyze event, use its successful outcomes only; failed outcomes, failed watch actions, and invalid decisions are feedback.
-- Give a concise evidence-based `reason`. State any material remaining gap instead of inventing unseen visual facts.
-- Infer the requested answer representation from the complete question. When options are present, put only the selected option label or explicitly requested option text in `answer`.
-
-## Output contract
-Return one JSON object containing only non-empty `reason` and `answer` strings.
-
-Example:
-{{
-  "reason": "<brief basis for this answer>",
-  "answer": "<the requested answer representation; put only the selected option label or explicitly requested option text>"
-}}
-""".strip()
 
 GLOBAL_DECISION_PROMPT_TEMPLATE = """# Multi-video evidence decision
 
@@ -91,22 +51,54 @@ ANSWER_ACTION_PROMPT_BLOCK = """
 ### Action: answer
 
 Function:
-Return the final answer directly from the question and accumulated History.
+Return the final answer when current reports and completed `watch_videos` results sufficiently resolve the complete question.
 
 Fields:
-- `reason`: Give a concise evidence-based explanation, including any material uncertainty.
-- `parameters.answer`: The requested answer representation, as a non-empty string.
+- `reason`: Give a brief basis for the answer.
+- `parameters.answer`: Return the requested answer representation as a non-empty string.
 
 Rules:
-- Choose answer when the judgment is supported or further checks cannot add useful information.
-- Once answering, submit the best-supported judgment; do not replace the requested result with a discussion of missing evidence.
-- Infer the answer representation from the complete question. When options are present, use only the selected option label or explicitly requested option text in `parameters.answer`.
+- Infer the answer representation from the complete question. When options are present, put only the selected option label or explicitly requested option text in `parameters.answer`, and keep explanation in `reason`.
+- `parameters.answer` must express the unique final conclusion already established by `reason`; never introduce a different choice or continue reasoning inside the answer.
+- Do not claim unseen visual facts or use this action merely because some evidence exists; the evidence must resolve the answer-critical analysis.
 
 Example:
 {{
   "reason": "<brief basis for this answer>",
   "action": "answer",
-  "parameters": {{"answer": "<the requested answer representation>"}}
+  "parameters": {{
+    "answer": "<the requested answer representation; put only the selected option label or explicitly requested option text>"
+  }}
+}}
+""".strip()
+
+
+GLOBAL_ANSWER_PROMPT_TEMPLATE = """
+# Final answer
+
+## Task
+Return the best supported final answer from the evidence already gathered. No further evidence action is available.
+
+## Inputs
+
+### Question
+{question}
+
+## History
+{action_history}
+
+## Evidence rules
+- Use only facts stated in successful single-video summaries and completed `watch_videos` results. Within a partially succeeded analyze event, use its successful outcomes only; failed outcomes, failed watch actions, and invalid decisions are feedback.
+- Give a concise evidence-based `reason`. State any material remaining gap instead of inventing unseen visual facts.
+- Infer the requested answer representation from the complete question. When options are present, put only the selected option label or explicitly requested option text in `answer`.
+
+## Output contract
+Return one JSON object containing only non-empty `reason` and `answer` strings.
+
+Example:
+{{
+  "reason": "<brief basis for this answer>",
+  "answer": "<the requested answer representation; put only the selected option label or explicitly requested option text>"
 }}
 """.strip()
 
@@ -127,7 +119,6 @@ Rules:
 - Each single-video agent sees only its own video and local instruction; it does not receive the complete question, Global History, other videos, or sibling analyses and results.
 - Every local instruction must be self-contained and answerable from the selected video alone.
 - Every requested output must be visually observable in the selected video. Ask for underlying visible mechanics or attributes, not an external category-to-score table, a standard difficulty value that is not displayed, a cross-video mapping, or a computed answer.
-- Across this action, reserve at most {analyze_instruction_budget} characters for all instructions. For N requested videos, each instruction must also stay within floor({analyze_instruction_budget} / N) characters.
 - Analyses emitted in one decision are knowledge-independent: no single-video agent can see another analysis or use a sibling result from the same batch.
 
 Example:
@@ -237,8 +228,7 @@ def build_global_action_prompt_blocks(
             ) from exc
         seen.add(name)
         rendered_blocks.append(
-            with_text_limits(template, unbounded_fields=("reason",) if name == "answer" else ()).format(
-                analyze_instruction_budget=ANALYZE_TEXT_BUDGET - TEXT_LIMITS["reason"],
+            template.format(
                 max_videos_per_watch=max(
                     1,
                     int(max_videos_per_watch),
@@ -293,7 +283,7 @@ def build_global_decision_prompt(
         max_video_inputs_per_request=max_video_inputs_per_request,
     )
 
-    skill = render_skill_text(decision_skill)
+    skill = str(decision_skill or "").strip()
     return GLOBAL_DECISION_PROMPT_TEMPLATE.format(
         question=question,
         videos=rendered_videos,
@@ -316,22 +306,22 @@ def build_global_answer_prompt(
     action_history_view: str,
 ) -> str:
     """Build the standalone best-effort answer prompt used at the loop limit."""
-    return with_text_limits(GLOBAL_ANSWER_PROMPT_TEMPLATE, unbounded_fields=("reason",)).format(
+    return GLOBAL_ANSWER_PROMPT_TEMPLATE.format(
         question=str(question),
         action_history=str(action_history_view or "").strip() or "(none)",
     )
 
 
 __all__ = [
-    "GLOBAL_ANSWER_SYSTEM_PROMPT",
-    "GLOBAL_ANSWER_PROMPT_TEMPLATE",
-    "build_global_answer_prompt",
     "ANSWER_ACTION_PROMPT_BLOCK",
     "GLOBAL_ACTION_PROMPT_BLOCKS",
     "GLOBAL_AGENT_SYSTEM_PROMPT",
+    "GLOBAL_ANSWER_SYSTEM_PROMPT",
+    "GLOBAL_ANSWER_PROMPT_TEMPLATE",
     "GLOBAL_DECISION_PROMPT_TEMPLATE",
     "ANALYZE_VIDEOS_ACTION_PROMPT_BLOCK",
     "WATCH_VIDEOS_ACTION_PROMPT_BLOCK",
     "build_global_action_prompt_blocks",
+    "build_global_answer_prompt",
     "build_global_decision_prompt",
 ]

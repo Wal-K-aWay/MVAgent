@@ -1,9 +1,5 @@
 from __future__ import annotations
 
-from mvagent.skills.prompts import render_skill_text
-
-from mvagent.schema import with_text_limits
-
 import math
 from collections.abc import Iterable
 
@@ -119,7 +115,7 @@ Return one JSON object containing only a non-empty `summary`.
 
 Valid example:
 {{
-  "summary": "<self-contained summary grounded in retained observations>"
+  "summary": "The person places the object on the table before leaving; the object label is not readable."
 }}
 """.strip()
 
@@ -141,7 +137,7 @@ def build_observe_planner_prompt(
     if not math.isfinite(duration) or duration <= 0.0:
         raise ValueError("Observe prompt duration must be positive and finite.")
     max_frames = max(1, int(max_video_frames_per_request))
-    return with_text_limits(OBSERVE_PLANNER_PROMPT).format(
+    return OBSERVE_PLANNER_PROMPT.format(
         max_ranges_per_action=max(1, int(max_ranges_per_action)),
         min_observe_fps=_prompt_number(MIN_OBSERVE_FPS),
         max_observe_fps=_prompt_number(MAX_OBSERVE_FPS),
@@ -163,7 +159,7 @@ def build_planner_action_blocks(
             max_video_frames_per_request=max_video_frames_per_request,
             max_ranges_per_action=max_ranges_per_action,
         ),
-        "finish": with_text_limits(FINISH_ACTION_PROMPT_BLOCK),
+        "finish": FINISH_ACTION_PROMPT_BLOCK,
     }
     rendered: list[str] = []
     seen: set[str] = set()
@@ -203,9 +199,8 @@ def build_video_action_prompt(
         max_video_frames_per_request=max_video_frames_per_request,
         max_ranges_per_action=max_ranges_per_action,
     )
-    skill = render_skill_text(planning_skill)
-    template = VIDEO_ACTION_PROMPT_TEMPLATE
-    return template.format(
+    skill = str(planning_skill or "").strip()
+    return VIDEO_ACTION_PROMPT_TEMPLATE.format(
         instruction=str(instruction or "").strip(),
         duration_sec=duration_text,
         memory_view=str(memory_view or "").strip(),
@@ -227,7 +222,7 @@ def build_video_finish_prompt(
     memory_view: str,
 ) -> str:
     """Build the standalone summary prompt used at the local loop limit."""
-    return with_text_limits(VIDEO_FINISH_PROMPT_TEMPLATE).format(
+    return VIDEO_FINISH_PROMPT_TEMPLATE.format(
         instruction=str(instruction or "").strip(),
         memory_view=str(memory_view or "").strip() or "(none)",
     )
@@ -286,7 +281,7 @@ def build_visual_observation_prompt(
         raise ValueError("Visual observation source range is invalid.")
     if actual_fps <= 0.0:
         raise ValueError("Visual observation FPS must be positive.")
-    return with_text_limits(VISUAL_OBSERVATION_PROMPT_TEMPLATE).format(
+    return VISUAL_OBSERVATION_PROMPT_TEMPLATE.format(
         what=str(what or "").strip(),
         duration_sec=format_seconds(duration),
         source_start_sec=format_seconds(start_sec),

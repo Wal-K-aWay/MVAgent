@@ -117,11 +117,11 @@ def validate_gpu_list(
     if not isinstance(value, list) or not value:
         raise error_class(f"{label} gpus must be a non-empty list.")
     if any(
-        not (type(gpu) is int and gpu >= 0 or isinstance(gpu, str) and gpu.startswith("GPU-"))
+        isinstance(gpu, bool) or not isinstance(gpu, int) or gpu < 0
         for gpu in value
     ):
         raise error_class(
-            f"{label} gpus must contain non-negative indexes or GPU UUIDs."
+            f"{label} gpus must contain only non-negative integers."
         )
     if len(set(value)) != len(value):
         raise error_class(f"{label} gpus must not contain duplicates.")
@@ -287,9 +287,7 @@ def retry_transient(
             last_error = exc
             if not getattr(exc, "transient", False) or attempt >= total_attempts - 1:
                 raise
-            from models.execution import emit_event, remaining_timeout
-            emit_event("model_retry", attempt=attempt + 1, error=str(exc))
-            sleep(remaining_timeout(min(1.0, 0.25 * float(attempt + 1))))
+            sleep(min(1.0, 0.25 * float(attempt + 1)))
     if last_error is not None:
         raise last_error
     raise error_class(f"{label} request failed without an error.")

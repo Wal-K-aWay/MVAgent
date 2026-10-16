@@ -69,8 +69,6 @@ class LLMClient(ABC):
         schema_name: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Return a structured result dict after at most one repair."""
-        from models.execution import emit_event
-        emit_event("structured_request", schema=schema_name, messages=messages, json_schema=json_schema)
         raw = self._chat_maybe_structured(
             messages=messages,
             temperature=temperature,
@@ -84,8 +82,6 @@ class LLMClient(ABC):
             parsed = self._parse_json_object(raw, json_schema=json_schema)
         except ValueError as exc:
             validation_error = str(exc)
-            emit_event("structured_invalid", schema=schema_name, modality="text",
-                       attempt="initial", error=validation_error)
         else:
             return {
                 "status": "ok",
@@ -94,7 +90,6 @@ class LLMClient(ABC):
                 "raw_response": "",
             }
 
-        emit_event("structured_repair", schema=schema_name, error=validation_error, raw=raw)
         repaired = self._chat_maybe_structured(
             messages=[
                 {
@@ -130,8 +125,6 @@ class LLMClient(ABC):
                 json_schema=json_schema,
             )
         except ValueError as exc:
-            emit_event("structured_invalid", schema=schema_name, modality="text",
-                       attempt="repair", error=str(exc))
             label = str(schema_name or "structured_response")
             return {
                 "status": "invalid",
@@ -142,7 +135,6 @@ class LLMClient(ABC):
                 ),
                 "raw_response": repaired,
             }
-        emit_event("structured_repair_succeeded", schema=schema_name)
         return {
             "status": "ok",
             "value": parsed,
@@ -215,8 +207,6 @@ class LLMClient(ABC):
         validate_json_schema(parsed, json_schema)
         if not isinstance(parsed, dict):
             raise ValueError("Structured response must be a JSON object.")
-        from models.execution import emit_event
-        emit_event("structured_parsed", value=parsed)
         return parsed
 
     @staticmethod

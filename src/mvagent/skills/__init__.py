@@ -1,5 +1,5 @@
-"""Public entry points for read-only runtime Skills."""
+"""Read-only decision skills used by MVAgent planners."""
 
-from .bank import SkillBank, load_skill
+from .loader import load_skill
 
-__all__ = ["load_skill", "SkillBank"]
+__all__ = ["load_skill"]

@@ -5,7 +5,6 @@ import urllib.error
 import urllib.request
 from typing import Any, Dict
 
-from models.execution import emit_event
 from models.utils import messages_with_schema_prompt, sanitize_error_excerpt
 from models.llm.api.client import ApiLLMError, ApiLLMRequest
 
@@ -97,10 +96,6 @@ class DeepSeekProvider:
                 "Malformed DeepSeek API response for model "
                 f"{self.cfg.model_name}."
             ) from exc
-        emit_event("model_response", schema=request.schema_name,
-                   model=data.get("model"), request_id=data.get("id"),
-                   finish_reason=data["choices"][0].get("finish_reason"),
-                   usage=data.get("usage"), text=content)
         return str(content or "")
 
 

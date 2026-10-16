@@ -3,9 +3,6 @@ from __future__ import annotations
 import json
 import math
 import time
-from concurrent.futures import ThreadPoolExecutor
-from contextvars import copy_context
-from models.execution import event_scope, emit_event
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, Callable
@@ -14,7 +11,7 @@ from mvagent.agents import GlobalAgent, VideoAgent
 from mvagent.configs import MVAgentConfig
 from models.factory import ModelFactory
 from mvagent.runtime import RuntimeResources
-from mvagent.skills import load_skill, SkillBank
+from mvagent.skills import load_skill
 from mvagent.utils.media import probe_video_info
 from mvagent.utils.tools import (
     cleanup_run_cache_dir,
@@ -68,14 +65,10 @@ class MVAgentEngine:
         )
 
     @staticmethod
-    def _load_configured_skill(skill_config: Any) -> str | SkillBank:
-        """Load a frozen Skill policy exactly once per Engine."""
+    def _load_configured_skill(skill_config: Any) -> str:
+        """Load one optional configured Skill exactly once per Engine."""
         if skill_config is None or not skill_config.enabled:
             return ""
-        if skill_config.mode == "dynamic":
-            return SkillBank.load(path=skill_config.path, sha256=skill_config.sha256,
-                                  retrieval_top_k=skill_config.retrieval_top_k,
-                                  embedding=skill_config.embedding)
         return load_skill(
             path=skill_config.path,
             sha256=skill_config.sha256,
@@ -88,12 +81,6 @@ class MVAgentEngine:
             Runtime status metadata for all resolved model instances.
         """
         return self.resources.resolve_models()
-
-    def _skill_selector_model(self, skill_config: Any) -> Any:
-        if (skill_config is not None and skill_config.enabled and skill_config.mode == "dynamic"
-                and skill_config.selector is not None):
-            return self.resources.get_model(skill_config.selector)
-        return None
 
     def close(self) -> None:
         """Release owned model clients without stopping persistent services.
@@ -182,7 +169,6 @@ class MVAgentEngine:
                 "frame_count": frame_count,
             }
 
-        self.video_metadata = video_metadata
         global_agent = GlobalAgent(
             video_ids=list(resolved_video_paths),
             question=question,
@@ -195,8 +181,6 @@ class MVAgentEngine:
                 self.cfg.global_agent.max_videos_per_watch
             ),
             decision_skill=self.global_skill,
-            skill_selector_model=self._skill_selector_model(self.cfg.global_agent.skill),
-            skill_selection_scope=self.cfg.global_agent.skill.selection_scope if self.cfg.global_agent.skill else "decision",
         )
 
         video_agents = {
@@ -214,8 +198,6 @@ class MVAgentEngine:
                 cache_dir=self.run_cache_dir,
                 logger=self._log,
                 planning_skill=self.video_skill,
-                skill_selector_model=self._skill_selector_model(video_cfg.skill),
-                skill_selection_scope=video_cfg.skill.selection_scope if video_cfg.skill else "decision",
             )
             for video_id, video_path in resolved_video_paths.items()
         }
@@ -263,7 +245,6 @@ class MVAgentEngine:
                 "question": question,
                 "videos": dict(self.video_paths),
             },
-            "video_metadata": json_safe(self.video_metadata),
             "video_reports": json_safe(global_agent.memory.reports),
             "watch_results": json_safe(global_agent.memory.watch_results),
             "action_history": json_safe(global_agent.memory.action_history),
@@ -456,8 +437,7 @@ class MVAgentEngine:
                 )
             )
             try:
-                with event_scope(agent="GlobalAgent", decision_id=f"global:{global_round}"):
-                    attempt = global_agent.decide()
+                attempt = global_agent.decide()
             except Exception as exc:
                 error = str(exc).strip() or type(exc).__name__
                 question_trajectory.record(
@@ -479,11 +459,15 @@ class MVAgentEngine:
             action = str(decision["action"])
             parameters = decision["parameters"]
             if action == "answer":
-                return {
-                    "answer": parameters["answer"],
-                    "reason": decision["reason"],
-                    "status": "answered",
-                }, decision["reason"]
+                answer_reason = str(decision.get("reason") or "").strip()
+                return (
+                    {
+                        "answer": str(parameters.get("answer") or "").strip(),
+                        "reason": answer_reason,
+                        "status": "answered",
+                    },
+                    answer_reason,
+                )
 
             if action == "analyze_videos":
                 self._execute_analyze_videos_action(
@@ -634,31 +618,15 @@ class MVAgentEngine:
             )
         )
 
-    def _run_video_agents(self, *, video_agents, instructions, trajectory, global_round):
-        def run(video_id, instruction):
-            with event_scope(agent="VideoAgent", video_id=video_id, global_round=global_round):
-                emit_event("video_run_start")
-                try:
-                    return video_agents[video_id].run(str(instruction))
-                finally:
-                    emit_event("video_run_end")
-
-        with ThreadPoolExecutor(max_workers=self.cfg.runtime.video_concurrency) as pool:
-            runs = {video_id: pool.submit(copy_context().run, run, video_id, instruction)
-                    for video_id, instruction in instructions.items()}
-            return MVAgentEngine._collect_video_agents(self, video_agents=video_agents, instructions=instructions,
-                                              trajectory=trajectory, global_round=global_round, runs=runs)
-
-    def _collect_video_agents(
+    def _run_video_agents(
         self,
         *,
         video_agents: dict[str, VideoAgent],
         instructions: dict[str, str],
         trajectory: Trajectory,
         global_round: int,
-        runs,
     ) -> list[dict[str, str]]:
-        """Collect independently executed VideoAgents in request order.
+        """Run requested VideoAgents sequentially in request order.
 
         Each VideoAgent failure is isolated so later requested videos still
         run. Every invocation produces one ordered status-bearing outcome.
@@ -697,7 +665,7 @@ class MVAgentEngine:
                 )
             )
             try:
-                run_result = runs[video_id].result()
+                run_result = agent.run(str(instruction))
                 if not isinstance(run_result, Mapping):
                     raise TypeError("VideoAgent run result must be an object.")
                 run_status = str(run_result.get("status") or "").strip()
@@ -794,7 +762,7 @@ class MVAgentEngine:
         trajectory: Trajectory,
         round_index: int,
     ) -> tuple[dict[str, Any], str]:
-        """Use the standalone answerer after the decision loop ends.
+        """Run the standalone answer block after evidence gathering stops.
 
         Args:
             global_agent: Question-scoped coordinator with the final memory.
@@ -802,15 +770,14 @@ class MVAgentEngine:
             round_index: Sequential round assigned to the terminal call.
 
         Returns:
-            The generated answer and stop reason, retaining the gap status.
+            A forced-with-gaps answer payload and the max-steps stop reason.
         """
         stop_reason = "GlobalAgent reached max_steps."
         question_trajectory = QuestionTrajectory.wrap(trajectory)
         try:
-            with event_scope(agent="GlobalAgent", decision_id=f"global:{round_index}"):
-                attempt = global_agent.answer()
+            attempt = global_agent.answer()
             if attempt.get("status") != "ok":
-                error = str(attempt.get("error") or "Terminal answer failed.")
+                error = str(attempt.get("error") or "Terminal decision failed.")
                 question_trajectory.record(
                     agent="GlobalAgent",
                     action="terminal_answer",
@@ -824,8 +791,8 @@ class MVAgentEngine:
                 return self._terminal_fallback(stop_reason, error)
             generated = dict(attempt["value"])
             answer = {
-                "answer": generated["answer"],
-                "reason": generated["reason"],
+                "answer": str(generated.get("answer") or "").strip(),
+                "reason": str(generated.get("reason") or "").strip(),
                 "status": "forced_with_gaps",
             }
             question_trajectory.record(

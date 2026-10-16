@@ -5,9 +5,29 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional
 
 from models.vlm.api.client import ApiVLMClient
 from models.vlm.base import VLMClient
-from models.pool import get_pool
 
-from .service import VLLMServiceStatus
+from .service import VLLMServiceManager, VLLMServiceStatus
+
+
+def _vllm_generation_schema(
+    json_schema: Optional[Dict[str, Any]],
+) -> Optional[Dict[str, Any]]:
+    """Copy a schema while omitting constraints unsupported by vLLM 0.18.0."""
+    if json_schema is None:
+        return None
+
+    def normalize(value: Any, *, root: bool = False) -> Any:
+        if isinstance(value, dict):
+            return {
+                key: normalize(item)
+                for key, item in value.items()
+                if key != "uniqueItems" and not (root and key == "oneOf")
+            }
+        if isinstance(value, list):
+            return [normalize(item) for item in value]
+        return value
+
+    return normalize(json_schema, root=True)
 
 
 class LocalVLLMClient(VLMClient):
@@ -23,17 +43,14 @@ class LocalVLLMClient(VLMClient):
             ),
         )
         self.cfg = cfg
-        pool = get_pool(cfg.served_model_name)
-        if pool is None:
-            raise ValueError(f"Local model {cfg.served_model_name} requires a prepared execution model pool")
-        self.service_status = VLLMServiceStatus(state="pooled", endpoint=pool.replicas[0].endpoint,
-                                               served_model_name=cfg.served_model_name)
+        self.service_manager = VLLMServiceManager(cfg, cache_dir=cache_dir)
+        self.service_status: VLLMServiceStatus = self.service_manager.ensure_running()
         self.api_client = ApiVLMClient(
             SimpleNamespace(
                 model_type="api_vlm",
                 provider="openai_compatible",
                 model_name=cfg.served_model_name,
-                api_base=pool.replicas[0].endpoint,
+                api_base=cfg.endpoint,
                 api_key="EMPTY",
                 temperature=cfg.temperature,
                 top_p=cfg.top_p,
@@ -78,7 +95,7 @@ class LocalVLLMClient(VLMClient):
             top_p=top_p,
             max_tokens=max_tokens,
             stop_token_ids=stop_token_ids,
-            json_schema=json_schema,
+            json_schema=_vllm_generation_schema(json_schema),
             schema_name=schema_name,
         )
 
@@ -102,7 +119,7 @@ class LocalVLLMClient(VLMClient):
             top_p=top_p,
             max_tokens=max_tokens,
             stop_token_ids=stop_token_ids,
-            json_schema=json_schema,
+            json_schema=_vllm_generation_schema(json_schema),
             schema_name=schema_name,
         )
 
@@ -130,12 +147,13 @@ class LocalVLLMClient(VLMClient):
             top_p=top_p,
             max_tokens=max_tokens,
             stop_token_ids=stop_token_ids,
-            json_schema=json_schema,
+            json_schema=_vllm_generation_schema(json_schema),
             schema_name=schema_name,
         )
 
     def close(self) -> None:
         self.api_client.close()
+        self.service_manager.close()
 
 
 __all__ = ["LocalVLLMClient"]

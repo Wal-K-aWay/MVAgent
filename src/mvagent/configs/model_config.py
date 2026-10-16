@@ -70,7 +70,6 @@ class ApiVLMConfig:
     model_name: str = ""
     api_base: Optional[str] = None
     api_key: Optional[str] = None
-    reasoning_effort: Optional[str] = None
     temperature: float = 0.2
     top_p: float = 0.8
     max_tokens: int = 1024
@@ -93,10 +92,9 @@ class LocalVLLMConfig:
     model_type: str = "local_vllm"
     model_name: str = ""
     served_model_name: str = ""
-    gpus: list[int | str] = field(default_factory=list)
-    endpoint: str = ""
+    gpus: list[int] = field(default_factory=lambda: [0])
+    endpoint: str = "http://127.0.0.1:8000/v1"
     api_key: str = "EMPTY"
-    execution_profile: Optional[str] = None
     startup_timeout_sec: float = 1800.0
     dtype: str = "bfloat16"
     gpu_memory_utilization: float = 0.85
@@ -398,7 +396,6 @@ class ApiModelInstanceConfig(ModelInstanceConfig):
     provider: Optional[str] = None
     api_base: Optional[str] = None
     api_key: Optional[str] = None
-    reasoning_effort: Optional[str] = None
     capabilities: ClassVar[frozenset[str]] = frozenset(
         {"text", "image", "video", "structured_output"}
     )
@@ -412,10 +409,6 @@ class ApiModelInstanceConfig(ModelInstanceConfig):
     ) -> None:
         del known_api_llm_providers
         provider = str(self.provider or "").strip()
-        if self.reasoning_effort is not None and (
-            provider != "bigmodel" or self.reasoning_effort not in {"low", "high", "max"}
-        ):
-            raise ValueError(f"{name} api_vlm reasoning_effort requires bigmodel and low, high, or max.")
         if not provider:
             raise ValueError(f"{name} is missing provider.")
         if provider not in known_api_providers:
@@ -458,7 +451,6 @@ class ApiModelInstanceConfig(ModelInstanceConfig):
             model_name=str(self.model_name or name),
             api_base=self.api_base,
             api_key=self.api_key,
-            reasoning_effort=self.reasoning_effort,
             **self._visual_runtime(agent),
         )
 
@@ -468,7 +460,8 @@ class LocalVLLMModelInstanceConfig(ModelInstanceConfig):
     """Parsed ``local_vllm`` model instance."""
 
     type: str = field(init=False, default="local_vllm")
-    execution_profile: Optional[str] = None
+    gpus: Optional[list[int]] = None
+    endpoint: Optional[str] = None
     startup_timeout_sec: Optional[float] = None
     dtype: Optional[str] = None
     gpu_memory_utilization: Optional[float] = None
@@ -489,16 +482,23 @@ class LocalVLLMModelInstanceConfig(ModelInstanceConfig):
         del known_api_providers, known_api_llm_providers
         if not str(self.model_name or "").strip():
             raise ValueError(f"{name} must set model_name.")
-        if self.execution_profile:
-            from models.vlm.local.sync_server import PROFILE, ENGINE_CONFIG
-            if self.execution_profile != PROFILE:
-                raise ValueError(f'{name}: unknown execution_profile {self.execution_profile}')
-            for key in ('dtype', 'gpu_memory_utilization', 'max_model_len'):
-                value = getattr(self, key)
-                if value is not None and value != ENGINE_CONFIG[key]:
-                    raise ValueError(f'{name}: {key} conflicts with {PROFILE}')
-            if self.enable_thinking or self.reasoning_parser or self.temperature not in (None, 0):
-                raise ValueError(f'{name}: validated execution requires greedy, no thinking/parser')
+        endpoint = str(
+            self.endpoint or "http://127.0.0.1:8000/v1"
+        ).strip()
+        parsed = urllib.parse.urlparse(endpoint)
+        if not parsed.hostname or parsed.path != "/v1" or any(
+            (parsed.params, parsed.query, parsed.fragment)
+        ):
+            raise ValueError(f"{name} endpoint must end exactly with /v1.")
+        if parsed.scheme != "http" or not is_loopback_host(parsed.hostname):
+            raise ValueError(f"{name} endpoint must use loopback HTTP.")
+        try:
+            port = parsed.port
+        except ValueError as exc:
+            raise ValueError(f"{name} endpoint has an invalid port.") from exc
+        if port is None:
+            raise ValueError(f"{name} endpoint must include a port.")
+        validate_gpu_list(self.gpus, label=name)
         mode = str(self.video_mode or "video_url").strip()
         if mode != "video_url":
             raise ValueError(
@@ -523,21 +523,19 @@ class LocalVLLMModelInstanceConfig(ModelInstanceConfig):
         name: str,
         agent: Agent_Model_Config,
     ) -> LocalVLLMConfig:
-        from models.vlm.local.sync_server import ENGINE_CONFIG
-        defaults = ENGINE_CONFIG if self.execution_profile else dict(
-            dtype='bfloat16', gpu_memory_utilization=.85, max_model_len=16384)
         return LocalVLLMConfig(
-            execution_profile=self.execution_profile,
             model_name=str(self.model_name or name),
             served_model_name=name,
+            gpus=list(self.gpus if self.gpus is not None else [0]),
+            endpoint=str(self.endpoint or "http://127.0.0.1:8000/v1"),
             startup_timeout_sec=float(
                 _pick(self.startup_timeout_sec, 1800.0)
             ),
-            dtype=str(self.dtype or defaults["dtype"]),
+            dtype=str(self.dtype or "bfloat16"),
             gpu_memory_utilization=float(
-                _pick(self.gpu_memory_utilization, defaults["gpu_memory_utilization"])
+                _pick(self.gpu_memory_utilization, 0.85)
             ),
-            max_model_len=int(_pick(self.max_model_len, defaults["max_model_len"])),
+            max_model_len=int(_pick(self.max_model_len, 16384)),
             reasoning_parser=(
                 str(self.reasoning_parser)
                 if self.reasoning_parser
@@ -579,8 +577,6 @@ def parse_model_instance_config(
                 f"Model instance '{name}' has unsupported api_llm fields: "
                 + ", ".join(unknown)
             )
-    if model_type == "local_vllm" and {"gpus", "endpoint"}.intersection(data):
-        raise ValueError("Move local model gpus/endpoint to --execution-config model_pools")
     return config_class.from_dict(data)
 
 

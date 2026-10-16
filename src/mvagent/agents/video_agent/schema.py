@@ -4,8 +4,6 @@ from collections.abc import Iterable
 from copy import deepcopy
 from typing import Any
 
-from mvagent.schema import text_schema
-
 MIN_OBSERVE_FPS = 0.1
 MAX_OBSERVE_FPS = 25.0
 
@@ -16,7 +14,8 @@ VISUAL_OBSERVATION_SCHEMA: dict[str, Any] = {
     "required": ["text", "uncertainty"],
     "properties": {
         "text": {
-            **text_schema("text"),
+            "type": "string",
+            "minLength": 1,
             "description": (
                 "Grounded visible facts that resolve WHAT. When WHAT requires "
                 "temporal localization, use source-video seconds from the "
@@ -24,7 +23,7 @@ VISUAL_OBSERVATION_SCHEMA: dict[str, Any] = {
             ),
         },
         "uncertainty": {
-            **text_schema("uncertainty", allow_empty=True),
+            "type": "string",
             "description": (
                 "Answer-relevant ambiguity, occlusion, missing detail, or "
                 "sampling limitation; empty when none."
@@ -38,7 +37,7 @@ OBSERVE_PARAMETERS_SCHEMA: dict[str, Any] = {
     "additionalProperties": False,
     "required": ["what", "where", "fps"],
     "properties": {
-        "what": text_schema("what"),
+        "what": {"type": "string", "minLength": 1},
         "where": {
             "type": "array",
             "minItems": 1,
@@ -53,7 +52,6 @@ OBSERVE_PARAMETERS_SCHEMA: dict[str, Any] = {
             "type": "number",
             "minimum": MIN_OBSERVE_FPS,
             "maximum": MAX_OBSERVE_FPS,
-            "enum": [value / 10 if value % 10 else value // 10 for value in range(1, 251)],
             "description": "Planned sampling FPS in 0.1 increments.",
         },
     },
@@ -66,7 +64,8 @@ FINISH_PARAMETERS_SCHEMA: dict[str, Any] = {
     "required": ["summary"],
     "properties": {
         "summary": {
-            **text_schema("summary"),
+            "type": "string",
+            "minLength": 1,
             "description": (
                 "Concise self-contained summary of the answer-relevant visible "
                 "facts established by accumulated usable same-video "
@@ -91,17 +90,10 @@ ACTION_PARAMETER_SCHEMAS = {
 
 
 def build_video_action_schema(
-    action_names: Iterable[str], *,
-    duration_sec: float | None = None, max_ranges: int | None = None,
+    action_names: Iterable[str],
 ) -> dict[str, Any]:
     """Build the exact Planner contract for supplied runtime actions."""
-    schemas = deepcopy(ACTION_PARAMETER_SCHEMAS)
-    ranges = schemas["observe"]["properties"]["where"]
-    ranges["items"]["items"]["minimum"] = 0
-    if duration_sec is not None:
-        ranges["items"]["items"]["maximum"] = duration_sec
-    if max_ranges is not None:
-        ranges["maxItems"] = max_ranges
+    schemas = ACTION_PARAMETER_SCHEMAS
     names: list[str] = []
     for raw_name in action_names:
         name = str(raw_name).strip()
@@ -120,9 +112,6 @@ def build_video_action_schema(
             parameter_properties[property_name] = deepcopy(property_schema)
         branches.append(
             {
-                "type": "object",
-                "additionalProperties": False,
-                "required": ["action", "parameters"],
                 "properties": {
                     "action": {"const": name},
                     "parameters": deepcopy(schema),
@@ -141,7 +130,7 @@ def build_video_action_schema(
             },
         },
         "additionalProperties": False,
-        "anyOf": branches,
+        "oneOf": branches,
     }
 
 

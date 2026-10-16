@@ -5,8 +5,6 @@ from collections.abc import Mapping
 from typing import Any, Iterable, Sequence
 
 from mvagent.agents.base import BaseAgent
-from mvagent.skills import SkillBank
-from mvagent.skills.selection import select_skills
 from models.vlm.base import VLMClient
 from mvagent.utils.media import (
     MIN_TEMPORAL_VIDEO_FRAMES,
@@ -43,9 +41,7 @@ class GlobalAgent(BaseAgent):
         video_paths: Mapping[str, str] | None = None,
         cache_dir: str | None = None,
         max_videos_per_watch: int = 4,
-        decision_skill: str | SkillBank = "",
-        skill_selector_model: Any | None = None,
-        skill_selection_scope: str = "decision",
+        decision_skill: str = "",
     ) -> None:
         super().__init__(
             name="global_agent",
@@ -53,13 +49,7 @@ class GlobalAgent(BaseAgent):
             system_prompt=GLOBAL_AGENT_SYSTEM_PROMPT,
         )
         self.question = str(question)
-        self.skill_selector_model = skill_selector_model
-        if skill_selection_scope not in ('decision', 'task'):
-            raise ValueError('Skill selection scope must be decision or task')
-        self.skill_selection_scope = skill_selection_scope
-        self._skill_selection_cache = {}
-
-        self.decision_skill = decision_skill if isinstance(decision_skill, SkillBank) else str(decision_skill or "").strip()
+        self.decision_skill = str(decision_skill or "").strip()
         self.memory = GlobalAgentMemory()
         self.video_ids = [str(video_id) for video_id in video_ids]
         if not self.video_ids or len(self.video_ids) != len(set(self.video_ids)):
@@ -177,25 +167,10 @@ class GlobalAgent(BaseAgent):
                 and self.visual_model is not None
                 and self.max_videos_per_watch >= 2
                 and self.visual_model.max_videos_per_request >= 2
-                and self.visual_model.max_video_frames_per_request >= 2 * MIN_TEMPORAL_VIDEO_FRAMES
             ),
         )
         watch_videos_available = "watch_videos" in available_action_names
         action_history_view = self.memory.render_action_history()
-        skill = self.decision_skill
-        if isinstance(skill, SkillBank):
-            selection = select_skills(skill,
-                selection_cache=self._skill_selection_cache if self.skill_selection_scope == 'task' else None,
-                role="global",
-                has_evidence=bool(self.memory.reports or self.memory.watch_results), task=self.question,
-                state=dict(history=action_history_view,
-                           videos={vid: {"duration_sec": meta["duration_sec"]}
-                                   for vid, meta in self.video_metadata.items()} or self.video_ids),
-                decide=(self.decide_json if self.skill_selector_model is None else
-                        lambda *args, **kwargs: self.decide_json(*args, model=self.skill_selector_model, **kwargs)))
-            if selection["status"] != "ok":
-                return selection
-            skill = selection["value"]
         prompt = build_global_decision_prompt(
             question=self.question,
             videos=(
@@ -212,38 +187,35 @@ class GlobalAgent(BaseAgent):
                 if self.visual_model is not None
                 else 1
             ),
-            decision_skill=skill,
+            decision_skill=self.decision_skill,
         )
         return self.decide_json(
             prompt,
             json_schema=build_global_decision_schema(
-                available_action_names,
-                video_ids=self.video_ids,
-                video_durations={key: value["duration_sec"] for key, value in self.video_metadata.items()},
-                max_watch_videos=min(
-                    self.max_videos_per_watch,
-                    self.visual_model.max_videos_per_request,
-                    self.visual_model.max_video_frames_per_request // MIN_TEMPORAL_VIDEO_FRAMES,
-                ) if self.visual_model is not None else 0,
+                available_action_names
             ),
             schema_name="global_decision",
         )
 
     def answer(self) -> dict[str, Any]:
-        """Make a best-effort final answer after the decision loop ends."""
+        """Run the standalone best-effort answer block on current memory."""
+        prompt = build_global_answer_prompt(
+            question=self.question,
+            action_history_view=self.memory.render_action_history(),
+        )
         result = self.decide_json(
-            build_global_answer_prompt(
-                question=self.question,
-                action_history_view=self.memory.render_action_history(),
-            ),
+            prompt,
             json_schema=GLOBAL_ANSWER_SCHEMA,
             schema_name="global_answer",
             system_prompt=GLOBAL_ANSWER_SYSTEM_PROMPT,
         )
-        if result.get("status") == "ok":
-            value = result["value"]
-            value["reason"] = value["reason"].strip()
-            value["answer"] = value["answer"].strip()
+        if result.get("status") != "ok":
+            return result
+        value = result.get("value")
+        if not isinstance(value, dict):
+            raise TypeError("Successful GlobalAgent answer must be an object.")
+        value["reason"] = str(value.get("reason") or "").strip()
+        value["answer"] = str(value.get("answer") or "").strip()
         return result
 
     def _validate_decision(
@@ -266,7 +238,7 @@ class GlobalAgent(BaseAgent):
         if action == "answer":
             answer = str(parameters.get("answer") or "").strip()
             if not answer:
-                raise ValueError("answer requires a non-empty parameters.answer.")
+                raise ValueError("Global answer decision must include a non-empty answer.")
             parameters["answer"] = answer
         elif action == "analyze_videos":
             parameters["videoagent_request"] = self.validate_video_analyses(

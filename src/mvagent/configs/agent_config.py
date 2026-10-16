@@ -1,24 +1,16 @@
 from __future__ import annotations
 
-import math
-
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional
-from models.embeddings import EmbeddingConfig
 
 
 @dataclass(frozen=True)
 class Skill_Config:
-    """Hash-pinned static Markdown or dynamic Skill bank reference."""
+    """Explicit immutable reference to one Planner skill file."""
 
     enabled: bool
     path: str = ""
     sha256: str = ""
-    mode: str = "static"
-    selection_scope: str = "decision"
-    retrieval_top_k: int = 8
-    selector: Agent_Model_Config | None = None
-    embedding: EmbeddingConfig | None = None
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any], *, field_name: str) -> "Skill_Config":
@@ -27,31 +19,6 @@ class Skill_Config:
         enabled = data.get("enabled")
         if not isinstance(enabled, bool):
             raise ValueError(f"{field_name}.enabled must be true or false")
-        mode = data.get("mode", "static")
-        if mode not in ("static", "dynamic"):
-            raise ValueError(f"{field_name}.mode must be static or dynamic")
-        scope = data.get("selection_scope", "decision")
-        if scope not in ("decision", "task"):
-            raise ValueError(f"{field_name}.selection_scope must be decision or task")
-        if 'max_selected' in data:
-            raise ValueError(f"{field_name}.max_selected is removed; select one Skill or none")
-        top_k = data.get("retrieval_top_k", 8)
-        if type(top_k) is not int or top_k != 8:
-            raise ValueError(f"{field_name} requires retrieval_top_k = 8")
-        if mode != "dynamic" and any(k in data for k in ("retrieval_top_k", "selector", "embedding", "selection_scope")):
-            raise ValueError(f"{field_name} retrieval settings require dynamic mode")
-        selector = None
-        if "selector" in data:
-            raw = data["selector"]
-            if (not isinstance(raw, dict) or set(raw) - {"model_type", "temperature", "max_tokens"}
-                    or not isinstance(raw.get("model_type"), str) or not raw["model_type"].strip()):
-                raise ValueError(f"{field_name}.selector requires model_type and optional temperature/max_tokens")
-            temperature = raw.get("temperature")
-            if temperature is not None:
-                if type(temperature) not in (int, float) or not math.isfinite(temperature) or temperature < 0:
-                    raise ValueError(f"{field_name}.selector.temperature must be finite and nonnegative")
-            selector = Agent_Model_Config()
-            selector.load_from_dict({**raw, "model_type": raw["model_type"].strip()})
         path = str(data.get("path") or "").strip()
         sha256 = str(data.get("sha256") or "").strip().lower()
         if enabled:
@@ -65,25 +32,14 @@ class Skill_Config:
                 raise ValueError(
                     f"{field_name}.sha256 must be a SHA256 hex digest when enabled"
                 )
-        return cls(enabled=enabled, path=path, sha256=sha256, mode=mode, selection_scope=scope,
-                   retrieval_top_k=top_k, selector=selector,
-                   embedding=EmbeddingConfig.from_dict(data['embedding']) if 'embedding' in data else None)
+        return cls(enabled=enabled, path=path, sha256=sha256)
 
     def to_dict(self) -> Dict[str, Any]:
         payload: Dict[str, Any] = {"enabled": self.enabled}
-        if self.mode != "static":
-            payload["mode"] = self.mode
-            payload["retrieval_top_k"] = self.retrieval_top_k
-        if self.selection_scope != "decision":
-            payload["selection_scope"] = self.selection_scope
         if self.path:
             payload["path"] = self.path
         if self.sha256:
             payload["sha256"] = self.sha256
-        if self.selector is not None:
-            payload["selector"] = self.selector.to_dict()
-        if self.embedding is not None:
-            payload['embedding'] = self.embedding.to_dict()
         return payload
 
 

@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from models.pool import media_preparation_slot
 import base64
 import mimetypes
-import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Protocol
@@ -15,7 +13,6 @@ from models.utils import (
     retry_transient,
 )
 from models.vlm.base import VLMClient
-from models.execution import emit_event
 
 
 class ApiVLMError(RuntimeError):
@@ -70,19 +67,11 @@ def _video_url_for_request(video_path: str) -> str:
     if raw_path.startswith(("http://", "https://", "data:")):
         return raw_path
 
-    started_at = time.time()
-    started = time.monotonic()
     resolved_path = Path(resolve_local_path(raw_path))
     mime_type = mimetypes.guess_type(str(resolved_path))[0] or "video/mp4"
     if not mime_type.startswith("video/"):
         mime_type = "video/mp4"
-    data = resolved_path.read_bytes()
-    read_seconds = time.monotonic() - started
-    encoding = time.monotonic()
-    encoded = base64.b64encode(data).decode("ascii")
-    emit_event("media_payload", started_at=started_at, seconds=time.monotonic() - started,
-               read_seconds=read_seconds, base64_seconds=time.monotonic() - encoding,
-               source_bytes=len(data))
+    encoded = base64.b64encode(resolved_path.read_bytes()).decode("ascii")
     return f"data:{mime_type};base64,{encoded}"
 
 
@@ -212,64 +201,62 @@ class ApiVLMClient(VLMClient):
                 f"Video request contains {len(inputs)} inputs; model limit is "
                 f"{self.max_videos_per_request}"
             )
-        with media_preparation_slot():
-            prepare_video_url = getattr(self.provider, "prepare_video_url", None)
-            video_items: list[tuple[str, Dict[str, Any]]] = []
-            for video_id, video_path in inputs:
-                video_url = (
-                    prepare_video_url(video_path)
-                    if callable(prepare_video_url)
-                    else _video_url_for_request(video_path)
-                )
-                video_items.append(
-                    (
-                        video_id,
-                        {
-                            "type": "video_url",
-                            "video_url": {"url": video_url},
-                        },
-                    )
-                )
-            resolved_fps = self.cfg.video_fps if fps is None else fps
-            extra_body: Dict[str, Any] = {}
-            if resolved_fps is not None:
-                if self.cfg.video_fps_transport == "content":
-                    for _, video_item in video_items:
-                        video_item["fps"] = resolved_fps
-                elif self.cfg.video_fps_transport == "media_io_kwargs":
-                    extra_body = {
-                        "media_io_kwargs": {
-                            "video": {"fps": resolved_fps},
-                        }
-                    }
-                else:
-                    raise ApiVLMError(
-                        f"Unsupported video FPS transport: {self.cfg.video_fps_transport}"
-                    )
-            content: List[Dict[str, Any]] = []
-            for video_id, video_item in video_items:
-                content.append(
-                    {"type": "text", "text": f"This is {video_id}"}
-                )
-                content.append(video_item)
-            content.append({"type": "text", "text": text_prompt})
-            messages = [
-                {
-                    "role": "user",
-                    "content": content,
-                }
-            ]
-            return self.chat(
-                messages=messages,
-                temperature=temperature,
-                top_p=top_p,
-                max_tokens=max_tokens,
-                stop_token_ids=stop_token_ids,
-                json_schema=json_schema,
-                schema_name=schema_name,
-                extra_body=extra_body,
+        prepare_video_url = getattr(self.provider, "prepare_video_url", None)
+        video_items: list[tuple[str, Dict[str, Any]]] = []
+        for video_id, video_path in inputs:
+            video_url = (
+                prepare_video_url(video_path)
+                if callable(prepare_video_url)
+                else _video_url_for_request(video_path)
             )
-
+            video_items.append(
+                (
+                    video_id,
+                    {
+                        "type": "video_url",
+                        "video_url": {"url": video_url},
+                    },
+                )
+            )
+        resolved_fps = self.cfg.video_fps if fps is None else fps
+        extra_body: Dict[str, Any] = {}
+        if resolved_fps is not None:
+            if self.cfg.video_fps_transport == "content":
+                for _, video_item in video_items:
+                    video_item["fps"] = resolved_fps
+            elif self.cfg.video_fps_transport == "media_io_kwargs":
+                extra_body = {
+                    "media_io_kwargs": {
+                        "video": {"fps": resolved_fps},
+                    }
+                }
+            else:
+                raise ApiVLMError(
+                    f"Unsupported video FPS transport: {self.cfg.video_fps_transport}"
+                )
+        content: List[Dict[str, Any]] = []
+        for video_id, video_item in video_items:
+            content.append(
+                {"type": "text", "text": f"This is {video_id}"}
+            )
+            content.append(video_item)
+        content.append({"type": "text", "text": text_prompt})
+        messages = [
+            {
+                "role": "user",
+                "content": content,
+            }
+        ]
+        return self.chat(
+            messages=messages,
+            temperature=temperature,
+            top_p=top_p,
+            max_tokens=max_tokens,
+            stop_token_ids=stop_token_ids,
+            json_schema=json_schema,
+            schema_name=schema_name,
+            extra_body=extra_body,
+        )
 
 
 from .providers.dashscope import DashScopeProvider
@@ -278,7 +265,6 @@ from .providers.anthropic_compatible import (
     MiniMaxAnthropicVLMProvider,
 )
 from .providers.openai_compatible import OpenAICompatibleProvider
-from .providers.bigmodel import BigModelProvider
 
 
 register_api_vlm_provider(
@@ -288,7 +274,6 @@ register_api_vlm_provider(
 register_api_vlm_provider("dashscope", DashScopeProvider)
 register_api_vlm_provider("minimax_anthropic", MiniMaxAnthropicVLMProvider)
 register_api_vlm_provider("openai_compatible", OpenAICompatibleProvider)
-register_api_vlm_provider("bigmodel", BigModelProvider)
 
 
 __all__ = [

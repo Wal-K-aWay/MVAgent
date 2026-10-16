@@ -20,8 +20,6 @@ _AGENT_MODEL_ROLES = (
 )
 
 _ROLE_CAPABILITY_REQUIREMENTS: dict[tuple[str, str], frozenset[str]] = {
-    ("global_agent", "skill.selector"): frozenset({"text", "structured_output"}),
-    ("video_agent", "skill.selector"): frozenset({"text", "structured_output"}),
     ("global_agent", "model"): frozenset(
         {"text", "structured_output"}
     ),
@@ -40,12 +38,11 @@ class Runtime_Config:
 
     output_dir: str = "outputs"
     cache_dir: str = ".cache/mvagent"
-    video_concurrency: int = 1
 
     def load_from_dict(self, data: Dict[str, Any]) -> None:
         if not isinstance(data, dict):
             return
-        for field_name in ("output_dir", "cache_dir", "video_concurrency"):
+        for field_name in ("output_dir", "cache_dir"):
             if field_name in data:
                 setattr(self, field_name, data[field_name])
 
@@ -53,7 +50,6 @@ class Runtime_Config:
         return {
             "output_dir": self.output_dir,
             "cache_dir": self.cache_dir,
-            "video_concurrency": self.video_concurrency,
         }
 
 
@@ -73,9 +69,6 @@ class MVAgentConfig:
             agent = getattr(self, agent_name)
             for role_name in role_names:
                 roles.append((agent_name, role_name, getattr(agent, role_name)))
-            skill = agent.skill
-            if skill is not None and skill.enabled and skill.mode == "dynamic" and skill.selector is not None:
-                roles.append((agent_name, "skill.selector", skill.selector))
         return roles
 
     @classmethod
@@ -85,10 +78,6 @@ class MVAgentConfig:
             raise FileNotFoundError(f"Config file not found: {config_path}")
         with config_path.open("r", encoding="utf-8") as handle:
             data = yaml.safe_load(handle) or {}
-        return cls.from_dict(data)
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "MVAgentConfig":
         cfg = cls()
         cfg._load_from_dict(data)
         cfg.validate()
@@ -119,8 +108,6 @@ class MVAgentConfig:
         self.video_agent.load_from_dict(video_agent)
 
     def validate(self) -> None:
-        if type(self.runtime.video_concurrency) is not int or self.runtime.video_concurrency < 1:
-            raise ValueError("runtime.video_concurrency must be a positive integer")
         """Validate every required GlobalAgent and VideoAgent model role."""
         from models.llm.api.client import available_api_llm_providers
         from models.vlm.api.client import available_api_vlm_providers

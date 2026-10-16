@@ -43,13 +43,11 @@ class BaseAgent:
         json_schema: dict[str, Any] | None = None,
         schema_name: str | None = None,
         system_prompt: str | None = None,
-        model: Any | None = None,
         **kwargs: Any,
     ) -> dict[str, Any]:
         """Return one ``ok`` or ``invalid`` structured-result dict."""
         raw_response = ""
-        decision_model = self.model if model is None else model
-        json_chat = getattr(decision_model, "json_chat", None)
+        json_chat = getattr(self.model, "json_chat", None)
         if callable(json_chat):
             result = json_chat(
                 messages=self.build_messages(
@@ -90,7 +88,7 @@ class BaseAgent:
                     }
             return result
         else:
-            chat = getattr(decision_model, "chat", None)
+            chat = getattr(self.model, "chat", None)
             if not callable(chat):
                 raise TypeError(
                     f"{self.name} model client does not implement "

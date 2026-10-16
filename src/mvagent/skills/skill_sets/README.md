@@ -29,7 +29,7 @@ skill_sets/
 - A cycle that changes only one role still copies the unchanged partner into the new
   version, so each SkillSet is self-contained and reversible.
 - Raw candidates, checkpoints, rewards, and rejected variants stay under
-  `outputs/mvagent/skill/skill_evolution/<run_id>/`; they never enter this source directory.
+  `outputs/skill_evolution/<run_id>/`; they never enter this source directory.
 - There is no mutable `best`, `latest`, or overwritten `best_skill.md`. The selected
   version is always explicit in configuration.
 - No-Skill disables both role references and does not use placeholder files.
@@ -41,11 +41,7 @@ optimization. Later role ablations reuse the same version directory and disable 
 role without creating another Skill copy.
 
 The shipped Skill-on YAML files currently reference `authored-v000`, while
-`configs/inference/modal_qwen35_35b_a3b_no_skill.yaml` is the explicit No-Skill control. Do not add a
+`configs/local_qwen35_vllm_no_skill.yaml` is the explicit No-Skill control. Do not add a
 `zero-vNNN` runtime configuration until that exact non-empty SkillSet exists and its two
 file hashes are frozen; promotion should generate that configuration from the accepted
 candidate rather than relying on a mutable `best` path.
-
-`dynamic-v003/` adds the hash-pinned JSON snapshot of the seven existing handwritten
-`authored/dynamic-v003` cards for the optional27B+embedding configuration. Contents
-are identical to the completed35B diagnostic bank; no new strategy is introduced.

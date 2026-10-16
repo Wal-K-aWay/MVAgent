@@ -123,7 +123,6 @@ class VLMClient(LLMClient):
         return self._parse_multimodal_json(
             raw=raw,
             response_label="image",
-            schema_name=schema_name,
             json_schema=json_schema,
         )
 
@@ -200,7 +199,6 @@ class VLMClient(LLMClient):
         return self._parse_multimodal_json(
             raw=raw,
             response_label="video",
-            schema_name=schema_name,
             json_schema=json_schema,
         )
 
@@ -210,7 +208,6 @@ class VLMClient(LLMClient):
         *,
         raw: str,
         response_label: str,
-        schema_name: str | None,
         json_schema: Optional[Dict[str, Any]],
     ) -> Dict[str, Any]:
         """Parse one multimodal response without a hidden retry."""
@@ -221,9 +218,6 @@ class VLMClient(LLMClient):
                 response_label=response_label,
             )
         except ValueError as error:
-            from models.execution import emit_event
-            emit_event("structured_invalid", schema=schema_name, modality=response_label,
-                       attempt="initial", error=str(error))
             return {
                 "status": "invalid",
                 "value": None,

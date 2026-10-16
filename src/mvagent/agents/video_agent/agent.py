@@ -1,12 +1,9 @@
 from __future__ import annotations
-from models.execution import event_scope
 
 import math
 from typing import Any, Callable, Mapping
 
 from mvagent.agents.base import BaseAgent
-from mvagent.skills import SkillBank
-from mvagent.skills.selection import select_skills
 from models.vlm.base import VLMClient
 from mvagent.utils.media import (
     cut_video_segment,
@@ -50,9 +47,7 @@ class VideoAgent(BaseAgent):
         max_ranges_per_action: int = 8,
         cache_dir: str | None = None,
         logger: Callable[[str], None] | None = None,
-        planning_skill: str | SkillBank = "",
-        skill_selector_model: Any | None = None,
-        skill_selection_scope: str = "decision",
+        planning_skill: str = "",
     ) -> None:
         self.video_id = str(video_id)
         self.video_path = str(video_path)
@@ -89,20 +84,13 @@ class VideoAgent(BaseAgent):
             logger=logger,
         )
         self._visual_model = observer_model
-        self.skill_selector_model = skill_selector_model
-        if skill_selection_scope not in ('decision', 'task'):
-            raise ValueError('Skill selection scope must be decision or task')
-        self.skill_selection_scope = skill_selection_scope
-        self._skill_selection_cache = {}
-        self._skill_selection_request = None
-
         self.cache_dir = str(cache_dir) if cache_dir else None
         self.max_steps = max(1, int(max_steps))
         self.max_video_frames_per_request = (
             observer_model.max_video_frames_per_request
         )
         self.max_ranges_per_action = max(1, int(max_ranges_per_action))
-        self.planning_skill = planning_skill if isinstance(planning_skill, SkillBank) else str(planning_skill or "").strip()
+        self.planning_skill = str(planning_skill or "").strip()
         self.memory = VideoAgentMemory()
         self._run_trajectory = VideoRunTrajectory()
 
@@ -180,8 +168,10 @@ class VideoAgent(BaseAgent):
         self._run_trajectory = VideoRunTrajectory()
         request_id = self.memory.begin_request(instruction)
         try:
-            with event_scope(request_id=request_id):
-                return self._run_request(instruction=instruction, request_id=request_id)
+            return self._run_request(
+                instruction=instruction,
+                request_id=request_id,
+            )
         except Exception as exc:
             error = str(exc).strip() or type(exc).__name__
             last_step = self._run_trajectory.last or {}
@@ -480,12 +470,7 @@ class VideoAgent(BaseAgent):
             maximum_fps=MAX_OBSERVE_FPS,
         )
 
-    def _call_planner(self, *, instruction, request_id):
-        decision_id = f"video:{self.video_id}:{request_id}:{len(self._run_trajectory.to_list()) + 1}"
-        with event_scope(decision_id=decision_id):
-            return self._call_planner_impl(instruction=instruction, request_id=request_id)
-
-    def _call_planner_impl(
+    def _call_planner(
         self,
         *,
         instruction: str,
@@ -503,20 +488,6 @@ class VideoAgent(BaseAgent):
                 if memory_view != "(none)"
                 else decision_feedback
             )
-        if self._skill_selection_request != request_id:
-            self._skill_selection_cache.clear()
-            self._skill_selection_request = request_id
-        skill = self.planning_skill
-        if isinstance(skill, SkillBank):
-            selection = select_skills(skill,
-                selection_cache=self._skill_selection_cache if self.skill_selection_scope == 'task' else None,
-                role="video", has_evidence=self.memory.has_observations,
-                task=instruction, state=dict(history=memory_view),
-                decide=(self.decide_json if self.skill_selector_model is None else
-                        lambda *args, **kwargs: self.decide_json(*args, model=self.skill_selector_model, **kwargs)))
-            if selection["status"] != "ok":
-                return selection
-            skill = selection["value"]
         prompt = build_video_action_prompt(
             instruction=instruction,
             duration_sec=self.duration_sec,
@@ -526,14 +497,11 @@ class VideoAgent(BaseAgent):
             available_action_names=action_names,
             memory_view=memory_view,
             max_ranges_per_action=self.max_ranges_per_action,
-            planning_skill=skill,
+            planning_skill=self.planning_skill,
         )
         return self.decide_json(
             prompt,
-            json_schema=build_video_action_schema(
-                action_names,
-                duration_sec=self.duration_sec, max_ranges=self.max_ranges_per_action,
-            ),
+            json_schema=build_video_action_schema(action_names),
             schema_name="video_action",
         )
 

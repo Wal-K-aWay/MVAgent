@@ -2,18 +2,15 @@ from __future__ import annotations
 
 import math
 import subprocess
+import imageio_ffmpeg
 import tempfile
-import time
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
 import cv2
-import imageio_ffmpeg
 from PIL import Image
 
 from mvagent.utils.tools import resolve_local_path
-from mvagent.utils.media_cache import cached_media
-from models.execution import emit_event, remaining_timeout
 
 
 MIN_TEMPORAL_VIDEO_FRAMES = 2
@@ -142,7 +139,6 @@ def load_image_source(image: Any) -> Any:
     return image
 
 
-@cached_media("metadata")
 def probe_video_info(video_path: str) -> Dict[str, Any]:
     """Extract detailed metadata from a video file.
 
@@ -192,7 +188,6 @@ def probe_video_info(video_path: str) -> Dict[str, Any]:
         capture.release()
 
 
-@cached_media("clip")
 def cut_video_segment(
     video_path: str,
     time_range: List[float],
@@ -220,7 +215,6 @@ def cut_video_segment(
         if int(minimum_sampled_frames) <= 0:
             raise ValueError("minimum_sampled_frames must be positive.")
 
-    started, started_at = time.monotonic(), time.time()
     resolved_path = resolve_local_path(video_path)
     capture = cv2.VideoCapture(resolved_path)
     try:
@@ -230,7 +224,6 @@ def cut_video_segment(
         total_frames = _positive_capture_int(capture, cv2.CAP_PROP_FRAME_COUNT, "frame count")
     finally:
         capture.release()
-    metadata_seconds = time.monotonic() - started
     start_frame = min(max(0, int(segment[0] * fps)), total_frames - 1)
     end_frame = min(max(start_frame + 1, int(segment[1] * fps)), total_frames)
     selected_frames = end_frame - start_frame
@@ -252,155 +245,14 @@ def cut_video_segment(
     else:
         command += ["-t", str(selected_frames / fps), "-c:v", "copy"]
     command.append(str(output_path))
-    ffmpeg_started = time.monotonic()
     try:
         subprocess.run(command, check=True, capture_output=True, text=True,
-                       timeout=remaining_timeout(300))
+                       timeout=300)
     except subprocess.CalledProcessError as exc:
         raise ValueError(f"Video segment cutting failed: {exc.stderr.strip()}") from exc
     if not output_path.exists() or output_path.stat().st_size == 0:
         raise ValueError(f"No video segment written: {resolved_path} {segment}")
-    finished = time.monotonic()
-    emit_event("media_clip_profile", started_at=started_at, seconds=finished - started,
-               source=resolved_path, time_range=segment, source_fps=fps, sampling_fps=sampling_fps,
-               method="padded_transcode" if padding_frames else "stream_copy",
-               selected_frames=selected_frames, padding_frames=padding_frames,
-               output_bytes=output_path.stat().st_size, open_metadata_seconds=metadata_seconds,
-               ffmpeg_seconds=finished - ffmpeg_started)
     return str(output_path.resolve())
-
-
-# Previous OpenCV implementation, retained as comments at the user's request.
-# @cached_media("clip")
-# def cut_video_segment(
-#     video_path: str,
-#     time_range: List[float],
-#     output_dir: str | None = None,
-#     prefix: str = "segment",
-#     *,
-#     temp_dir_prefix: str = "mvagent_segments_",
-#     sampling_fps: float | None = None,
-#     minimum_sampled_frames: int = MIN_TEMPORAL_VIDEO_FRAMES,
-# ) -> str:
-#     """Write one time segment from a video to a temporary mp4 file using OpenCV.
-#
-#     The returned clip has local timestamps starting at 0s. Callers should keep
-#     the original absolute ``time_range`` in prompts and evidence records.
-#     """
-#     segment = normalize_time_range(time_range)
-#     if len(segment) < 2:
-#         raise ValueError(f"Invalid time_range for video segment: {time_range}")
-#
-#     start_sec, end_sec = float(segment[0]), float(segment[1])
-#     if end_sec <= start_sec:
-#         raise ValueError(f"Video segment end must be after start: {segment}")
-#
-#     started = time.monotonic()
-#     started_at = time.time()
-#     read_decode_seconds = encode_write_seconds = 0.0
-#     resolved_path = resolve_local_path(video_path)
-#     capture = cv2.VideoCapture(resolved_path)
-#     try:
-#         if not capture.isOpened():
-#             raise ValueError(f"Cannot open video for segment cutting: {resolved_path}")
-#
-#         fps = _positive_capture_float(capture, cv2.CAP_PROP_FPS, "FPS")
-#         frame_count = _positive_capture_int(
-#             capture,
-#             cv2.CAP_PROP_FRAME_COUNT,
-#             "frame count",
-#         )
-#         width = _positive_capture_int(capture, cv2.CAP_PROP_FRAME_WIDTH, "width")
-#         height = _positive_capture_int(
-#             capture,
-#             cv2.CAP_PROP_FRAME_HEIGHT,
-#             "height",
-#         )
-#         requested_sampling_fps: float | None = None
-#         if sampling_fps is not None:
-#             requested_sampling_fps = float(sampling_fps)
-#             if (
-#                 not math.isfinite(requested_sampling_fps)
-#                 or requested_sampling_fps <= 0.0
-#             ):
-#                 raise ValueError("Segment sampling_fps must be finite and positive.")
-#             if int(minimum_sampled_frames) <= 0:
-#                 raise ValueError("minimum_sampled_frames must be positive.")
-#
-#         start_frame = max(0, int(start_sec * fps))
-#         end_frame = max(start_frame + 1, int(end_sec * fps))
-#         if frame_count > 0:
-#             start_frame = min(start_frame, frame_count - 1)
-#             end_frame = min(max(end_frame, start_frame + 1), frame_count)
-#
-#         open_metadata_seconds = time.monotonic() - started
-#         stage = time.monotonic()
-#         segment_dir = Path(output_dir) if output_dir else Path(tempfile.mkdtemp(prefix=temp_dir_prefix))
-#         segment_dir.mkdir(parents=True, exist_ok=True)
-#         output_path = segment_dir / _segment_filename(prefix, start_sec, end_sec)
-#
-#         writer = cv2.VideoWriter(
-#             str(output_path),
-#             cv2.VideoWriter_fourcc(*"mp4v"),
-#             fps,
-#             (width, height),
-#         )
-#         if not writer.isOpened():
-#             raise ValueError(f"Cannot create video segment writer: {output_path}")
-#         writer_open_seconds = time.monotonic() - stage
-#
-#         frames_written = 0
-#         last_frame = None
-#         try:
-#             stage = time.monotonic()
-#             capture.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
-#             seek_seconds = time.monotonic() - stage
-#             frame_index = start_frame
-#             while frame_index < end_frame:
-#                 stage = time.monotonic()
-#                 ok, frame = capture.read()
-#                 read_decode_seconds += time.monotonic() - stage
-#                 if not ok:
-#                     break
-#                 stage = time.monotonic()
-#                 writer.write(frame)
-#                 encode_write_seconds += time.monotonic() - stage
-#                 last_frame = frame
-#                 frames_written += 1
-#                 frame_index += 1
-#             if requested_sampling_fps is not None and last_frame is not None:
-#                 minimum_encoded_frames = int(
-#                     math.ceil(
-#                         int(minimum_sampled_frames)
-#                         * fps
-#                         / requested_sampling_fps
-#                         - 1e-9
-#                     )
-#                 )
-#                 while frames_written < minimum_encoded_frames:
-#                     stage = time.monotonic()
-#                     writer.write(last_frame)
-#                     encode_write_seconds += time.monotonic() - stage
-#                     frames_written += 1
-#         finally:
-#             stage = time.monotonic()
-#             writer.release()
-#             writer_close_seconds = time.monotonic() - stage
-#
-#         if frames_written <= 0 or not output_path.exists() or output_path.stat().st_size <= 0:
-#             raise ValueError(f"No frames written for video segment: {resolved_path} {segment}")
-#         emit_event("media_clip_profile", started_at=started_at,
-#                    seconds=time.monotonic() - started, source=resolved_path,
-#                    time_range=segment, source_fps=fps, sampling_fps=requested_sampling_fps,
-#                    frames_written=frames_written, width=width, height=height,
-#                    output_bytes=output_path.stat().st_size,
-#                    open_metadata_seconds=open_metadata_seconds, seek_seconds=seek_seconds,
-#                    read_decode_seconds=read_decode_seconds,
-#                    encode_write_seconds=encode_write_seconds,
-#                    writer_open_seconds=writer_open_seconds, writer_close_seconds=writer_close_seconds)
-#         return str(output_path.resolve())
-#     finally:
-#         capture.release()
 
 
 def validate_video_ranges(
