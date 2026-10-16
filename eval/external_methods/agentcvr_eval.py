@@ -156,6 +156,7 @@ def run(output, smoke_only=False):
     started = time.monotonic()
     def progress(phase, **extra):
         write(output / 'progress.json', dict(phase=phase, expected=2821, updated=time.time(), **extra))
+    command = [sys.executable, str(HERE / 'agentcvr_worker.py'), '--output', str(output)]
     try:
         progress('starting_models', ready_servers=0)
         for rank in range(1 if smoke_only else 8):
@@ -189,13 +190,12 @@ def run(output, smoke_only=False):
                         if time.monotonic() > deadline:
                             raise TimeoutError(f'{kind} {rank} startup')
                         time.sleep(2)
-        command = [sys.executable, str(HERE / 'agentcvr_worker.py'), '--output', str(output)]
-        if not (output / 'smoke_completed.json').exists():
-            progress('smoke')
-            with (episode / 'smoke.log').open('w') as log:
-                subprocess.run(command+['--rank', '0', '--smoke'], env=dict(os.environ, CUDA_VISIBLE_DEVICES='0'),
-                               stdout=log, stderr=subprocess.STDOUT, check=True, timeout=7200)
-            write(output / 'smoke_completed.json', summarize(output))
+            if rank == 0 and not (output / 'smoke_completed.json').exists():
+                progress('smoke')
+                with (episode / 'smoke.log').open('w') as log:
+                    subprocess.run(command+['--rank', '0', '--smoke'], env=dict(os.environ, CUDA_VISIBLE_DEVICES='0'),
+                                   stdout=log, stderr=subprocess.STDOUT, check=True, timeout=7200)
+                write(output / 'smoke_completed.json', summarize(output))
         if smoke_only:
             return
         for rank in range(8):
