@@ -77,6 +77,37 @@ def raw_e2e(model, slug, ids):
     return result, sources
 
 
+def diagnostics(output):
+    rows={model:core.read(output/f'{model}_paired.json') for model in MODELS}
+    report={'format_contributions':{}, 'opposite_question_effects':{}}
+    for model,data in rows.items():
+        report['format_contributions'][model]={}
+        for ds in ['cvbench','mvu_eval','crossvid']:
+            group=[r for r in data if r['dataset']==ds]
+            def category(r):
+                old=r['arms']['independent']['format_ok'];new=r['arms']['direct']['format_ok']
+                return 'both_good' if old and new else 'both_bad' if not old and not new else 'old_bad_new_good' if new else 'old_good_new_bad'
+            def effect(r):return r['arms']['direct']['score']-r['arms']['independent']['score']
+            parts={name:dict(n=sum(category(r)==name for r in group),
+                contribution=weighted(group,lambda r:effect(r) if category(r)==name else 0))
+                for name in ['both_good','both_bad','old_bad_new_good','old_good_new_bad']}
+            assert abs(sum(v['contribution'] for v in parts.values())-weighted(group,effect))<1e-9
+            report['format_contributions'][model][ds]=parts
+    indexed={m:{r['sample_id']:r for r in data} for m,data in rows.items()}
+    assert all(set(v)==set(indexed['9B']) for v in indexed.values())
+    for ds in ['cvbench','mvu_eval','crossvid']:
+        hits=[]
+        for sid,row in indexed['9B'].items():
+            if row['dataset']!=ds:continue
+            effects={m:effect(data[sid]) for m,data in indexed.items()}
+            if effects['9B']<0 and effects['27B']>0 and effects['35B-A3B']>0:
+                hits.append(dict(sample_id=sid,effects=effects))
+        report['opposite_question_effects'][ds]=hits
+    core.write(output/'diagnostics.json',report)
+    shutil.copy2(__file__,output/'diagnostics_source.py')
+    print(json.dumps(report),flush=True)
+
+
 def main(output):
     from skill_evolution.infra.benchmarks.catalog import load_multibench_records, build_official_scorer
     self_check()
@@ -135,6 +166,7 @@ def main(output):
         'Task-stratified question bootstrap, not video-cluster bootstrap; no multiplicity correction.',
         'Interactions compare model identities, not a causal effect of parameter count.']
     core.write(output/'summary.json',report)
+    diagnostics(output)
     print(json.dumps({'interactions':report['interactions'],'completed':True}),flush=True)
 
 
