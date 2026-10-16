@@ -63,3 +63,7 @@ Actor/Judge完成后，`evaluate.py`、`judge.py report`和`finalize.py`在CPU�
 27B历史PRO结果目录实际名为`qwen3_5_27b_mvagent`。这些旧PRO结果来自各自当时源码，作为历史参照；
 本轮三模型统一旧9B src，因此不能把历史差值解释为单一裁剪器或某一句Prompt的因果效果。
 9B当时使用16卡分片，新增模型各8卡；整体墙钟不能直接用来比较模型速度。
+
+结果分析见`outputs/pro9_ffmpeg_models_20261016/README.md`。27B为316有效/14工程失败，未进入Judge；35B为330有效并完成Judge。
+`quick_scores.py`复用冻结官方评分器读取已保存答案，核对输入/源码和有效题数，按有效同题计算分数及区间；不重跑模型。
+它不要求27B全部成功，也不把失败记零；27B的开放题和十类总分保留缺口。不能把pipeline的遍历完成等同于全部题有效。
