@@ -32,9 +32,12 @@
 - 直接复用历史记录的完整问题和视频输入；保存来源SHA，不把参考答案/评分点送给Actor。
 - 两组8卡分16份，各worker顺序处理自己的题目。先对一个CV题和一个CCQA题各跑两遍，记录调用路径变化后的token比较。
 - 主指标使用同一冻结官方评分器，与PRO历史、已完成独立回答器/直接回答面板同题比较。
-  CCQA需要同一个Qwen Judge评分，不能混用PRO旧DeepSeek分数。
+  CCQA四组（本次、PRO、独立回答器、E2E）使用同一个Qwen Judge与共享缓存重新评分，不能混用PRO旧DeepSeek分数。
 - 新结果仅写`/runs/devbox/pro9_ffmpeg_20261016`，历史轨迹只读；源代码及Markdown可在本地/Git保存。
 
 入口：`run.py prepare`准备330题；`run.py serve --shard 0|1`在各8卡实例启动服务与worker。
 `check.py`验证旧schema字段转换、FFmpeg普通/补帧分段；`evaluate.py`用已有冻结评分器聚合闭式结果和同题差值。
 运行中的实际进展以Modal结果目录的`shard0/progress.json`、`shard1/progress.json`和每rank进度为准，不能把申请成功当作完成测试。
+
+`judge.py prepare`仅整理旧答案；Actor完成后，`judge.py judge`加载原冻结Judge并评分四组各30题。
+Judge错误不计零分，全部成功才聚合；`judge.py report`可以纯CPU复用原始Judge结果。

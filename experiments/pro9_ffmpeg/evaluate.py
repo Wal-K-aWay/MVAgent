@@ -38,7 +38,8 @@ def main():
         assert saved['result']['input']==job['inputs'],job['sample_id']
         worker_ids=set()
         for name in saved['call_files']:
-            event=core.read(name)
+            event=core.read(Path(name))
+            assert event['sample_id']==job['sample_id'],name
             if event['status']!=200:
                 bad_requests+=1;continue
             body,answer=event['translated'],event['response']
