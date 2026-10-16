@@ -87,7 +87,12 @@ def main():
     assert cache_hits==0
     if not args.partial:
         assert len(rows)==300 and len(diagnostics)==330 and not errors,(len(rows),len(diagnostics),errors)
-        assert len({gpu for pid,gpu in workers})==8*SHARDS
+        roots = [ROOT]
+        if (ROOT/'recovery_manifest.json').exists():
+            roots.append(Path(core.read(ROOT/'recovery_manifest.json')['parent']))
+        expected = {(card['worker']['pid'],card['worker']['gpu_uuid']) for root in roots
+                    for shard in range(SHARDS) for card in core.read(root/f'shard{shard}/servers.json').values()}
+        assert workers == expected, (workers, expected)
     for dataset in ['cvbench','mvu_eval','crossvid']:
         group=[r for r in rows if r['dataset']==dataset]
         if not group:continue

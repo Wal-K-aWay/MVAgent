@@ -202,8 +202,8 @@ def cut_video_segment(
 
     Keep the caller's source time range for prompts. Stream copy preserves codec
     dependencies, so container frame counts and decoded boundaries can differ
-    from an exact re-encoded trim. Only clips needing repeated-frame padding
-    are transcoded; vLLM receives the resulting video through its existing path.
+    from an exact re-encoded trim. Clips needing padding or with an undecodable
+    minimum-frame boundary are transcoded; the model's video input path is unchanged.
     """
     segment = normalize_time_range(time_range)
     if len(segment) != 2 or not all(math.isfinite(t) for t in segment) or segment[1] <= segment[0]:
@@ -252,6 +252,25 @@ def cut_video_segment(
         raise ValueError(f"Video segment cutting failed: {exc.stderr.strip()}") from exc
     if not output_path.exists() or output_path.stat().st_size == 0:
         raise ValueError(f"No video segment written: {resolved_path} {segment}")
+    # Stream-copy edit lists can advertise an undecodable last frame (MOC565).
+    # shortcut: check minimum-frame clips; broaden if longer clips lose too many frames.
+    if (sampling_fps is not None and not padding_frames
+            and selected_frames / fps * sampling_fps <= minimum_sampled_frames + 1e-9):
+        capture = cv2.VideoCapture(str(output_path))
+        try:
+            count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+            first_ok, _ = capture.read()
+            capture.set(cv2.CAP_PROP_POS_FRAMES, max(0, count - 1))
+            last_ok, _ = capture.read()
+        finally:
+            capture.release()
+        if count < minimum_sampled_frames or not (first_ok and last_ok):
+            repair = command[:command.index("-t")]
+            repair += ["-vf", f"trim=end_frame={selected_frames},setpts=N/({fps}*TB)",
+                       "-frames:v", str(selected_frames), "-r", str(fps),
+                       "-c:v", "mpeg4", "-q:v", "2", "-threads", "2", str(output_path)]
+            subprocess.run(repair, check=True, capture_output=True, text=True, timeout=300)
+            print(f"[media] Re-encoded undecodable short segment: {output_path}", flush=True)
     return str(output_path.resolve())
 
 

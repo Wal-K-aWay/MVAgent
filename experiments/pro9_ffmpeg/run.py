@@ -22,6 +22,7 @@ SIZE = os.environ.get('PRO_MODEL', '9B')
 SLUG = {'9B':'9b','27B':'27b','35B-A3B':'35b_a3b'}[SIZE]
 ROOT = Path('/runs/devbox') / {'9B':'pro9_ffmpeg_20261016', '27B':'pro9_ffmpeg_27b_20261016',
                               '35B-A3B':'pro9_ffmpeg_35b_20261016'}[SIZE]
+ROOT = Path(os.environ.get('PRO_RUN_ROOT', ROOT))
 MODEL = f'qwen3_5_{SLUG}_local'
 WEIGHTS = f'/weights/Qwen3.5-{SIZE}'
 SHARDS = 2 if SIZE=='9B' else 1
@@ -151,6 +152,8 @@ def worker(args):
     try:
         if args.smoke:
             chosen = [next(j for j in jobs if j['dataset']=='cvbench'), next(j for j in jobs if j['task']=='CCQA')]
+            if (ROOT/'smoke_ids.json').exists():
+                chosen = [next(j for j in jobs if j['sample_id']==sid) for sid in read(ROOT/'smoke_ids.json')]
             report = []
             for job in chosen:
                 runs = [one(job, ROOT / 'smoke' / job['sample_id'] / str(r)) for r in range(2)]

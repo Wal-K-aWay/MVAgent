@@ -152,7 +152,7 @@
     "mvagent/utils/snapshot.py": "3e5c0d739401806feb302838b0c19159449cb33a28319dff4863588c7a082cec",
     "mvagent/utils/tools.py": "0bc44b1e913adbffd4d85aa0e959f907415bea72da062df7aa773529c6225c08",
     "mvagent/utils/trace.py": "3343182ef0a45a6373f9d96485dcc19683321d7f4d588e801e243fb4e1b46442",
-    "mvagent/utils/media.py": "b64b0e3065be9b35a7e8be895a3688eafd0e705d3af6ab8c211aa3fc703854c5",
+    "mvagent/utils/media.py": "1149fe2d148c579cf414f4372358bb3cf5c8bb65c1fe85b4a302242c22d086b3",
     "mvagent/utils/__init__.py": "8e28ec99cb3e31c9fa97037d68e6f06ce0337535bde814b2b2a6ce375cf45135",
     "mvagent/utils/trajectory.py": "41413c5ba18f71c050bbcc637dcc74550f34cf176ed8c1b97a81612e09f704f1",
     "mvagent/agents/base.py": "df032b77739cac29dcde29677d959a6227f7b08c52ece4272def78ac0b2b59ab",
