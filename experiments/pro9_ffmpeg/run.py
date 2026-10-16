@@ -18,8 +18,13 @@ import urllib.request
 HERE = Path(__file__).resolve().parent
 CODE = HERE.parents[1]
 PANEL = Path('/runs/devbox/direct_answer_random_20261015')
-ROOT = Path('/runs/devbox/pro9_ffmpeg_20261016')
-MODEL = 'qwen3_5_9b_local'
+SIZE = os.environ.get('PRO_MODEL', '9B')
+SLUG = {'9B':'9b','27B':'27b','35B-A3B':'35b_a3b'}[SIZE]
+ROOT = Path('/runs/devbox') / {'9B':'pro9_ffmpeg_20261016', '27B':'pro9_ffmpeg_27b_20261016',
+                              '35B-A3B':'pro9_ffmpeg_35b_20261016'}[SIZE]
+MODEL = f'qwen3_5_{SLUG}_local'
+WEIGHTS = f'/weights/Qwen3.5-{SIZE}'
+SHARDS = 2 if SIZE=='9B' else 1
 FROZEN = PANEL / 'frozen_repo'
 
 
@@ -44,6 +49,35 @@ def sha(p):
 def prepare():
     import yaml
     if (ROOT / 'jobs.json').exists():
+        return
+    if SIZE!='9B':
+        original=Path('/runs/devbox/pro9_ffmpeg_20261016')
+        jobs=read(original/'jobs.json')
+        config=read(original/'base_config.json')
+        config=json.loads(json.dumps(config).replace('"qwen3_5_9b_local"',json.dumps(MODEL)))
+        config['models'][MODEL]['model_name']=WEIGHTS
+        assert set(config['models'])=={MODEL}
+        history=Path('/runs/devbox/mvagent_full_35b_parallel_20261015' if SIZE=='35B-A3B' else
+                     '/runs/devbox/mvagent_full_20261014_transport')/SIZE/'records'
+        def align(job):
+            source=(history/'crossvid'/job['sample_id']/'result.json' if job['task']=='CCQA' else
+                    PANEL/'historical'/SIZE/f"{job['sample_id']}.json")
+            raw=read(source)
+            assert raw['status']=='ok' and raw['result']['input']==job['inputs'],job['sample_id']
+            return dict(job,historical_prediction=raw['prediction'],source=str(source),source_sha256=sha(source))
+        with ThreadPoolExecutor(max_workers=8) as pool:jobs=list(pool.map(align,jobs))
+        assert len(jobs)==len({j['sample_id'] for j in jobs})==330
+        write(ROOT/'selection.json',read(original/'selection.json'))
+        write(ROOT/'base_config.json',config);write(ROOT/'jobs.json',jobs)
+        sys.path.insert(0,str(CODE/'src'))
+        from mvagent.configs import MVAgentConfig
+        parsed=MVAgentConfig.from_yaml(ROOT/'base_config.json')
+        assert all(ref.model_type==MODEL for _,_,ref in parsed.model_roles())
+        assert parsed.models[MODEL].model_name==WEIGHTS
+        write(ROOT/'preparation_manifest.json',dict(model=SIZE,source=str(original),
+            source_jobs_sha256=sha(original/'jobs.json'),selection_sha256=sha(original/'selection.json'),
+            policy='Same 330 inputs and PRO6000 9B src as the completed 9B experiment; change Actor weights only.'))
+        print('PREPARED',SIZE,len(jobs),flush=True)
         return
     selection = read(PANEL / 'selection.json')
     ccqa = read('/runs/devbox/mvagent_final_score_20261016/9B/score/ccqa_scores_official_qwen3_30b_a3b.json')
@@ -95,7 +129,7 @@ def worker(args):
     engine = MVAgentEngine(MVAgentConfig.from_yaml(config_path))
     engine.resolve_models()
     jobs = read(ROOT / 'jobs.json')
-    assigned = jobs[args.shard * 8 + args.rank::16]
+    assigned = jobs[args.shard * 8 + args.rank::8*SHARDS]
 
     def one(job, destination):
         bridge.sample_id = job['sample_id']; bridge.calls = []
@@ -126,12 +160,15 @@ def worker(args):
                     return [(c['response']['audit']['input_sha256'], c['response']['choices'][0]['token_ids']) for c in calls]
                 assert all(r['status']=='ok' for r in runs), runs
                 equal = trace(runs[0]) == trace(runs[1])
+                result_equal=all(runs[0]['result'][key]==runs[1]['result'][key]
+                                 for key in runs[0]['result'] if key!='time')
                 report.append({'sample_id':job['sample_id'],'equal':equal,'calls':len(runs[0]['call_files']),
+                               'result_equal_excluding_time':result_equal,
                                'answers':[r['prediction'] for r in runs]})
             write(ROOT / 'smoke.json', {'completed':True,'comparisons':report})
             return
         for i, job in enumerate(assigned):
-            destination = ROOT / '9B/records' / job['dataset'] / job['sample_id']
+            destination = ROOT / SIZE / 'records' / job['dataset'] / job['sample_id']
             if not (destination / 'result.json').exists():
                 one(job, destination)
             write(target / 'progress.json', {'finished':i+1,'total':len(assigned),'updated_at':now()})
@@ -149,14 +186,15 @@ def serve(args):
     actual = {str(p.relative_to(CODE/'src')):sha(p) for p in (CODE/'src').rglob('*') if p.is_file() and '__pycache__' not in p.parts}
     assert actual == source['experiment_sha256']
     write(target / 'manifest.json', {'at':now(),'source':source,'runner_sha256':sha(__file__),
-          'bridge_sha256':sha(HERE/'bridge.py'),'shard':args.shard,'ranks':8,'profile':'qwen35-bf16-flashinfer-sync',
+          'bridge_sha256':sha(HERE/'bridge.py'),'shard':args.shard,'ranks':8,'model':SIZE,'weights':WEIGHTS,
+          'profile':'qwen35-bf16-flashinfer-sync',
           'src_changes':['mvagent/utils/media.py'], 'transport':'response_format.json_schema.schema -> structured_outputs.json, same schema object; seed0/thinking-off/token logging'})
     processes, logs = [], []
     try:
         for rank in range(8):
             log = (target / f'server{rank}.log').open('a');logs.append(log)
             processes.append(subprocess.Popen([sys.executable,str(HERE/'backend/sync_server.py'),
-                 '--model','/weights/Qwen3.5-9B','--served-model-name',MODEL,
+                 '--model',WEIGHTS,'--served-model-name',MODEL,
                  '--port',str(8100+rank),'--log-dir',str(target/f'server{rank}')],
                  stdout=log,stderr=subprocess.STDOUT,env={**os.environ,'CUDA_VISIBLE_DEVICES':str(rank)}))
         write(target/'progress.json',{'phase':'loading','at':now()})
@@ -170,7 +208,7 @@ def serve(args):
                     with opener.open(f'http://127.0.0.1:{8100+rank}/v1/models',timeout=2) as response:
                         card=json.load(response)['data'][0]
                     backend.validate_card(card)
-                    assert card['id']==MODEL and card['root']=='/weights/Qwen3.5-9B'
+                    assert card['id']==MODEL and card['root']==WEIGHTS
                     ready[rank]=card
                 except (OSError,ValueError,KeyError):pass
             time.sleep(3)
@@ -191,6 +229,7 @@ def serve(args):
                 if time.monotonic()>deadline:raise TimeoutError('First shard smoke did not finish')
                 time.sleep(5)
         smoke=read(ROOT/'smoke.json');assert smoke['completed']
+        assert all(r['equal'] and r['result_equal_excluding_time'] for r in smoke['comparisons']),smoke
         write(target/'progress.json',{'phase':'inference','at':now(),'smoke':smoke})
         with ThreadPoolExecutor(max_workers=8) as pool:list(pool.map(run_rank,range(8)))
         write(target/'progress.json',{'phase':'completed','at':now()})
@@ -204,7 +243,7 @@ def serve(args):
             try:p.wait(timeout=30)
             except subprocess.TimeoutExpired:p.kill();p.wait()
         for log in logs:log.close()
-        (Path('/work/jobs')/f'pro9_ffmpeg_20261016_shard{args.shard}.pid').unlink(missing_ok=True)
+        (Path('/work/jobs')/f'{ROOT.name}_shard{args.shard}.pid').unlink(missing_ok=True)
 
 
 def main():
@@ -214,6 +253,7 @@ def main():
     parser.add_argument('--rank',type=int,default=0)
     parser.add_argument('--smoke',action='store_true')
     args=parser.parse_args()
+    assert 0<=args.shard<SHARDS and 0<=args.rank<8
     ROOT.mkdir(parents=True,exist_ok=True)
     {'prepare':lambda:prepare(),'serve':lambda:serve(args),'worker':lambda:worker(args)}[args.mode]()
 

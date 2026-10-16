@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import sys
 
-ROOT = Path('/runs/devbox/pro9_ffmpeg_20261016')
+from run import ROOT, SIZE, SHARDS
 FROZEN = Path('/runs/devbox/direct_answer_random_20261015/frozen_repo')
 sys.path[:0] = [str(FROZEN/'scripts'), str(FROZEN/'src'), str(FROZEN/'eval/e2e_eval')]
 import compare_direct_answer as core
@@ -29,11 +29,11 @@ def main():
     selection=core.read(ROOT/'selection.json')
     records=load_multibench_records('/assets',selection['closed_ids'])
     scorer,identity=build_official_scorer(records,{})
-    history={r['sample_id']:r for r in core.read(Path('/runs/devbox/pro6000_protocol_effects_20261016/9B_paired.json'))}
+    history={r['sample_id']:r for r in core.read(Path('/runs/devbox/pro6000_protocol_effects_20261016')/f'{SIZE}_paired.json')}
     rows=[];errors=[];calls=0;lengths=0;cache_hits=0;bad_requests=0
     diagnostics=[];workers=set();length_stages=Counter()
     for job in core.read(ROOT/'jobs.json'):
-        p=ROOT/'9B/records'/job['dataset']/job['sample_id']/'result.json'
+        p=ROOT/SIZE/'records'/job['dataset']/job['sample_id']/'result.json'
         if not p.exists():continue
         saved=core.read(p)
         if saved['status']!='ok':errors.append({'sample_id':job['sample_id'],'error':saved['error']});continue
@@ -87,7 +87,7 @@ def main():
     assert cache_hits==0
     if not args.partial:
         assert len(rows)==300 and len(diagnostics)==330 and not errors,(len(rows),len(diagnostics),errors)
-        assert len({gpu for pid,gpu in workers})==16
+        assert len({gpu for pid,gpu in workers})==8*SHARDS
     for dataset in ['cvbench','mvu_eval','crossvid']:
         group=[r for r in rows if r['dataset']==dataset]
         if not group:continue

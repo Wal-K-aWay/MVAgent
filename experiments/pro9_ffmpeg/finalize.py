@@ -7,7 +7,7 @@ import math
 from pathlib import Path
 import statistics
 
-from run import ROOT, read, write, sha, now
+from run import ROOT, SIZE, read, write, sha, now
 from judge import ARMS, SOURCE, REPORT
 
 
@@ -18,7 +18,7 @@ def main():
     assert set(jobs)=={r['sample_id'] for r in diagnostics}
     hashes={}
     for sid,job in jobs.items():
-        path=ROOT/'9B/records'/job['dataset']/sid/'result.json'
+        path=ROOT/SIZE/'records'/job['dataset']/sid/'result.json'
         row=read(path)
         assert row['status']=='ok' and row['result']['input']==job['inputs']
         hashes[sid]=sha(path)

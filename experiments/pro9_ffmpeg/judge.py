@@ -6,18 +6,19 @@ from pathlib import Path
 import subprocess
 import sys
 
-from run import ROOT, read, write, now, sha
+from run import ROOT, SIZE, SLUG, SHARDS, read, write, now, sha
 
 SOURCE = Path('/runs/devbox/mvagent_full_20261014_transport/frozen_repo')
 REPORT = 'score/ccqa_scores_official_qwen3_30b_a3b.json'
-ARMS = {'restored': ROOT/'9B', **{k: ROOT/f'{k}_reference' for k in
+ARMS = {'restored': ROOT/SIZE, **{k: ROOT/f'{k}_reference' for k in
         ['pro_agent', 'independent', 'e2e']}}
 
 
 def prepare():
     ids = read(ROOT/'selection.json')['ccqa_ids']
-    pro_path = Path('/runs/lightsail_outputs/mvagent/no_skill/qwen3_5_9b/score_ccqa_scores_official_deepseek_v4_flash.json')
-    old_path = Path('/runs/devbox/mvagent_final_score_20261016/comparison/9B.json')
+    pro_directory = 'qwen3_5_27b_mvagent' if SIZE=='27B' else f'qwen3_5_{SLUG}'
+    pro_path = Path('/runs/lightsail_outputs/mvagent/no_skill')/pro_directory/'score_ccqa_scores_official_deepseek_v4_flash.json'
+    old_path = Path('/runs/devbox/mvagent_final_score_20261016/comparison')/f'{SIZE}.json'
     pro = {f"crossvid:CCQA:{r['id']}": r['prediction'] for r in read(pro_path)['samples']}
     old = {r['sample_id']: r for r in read(old_path)['rows']}
     cache = ROOT/'ccqa_judge_cache'; cache.mkdir(exist_ok=True)
@@ -40,10 +41,10 @@ def prepare():
 
 
 def judge():
-    for shard in range(2):
+    for shard in range(SHARDS):
         assert read(ROOT/f'shard{shard}/progress.json')['phase']=='completed'
     for sid in read(ROOT/'selection.json')['ccqa_ids']:
-        assert read(ROOT/'9B/records/crossvid'/sid/'result.json')['status']=='ok'
+        assert read(ROOT/SIZE/'records/crossvid'/sid/'result.json')['status']=='ok'
     files = [SOURCE/'eval/agent_eval'/name for name in ['serve_ccqa_judge.sh','score_crossvid_ccqa.py']]
     write(ROOT/'judge_manifest.json', dict(at=now(), source_hashes={str(p):sha(p) for p in files},
         controller_sha256=sha(__file__),
