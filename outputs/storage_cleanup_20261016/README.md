@@ -12,7 +12,7 @@ Python bytecode are deleted without an archive. All data stays on Modal.
   `__pycache__` directories are removed.
 - Archive: `devbox/repro_expanded_session_20261012_r3/{agent,stress}`.
   Preserve every remaining file, directory and symbolic link in sibling
-  `agent.tar.gz` and `stress.tar.gz` archives before removing loose trees.
+  `agent.tar.zst` and `stress.tar.zst` archives before removing loose trees.
 - Redundant download: `/weights/AgentCVR-8B-original`. The existing
   `devbox/agentcvr_20261016/assets.json` records the original HF repository,
   exact revision and checksums. Actual H100 service command records must point
@@ -42,7 +42,7 @@ Machine-readable inventories, provenance and action records are retained at
 `devbox/storage_cleanup_20261016/` in the runs Volume.
 
 Archived paths must be restored before historical scripts expecting loose
-files can run. With the destination absent, use `tar -xzf <archive> -C /runs`.
+files can run. With the destination absent, use `tar --zstd -xf <archive> -C /runs`.
 The per-archive marker records its full path and checksum. Restore AgentCVR's
 original checkpoint from the pinned HF revision before rerunning the FSDP merger;
 the old preparation script's historical completion manifest is not proof that

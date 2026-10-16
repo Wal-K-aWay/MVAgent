@@ -65,7 +65,8 @@ def totals(rows):
 def compare(archive, base, source, expected):
     assert inventory(source) == expected, f'Source changed: {source}'
     # GNU tar compares every archived file's contents and link/metadata state.
-    subprocess.run(['tar', '--blocking-factor=2048', '--compare', '--gzip', '--file', str(archive),
+    subprocess.run(['tar', '--blocking-factor=2048', '--compare',
+                    '--use-compress-program=zstd', '--file', str(archive),
                     '--directory', str(base)], check=True)
     assert inventory(source) == expected, f'Source changed during comparison: {source}'
 
@@ -76,8 +77,9 @@ def self_test():
         (source / 'empty').mkdir()
         (source / 'data').write_bytes(b'original')
         (source / 'link').symlink_to('data')
-        before = inventory(source); archive = base / 'sample.tar.gz'
-        subprocess.run(['tar', '-czf', str(archive), '-C', str(base), 'sample'], check=True)
+        before = inventory(source); archive = base / 'sample.tar.zst'
+        subprocess.run(['tar', '--use-compress-program=zstd -T4 -1', '-cf', str(archive),
+                        '-C', str(base), 'sample'], check=True)
         compare(archive, base, source, before)
         old = (source / 'data').stat()
         (source / 'data').write_bytes(b'changed!')
@@ -133,19 +135,22 @@ def prepare():
         source = BASE / rel
         assert source.resolve() == BASE.resolve() / rel, source
         rows = inventory(source)
-        archive = source.with_name(source.name + '.tar.gz')
+        archive = source.with_name(source.name + '.tar.zst')
         partial = archive.with_name(archive.name + '.partial')
         assert not archive.exists(), archive
-        if partial.exists():
-            save(AUDIT / (source.name + '_interrupted_archive.json'),
-                 dict(bytes=partial.stat().st_size, source_totals=totals(rows),
-                      reason='Interrupted before verification; retry with 1 MiB tar records'))
+        discarded = []
+        for scratch in [partial, source.with_name(source.name + '.tar.gz.partial')]:
+            if not scratch.exists():
+                continue
+            discarded.append(dict(path=str(scratch), bytes=scratch.stat().st_size,
+                                  reason='Unverified temporary archive; original source retained'))
+            save(AUDIT / (source.name + '_interrupted_archives.json'), discarded)
             runs.commit()
-            partial.unlink()
+            scratch.unlink()
         print('ARCHIVING', rel, totals(rows), flush=True)
         # Default 10 KiB tar reads were measured at only about 15 MB/s on this Volume.
         proc = subprocess.Popen(['tar', '--blocking-factor=2048',
-                                 '--use-compress-program=gzip -1', '-cf', str(partial),
+                                 '--use-compress-program=zstd -T4 -1', '-cf', str(partial),
                                  '-C', str(BASE), rel])
         while proc.poll() is None:
             try:
@@ -187,7 +192,7 @@ def finalize():
         record = json.loads((AUDIT / (source.name + '.json')).read_text())
         assert record['source'] == rel
         archive = BASE / record['archive']
-        assert archive == source.with_name(source.name + '.tar.gz')
+        assert archive == source.with_name(source.name + '.tar.zst')
         assert archive.stat().st_size == record['archive_bytes']
         assert sha(archive) == record['archive_sha256']
         compare(archive, BASE, source, record['inventory'])
@@ -198,7 +203,7 @@ def finalize():
         source.with_name(source.name + '.ARCHIVED.md').write_text(
             f'Lossless archive: {archive}\nSHA256: {record["archive_sha256"]}\n'
             f'Restore only when this path is absent:\n'
-            f'`tar -xzf {archive} -C /runs`\n'
+            f'`tar --zstd -xf {archive} -C /runs`\n'
             f'Audit: {AUDIT}\n')
         actions.append(dict(action='archive', source=rel, **record['source_totals'],
                             archive_bytes=record['archive_bytes'],
@@ -243,7 +248,7 @@ def finalize():
     return result
 
 
-@app.function(image=modal.Image.debian_slim(), cpu=4, memory=4096, timeout=7200,
+@app.function(image=modal.Image.debian_slim().apt_install('zstd'), cpu=4, memory=4096, timeout=7200,
               volumes={'/runs': runs, '/weights': weights})
 def job(phase: str):
     if phase == 'test':
