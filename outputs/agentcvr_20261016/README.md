@@ -1,5 +1,7 @@
 # AgentCVR作者公开8B：CVBench / MVU-Eval
 
+**设置核对更正**：当前并非完全复现论文设置。论文temperature=0，公开代码默认及实际请求为0.5；当前8192是单次输出上限，总上下文40,960/131,072，不能等同于论文最大长度8192。统一改写CC System属于本项目跨benchmark适配。详见[逐项核对与真实请求证据](official_settings_audit.md)。本轮应称公开代码默认参数的适配评测。
+
 本轮只测试AgentCVR，不运行AdSeek或CrossVid。目标为CVBench的997道可测题（官方64–66三题媒体损坏单列）及MVU-Eval的1824题，共2821题。GPU预算已获用户授权：8张；实际配置为H200:8，每卡一套Master、视觉服务和按需Whisper，共8路独立答题。
 
 当前状态（2026-10-16 07:30 UTC）：r4已进入8路全量推理，10/2821有效：CVBench 3/4正确、MVU-Eval 4/6正确，均已终答，0基础设施错。70次模型调用（59 Master、11 Vision）HTTP错误/截断均0；官方Query、输入hash及输入/输出token数核对均0差异，审计留在first_batch_audit.json。07:31 UTC外部Volume读取确认继续增加至14/2821（CV4/6、MVU5/8，0基础设施错）；审计文件仍对应首10题。这是小样本进度，不是最终成绩。app ap-7RJFtaklNqyNCfLQyAEhRD，控制器PID2628400，container ta-01M51S0RZMQQ4B1SFP5VJCC6FR；实际阶段以Modal progress为准。
