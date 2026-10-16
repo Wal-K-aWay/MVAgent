@@ -62,4 +62,25 @@ mistakenly treat its historical download manifest as proof the files still exist
 
 ## Outcome
 
-Final deletion and external Volume verification are in progress.
+Deletion completed at 2026-10-16 09:18:44 UTC. Net reclaimed space against
+the original baseline is **32,836,417,279 bytes (32.84 GB)**:
+
+| Removed | Bytes | Regular files |
+|---|---:|---:|
+| Redundant original AgentCVR download | 32,780,680,913 | 58 |
+| Python bytecode | 55,736,366 | 6,035 |
+
+The self-created incomplete archive (3,781,165,056 bytes) was also removed;
+it is excluded from net savings. No compressed archive was retained. The
+Agent/stress trees and the shared NC80 video remain at their original paths.
+
+The final CPU application `ap-Ey3TT3nTWIx9KqX84r0Ok7` exited successfully.
+The retained merged weights matched all four recorded SHA256 checksums.
+An external Volume SDK read confirmed the completion record, absence of the
+original checkpoint and all temporary/finished archives, eight retained model
+directories, both original Agent/stress directories and the shared NC80 video.
+Final remote self-test: valid input, content-corruption rejection and path
+traversal rejection passed. Local AST parsing and `git diff --check` passed.
+Runs inode usage at the final job mount was 433,027 / 500,000 (86.6%);
+other experiments continue creating files, so this is a timestamped reading,
+not a promise of fixed remaining capacity.
