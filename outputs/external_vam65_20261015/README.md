@@ -2,6 +2,33 @@
 
 2026-10-15用户要求按当前设置后台继续：VAM扩为同一65题，汇总两个方法在三个benchmark上的分数、耗时和失败。新结果仅在Modal runs volume `devbox/external_vam65_20261015`。
 
+## 最终结果（2026-10-16核实）
+
+本轮于2026-10-15 21:19:34北京时间完成。Video-RSI复用65条成功结果；VAM65题全部尝试，64条成功返回并评分、1条无有效索引而失败。没有运行中或待评分题。原GPU Sandbox已正常退出（poll=0）。
+
+| 方法 | Benchmark | 已评分 / 计划 | 官方口径子集分 | 成功题平均 / 中位耗时（秒） | 运行失败 |
+|---|---|---:|---:|---:|---:|
+| Video-RSI | CrossVid | 19 / 19 | 35.72% | 371.84 / 222.29 | 0 |
+| Video-RSI | CVBench | 30 / 30 | 56.00% | 171.92 / 112.19 | 0 |
+| Video-RSI | MVU-Eval | 16 / 16 | 67.24% | 192.29 / 90.53 | 0 |
+| VAM | CrossVid | 19 / 19 | 15.00% | 463.59 / 231.71 | 0 |
+| VAM | CVBench | 30 / 30 | 7.45% | 531.16 / 383.90 | 0 |
+| VAM | MVU-Eval | 15 / 16 | 33.44% | 160.58 / 88.23 | 1 |
+
+分数按已评分样本计算，未将失败题填零。CrossVid为十类macro，CVBench/MVU为按任务全集题量加权的子集估计，不等于本面板的简单答对比例。按双方共同有评分的64题（Cross19/CV30/MVU15）复核，三项分数均不变。
+
+RSI推理批次墙钟48.63分钟；VAM75.81分钟。VAM连同模型启动、Judge和收尾共约83.78分钟，其中模型启动285.35秒、Judge启动155.10秒、评分4.50秒。两批分别用6/7个Actor，不能当作等资源吞吐对照。逐题平均/中位数只统计正常返回题，所有尝试累计耗时及失败耗时保留在原始JSON。
+
+唯一失败为`mvu_eval:TR:1586`：原VAM按0.5 fps从约10秒视频抽取5帧，时刻为0/2/4/6/8秒；5帧均被原模糊过滤器丢弃，保留帧数为0。当前评测入口据此将空索引判为失败，在4.36秒退出，尚未开始答题；不是HTTP超时，也不据此称视频损坏。按用户要求保持原阈值，不降低过滤强度或重新抽帧补跑。两方法均未记录聊天模型HTTP请求错误。
+
+本批VAM的主要时间消耗在索引/记忆构建：CrossVid平均332.33秒建库、127.23秒查询；CVBench473.63/54.49秒；MVU113.92/43.47秒。最慢NC80总2646.62秒，其中建库2582.27秒；CV722总2330.80秒，其中建库2284.74秒。建库包含抽帧、Embedding和记忆文本生成，不能把这部分都解释为CPU预处理或纯token解码。
+
+VAM的CVBench30题只有16条最终答案是单个选项字母；原RSI为30/30。自然语言回答会受官方提取规则影响，同时原记录中也有明确的选项错误。因此分差同时包含任务判断与答案交付因素，未做语义重判，不能量化两者各自贡献，也不能外推为原论文模型下的方法排名。所有原提示词、生成预算、温度、过滤器及评分结果保持不变。
+
+复核仅使用已有输出，未新增推理或Judge。`result_review.json`保留阶段耗时、答案形式描述、共同64题复核与例子；对应分析脚本为`eval/external_methods/experiments/20261015/review_vam65.py`。原始rollout、模型/源码/输入hash和逐题评分仍在Modal。
+
+## 运行范围与历史启动记录
+
 | Benchmark | Video-RSI题数 | 本轮VAM题数 |
 |---|---:|---:|
 | CrossVid | 19 | 19 |
@@ -16,7 +43,7 @@ Video-RSI复用已完成的`external_original_images_20261015/rsi`结果与评�
 
 资源为独立8×H100：7个VAM Actor副本与1个Embedding服务。RSI历史批次为6个Actor副本，整批墙钟不能直接当作等资源吞吐对照；报告同时给逐题平均/中位耗时、全部尝试累计时间及各批墙钟。启动、Judge和评分耗时另记。
 
-后台启动入口`eval/external_methods/experiments/20261015/launch_vam_expanded.py`运行在modal-gpu；CPU准备与报告检查通过后启动唯一GPU控制器。DEVBOX_NAME=`mvagent-external-vam65-20261015`，Sandbox=`sb-cxESrSjwJQniJVV2d3VIUD`，控制器PID41。host launcher PID2236680提交成功后退出。11:55:47 UTC（19:55:47北京时间）进入模型启动阶段；尚未产生本轮VAM最终分数。初估1–2小时，长视频与重试可能延长。
+后台启动入口`eval/external_methods/experiments/20261015/launch_vam_expanded.py`运行在modal-gpu；CPU准备与报告检查通过后启动唯一GPU控制器。DEVBOX_NAME=`mvagent-external-vam65-20261015`，Sandbox=`sb-cxESrSjwJQniJVV2d3VIUD`，原控制器PID41。host launcher PID2236680提交成功后退出。11:55:47 UTC（19:55:47北京时间）进入模型启动阶段，13:19:34 UTC（21:19:34北京时间）完成。
 
 控制器完成推理后自动停止Actor/Embedding，必要时启动本地Qwen3-30B-A3B-Instruct-2507给开放题评分，然后审计token与输入哈希并汇总。完成或异常均关闭模型，Sandbox在任务退出后由idle watchdog释放；不配置持续通知或巡检。
 
@@ -30,6 +57,6 @@ Video-RSI复用已完成的`external_original_images_20261015/rsi`结果与评�
 
 CrossVid为十类任务macro，CVBench/MVU按任务全集题量加权估计官方平均分。运行失败独立列出，不悄悄当作模型答错；正常返回但格式不合要求仍按官方规则评分。结果只代表这个开发面板，不是全量benchmark成绩。
 
-验证：CPU对新控制器语法检查通过，复用已完成数据实际执行报告生成并核验样本数；媒体manifest、VAM/Actor/Embedding实现SHA与已验收版本一致。新七路并行的实际启动与首批结果另行记录。
+验证：CPU对新控制器语法检查通过，复用已完成数据实际执行报告生成并核验样本数；媒体manifest、VAM/Actor/Embedding实现SHA与已验收版本一致。七路并行已完成全批，成功响应均通过输入hash与完整token审计。
 
-启动确认：模型加载285.35秒，20:00:33北京时间进入推理。7个Actor均为不同H100、固定TP1/C1且prefix cache关闭，Embedding默认像素上限1843200。确认时VAM已4/65成功、0运行失败；首题MVU TR1585返回B、46.80秒，3条实际响应的输入hash与完整token审计通过。`startup_verification.json`保存证据；`code_backup.json`记录源码备份commit a1c39e8及9个相关源码SHA的逐一核对。后台继续，不进行持续监控；后续实际状态以远端progress与最终报告为准。
+启动确认历史：模型加载285.35秒，20:00:33北京时间进入推理。7个Actor均为不同H100、固定TP1/C1且prefix cache关闭，Embedding默认像素上限1843200。当时VAM已4/65成功、0运行失败；首题MVU TR1585返回B、46.80秒，3条实际响应的输入hash与完整token审计通过。`startup_verification.json`保存证据；`code_backup.json`记录源码备份commit a1c39e8及9个相关源码SHA的逐一核对。最终状态以上方结果及远端final_summary.json为准。
