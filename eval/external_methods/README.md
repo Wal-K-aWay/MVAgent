@@ -1,6 +1,6 @@
 # Video-RSI / LensWalk：本地 Qwen 评测
 
-2026-10-16 用户明确退役 VAM，删除其活动适配器、独立视觉 embedding 服务/下载器、补丁及过时运行入口；保留历史原始答案、评分、报告和冻结实验快照。当前新工作是 LensWalk 接入本地 Qwen3.5-35B-A3B 的小规模端到端验证，AVP/AgentCVR 尚未接入，MetaVideoAgent 不测。
+2026-10-16 用户明确退役 VAM，删除其活动适配器、独立视觉 embedding 服务/下载器、补丁及过时运行入口；保留历史原始答案、评分、报告和冻结实验快照。LensWalk 已完成本地 Qwen3.5-35B-A3B 的小规模接入验证，并按用户要求提交三 benchmark 完整评测（CV997/MVU1824/CrossVid2500）。AVP/AgentCVR 尚未接入，MetaVideoAgent 不测。
 
 ## VAM 清理
 
@@ -29,6 +29,8 @@
 
 有效结果为`devbox/external_lenswalk_20261016_r3`，此前两轮接口失败原件保留。实验GPU已释放，开放题未启动Judge。逐题输出、分数、耗时、设置与局限见[完整报告](../../outputs/external_lenswalk_20261016/README.md)。
 
+全量任务目录为 `devbox/lenswalk_full_35b_20261016`，使用8个独立H100副本及固定题目清单，自动续跑并在推理后评分。当前仍待调度，不能把提交当作完成；[运行说明](../../outputs/lenswalk_full_35b_20261016/README.md)。
+
 ## Video-RSI 保留的设置
 
 原版8192规划/视觉输出token、11步、64次服务调用、256帧、temperature=0、串行抽帧宽768保持比例、provider重试1次；仅本地HTTP等待为用户确认的600秒。保留通用非空答案适配、原生多视频拼接及两位小数时间说明；Modal没有Landlock，candidate seccomp与外层Sandbox保留。完整原始配置/源文件哈希见 `upstream_settings.json`。
@@ -40,6 +42,7 @@
 - `freeze.py`：冻结源码、源版本与补丁。旧结果的恢复只使用旧冻结源码。
 - `prepare.py --selection ...`：使用已有选择清单，拼接媒体并生成题目和时间轴。
 - `run_batch.py rsi|lenswalk ...`：一题固定一个副本；LensWalk通过 `--client-python` 指定独立3.11客户端。
+- `lenswalk_full.py`：完整5321题、媒体复用、逐题原始归档、断点续跑和官方评分；结果类型单列未收尾与基础设施失败。
 - `score.py`：原始答案落盘后使用官方评分；缺少Judge的开放题显式待评，运行失败单列。
 - `experiments/20261016/lenswalk_smoke.py`：本轮CPU准备及GPU小测；`test_lenswalk_transport.py`检查原生工具参数、开放答案和API缺省规则。
 
