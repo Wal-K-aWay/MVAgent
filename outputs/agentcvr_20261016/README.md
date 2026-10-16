@@ -8,7 +8,7 @@
 - 冻结代码2596390，app ap-BkD0GPDeVjShel9RbVuh7m，GPU container ta-01M51VC1QV1YCMM0FJP5XZGGPR。
 - 结果devbox/agentcvr_eval_h100_20261016；控制器PID2652001，日志agentcvr-eval-h100-20261016.log。
 - inputs、Agent System和资产manifest与H200逐SHA相同，审计hardware_migration_audit.json已保存。
-- 首套Master＋Vision已在同一张H100启动，Whisper已加载并实际调用；正在完成两个benchmark各一道首测，随后加载其余副本进入8路全量。尚未给出H100最终成绩。
+- 08:03 UTC首套Master＋Vision＋Whisper同卡验证通过：CV363答A/80.185秒，MVU KIR377答C/195.403秒，官方均正确。17模型调用（16 Master＋1 Vision，含64帧视觉观察），HTTP错/截断/题面差异/token长度差异均0；证据smoke_completed.json及smoke_audit.json。当前2/2821有效、3/16模型服务就绪，继续加载其余副本后8路全量；尚未给出H100最终成绩。独立Luna检查本会话结束，远端控制器继续，不承诺会话外15分钟独立巡检。
 
 以下是此前H200阶段的记录；费用与准确率快照均不作为H100测量结果。
 
