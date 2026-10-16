@@ -7,6 +7,7 @@ import logging
 import os
 from pathlib import Path
 import random
+import shutil
 import signal
 import subprocess
 import sys
@@ -68,7 +69,41 @@ def protocol_prompt():
     return prompt.replace(original, 'The final_answer field must follow the answer format specified in the Query.')
 
 
-def prepare(output):
+def inherit_results(output, source, items):
+    old = read(source / 'manifest.json')
+    assert sha256(source / 'items.json') == old['input_sha256'] == sha256(output / 'items.json')
+    for name in ('agent_system.prompt', 'assets_manifest.json', 'private_labels.json'):
+        assert sha256(source / name) == sha256(output / name), name
+    by_id = {x['sample_id']: x for x in items}
+    records = {read(p)['sample_id']: read(p) for p in (source / 'records').glob('*.json')}
+    failed = [sid for sid, row in records.items() if row['status'] == 'infrastructure_error']
+    # Rank 1's first uncommitted question is the observed 320-frame OOM case.
+    interrupted = next(x['sample_id'] for x in items[1::8] if x['sample_id'] not in records)
+    anchor = next(x['sample_id'] for x in items if x['dataset'] == 'cvbench')
+    checks = list(dict.fromkeys([anchor, interrupted] + failed))
+    copied = {}
+    for sid, row in records.items():
+        if sid in checks or row['status'] == 'infrastructure_error':
+            continue
+        name = sid.replace(':', '_') + '.json'
+        raw = source / 'raw' / name
+        assert sha256(raw) == row['raw_sha256'], sid
+        assert row['input_sha256'] == hashlib.sha256(json.dumps(by_id[sid], sort_keys=True).encode()).hexdigest(), sid
+        for kind in ('raw', 'records'):
+            original = source / kind / name
+            target = output / kind / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(original, target)
+            assert sha256(target) == sha256(original), str(target)
+        copied[sid] = row['raw_sha256']
+    write(output / 'smoke_ids.json', checks)
+    write(output / 'recovery_manifest.json', dict(source=str(source),
+        source_manifest_sha256=sha256(source / 'manifest.json'), inherited=copied,
+        smoke_ids=checks, retry_infrastructure_errors=failed, interrupted_sample=interrupted,
+        policy='Preserve old run; copy verified non-infrastructure results; rerun one anchor and affected cases.'))
+
+
+def prepare(output, resume_from=None):
     output.mkdir(parents=True, exist_ok=True)
     items, labels = official_inputs()
     inputs = output / 'items.json'
@@ -98,13 +133,20 @@ def prepare(output):
         master='author released Qwen3-8B RL; differs from paper Qwen3-VL description',
         vision='Qwen3-VL-8B-Thinking', audio='Whisper large-v3', gpu='H100!:8',
         replicas=8, max_turns=20, temperature=.5, max_tokens=8192, seed=0, question_timeout_seconds=3600,
+        gpu_memory_utilization={'master': .29, 'vision': .50},
+        transport_adaptation='tool_call_id and lossless text envelope for upstream tool error objects',
         benchmark_prompts='Verbatim CVBench mvr_doc_to_text; MVU question/instruction/options original order',
         protocol_adaptation='CC role paragraph removed; video-index bound generalized; final format follows Query',
         media='Original independent videos/time axes; upstream decord sampling/JPEG/longest edge360; audio enabled',
         excluded=['cvbench:64', 'cvbench:65', 'cvbench:66'],
         assets_sha256={p: sha256(Path('/assets') / p) for p in
                        ('cvbench/QAs.json', 'mvu-eval/MVU_Eval_QAs.json')}))
-    write(output / 'progress.json', dict(phase='prepared', completed=0, expected=2821))
+    write(output / 'smoke_ids.json', [next(x['sample_id'] for x in items if x['dataset'] == dataset)
+                                     for dataset in ('cvbench', 'mvu_eval')])
+    if resume_from is not None:
+        inherit_results(output, resume_from, items)
+    write(output / 'progress.json', dict(phase='prepared', expected=2821,
+        completed=len(list((output / 'records').glob('*.json')))))
 
 
 def summarize(output):
@@ -160,8 +202,9 @@ def run(output, smoke_only=False):
     try:
         progress('starting_models', ready_servers=0)
         for rank in range(1 if smoke_only else 8):
+            # Master needs 40,960 tokens, not the old 82,800-token cache; reserve room for vision + Whisper.
             for kind, name, port, memory, length in [
-                ('master', 'AgentCVR-8B-merged', 8100+rank*2, '.35', '40960'),
+                ('master', 'AgentCVR-8B-merged', 8100+rank*2, '.29', '40960'),
                 ('vision', 'Qwen3-VL-8B-Thinking', 8101+rank*2, '.50', '131072')]:
                 command = [sys.executable, '-m', 'vllm.entrypoints.openai.api_server',
                     '--model', '/weights/'+name, '--served-model-name', 'agentcvr-'+kind,
@@ -205,7 +248,11 @@ def run(output, smoke_only=False):
                     stderr=subprocess.STDOUT, start_new_session=True))
         while any(proc.poll() is None for proc in workers):
             if any(proc.poll() not in (None, 0) for proc in workers) or any(proc.poll() is not None for proc in processes):
-                raise RuntimeError('A worker or model server exited unexpectedly')
+                exited = {f'worker{rank}': proc.poll() for rank, proc in enumerate(workers)
+                          if proc.poll() not in (None, 0)}
+                exited.update({f'{rank//2}-{("master", "vision")[rank%2]}': proc.poll()
+                               for rank, proc in enumerate(processes) if proc.poll() is not None})
+                raise RuntimeError(f'Processes exited unexpectedly: {exited}; logs: {episode}')
             totals = summarize(output)
             write(output / 'progress.json', dict(phase='inference', expected=2821,
                 completed=sum(x['completed'] for x in totals.values()), datasets=totals, updated=time.time()))
@@ -232,9 +279,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('mode', choices=['prepare', 'run', 'smoke', 'score'])
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--resume-from', type=Path)
     args = parser.parse_args()
     if args.mode == 'prepare':
-        prepare(args.output)
+        prepare(args.output, args.resume_from)
     elif args.mode == 'score':
         print(json.dumps(summarize(args.output)), flush=True)
     else:

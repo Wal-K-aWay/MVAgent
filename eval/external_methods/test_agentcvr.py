@@ -7,7 +7,59 @@ import tempfile
 from unittest.mock import patch
 
 from agentcvr_eval import official_inputs, protocol_prompt
-from agentcvr_worker import redact_images
+from agentcvr_worker import redact_images, prepare_request
+
+
+def check_tool_error_transport():
+    from vllm.entrypoints.openai.chat_completion.protocol import ChatCompletionRequest
+    error = {'error': 'Missing observation_targets'}
+    request = {'model': 'agentcvr-master', 'messages': [
+        {'role': 'user', 'content': 'Inspect video 1.'},
+        {'role': 'tool', 'content': [error]}], 'temperature': .5, 'max_tokens': 8192}
+    original = copy.deepcopy(request)
+    normalized = prepare_request(request)
+    assert request == original
+    content = normalized['messages'][-1]['content']
+    assert content == [{'type': 'text', 'text': json.dumps(error, ensure_ascii=False)}]
+    assert normalized['temperature'] == .5 and normalized['max_tokens'] == 8192
+    validated = ChatCompletionRequest.model_validate(normalized)
+    assert list(validated.messages[-1]['content'])[0]['type'] == 'text'
+    valid = copy.deepcopy(normalized)
+    assert prepare_request(valid) == valid
+
+
+def check_recovery_preservation():
+    import hashlib
+    import agentcvr_eval as driver
+    with tempfile.TemporaryDirectory() as directory:
+        source, target = Path(directory) / 'old', Path(directory) / 'new'
+        items = [{'sample_id': sid, 'dataset': sid.split(':')[0]} for sid in
+                 ['cvbench:1', 'mvu_eval:Counting:2', 'cvbench:3', 'mvu_eval:ICL:4']]
+        for root in (source, target):
+            driver.write(root / 'items.json', items)
+            driver.write(root / 'assets_manifest.json', {'identity': 'same'})
+            driver.write(root / 'private_labels.json', {})
+            (root / 'agent_system.prompt').write_text('unchanged')
+        driver.write(source / 'manifest.json', {'input_sha256': driver.sha256(source / 'items.json')})
+        for index in (0, 2, 3):
+            item = items[index]; sid = item['sample_id']; name = sid.replace(':', '_') + '.json'
+            raw = source / 'raw' / name
+            driver.write(raw, {'sample_id': sid, 'answer': 'A'})
+            driver.write(source / 'records' / name, dict(sample_id=sid,
+                status='infrastructure_error' if index == 3 else 'answered',
+                input_sha256=hashlib.sha256(json.dumps(item, sort_keys=True).encode()).hexdigest(),
+                raw_sha256=driver.sha256(raw)))
+        driver.inherit_results(target, source, items)
+        assert {p.name for p in (target / 'records').glob('*.json')} == {'cvbench_3.json'}
+        assert driver.read(target / 'smoke_ids.json') == [x['sample_id'] for x in (items[0], items[1], items[3])]
+        assert driver.sha256(source / 'raw/cvbench_3.json') == driver.sha256(target / 'raw/cvbench_3.json')
+        (source / 'raw/cvbench_3.json').write_text('corrupt')
+        try:
+            driver.inherit_results(target, source, items)
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError('Recovery accepted a corrupt raw result')
 
 
 def check_smoke_launch():
@@ -32,6 +84,8 @@ def check_smoke_launch():
 
 def main():
     check_smoke_launch()
+    check_tool_error_transport()
+    check_recovery_preservation()
     items, labels = official_inputs()
     assert len(items) == 2821
     assert not any('answer' in x or 'ground_truth' in x or 'row' in x for x in items)

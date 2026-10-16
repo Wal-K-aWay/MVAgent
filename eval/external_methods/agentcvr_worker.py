@@ -31,6 +31,23 @@ def redact_images(value):
     return value
 
 
+def prepare_request(body):
+    body = copy.deepcopy(body)
+    for index, message in enumerate(body.get('messages', [])):
+        if message['role'] != 'tool':
+            continue
+        message.setdefault('tool_call_id', f'observation_{index}')
+        content = message.get('content')
+        if isinstance(content, list):
+            # The upstream missing-target error lacks OpenAI's text-block envelope.
+            message['content'] = [
+                {'type': 'text', 'text': json.dumps(part, ensure_ascii=False)}
+                if isinstance(part, dict) and set(part) == {'error'} else part
+                for part in content]
+    body.update(seed=0, return_token_ids=True)
+    return body
+
+
 def record_result(output, destination, result):
     calls = result['calls']
     usage = {key: sum(call.get('response', {}).get('usage', {}).get(key, 0) for call in calls)
@@ -61,13 +78,8 @@ def main():
     calls = []
 
     def audited_post(url, **kwargs):
-        body = copy.deepcopy(kwargs['json'])
-        original_sha = hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()
-        # OpenAI requires an identifier; Qwen's chat template ignores this field.
-        for index, message in enumerate(body.get('messages', [])):
-            if message['role'] == 'tool':
-                message.setdefault('tool_call_id', f'observation_{index}')
-        body.update(seed=0, return_token_ids=True)
+        original_sha = hashlib.sha256(json.dumps(kwargs['json'], sort_keys=True).encode()).hexdigest()
+        body = prepare_request(kwargs['json'])
         kwargs['json'] = body
         entry = {'url': url, 'request': redact_images(body), 'original_request_sha256': original_sha,
                  'request_sha256': hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()}
@@ -93,7 +105,8 @@ def main():
     executor = AgentExecutor(QwenModel(prompt_config=prompt), prompt_config=prompt)
     items = json.loads((args.output / 'items.json').read_text())
     if args.smoke:
-        items = [next(x for x in items if x['dataset'] == dataset) for dataset in ('cvbench', 'mvu_eval')]
+        by_id = {x['sample_id']: x for x in items}
+        items = [by_id[sid] for sid in json.loads((args.output / 'smoke_ids.json').read_text())]
     else:
         items = items[args.rank::8]
     for item in items:
@@ -105,6 +118,7 @@ def main():
             continue
         assert set(item) == {'sample_id', 'dataset', 'query', 'videos', 'system'}
         calls.clear()
+        print(json.dumps({'sample_id': sid, 'rank': args.rank, 'phase': 'starting'}), flush=True)
         started = time.monotonic()
         signal.alarm(3600)
         result = {'sample_id': sid, 'rank': args.rank, 'status': 'running', 'answer': '',
