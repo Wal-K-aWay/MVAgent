@@ -2,7 +2,7 @@
 
 本轮只测试AgentCVR，不运行AdSeek或CrossVid。目标为CVBench的997道可测题（官方64–66三题媒体损坏单列）及MVU-Eval的1824题，共2821题。GPU预算已获用户授权：8张；实际配置为H200:8，每卡一套Master、视觉服务和按需Whisper，共8路独立答题。
 
-当前状态：权重准备完成，CPU官方提示/输入隔离检查通过；已提交控制器进行新的冻结准备和GPU运行，尚无准确率结果。运行中以Modal的progress为准，不能把本文件的提交时间当作实验完成时间。
+当前状态：权重准备完成，CPU官方提示/输入隔离检查通过；初次8H200启动因vLLM日志参数改名失败，0模型响应，原目录保留。参数已修复为--no-enable-log-requests，新运行r3已提交（app ap-u27XrY5LDdboBmYCdFHBXO，控制器PID2622332），尚无准确率结果。运行中以Modal的progress为准，不能把本文件的提交时间当作实验完成时间。
 
 ## 模型及方法身份
 
@@ -32,8 +32,9 @@ CVBench调用官方正则评分；MVU-Eval使用官方首字符评分，同时�
 
 - `devbox/agentcvr_20261016/assets.json`、原失败及torch2.8成功合并日志。
 - `devbox/agentcvr_eval_20261016/`：第一次CPU准备，通过提示契约但未进行GPU推理。
-- `devbox/agentcvr_eval_20261016_r2/`：实际控制器目标，frozen_source.tar.gz、manifest、items、private_labels、raw、records、scores与progress。
+- `devbox/agentcvr_eval_20261016_r2/`：首次模型服务CLI参数失败，0响应；保留冻结源码和失败日志。
+- `devbox/agentcvr_eval_20261016_r3/`：当前控制器目标，冻结代码d651a7a；frozen_source.tar.gz、manifest、items、private_labels、raw、records、scores与progress。
 
-modal-gpu控制器日志 `~/wxu-evolve-agent/devbox/agentcvr-eval-20261016.log`，PID文件同名前缀。源码在独立 `agentcvr_repo`，不修改其他会话的活动服务。独立Luna代理每15分钟只读检查；其存活仅限当前会话，不等于无人值守承诺。
+modal-gpu控制器日志 `~/wxu-evolve-agent/devbox/agentcvr-eval-20261016-r3.log`，PID文件同名前缀。源码在独立 `agentcvr_repo`，不修改其他会话的活动服务。独立Luna代理每15分钟只读检查；其存活仅限当前会话，不等于无人值守承诺。
 
 CPU验证已经通过：2821条官方输入、130道CV Yes/No指令、标签隔离、传输tool_call_id的token等价，以及完整项目语法编译。GPU实际输出、最终有效样本数、分数和耗时待实验产生后补充。
