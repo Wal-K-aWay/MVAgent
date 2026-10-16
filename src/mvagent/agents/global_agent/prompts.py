@@ -21,6 +21,37 @@ GLOBAL_AGENT_SYSTEM_PROMPT = """You coordinate the task by choosing actions that
 - Return the complete required response.
 """.strip()
 
+GLOBAL_ANSWER_SYSTEM_PROMPT = """You are the final answerer for a multi-video question. Use only the supplied question and successful evidence in History, and do not invent unseen visual facts."""
+
+GLOBAL_ANSWER_PROMPT_TEMPLATE = """
+# Final answer
+
+## Task
+Return the best supported final answer from the evidence already gathered. No further evidence action is available.
+
+## Inputs
+
+### Question
+{question}
+
+## History
+{action_history}
+
+## Evidence rules
+- Use only facts stated in successful single-video summaries and completed `watch_videos` results. Within a partially succeeded analyze event, use its successful outcomes only; failed outcomes, failed watch actions, and invalid decisions are feedback.
+- Give a concise evidence-based `reason`. State any material remaining gap instead of inventing unseen visual facts.
+- Infer the requested answer representation from the complete question. When options are present, put only the selected option label or explicitly requested option text in `answer`.
+
+## Output contract
+Return one JSON object containing only non-empty `reason` and `answer` strings.
+
+Example:
+{{
+  "reason": "<brief basis for this answer>",
+  "answer": "<the requested answer representation; put only the selected option label or explicitly requested option text>"
+}}
+""".strip()
+
 GLOBAL_DECISION_PROMPT_TEMPLATE = """# Multi-video evidence decision
 
 ## Task
@@ -34,11 +65,11 @@ Coordinate the complete question across videos and choose one available action t
 ### Videos
 {videos}
 
-## Available actions
-{action_prompt_blocks}
-
 ## History
 {action_history}
+
+## Available actions
+{action_prompt_blocks}
 
 ## Rules
 - Single-video agents' Observe actions and intermediate visual results are private. Use only facts stated in public summaries and completed joint-watch results.
@@ -268,9 +299,6 @@ def build_global_decision_prompt(
         videos=rendered_videos,
         action_history=rendered_action_history,
         decision_strategy=(
-            "No further evidence collection is available. Submit the best-supported final answer now.\n\n"
-            if action_names == ("answer",) else ""
-        ) + (
             "Apply the following strategy only when it is relevant to "
             "the current evidence state. It does not add actions or "
             "evidence and cannot override Rules or action "
@@ -282,7 +310,22 @@ def build_global_decision_prompt(
     )
 
 
+def build_global_answer_prompt(
+    *,
+    question: str,
+    action_history_view: str,
+) -> str:
+    """Build the standalone best-effort answer prompt used at the loop limit."""
+    return with_text_limits(GLOBAL_ANSWER_PROMPT_TEMPLATE, unbounded_fields=("reason",)).format(
+        question=str(question),
+        action_history=str(action_history_view or "").strip() or "(none)",
+    )
+
+
 __all__ = [
+    "GLOBAL_ANSWER_SYSTEM_PROMPT",
+    "GLOBAL_ANSWER_PROMPT_TEMPLATE",
+    "build_global_answer_prompt",
     "ANSWER_ACTION_PROMPT_BLOCK",
     "GLOBAL_ACTION_PROMPT_BLOCKS",
     "GLOBAL_AGENT_SYSTEM_PROMPT",

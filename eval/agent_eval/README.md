@@ -1,5 +1,7 @@
 # MVAgent benchmark evaluation
 
+Global 主动选择 `answer` 时在同一决策中直接提交 `parameters.answer`；循环耗尽才调用独立回答器，输入为原问题和已保留的公开 History，返回 `reason/answer`。两条路径均保持开放非空答案、2048 输出 token、终答 reason 无字符硬限。决策 System 保留当前指导规则，User 顺序为 Question→Videos→History→Available actions；视频裁剪仍用 FFmpeg。已有运行使用冻结源码，不热更新；新运行另建目录。
+
 Install the project dependencies first: `python -m pip install -r requirements.txt`
 from the repository root; see [installation instructions](../../README.md).
 

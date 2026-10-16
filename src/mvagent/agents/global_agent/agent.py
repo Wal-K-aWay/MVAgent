@@ -19,9 +19,12 @@ from mvagent.utils.tools import json_safe
 from .memory import GlobalAgentMemory
 from .prompts import (
     GLOBAL_AGENT_SYSTEM_PROMPT,
+    GLOBAL_ANSWER_SYSTEM_PROMPT,
+    build_global_answer_prompt,
     build_global_decision_prompt,
 )
 from .schema import (
+    GLOBAL_ANSWER_SCHEMA,
     available_global_action_names,
     build_global_decision_schema,
 )
@@ -132,14 +135,14 @@ class GlobalAgent(BaseAgent):
             raw_response=raw_response,
         )
 
-    def decide(self, *, answer_only: bool = False) -> dict[str, Any]:
+    def decide(self) -> dict[str, Any]:
         """Return one validated decision or recoverable invalid attempt.
 
         Returns:
             An ``ok`` attempt containing ``decision``, or an ``invalid``
             attempt containing stable failure feedback.
         """
-        result = self._request_decision(answer_only=answer_only)
+        result = self._request_decision()
         if result.get("status") != "ok":
             attempt: dict[str, Any] = {
                 "status": "invalid",
@@ -163,9 +166,9 @@ class GlobalAgent(BaseAgent):
             }
         return {"status": "ok", "decision": validated}
 
-    def _request_decision(self, *, answer_only: bool = False) -> dict[str, Any]:
+    def _request_decision(self) -> dict[str, Any]:
         """Ask the Planner for one structured decision."""
-        available_action_names = ("answer",) if answer_only else available_global_action_names(
+        available_action_names = available_global_action_names(
             watch_videos_available=(
                 len(self.video_ids) >= 2
                 and len(self.video_metadata) == len(self.video_ids)
@@ -225,6 +228,23 @@ class GlobalAgent(BaseAgent):
             ),
             schema_name="global_decision",
         )
+
+    def answer(self) -> dict[str, Any]:
+        """Make a best-effort final answer after the decision loop ends."""
+        result = self.decide_json(
+            build_global_answer_prompt(
+                question=self.question,
+                action_history_view=self.memory.render_action_history(),
+            ),
+            json_schema=GLOBAL_ANSWER_SCHEMA,
+            schema_name="global_answer",
+            system_prompt=GLOBAL_ANSWER_SYSTEM_PROMPT,
+        )
+        if result.get("status") == "ok":
+            value = result["value"]
+            value["reason"] = value["reason"].strip()
+            value["answer"] = value["answer"].strip()
+        return result
 
     def _validate_decision(
         self,

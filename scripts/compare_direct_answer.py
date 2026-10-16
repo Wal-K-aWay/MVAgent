@@ -203,7 +203,9 @@ def analyze_model(output, model, report_root=None):
             continue
         new = read(path)
         assert old['sample_id'] == new['sample_id'] == sid
-        assert not any(e.get('schema') == 'global_answer' for e in new.get('events',[]))
+        if any(e.get('schema') == 'global_answer' for e in new.get('events',[])):
+            assert new['result']['answer']['status'] == 'forced_with_gaps'
+            assert any(t['action'] == 'terminal_answer' for t in new['result']['trajectory'])
         for e in new.get('events', []):
             if e['kind'] == 'model_response':
                 assert e['usage']['prompt_tokens_details']['cached_tokens'] == 0

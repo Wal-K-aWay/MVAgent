@@ -200,7 +200,18 @@ GLOBAL_DECISION_SCHEMA: dict[str, Any] = build_global_decision_schema(
     _GLOBAL_ACTION_PARAMETER_SCHEMAS
 )
 
+GLOBAL_ANSWER_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["reason", "answer"],
+    "properties": {
+        "reason": text_schema("reason", bounded=False),
+        "answer": text_schema("answer"),
+    },
+}
+
 __all__ = [
+    "GLOBAL_ANSWER_SCHEMA",
     "GLOBAL_DECISION_SCHEMA",
     "available_global_action_names",
     "build_global_decision_schema",

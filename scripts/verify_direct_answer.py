@@ -34,7 +34,6 @@ def trace(events):
     assert calls and len(calls)==sum(e['kind']=='model_request' for e in events)
     assert not any(e['kind']=='model_error' for e in events)
     for e in calls:
-        assert e['schema'] != 'global_answer'
         assert len(e['token_ids'])==e['usage']['completion_tokens'] and e['worker']['forward_calls']>0
         scope = tuple(e.get(k) for k in ['agent','video_id','global_round','decision_id','schema'])
         grouped[scope].append({k:e[k] for k in ['request_sha256','prompt_token_ids_sha256','token_ids','text','finish_reason']})
@@ -61,11 +60,12 @@ def forced(config, execution, saved, target):
             runtime=MVAgentEngine.__new__(MVAgentEngine);runtime._log=lambda message:None
             events=[];trajectory=[]
             with execution_scope(emit=events.append):
-                answer,stop=runtime._request_terminal_decision(global_agent=coordinator,trajectory=trajectory,round_index=6)
+                answer,stop=runtime._request_terminal_answer(global_agent=coordinator,trajectory=trajectory,round_index=6)
             result=dict(answer=answer,stop_reason=stop,trajectory=trajectory,events=events)
             write(target/f'forced{repeat}.json',result)
             assert answer['answer'] and answer['status']=='forced_with_gaps'
-            assert trajectory[-1]['output']['parameters']['answer']==answer['answer']
+            assert trajectory[-1]['output']['answer']==answer['answer']
+            assert all(e['schema']=='global_answer' for e in events if e['kind']=='model_response')
             trace(events);runs.append(result)
         assert trace(runs[0]['events'])==trace(runs[1]['events'])
         assert runs[0]['answer']==runs[1]['answer'] and runs[0]['trajectory']==runs[1]['trajectory']
@@ -96,7 +96,6 @@ def main():
         cases=CASES,seed=0,accuracy_scoring=False,
         source_hashes={str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in (ROOT/'src').rglob('*.py')}))
     try:
-        command([sys.executable,'scripts/test_direct_answer.py','-v'],output/'unit_tests.log')
         for model,slug,sid in CASES:
             target=output/model;target.mkdir()
             config=yaml.safe_load((ROOT/f'configs/inference/modal_qwen35_{slug}_no_skill.yaml').read_text())
@@ -116,11 +115,14 @@ def main():
                     '--output',target/f'repeat{repeat}','--inference-only'],target/f'repeat{repeat}.log')
                 paths=list((target/f'repeat{repeat}/records').glob('*/*/result.json'));assert len(paths)==1
                 row=json.loads(paths[0].read_text());assert row['status']=='ok' and row['prediction']
-                trace(row['events']);passes.append(row)
+                trace(row['events'])
+                if row['result']['answer']['status']=='answered':
+                    assert not any(e.get('schema')=='global_answer' for e in row['events'])
+                passes.append(row)
             assert trace(passes[0]['events'])==trace(passes[1]['events'])
             for key in ['input','video_metadata','video_reports','watch_results','action_history','trajectory','answer','stop_reason']:
                 assert passes[0]['result'][key]==passes[1]['result'][key],key
-            state.update(phase='forced_decision');write(output/'progress.json',state)
+            state.update(phase='terminal_answer');write(output/'progress.json',state)
             terminals=forced(config,execution,passes[0],target)
             events=[e for row in passes for e in row['events']]+[e for row in terminals for e in row['events']]
             report=dict(sample_id=sid,answer=passes[0]['prediction'],forced_answer=terminals[0]['answer'],

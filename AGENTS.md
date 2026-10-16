@@ -152,7 +152,7 @@ Prompt 与中文镜像同步的完整规则统一保存在 [.claude/rules/prompt
 - **信息边界**：
   - VideoAgent 对 GlobalAgent 是黑盒：输入 instruction，输出报告。
   - VideoAgent 只看到自己的 instruction 和自己此前被调用时的内部轨迹（action+参数+结果）。
-  - 达到步数上限时，Global 复用同一决策接口并仅开放 `answer`，Video 用已保留的证据做终止性总结。
+  - 达到步数上限时，Global 调用独立回答器，基于问题和已保留的公开 History 生成最终 reason/answer；Video 用已保留的证据做终止性总结。
 - **Skill 运行时**：
   - 两个库都是 schema_version 3 的 JSON，每张卡为 `meta={id, role, stages}` + `when_to_use` + `strategy`，
     合计不超过 1200 words。
@@ -172,12 +172,12 @@ Prompt 与中文镜像同步的完整规则统一保存在 [.claude/rules/prompt
   Global/Video 各最多 5 步。基线分数见 `.claude/benchmarks.md`。
 - **最终回答的理由长度**：终答 `reason` 不设字符硬上限，保留简洁、非空要求；每次完整响应仍受2048输出token预算限制。
   取证决策的reason仍限1200字符，analyze指令预算不变；answer决策直接携带终答。此改动会影响动作、答案与耗时；历史独立回答器成绩不能视作新协议成绩。
-- **Global 基础提示**：只有决策 System 与决策模板，answer 动作直接提交 `reason/action/parameters.answer`；
-  不保留独立终答 System、模板、schema 或模型调用。取证阶段核实关键冲突，每次检查针对具体不确定点，
+- **Global 基础提示**：保留当前决策 System，User 排布为 Question→Videos→History→Available actions；
+  主动 answer 直接提交 `reason/action/parameters.answer`，仅循环耗尽时调用独立终答 System/模板/schema。取证阶段核实关键冲突，每次检查针对具体不确定点，
   一到两句说明决定性证据/缺口与行动目的，不重复论证。answer 动作依现有证据提交最佳判断，按题目要求表达结果，
-  在reason中简洁保留重要限制；不靠通用选项枚举限制答案。步数耗尽时同一接口仅开放answer。
-  skill仍注入决策提示，因此也能影响直接终答；卡片重点放在可复用策略，不重复运行时的通用格式要求。
-  空库与进化库评估必须使用同一提示与回答协议。正在运行的全量任务沿用其独立回答器冻结源码；新协议另建运行目录，不能混算成绩。
+  在reason中简洁保留重要限制；不靠通用选项枚举限制答案。兜底回答器复用 PRO6000 的专用 System 与问题/History 模板，reason 沿用无字符硬限、总2048 token；不提供新取证动作。
+  skill仍注入决策提示，因此也能影响主动终答；兜底沿用旧问题/History接口，不额外选卡；卡片重点放在可复用策略，不重复运行时的通用格式要求。
+  空库与进化库评估必须使用同一提示与回答协议。既有任务及resume沿用各自冻结源码；新协议另建运行目录，不能混算成绩。
 - **进化实验的运行时**（`configs/skill_evolution/runtime/dynamic_35b_embedding.yaml`）：Global 和 Video 共用同一个库文件，
   按 `meta.role` 区分；进化时由算法替换成当前候选库（runtime 配置中的 `dynamic-v003` 路径会被覆盖）。
   不传 `--skills` 时两类卡都为空，Video 卡保持不变（为空，或为 `--skills` 初始库中的 Video 卡）。

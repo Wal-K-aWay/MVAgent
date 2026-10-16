@@ -20,7 +20,7 @@
 | 缓存 | 正常解码 KV 开启，prefix/MM processor cache 关闭；E2E 复用固定帧缓存并核对输入哈希 |
 | 版本 | vLLM 0.19.1、torch 2.10.0、transformers 4.57.6、xgrammar 0.2.2、FlashInfer 0.6.6、Triton 3.6.0 |
 | E2E 输入与输出 | 每次最多 512 帧、最长边 448；保留各 benchmark 现行提示词与生成预算 |
-| MVAgent 预算 | 每次最多 512 帧、2048 输出 token；Global/Video 各最多 5 步；answer 决策直接提交 parameters.answer，reason 无字符硬上限；取证 reason 仍限1200字符，答案保持开放非空字符串 |
+| MVAgent 预算 | 每次最多 512 帧、2048 输出 token；Global/Video 各最多 5 步；主动 answer 决策直接提交 parameters.answer，循环耗尽调用独立回答器；两者 reason 无字符硬上限；取证 reason 仍限1200字符，答案保持开放非空字符串 |
 | MVAgent 等待时限 | 服务 1800 秒、客户端 1860 秒、整题 7200 秒 |
 | HTTP 请求体 | 最大 2 GiB；这是视频传输大小限制，与帧数、上下文和生成预算分别校验 |
 
