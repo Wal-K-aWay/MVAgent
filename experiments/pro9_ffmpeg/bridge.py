@@ -3,6 +3,7 @@ import hashlib
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 from pathlib import Path
+import tempfile
 import threading
 import urllib.error
 import urllib.request
@@ -34,7 +35,8 @@ class Bridge(HTTPServer):
         super().__init__(('127.0.0.1', port), Handler)
         self.backend, self.log, self.calls = backend, Path(log), []
         self.log.mkdir(parents=True, exist_ok=True)
-        self.sample_id, self.sequence = 'startup', 0
+        self.sample_id = 'startup'
+        self.sequence = max((int(p.stem) for p in self.log.glob('*.json') if p.stem.isdigit()), default=0)
         self.opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
     def start(self):
@@ -92,6 +94,13 @@ def self_check():
     assert 'response_format' in raw and 'response_format' not in out
     assert 'maxLength' not in json.dumps(out) and out['seed'] == 0
     assert redact({'url': 'data:video/mp4;base64,abc'})['url']['length'] == 25
+    with tempfile.TemporaryDirectory() as directory:
+        (Path(directory) / '000007.json').write_text('{}')
+        server = Bridge(0, 'http://127.0.0.1:1', directory)
+        try:
+            assert server.sequence == 7  # Restarted clients must not replace earlier call logs.
+        finally:
+            server.server_close()
 
 
 if __name__ == '__main__':
