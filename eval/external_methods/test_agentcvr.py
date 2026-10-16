@@ -1,13 +1,37 @@
 """Small CPU contract checks for official prompts, input isolation and transport auditing."""
 import copy
 import json
+import io
 from pathlib import Path
+import tempfile
+from unittest.mock import patch
 
 from agentcvr_eval import official_inputs, protocol_prompt
 from agentcvr_worker import redact_images
 
 
+def check_smoke_launch():
+    import agentcvr_eval as driver
+    class Process:
+        def poll(self):
+            return None
+    with tempfile.TemporaryDirectory() as directory:
+        output = Path(directory)
+        driver.write(output / 'items.json', [])
+        driver.write(output / 'manifest.json', {'source_hashes': {},
+                     'input_sha256': driver.sha256(output / 'items.json')})
+        with patch.object(driver.subprocess, 'Popen', return_value=Process()), \
+             patch.object(driver.subprocess, 'run') as launch, \
+             patch.object(driver.urllib.request, 'urlopen', side_effect=lambda *a, **k: io.BytesIO(b'{"data":[]}')), \
+             patch.object(driver, 'summarize', return_value={}), patch.object(driver, 'stop'):
+            driver.run(output, smoke_only=True)
+        argv = launch.call_args.args[0]
+        assert Path(argv[1]).name == 'agentcvr_worker.py', argv
+        assert argv[-3:] == ['--rank', '0', '--smoke'], argv
+
+
 def main():
+    check_smoke_launch()
     items, labels = official_inputs()
     assert len(items) == 2821
     assert not any('answer' in x or 'ground_truth' in x or 'row' in x for x in items)

@@ -17,7 +17,7 @@ runs = modal.Volume.from_name('wxu-evolve-agent-runs-20261006')
 volumes = {'/weights': weights.with_mount_options(read_only=True),
            '/assets': assets.with_mount_options(read_only=True), '/runs': runs}
 app = modal.App('wxu-sglang-baseline-gpu-test-agentcvr-20261016')
-OUTPUT = '/runs/devbox/agentcvr_eval_20261016_r3'
+OUTPUT = '/runs/devbox/agentcvr_eval_20261016_r4'
 
 
 @app.function(image=image, cpu=4, memory=16384, timeout=1800, volumes=volumes)

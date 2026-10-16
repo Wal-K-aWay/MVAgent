@@ -156,7 +156,7 @@ def run(output, smoke_only=False):
     started = time.monotonic()
     def progress(phase, **extra):
         write(output / 'progress.json', dict(phase=phase, expected=2821, updated=time.time(), **extra))
-    command = [sys.executable, str(HERE / 'agentcvr_worker.py'), '--output', str(output)]
+    worker_command = [sys.executable, str(HERE / 'agentcvr_worker.py'), '--output', str(output)]
     try:
         progress('starting_models', ready_servers=0)
         for rank in range(1 if smoke_only else 8):
@@ -193,14 +193,14 @@ def run(output, smoke_only=False):
             if rank == 0 and not (output / 'smoke_completed.json').exists():
                 progress('smoke')
                 with (episode / 'smoke.log').open('w') as log:
-                    subprocess.run(command+['--rank', '0', '--smoke'], env=dict(os.environ, CUDA_VISIBLE_DEVICES='0'),
+                    subprocess.run(worker_command+['--rank', '0', '--smoke'], env=dict(os.environ, CUDA_VISIBLE_DEVICES='0'),
                                    stdout=log, stderr=subprocess.STDOUT, check=True, timeout=7200)
                 write(output / 'smoke_completed.json', summarize(output))
         if smoke_only:
             return
         for rank in range(8):
             with (episode / f'worker{rank}.log').open('w') as log:
-                workers.append(subprocess.Popen(command+['--rank', str(rank)],
+                workers.append(subprocess.Popen(worker_command+['--rank', str(rank)],
                     env=dict(os.environ, CUDA_VISIBLE_DEVICES=str(rank)), stdout=log,
                     stderr=subprocess.STDOUT, start_new_session=True))
         while any(proc.poll() is None for proc in workers):

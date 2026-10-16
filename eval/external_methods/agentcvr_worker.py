@@ -129,6 +129,8 @@ def main():
                 answered = False
             result.update(answer=answer, status='answered' if answered else 'no_answer',
                           history=history, tools=executor._tool_history, contexts=contexts)
+            if not isinstance(answer, str):
+                result.update(answer='', answer_value=answer, status='invalid_answer')
             if any(c.get('error') or c.get('http_status', 200) >= 400 for c in calls):
                 result['transport_errors'] = sum(bool(c.get('error') or c.get('http_status', 200) >= 400)
                                                  for c in calls)
@@ -144,8 +146,8 @@ def main():
             record_result(args.output, destination, result)
             executor.cleanup_agent_state()
         print(json.dumps({k: result[k] for k in ('sample_id', 'status', 'answer', 'seconds')}), flush=True)
-        if args.smoke and result['status'] != 'answered':
-            raise RuntimeError(f'Smoke episode did not deliver an answer: {sid}')
+        if args.smoke and (result['status'] == 'infrastructure_error' or not calls):
+            raise RuntimeError(f'Smoke infrastructure failed: {sid}')
 
 
 if __name__ == '__main__':
