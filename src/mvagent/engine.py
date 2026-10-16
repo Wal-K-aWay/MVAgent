@@ -506,7 +506,7 @@ class MVAgentEngine:
             else:
                 raise ValueError(f"Unknown GlobalAgent action: {action}")
 
-        return self._request_terminal_answer(
+        return self._request_terminal_decision(
             global_agent=global_agent,
             trajectory=trajectory,
             round_index=max_decisions + 1,
@@ -787,14 +787,14 @@ class MVAgentEngine:
             )
         return outcomes
 
-    def _request_terminal_answer(
+    def _request_terminal_decision(
         self,
         *,
         global_agent: GlobalAgent,
         trajectory: Trajectory,
         round_index: int,
     ) -> tuple[dict[str, Any], str]:
-        """Use the standalone answerer after the decision loop ends.
+        """Use the same decision contract, restricted to answer, at the loop limit.
 
         Args:
             global_agent: Question-scoped coordinator with the final memory.
@@ -808,9 +808,9 @@ class MVAgentEngine:
         question_trajectory = QuestionTrajectory.wrap(trajectory)
         try:
             with event_scope(agent="GlobalAgent", decision_id=f"global:{round_index}"):
-                attempt = global_agent.answer()
+                attempt = global_agent.decide(answer_only=True)
             if attempt.get("status") != "ok":
-                error = str(attempt.get("error") or "Terminal answer failed.")
+                error = str(attempt.get("error") or "Terminal decision failed.")
                 question_trajectory.record(
                     agent="GlobalAgent",
                     action="terminal_answer",
@@ -822,9 +822,9 @@ class MVAgentEngine:
                     },
                 )
                 return self._terminal_fallback(stop_reason, error)
-            generated = dict(attempt["value"])
+            generated = dict(attempt["decision"])
             answer = {
-                "answer": generated["answer"],
+                "answer": generated["parameters"]["answer"],
                 "reason": generated["reason"],
                 "status": "forced_with_gaps",
             }
