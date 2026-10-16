@@ -2,7 +2,7 @@
 
 本轮只测试AgentCVR，不运行AdSeek或CrossVid。目标为CVBench的997道可测题（官方64–66三题媒体损坏单列）及MVU-Eval的1824题，共2821题。GPU预算已获用户授权：8张；实际配置为H200:8，每卡一套Master、视觉服务和按需Whisper，共8路独立答题。
 
-当前状态（2026-10-16 07:30 UTC）：r4已进入8路全量推理，10/2821有效：CVBench 3/4正确、MVU-Eval 4/6正确，均已终答，0基础设施错。70次模型调用（59 Master、11 Vision）HTTP错误/截断均0；官方Query、输入hash及输入/输出token数核对均0差异，审计留在first_batch_audit.json。这是小样本进度，不是最终成绩。app ap-7RJFtaklNqyNCfLQyAEhRD，控制器PID2628400，container ta-01M51S0RZMQQ4B1SFP5VJCC6FR；实际阶段以Modal progress为准。
+当前状态（2026-10-16 07:30 UTC）：r4已进入8路全量推理，10/2821有效：CVBench 3/4正确、MVU-Eval 4/6正确，均已终答，0基础设施错。70次模型调用（59 Master、11 Vision）HTTP错误/截断均0；官方Query、输入hash及输入/输出token数核对均0差异，审计留在first_batch_audit.json。07:31 UTC外部Volume读取确认继续增加至14/2821（CV4/6、MVU5/8，0基础设施错）；审计文件仍对应首10题。这是小样本进度，不是最终成绩。app ap-7RJFtaklNqyNCfLQyAEhRD，控制器PID2628400，container ta-01M51S0RZMQQ4B1SFP5VJCC6FR；实际阶段以Modal progress为准。
 
 ## 模型及方法身份
 
@@ -36,7 +36,7 @@ CVBench调用官方正则评分；MVU-Eval使用官方首字符评分，同时�
 - `devbox/agentcvr_eval_20261016_r3/`：两模型同卡服务启动成功，但首题进程argv错误，0推理响应；保留原件。
 - `devbox/agentcvr_eval_20261016_r4/`：当前控制器目标，冻结代码ebd456d；frozen_source.tar.gz、manifest、items、private_labels、raw、records、scores与progress。
 
-modal-gpu控制器日志 `~/wxu-evolve-agent/devbox/agentcvr-eval-20261016-r4.log`，PID文件同名前缀。源码在独立 `agentcvr_repo`，不修改其他会话的活动服务。独立Luna代理每15分钟只读检查；其存活仅限当前会话，不等于无人值守承诺。
+modal-gpu控制器日志 `~/wxu-evolve-agent/devbox/agentcvr-eval-20261016-r4.log`，PID文件同名前缀。源码在独立 `agentcvr_repo`，不修改其他会话的活动服务。独立Luna代理已在07:31 UTC完成末次只读检查并结束；远端控制器继续运行。会话外没有持续的独立15分钟代理巡检。
 
 CPU验证已经通过：2821条官方输入、130道CV Yes/No指令、标签隔离、传输tool_call_id的token等价，以及完整项目语法编译。GPU首测已有真实输出：CV363为A（5次Master调用，84.70秒，13,308输入/4,287输出token）；MVU KIR377为C（9次Master调用，163.65秒，31,907输入/10,867输出token）。最终有效样本数、分数和全量耗时仍待完成。
 
