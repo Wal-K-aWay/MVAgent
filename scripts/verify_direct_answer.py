@@ -76,6 +76,8 @@ def forced(config, execution, saved, target):
 
 def main():
     import yaml
+    from mvagent.configs import MVAgentConfig
+    from models.vlm.local.sync_server import PROFILE
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',type=Path,required=True)
     args=parser.parse_args();output=args.output.absolute()
@@ -100,6 +102,7 @@ def main():
             target=output/model;target.mkdir()
             config=yaml.safe_load((ROOT/f'configs/inference/modal_qwen35_{slug}_no_skill.yaml').read_text())
             name=next(iter(config['models']));config['runtime']['cache_dir']=str(target/'runtime_cache')
+            assert MVAgentConfig.from_dict(config).models[name].execution_profile == PROFILE
             execution=dict(question_workers=1,max_prepared_requests=1,question_retries=0,question_timeout_sec=7200,
                 media_cache=dict(root=str(output/'media'),max_bytes=10*1024**3),
                 model_pools={name:dict(replicas=[dict(gpus=[0],endpoint='http://127.0.0.1:8100/v1',max_inflight=1)])})

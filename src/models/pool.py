@@ -143,6 +143,7 @@ class ModelPool:
         self.name, self.replicas, self.identity = name, tuple(replicas), identity
         self.root = Path(root)
         self.runtime_config = runtime_config
+        self.cards = {}
 
     def directory(self, replica):
         return self.root / hashlib.sha256(replica.endpoint.encode()).hexdigest()
@@ -196,6 +197,20 @@ class ModelPool:
 
     @contextmanager
     def acquire(self, timeout):
+        scope = current_scope()
+        pinned = scope and scope.get('model_leases', {}).get(self.name)
+        if pinned:
+            lease, lock = pinned
+            if not lock.acquire(timeout=remaining_timeout(timeout)):
+                raise TimeoutError(f'Pinned request admission timed out for {self.name}')
+            try:
+                with _state(lease.directory) as state:
+                    if state['quarantined'] or state['slots'][lease.index]['sent']:
+                        raise PoolUnavailable(f'Pinned replica failed for {self.name}; retry the whole question')
+                yield lease
+            finally:
+                lock.release()
+            return
         started = time.monotonic()
         deadline = started + remaining_timeout(timeout)
         lease = None
@@ -267,6 +282,20 @@ def get_pool(name, endpoint=None):
 
 def verify_local_service(manager, inventory):
     """Check the actual listener, not just a potentially reused served-model alias."""
+    if manager.sync_profile:
+        from .vlm.local.sync_server import validate_card
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        with opener.open(manager.cfg.endpoint + '/models', timeout=15) as response:
+            cards = json.load(response)['data']
+        if len(cards) != 1:
+            raise ValueError('Expected exactly one validated model per endpoint')
+        card = cards[0]
+        validate_card(card)
+        expected_gpu = str(manager.cfg.gpus[0]).removeprefix('GPU-')
+        if (card['id'] != manager.cfg.served_model_name or card['root'] != str(Path(manager.cfg.model_name).absolute())
+            or card['worker']['gpu_uuid'].removeprefix('GPU-') != expected_gpu):
+            raise ValueError(f'Service model/GPU mismatch at {manager.cfg.endpoint}')
+        return card
     import psutil
     port = urlparse(manager.cfg.endpoint).port
     pids = {c.pid for c in psutil.net_connections(kind='tcp')
@@ -301,14 +330,22 @@ def prepare_pool(name, model_config, replicas, cache_dir):
     healthy, failures = [], []
     inventory = gpu_inventory()
     identity = None
+    cards = {}
     for replica in replicas:
         cfg = replace(model_config, endpoint=replica.endpoint, gpus=list(replica.gpus))
+        if getattr(cfg, 'execution_profile', None) and replica.max_inflight != 1:
+            raise ValueError('Validated replicas require max_inflight=1')
         manager = VLLMServiceManager(cfg, cache_dir=cache_dir)
         launch = manager.build_start_command()
-        for flag in ('--host', '--port', '--tensor-parallel-size'):
-            index = launch.index(flag)
-            del launch[index:index + 2]
-        identity = hashlib.sha256(json.dumps(launch).encode()).hexdigest()
+        for flag in ('--host', '--port', '--tensor-parallel-size', '--log-dir'):
+            if flag in launch:
+                index = launch.index(flag)
+                del launch[index:index + 2]
+        contract = dict(launch=launch)
+        if manager.sync_profile:
+            from .vlm.local.sync_server import execution_profile
+            contract = dict(model=cfg.model_name, served_model_name=name, execution=execution_profile())
+        identity = hashlib.sha256(json.dumps(contract, sort_keys=True).encode()).hexdigest()
         try:
             existing = probe_vllm_server(replica.endpoint)
         except VLLMServiceError as exc:
@@ -323,14 +360,23 @@ def prepare_pool(name, model_config, replicas, cache_dir):
                 lease.sent()
                 manager.ensure_running()
                 lease.complete()
-            verify_local_service(manager, inventory)
+            card = verify_local_service(manager, inventory)
+            if card is not None:
+                cards[replica.endpoint] = card
         except (VLLMServiceError, PoolUnavailable) as exc:
             failures.append(dict(endpoint=replica.endpoint, error=str(exc)))
             continue
         healthy.append(replica)
     if not healthy:
         raise PoolUnavailable(f'No usable service for {name}: {failures}')
-    return ModelPool(name, healthy, identity, runtime_config=model_config), failures
+    if cards:
+        from .vlm.local.sync_server import digest
+        identities = {digest({k: c[k] for k in ('root', 'weights_manifest', 'execution')}) for c in cards.values()}
+        if len(identities) != 1:
+            raise ValueError('Replicas have different weights or execution profiles')
+    pool = ModelPool(name, healthy, identity, runtime_config=model_config)
+    pool.cards = cards
+    return pool, failures
 
 
 @contextmanager

@@ -1,7 +1,7 @@
 # One Modal H200 for Qwen3.5-9B smoke tests: a single replica (TP=1) on a localhost endpoint.
 question_workers: auto
 max_prepared_requests: auto
-question_timeout_sec: 1800
+question_timeout_sec: 7200
 question_retries: 1
 media_cache:
   root: .cache/mvagent/media

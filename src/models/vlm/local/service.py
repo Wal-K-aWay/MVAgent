@@ -8,6 +8,7 @@ import os
 import shutil
 import socket
 import subprocess
+import sys
 import time
 import urllib.error
 import urllib.parse
@@ -356,6 +357,7 @@ class VLLMServiceManager:
         logger: Callable[[str], None] | None = None,
     ) -> None:
         self.cfg = cfg
+        self.sync_profile = getattr(cfg, "execution_profile", None)
         self.cache_dir = Path(cache_dir).expanduser().resolve()
         self._status: Optional[VLLMServiceStatus] = None
         self._process: Optional[subprocess.Popen[bytes]] = None
@@ -425,6 +427,17 @@ class VLLMServiceManager:
 
     def build_start_command(self) -> list[str]:
         endpoint = self._validate()
+        if self.sync_profile:
+            from .sync_server import PROFILE, ENGINE_CONFIG
+            if self.sync_profile != PROFILE or len(self.cfg.gpus) != 1:
+                raise VLLMServiceError('Validated execution requires the known profile and exactly one GPU')
+            if (any(getattr(self.cfg, key) != ENGINE_CONFIG[key] for key in
+                    ('dtype', 'gpu_memory_utilization', 'max_model_len'))
+                or self.cfg.enable_thinking or self.cfg.reasoning_parser or self.cfg.temperature != 0):
+                raise VLLMServiceError('Model settings conflict with the validated execution profile')
+            return [sys.executable, str(Path(__file__).with_name('sync_server.py')),
+                    '--model', str(self.cfg.model_name), '--served-model-name', str(self.cfg.served_model_name),
+                    '--port', str(endpoint.port), '--log-dir', str(self.service_dir)]
         command = [
             "vllm",
             "serve",
@@ -522,11 +535,15 @@ class VLLMServiceManager:
         return " ".join(text.split())[-max_bytes:]
 
     def _start_process(self) -> subprocess.Popen[bytes]:
-        validate_vllm_web_stack()
+        if not self.sync_profile:
+            validate_vllm_web_stack()
         self._assert_sufficient_gpu_memory()
         self.service_dir.mkdir(parents=True, exist_ok=True)
         command = self.build_start_command()
         child_env = os.environ.copy()
+        if self.sync_profile:
+            from .sync_server import ENVIRONMENT
+            child_env.update(ENVIRONMENT)
         child_env["CUDA_VISIBLE_DEVICES"] = _cuda_visible_devices(self.cfg.gpus)
         child_env["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"  # match nvidia-smi indexes used above
         if not str(child_env.get("TMPDIR") or "").strip():

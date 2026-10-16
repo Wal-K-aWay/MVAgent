@@ -96,6 +96,7 @@ class LocalVLLMConfig:
     gpus: list[int | str] = field(default_factory=list)
     endpoint: str = ""
     api_key: str = "EMPTY"
+    execution_profile: Optional[str] = None
     startup_timeout_sec: float = 1800.0
     dtype: str = "bfloat16"
     gpu_memory_utilization: float = 0.85
@@ -467,6 +468,7 @@ class LocalVLLMModelInstanceConfig(ModelInstanceConfig):
     """Parsed ``local_vllm`` model instance."""
 
     type: str = field(init=False, default="local_vllm")
+    execution_profile: Optional[str] = None
     startup_timeout_sec: Optional[float] = None
     dtype: Optional[str] = None
     gpu_memory_utilization: Optional[float] = None
@@ -487,6 +489,16 @@ class LocalVLLMModelInstanceConfig(ModelInstanceConfig):
         del known_api_providers, known_api_llm_providers
         if not str(self.model_name or "").strip():
             raise ValueError(f"{name} must set model_name.")
+        if self.execution_profile:
+            from models.vlm.local.sync_server import PROFILE, ENGINE_CONFIG
+            if self.execution_profile != PROFILE:
+                raise ValueError(f'{name}: unknown execution_profile {self.execution_profile}')
+            for key in ('dtype', 'gpu_memory_utilization', 'max_model_len'):
+                value = getattr(self, key)
+                if value is not None and value != ENGINE_CONFIG[key]:
+                    raise ValueError(f'{name}: {key} conflicts with {PROFILE}')
+            if self.enable_thinking or self.reasoning_parser or self.temperature not in (None, 0):
+                raise ValueError(f'{name}: validated execution requires greedy, no thinking/parser')
         mode = str(self.video_mode or "video_url").strip()
         if mode != "video_url":
             raise ValueError(
@@ -511,17 +523,21 @@ class LocalVLLMModelInstanceConfig(ModelInstanceConfig):
         name: str,
         agent: Agent_Model_Config,
     ) -> LocalVLLMConfig:
+        from models.vlm.local.sync_server import ENGINE_CONFIG
+        defaults = ENGINE_CONFIG if self.execution_profile else dict(
+            dtype='bfloat16', gpu_memory_utilization=.85, max_model_len=16384)
         return LocalVLLMConfig(
+            execution_profile=self.execution_profile,
             model_name=str(self.model_name or name),
             served_model_name=name,
             startup_timeout_sec=float(
                 _pick(self.startup_timeout_sec, 1800.0)
             ),
-            dtype=str(self.dtype or "bfloat16"),
+            dtype=str(self.dtype or defaults["dtype"]),
             gpu_memory_utilization=float(
-                _pick(self.gpu_memory_utilization, 0.85)
+                _pick(self.gpu_memory_utilization, defaults["gpu_memory_utilization"])
             ),
-            max_model_len=int(_pick(self.max_model_len, 16384)),
+            max_model_len=int(_pick(self.max_model_len, defaults["max_model_len"])),
             reasoning_parser=(
                 str(self.reasoning_parser)
                 if self.reasoning_parser

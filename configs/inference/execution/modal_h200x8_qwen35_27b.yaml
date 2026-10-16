@@ -1,7 +1,7 @@
 # One Modal H200:8 node for Qwen3.5-27B: one full Qwen3.5 replica per GPU (TP=1), localhost endpoints.
 question_workers: auto
 max_prepared_requests: auto
-question_timeout_sec: 1800
+question_timeout_sec: 7200
 question_retries: 1
 media_cache:
   root: .cache/mvagent/media

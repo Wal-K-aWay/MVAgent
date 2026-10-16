@@ -380,6 +380,7 @@ def _prepare_output(
     resume: bool,
     defer_open_qa_judge: bool = False,
     split_manifest: Path | None = None,
+    inference_only: bool = False,
 ):
     bootstrap = _load_snapshot_bootstrap()
     bootstrap.configure_workspace_runtime_env()
@@ -441,6 +442,7 @@ def _prepare_output(
         ),
         "judge_model": judge_model,
         "defer_open_qa_judge": defer_open_qa_judge,
+        "inference_only": inference_only,
     }
     manifest_path = output_dir / "run_manifest.json"
     if manifest_path.is_file():
@@ -496,7 +498,7 @@ def _run(args: argparse.Namespace) -> None:
         output_dir=output_dir, config_path=config_path, dataset_root=dataset_root,
         sample_ids=sample_ids, judge_model=args.judge_model, resume=args.resume,
         defer_open_qa_judge=args.defer_open_qa_judge,
-        split_manifest=split_manifest)
+        split_manifest=split_manifest, inference_only=args.inference_only)
     from mvagent.batch import BatchExecutor, ExecutionConfig
     from models.factory import ModelFactory
     from mvagent.configs.agent_config import Agent_Model_Config
@@ -507,7 +509,7 @@ def _run(args: argparse.Namespace) -> None:
     if mask_sensitive_data(live) != yaml.safe_load((output_dir / "input_config.yaml").read_text()):
         raise ValueError("Runtime configuration differs from the frozen configuration")
     config = configs_module.MVAgentConfig.from_dict(live)
-    if any(_is_crossvid_open_qa_sample(sid) for sid in sample_ids) and not args.judge_model and not args.defer_open_qa_judge:
+    if not args.inference_only and any(_is_crossvid_open_qa_sample(sid) for sid in sample_ids) and not args.judge_model and not args.defer_open_qa_judge:
         raise ValueError("OpenQA requires --judge-model naming a configured model")
     _atomic_json(output_dir / "executions" / (str(__import__('time').time_ns()) + '.json'), execution.to_dict())
     event_lock = threading.Lock()
@@ -515,9 +517,13 @@ def _run(args: argparse.Namespace) -> None:
         with event_lock, (output_dir / "execution_events.jsonl").open("a") as stream:
             stream.write(json.dumps(event) + "\n")
     finished = _load_completed(output_dir, sample_ids)
-    done_scores = {"ok", "deferred"} if args.defer_open_qa_judge else {"ok"}
+    done_scores = {'skipped'} if args.inference_only else ({'ok', 'deferred'} if args.defer_open_qa_judge else {'ok'})
+    def summarize():
+        if args.inference_only:
+            return dict(inference_only=True, samples=len(sample_ids), completed=len(_load_completed(output_dir, sample_ids)))
+        return _summarize(output_dir=output_dir, sample_ids=sample_ids, records=records)
     if len(finished) == len(sample_ids) and all(row.get("scoring_status") in done_scores for row in finished.values()):
-        summary = _summarize(output_dir=output_dir, sample_ids=sample_ids, records=records)
+        summary = summarize()
         _atomic_json(output_dir / 'summary.json', summary)
         manifest.update(status='completed', finished_at_utc=_utc_now())
         _atomic_json(output_dir / 'run_manifest.json', manifest)
@@ -529,19 +535,20 @@ def _run(args: argparse.Namespace) -> None:
     futures = []
     try:
         batch.prepare(config.to_dict())
-        if args.judge_model:
-            judge_model = ModelFactory.create_model(Agent_Model_Config(model_type=args.judge_model,
-                temperature=0.0, max_tokens=512), config)
-        scored = {sid: record for sid, record in records.items()
-                  if not (args.defer_open_qa_judge and _is_crossvid_open_qa_sample(sid))}
-        scorer, scorer_identity = _build_scorer(scored, judge_model=judge_model,
-                                                cache_dir=output_dir / "crossvid_judge_cache")
-        if args.defer_open_qa_judge:
-            scorer_identity = {**scorer_identity, "open_qa": {"enabled": False, "status": "deferred"}}
-        if args.resume and manifest.get('scorer_identity') != scorer_identity:
-            raise ValueError('Scorer identity changed on resume')
-        manifest['scorer_identity'] = scorer_identity
-        _atomic_json(output_dir / "run_manifest.json", manifest)
+        if not args.inference_only:
+            if args.judge_model:
+                judge_model = ModelFactory.create_model(Agent_Model_Config(model_type=args.judge_model,
+                    temperature=0.0, max_tokens=512), config)
+            scored = {sid: record for sid, record in records.items()
+                      if not (args.defer_open_qa_judge and _is_crossvid_open_qa_sample(sid))}
+            scorer, scorer_identity = _build_scorer(scored, judge_model=judge_model,
+                                                    cache_dir=output_dir / "crossvid_judge_cache")
+            if args.defer_open_qa_judge:
+                scorer_identity = {**scorer_identity, "open_qa": {"enabled": False, "status": "deferred"}}
+            if args.resume and manifest.get('scorer_identity') != scorer_identity:
+                raise ValueError('Scorer identity changed on resume')
+            manifest['scorer_identity'] = scorer_identity
+            _atomic_json(output_dir / "run_manifest.json", manifest)
         def score_saved(path):
             row = json.loads(path.read_text())
             record = records[row['sample_id']]
@@ -561,13 +568,13 @@ def _run(args: argparse.Namespace) -> None:
                 task_family=_task_family(record.native_task) if record.dataset == 'crossvid' else 'choice',
                 prediction=_extract_prediction(payload['result']), ground_truth=list(record.sample.ground_truth),
                 judge_question=record.judge_question, reference_answer=record.reference_answer,
-                score=None, correct=False, scoring_status='pending',
+                score=None, correct=False, scoring_status='skipped' if args.inference_only else 'pending',
                 status=payload['status'], error=payload.get('error', ''),
                 worker={'pid': payload['worker_pid']}, attempt=payload['attempt'],
                 result=payload['result'], events=payload['events'])
             path = _record_path(output_dir, sid)
             _atomic_json(path, row)
-            if row['status'] == 'ok':
+            if row['status'] == 'ok' and not args.inference_only:
                 futures.append(scoring.submit(score_saved, path))
             progress['finished'] += 1
             state = dict(finished=progress['finished'], total=len(sample_ids), updated_at_utc=_utc_now())
@@ -578,7 +585,7 @@ def _run(args: argparse.Namespace) -> None:
         batch.run(jobs, config.to_dict(), on_complete=completed)
         for future in futures:
             future.result()
-        summary = _summarize(output_dir=output_dir, sample_ids=sample_ids, records=records)
+        summary = summarize()
         _atomic_json(output_dir / 'summary.json', summary)
         manifest.update(status='completed', finished_at_utc=_utc_now())
         _atomic_json(output_dir / 'run_manifest.json', manifest)
@@ -622,6 +629,7 @@ def _parser() -> argparse.ArgumentParser:
         default=("cvbench", "mvu_eval", "crossvid"),
         help="Benchmarks to evaluate in one unified run (default: all three).",
     )
+    parser.add_argument("--inference-only", action="store_true", help="Save rollouts and token audits without accuracy scoring or Judge")
     parser.add_argument("--execution-config", type=Path, help="Shared question/model pool configuration")
     parser.add_argument("--judge-model", help="Explicit configured model for OpenQA scoring")
     parser.add_argument("--defer-open-qa-judge", action="store_true",
@@ -647,6 +655,8 @@ def main() -> None:
         return
     if args.defer_open_qa_judge and args.judge_model:
         raise SystemExit("--defer-open-qa-judge cannot be combined with --judge-model")
+    if args.inference_only and args.judge_model:
+        raise SystemExit("--inference-only cannot use --judge-model")
     if args.execution_config is None:
         raise SystemExit("--execution-config is required")
     if args.output is None:

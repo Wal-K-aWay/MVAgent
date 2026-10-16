@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import hashlib
+import os
 import re
 from functools import lru_cache
 import time
@@ -19,6 +21,18 @@ from models.vlm.api.providers.media import image_to_data_url
 
 def _is_loopback_endpoint(url: str) -> bool:
     return is_loopback_host(urllib.parse.urlparse(url).hostname)
+
+
+def _token_audit_fields(data, body):
+    tokens = data['choices'][0].get('token_ids')
+    prompt = data.get('prompt_token_ids')
+    for name, values in [('output', tokens), ('prompt', prompt)]:
+        if not isinstance(values, list) or any(type(v) is not int or v < 0 for v in values):
+            raise ApiVLMError(f'vLLM token audit requires actual {name} token IDs')
+    if len(tokens) != data['usage']['completion_tokens']:
+        raise ApiVLMError('vLLM token audit received an incomplete output token sequence')
+    return {'token_ids': tokens, 'request_sha256': hashlib.sha256(body).hexdigest(),
+            'prompt_token_ids_sha256': hashlib.sha256(json.dumps(prompt, separators=(',', ':')).encode()).hexdigest()}
 
 
 def _vllm_generation_schema(
@@ -172,6 +186,8 @@ class OpenAICompatibleProvider:
         payload = self.build_payload(messages=request.messages, temperature=request.temperature,
             top_p=request.top_p, max_tokens=request.max_tokens, json_schema=request.json_schema,
             schema_name=request.schema_name, extra_body=request.extra_body)
+        if pool is not None and (pool.cards or os.environ.get('MVAGENT_RECORD_TOKEN_IDS') == '1'):
+            payload.update(return_token_ids=True, seed=0)
         emit_event("model_request", payload=payload)
         body = json.dumps(payload).encode("utf-8")
         emit_event("request_prepared", model=self.cfg.model_name, started_at=prepared_at,
@@ -240,10 +256,19 @@ class OpenAICompatibleProvider:
         try:
             data = json.loads(response_body)
             content = data["choices"][0]["message"]["content"]
+            if self.pool is not None and self.pool.cards:
+                from models.vlm.local.sync_server import token_audit
+                audit = token_audit(data, body)
+                card = self.pool.cards[endpoint.removesuffix('/chat/completions')]
+                if data['model'] != card['id'] or any(audit['worker'].get(k) != v for k, v in card['worker'].items()):
+                    raise ApiVLMError('Response worker does not match the admitted replica')
+            else:
+                audit = (_token_audit_fields(data, body)
+                         if self.pool is not None and os.environ.get('MVAGENT_RECORD_TOKEN_IDS') == '1' else {})
             emit_event("model_response", schema=request.schema_name,
                        model=data.get("model"), request_id=data.get("id"),
                        finish_reason=data["choices"][0].get("finish_reason"),
-                       usage=data.get("usage"), text=content)
+                       usage=data.get("usage"), text=content, **audit)
         except (json.JSONDecodeError, KeyError, IndexError, TypeError) as exc:
             raise ApiVLMError(
                 f"Malformed API VLM response from provider {self.cfg.provider} model {self.cfg.model_name}"
