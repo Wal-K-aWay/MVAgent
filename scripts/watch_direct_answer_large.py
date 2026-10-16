@@ -23,6 +23,12 @@ def log(**message):
     print(datetime.now(timezone.utc).isoformat(), json.dumps(message), flush=True)
 
 
+def action(phase, alive, elapsed):
+    if phase in {'completed','failed'}:return 'release'
+    if not alive:return 'lost'
+    return 'cap' if elapsed > 10*3600 else 'wait'
+
+
 def main():
     assert (HERE/'devbox.py').is_file()
     lock=(HERE/f'watch-{TAG}.lock').open('w')
@@ -51,22 +57,33 @@ def main():
             while len(completed)<2:
                 for shard,future in launches.items():
                     if shard in completed or not future.done():continue
-                    if shard not in sandboxes:sandboxes[shard]=future.result()
+                    if shard not in sandboxes:
+                        try:sandboxes[shard]=future.result()
+                        except Exception as exc:
+                            failures[shard]={'launch_error':repr(exc)}
+                            state_path=HERE/f'state-{NAMES[shard]}.json'
+                            if state_path.exists():
+                                owned=modal.Sandbox.from_id(json.loads(state_path.read_text())['sandbox_id'])
+                                if owned.poll() is None:owned.terminate(wait=True)
+                            completed.add(shard)
+                            log(shard=shard,failed=failures[shard])
+                            continue
                     sandbox=sandboxes[shard]
                     state=progress(shard)
                     key=(state.get('phase'),state.get('model'))
                     if key!=last.get(shard):
                         log(shard=shard,phase=key,models=state.get('models'));last[shard]=key
-                    if state.get('phase') in {'completed','failed'}:
+                    next_action=action(state.get('phase'),sandbox.poll() is None,time.monotonic()-started)
+                    if next_action=='release':
                         if sandbox.poll() is None:sandbox.terminate(wait=True)
                         completed.add(shard)
                         (HERE/f'state-{NAMES[shard]}.json').unlink(missing_ok=True)
                         log(shard=shard,released=True,phase=state['phase'])
                         if state['phase']=='failed':failures[shard]=state
-                    elif sandbox.poll() is not None:
+                    elif next_action=='lost':
                         failures[shard]={'error':'Sandbox exited before completed','progress':state}
                         completed.add(shard)
-                    elif time.monotonic()-started>10*3600:
+                    elif next_action=='cap':
                         sandbox.terminate(wait=True)
                         failures[shard]={'error':'Ten-hour wall-clock cap reached','progress':state}
                         completed.add(shard)
@@ -83,4 +100,12 @@ def main():
             (HERE/f'watch-{TAG}.pid').unlink(missing_ok=True)
 
 
-if __name__=='__main__':main()
+if __name__=='__main__':
+    if '--self-check' in sys.argv:
+        assert action('completed',False,40000)=='release'
+        assert action('failed',True,0)=='release'
+        assert action('inference',False,100)=='lost'
+        assert action('inference',True,40000)=='cap'
+        assert action('inference',True,100)=='wait'
+        print('Lifecycle completion, failure, loss and budget checks passed')
+    else:main()

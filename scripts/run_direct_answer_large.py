@@ -131,15 +131,29 @@ def prepare():
                 dest.symlink_to(src)
                 selection['reused'][m][sid] = dict(source=str(src), sha256=sha(src))
     write(OUT/'selection.json', selection)
+    finalize_manifest()
+    print(json.dumps(dict(budget=budget, candidates=candidates, strata=selection['strata']), ensure_ascii=False), flush=True)
+
+
+def finalize_manifest():
+    from models.vlm.local.sync_server import execution_profile
+    selection = read(OUT/'selection.json')
+    checked = {}
+    for name, expected in read(PANEL/'manifest.json')['source_hashes'].items():
+        if name.startswith(('src/mvagent/', 'src/models/', 'configs/inference/')) or name == 'eval/agent_eval/run.py':
+            assert sha(ROOT/name) == expected, name
+            checked[name] = expected
+    # Devbox sync writes a detached SHA; the CPU image need not install Git.
+    commit = (ROOT/'.git/HEAD').read_text().strip()
+    assert len(commit)==40 and all(c in '0123456789abcdef' for c in commit), commit
     write(OUT/'manifest.json', dict(created_at=now(), profile=execution_profile(), checked_source_hashes=checked,
-        source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
+        source_commit=commit,
         source_hashes={str(p.relative_to(ROOT)):sha(p) for folder in ['src','scripts','configs','eval/agent_eval']
                        for p in (ROOT/folder).rglob('*') if p.is_file() and p.suffix in ['.py','.yaml','.sh']},
         selection_sha256=sha(OUT/'selection.json'), reference_manifest_sha256=sha(PANEL/'manifest.json'),
         reference=str(PANEL), skills=None, repeats=1, judge='Qwen3-30B-A3B-Instruct-2507',
         sampling_scope='Existing 997 CV + 1824 MVU + CrossVid Lite2500; existing three corrupt CV videos already excluded.'))
-    write(OUT/'progress.json', dict(phase='prepared', at=now(), budget=budget))
-    print(json.dumps(dict(budget=budget, candidates=candidates, strata=selection['strata']), ensure_ascii=False), flush=True)
+    write(OUT/'progress.json', dict(phase='prepared', at=now(), budget=selection['budget']))
 
 
 def worker(shard):
