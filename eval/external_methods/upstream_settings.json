@@ -108,6 +108,11 @@
     "max_output_tokens": null,
     "unspecified_parameters": "Resolve through standard local vLLM OpenAI defaults; no inherited 2048 or 8192 cap",
     "client_python": "3.11",
-    "patch": "Add inference-only scoring flag; preserve all prompts and tool policies"
+    "patch": "Add inference-only scoring flag; preserve all prompts and tool policies",
+    "smoke_batch_size": 1,
+    "upstream_default_batch_size": 15,
+    "workers": 8,
+    "local_request_timeout_seconds": 600,
+    "smoke_question_timeout_seconds": 1800
   }
 }

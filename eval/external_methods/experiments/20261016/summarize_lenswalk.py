@@ -9,6 +9,8 @@ progress=json.loads((root/'progress.json').read_text())
 assert progress['phase'] in ('completed','completed_with_errors')
 scores=json.loads((root/'lenswalk/scores.json').read_text())
 by_id={r['sample_id']:r['score'] for r in scores['rows']}
+server=[json.loads(line) for line in (root/'server/requests.jsonl').open()]
+server_by_id={r['id']:r for r in server}
 rows=[]
 for execution in progress['samples']:
     directory=root/'lenswalk'/execution['sample_id'].replace(':','_')
@@ -23,6 +25,12 @@ for execution in progress['samples']:
         failures+=bool(call['error'] or call['http_status']!=200)
         usage=(call.get('response') or {}).get('usage',{})
         prompt_tokens+=usage.get('prompt_tokens',0); output_tokens+=usage.get('completion_tokens',0)
+        if call['http_status']==200:
+            actual=server_by_id[call['response']['id']]['generation']
+            assert actual['temperature']==call['request'].get('temperature',1.0)
+            assert actual['top_p']==call['request'].get('top_p',1.0)
+            assert 'max_tokens' not in call['request'] and 'max_completion_tokens' not in call['request']
+            assert actual['max_tokens']==131072-usage['prompt_tokens']
     row=dict(execution,finished_with_tool=result.get('finished_with_tool'),
         visual_tools=result.get('visual_tool_calls'),tool_errors=result.get('tool_errors',[]),
         requests=requests,visual_requests=visual,image_inputs=images,http_errors=failures,
@@ -37,7 +45,6 @@ for execution in progress['samples']:
             row['natural_answer_matches_last_response']=final['content']==result['answer']
             row['terminal_kind']='unfinished_tool_plan' if final.get('tool_calls') else 'natural_text'
     rows.append(row)
-server=[json.loads(line) for line in (root/'server/requests.jsonl').open()]
 assert all(r['usage']['prompt_tokens_details']['cached_tokens']==0 for r in server)
 assert all(r['generation']['seed']==0 for r in server)
 assert len({r['worker']['gpu_uuid'] for r in server})==1
