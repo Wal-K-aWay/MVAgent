@@ -145,6 +145,7 @@ def prepare():
 def worker(shard):
     import yaml
     from models.vlm.local.sync_server import execution_profile
+    sys.path.append(str(PANEL/'frozen_repo/scripts'))
     from run_mvagent_pilot import stop_actor_servers
     group = OUT/f'shard{shard}'
     selected = read(group/'samples.json')
