@@ -1,10 +1,11 @@
-"""Frozen, resumable 5321-question LensWalk evaluation, eight independent H100 replicas."""
+"""Frozen full-panel LensWalk or Video-RSI evaluation on eight independent H100 replicas."""
 import argparse
 from collections import Counter,defaultdict
 from concurrent.futures import ThreadPoolExecutor,as_completed
 from dataclasses import replace
 from datetime import datetime,timezone
 import hashlib
+import importlib
 import json
 import os
 from pathlib import Path
@@ -29,6 +30,16 @@ EXPECTED={'cvbench':997,'mvu_eval':1824,'crossvid':2500}
 SMOKE=Path('/runs/devbox/external_lenswalk_20261016_r3')
 OLD_MEDIA=Path('/runs/devbox/external_original_images_20261015/prepared')
 CLIENT='/opt/lenswalk-client/bin/python'
+RSI_DEPS=Path('/runs/devbox/external_methods_20261014/support/upstream_clients_20261015')
+
+
+def method_config(method):
+    if method=='rsi':
+        return dict(server='native_server',upstream='Video-RSI',client=sys.executable,
+                    question_timeout=7200,inspector='rsi_outcome')
+    assert method=='lenswalk'
+    return dict(server='lenswalk_server',upstream='LensWalk',client=CLIENT,
+                question_timeout=1800,inspector='lenswalk_outcome')
 
 
 def now(): return datetime.now(timezone.utc).isoformat()
@@ -37,13 +48,13 @@ def media_key(videos):
     return hashlib.sha256(json.dumps(list(videos.items()),ensure_ascii=False).encode()).hexdigest()[:24]
 
 
-def archive_attempt(directory):
+def archive_attempt(directory,compress=True):
     assert directory.name.startswith('attempt-') and not directory.is_symlink()
     hashes={str(p.relative_to(directory)):sha256(p) for p in directory.rglob('*') if p.is_file()}
-    archive=directory.with_suffix('.tar.gz');temporary=archive.with_suffix('.tmp')
-    with tarfile.open(temporary,'w:gz',compresslevel=1) as stream:
+    archive=directory.with_suffix('.tar.gz' if compress else '.tar');temporary=archive.with_suffix('.tmp')
+    with tarfile.open(temporary,'w:gz' if compress else 'w',**({'compresslevel':1} if compress else {})) as stream:
         stream.add(directory,arcname=directory.name)
-    with tarfile.open(temporary,'r:gz') as stream:
+    with tarfile.open(temporary,'r:*') as stream:
         observed={}
         for member in stream:
             if not member.isfile():continue
@@ -58,15 +69,22 @@ def archive_attempt(directory):
     return result
 
 
-def initialize(output):
+def initialize(output,method='lenswalk'):
+    spec=method_config(method)
     assert not output.exists(), 'Use the frozen driver to resume an existing run'
     output.mkdir(parents=True)
     frozen=output/'frozen_repo'
     shutil.copytree(SMOKE/'frozen_repo',frozen,ignore=shutil.ignore_patterns('__pycache__'))
-    for name in ('lenswalk_full.py','lenswalk_outcome.py','test_lenswalk_full.py'):
+    for name in ('lenswalk_full.py','lenswalk_outcome.py','test_lenswalk_full.py',
+                 'rsi_outcome.py','test_rsi_full.py','rsi.py','native_server.py','test_lenswalk_full_scoring.py'):
         shutil.copy2(ADAPTERS/name,frozen/'eval/external_methods'/name)
     # The tested client and upstream source are immutable; no dependency installation is needed.
-    (output/'client_environment.tar.gz').symlink_to(SMOKE/'support/client_environment.tar.gz')
+    if method=='lenswalk':
+        (output/'client_environment.tar.gz').symlink_to(SMOKE/'support/client_environment.tar.gz')
+    else:
+        shutil.copy2(RSI_DEPS/'rsi_manifest.json',output/'client_environment.json')
+        settings=read(frozen/'eval/external_methods/upstream_settings.json')
+        assert sha256(frozen/'external_sources/Video-RSI/solver_full_workspace/engine/services.py')==settings['source_sha256']['rsi_services']
     sys.path[:0]=[str(frozen/'src')]
     from prepare import candidate_groups
     from skill_evolution.infra.benchmarks.catalog import load_multibench_records
@@ -79,7 +97,12 @@ def initialize(output):
         assert meta['preprocessing_version']=='native_concat_repeated_headers_v2'
         videos={s['video_id']:s['source'] for s in meta['segments']}
         cache[media_key(videos)]=dict(video_path=str(path),timeline_path=str(path.parent/'timeline.json'))
-    for name in ('media_cache','prepared/items','lenswalk','episodes'):(output/name).mkdir(parents=True,exist_ok=True)
+    if method=='rsi':
+        for path in Path('/runs/devbox/lenswalk_full_35b_20261016/media_cache').glob('*.json'):
+            value=read(path)
+            if Path(value['video_path']).is_file() and Path(value['timeline_path']).is_file():
+                cache[path.stem]=value
+    for name in ('media_cache','prepared/items',method,'episodes'):(output/name).mkdir(parents=True,exist_ok=True)
     for key,value in cache.items():write(output/'media_cache'/f'{key}.json',value)
     # Start with cached media, then keep a fixed shuffled schedule for the remaining panel.
     random.Random(0).shuffle(ids)
@@ -88,17 +111,22 @@ def initialize(output):
     write(output/'prepared/private_labels.json',{sid:dict(dataset=r.dataset,task=r.native_task,
         sample=r.sample.to_dict(),reference_answer=r.reference_answer,judge_question=r.judge_question,
         task_population=r.task_population) for sid,r in records.items()})
-    write(output/'manifest.json',dict(created_at=now(),expected=EXPECTED,sample_count=len(ids),
+    write(output/'manifest.json',dict(created_at=now(),method=method,expected=EXPECTED,sample_count=len(ids),
         samples_sha256=sha256(output/'samples.json'),source_snapshot=str(SMOKE/'frozen_repo'),
         adapter_commit='af42adb024b364be0e2260d37b24e112e27b3aaf',
+        driver_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=SOURCE,text=True).strip(),
         driver_sha256=sha256(frozen/'eval/external_methods/lenswalk_full.py'),
         source_hashes={str(p.relative_to(frozen)):sha256(p) for p in frozen.rglob('*')
                        if p.is_file() and '__pycache__' not in p.parts},
         asset_hashes={name:sha256(Path('/assets')/name) for name in
                       ('crossvid/qa.jsonl','cvbench/QAs.json','mvu-eval/QAs.json')},
-        seed=0,upstream_commit='c3cdf13a6ffc6b1ce21af3a0c7813178d17fac77',
-        replicas=8,gpu='H100!:8',request_timeout_seconds=600,question_timeout_seconds=1800,
-        max_turns=5,planner_temperature=None,observer_temperature=.2,max_output_tokens=None,
+        seed=0,upstream_commit=('5ad014499a5e009b75e3ef05ac83595b78adda09' if method=='rsi' else 'c3cdf13a6ffc6b1ce21af3a0c7813178d17fac77'),
+        replicas=8,gpu='H100!:8',request_timeout_seconds=600,question_timeout_seconds=spec['question_timeout'],
+        method_settings=(dict(max_steps=11,max_service_calls=64,max_frames=256,solver_timeout_seconds=1800,
+                             image_width=768,planner_temperature=0,observer_temperature=0,max_output_tokens=8192,
+                             provider_retries=1,generic_answers=True,linux_isolation=False,
+                             client_manifest_sha256=sha256(output/'client_environment.json'),raw_archive='uncompressed tar')
+                         if method=='rsi' else dict(max_turns=5,planner_temperature=None,observer_temperature=.2,max_output_tokens=None)),
         preprocessing='Reuse tested native concat; no resizing or FPS conversion; exact ordered-video caching',
         unique_media_groups=len({media_key(r.sample.videos) for r in records.values()}),
         existing_cached_groups=len(cache),judge='Qwen3-30B-A3B-Instruct-2507',
@@ -115,13 +143,14 @@ def stop(process):
         os.killpg(process.pid,signal.SIGKILL);process.wait(timeout=10)
 
 
-def start_actor(rank,episode,shutdown):
-    from lenswalk_server import base,validate_card
+def start_actor(rank,episode,shutdown,method):
+    backend=importlib.import_module(method_config(method)['server'])
+    base,validate_card=backend.base,backend.validate_card
     directory=episode/f'worker{rank}'/str(time.time_ns());directory.mkdir(parents=True)
     env=dict(os.environ,**base.ENVIRONMENT,PYTHONPATH=str(SOURCE/'src'),CUDA_VISIBLE_DEVICES=str(rank))
     with (directory/'server.log').open('w') as log:
-        process=subprocess.Popen([sys.executable,str(ADAPTERS/'lenswalk_server.py'),
-            '--model','/weights/Qwen3.5-35B-A3B','--port',str(8100+rank),'--log-dir',str(directory)],
+        process=subprocess.Popen([sys.executable,str(ADAPTERS/(method_config(method)['server']+'.py')),
+            '--model','/weights/Qwen3.5-35B-A3B','--port',str(8100+rank),'--log-dir',str(directory)]+(['--worker'] if method=='rsi' else []),
             env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
     deadline=time.monotonic()+1200
     try:
@@ -178,23 +207,29 @@ def closed_score(record,prediction):
 
 
 def main(output):
-    from lenswalk_server import configure
-    from lenswalk_outcome import inspect
     from skill_evolution.infra.benchmarks.catalog import load_multibench_records
     assert SOURCE.resolve()==(output/'frozen_repo').resolve(), 'Run only the frozen driver'
     manifest=read(output/'manifest.json')
+    method=manifest['method'];spec=method_config(method)
+    configure=importlib.import_module(spec['server']).configure
+    inspect=importlib.import_module(spec['inspector']).inspect
     assert manifest['driver_sha256']==sha256(Path(__file__))
     assert manifest['samples_sha256']==sha256(output/'samples.json')
-    for name in ('lenswalk.py','lenswalk_server.py','prepare.py','lenswalk_outcome.py'):
+    for name in (method+'.py',spec['server']+'.py','prepare.py',spec['inspector']+'.py'):
         assert sha256(ADAPTERS/name)==manifest['source_hashes']['eval/external_methods/'+name]
     for name,expected in manifest['asset_hashes'].items():assert sha256(Path('/assets')/name)==expected
-    with tarfile.open(output/'client_environment.tar.gz') as archive:archive.extractall('/opt',filter='tar')
+    client_env=dict(os.environ,PYTHONPATH=str(SOURCE/'src'))
+    if method=='lenswalk':
+        with tarfile.open(output/'client_environment.tar.gz') as archive:archive.extractall('/opt',filter='tar')
+    else:
+        assert sha256(RSI_DEPS/'rsi_manifest.json')==manifest['method_settings']['client_manifest_sha256']
+        client_env['PYTHONPATH']=str(RSI_DEPS/'rsi')+os.pathsep+client_env['PYTHONPATH']
     ids=read(output/'samples.json');records=load_multibench_records('/assets',ids)
-    rows={p.parent.name:read(p) for p in (output/'lenswalk').glob('*/record.json')}
+    rows={p.parent.name:read(p) for p in (output/method).glob('*/record.json')}
     shutdown=threading.Event();lock=threading.Lock();children={};active={};cards={}
     media_locks={media_key(r.sample.videos):threading.Lock() for r in records.values()}
     episode=output/'episodes'/str(time.time_ns());episode.mkdir()
-    state=dict(phase='starting_models',expected=len(ids),episode=str(episode),started_at=now())
+    state=dict(phase='starting_models',method=method,expected=len(ids),episode=str(episode),started_at=now())
     def save():
         values=list(rows.values())
         state.update(updated_at=now(),completed=len(values),
@@ -217,26 +252,26 @@ def main(output):
             while not shutdown.is_set():
                 try:sid=jobs.get_nowait()
                 except queue.Empty:break
-                record=records[sid];directory=output/'lenswalk'/sid.replace(':','_')
+                record=records[sid];directory=output/method/sid.replace(':','_')
                 directory.mkdir(exist_ok=True)
                 attempt=directory/('attempt-'+str(time.time_ns()));attempt.mkdir()
-                prep_started=time.monotonic();prep_seconds=0;client=None;restart_needed=False
+                prep_started=time.monotonic();prep_seconds=0;started=None;client=None;restart_needed=False
                 with lock:active[str(rank)]=dict(sample_id=sid,phase='preparing_media',started_at=now());save()
                 write(attempt/'started.json',dict(sample_id=sid,worker=card['worker'],started_at=now()))
                 try:
                     item=prepare_item(output,record,media_locks[media_key(record.sample.videos)])
                     prep_seconds=time.monotonic()-prep_started
                     if shutdown.is_set():break
-                    with lock:active[str(rank)]['phase']='inference';save()
+                    with lock:active[str(rank)].update(phase='inference',started_at=now());save()
                     started=time.monotonic()
                     with (attempt/'job.log').open('w') as log:
-                        client=subprocess.Popen([CLIENT,str(ADAPTERS/'lenswalk.py'),'--source',str(SOURCE/'external_sources/LensWalk'),
+                        client=subprocess.Popen([spec['client'],str(ADAPTERS/(method+'.py')),'--source',str(SOURCE/'external_sources'/spec['upstream']),
                             '--item',str(item),'--output',str(attempt),'--endpoint',f'http://127.0.0.1:{8100+rank}/v1'],
-                            env=dict(os.environ,PYTHONPATH=str(SOURCE/'src')),stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+                            env=client_env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
                     with lock:children[rank]=client
                     timed_out=False
                     while client.poll() is None and not shutdown.is_set():
-                        if time.monotonic()-started>1800:timed_out=True;break
+                        if time.monotonic()-started>spec['question_timeout']:timed_out=True;break
                         if process.poll() is not None:break
                         time.sleep(1)
                     if client.poll() is None:stop(client)
@@ -245,13 +280,15 @@ def main(output):
                     outcome.update(returncode=client.returncode,seconds=time.monotonic()-started,
                                    question_timeout=timed_out)
                     if timed_out or process.poll() is not None:outcome['infrastructure_error']=True
-                    restart_needed=outcome['infrastructure_error']
+                    restart_needed=(timed_out or process.poll() is not None or outcome['http_errors']>0
+                                    if method=='rsi' else outcome['infrastructure_error'])
                 except AssertionError:
                     raise
                 except Exception as exc:
                     if shutdown.is_set():break
+                    if started is None:prep_seconds=time.monotonic()-prep_started
                     outcome=dict(answer='',terminal='execution_error',infrastructure_error=True,
-                        error=repr(exc),traceback=traceback.format_exc(),seconds=time.monotonic()-prep_started-prep_seconds,
+                        error=repr(exc),traceback=traceback.format_exc(),seconds=time.monotonic()-started if started is not None else 0,
                         calls=0,visual_calls=0,http_errors=0,input_tokens=0,output_tokens=0,tool_errors=[])
                 finally:
                     stop(client)
@@ -260,16 +297,16 @@ def main(output):
                     attempt=str(attempt),prepared_seconds=prep_seconds,finished_at=now(),worker=card['worker'])
                 outcome['score']=None if outcome['infrastructure_error'] else closed_score(record,outcome['answer'])
                 archive_started=time.monotonic()
-                outcome['raw_archive']=archive_attempt(attempt)
+                outcome['raw_archive']=archive_attempt(attempt,compress=method=='lenswalk')
                 outcome['archive_seconds']=time.monotonic()-archive_started
                 write(directory/'record.json',outcome)
                 with lock:rows[directory.name]=outcome;active.pop(str(rank),None);save()
                 print(json.dumps({k:outcome.get(k) for k in ('sample_id','terminal','infrastructure_error','seconds','score')},ensure_ascii=False),flush=True)
-                if not outcome['infrastructure_error']:restarts=0
+                restarts=restarts+1 if outcome['infrastructure_error'] else 0
+                if restarts>3:raise RuntimeError(f'Worker {rank} exceeded three consecutive infrastructure failures')
                 if restart_needed and not jobs.empty() and not shutdown.is_set():
-                    stop(process);restarts+=1
-                    if restarts>3:raise RuntimeError(f'Worker {rank} exceeded three consecutive infrastructure restarts')
-                    process,card=start_actor(rank,episode,shutdown)
+                    stop(process)
+                    process,card=start_actor(rank,episode,shutdown,method)
         finally:stop(process)
     save()
     processes=[]
@@ -278,7 +315,7 @@ def main(output):
             configure()
             startup_error=None
             with ThreadPoolExecutor(max_workers=8) as pool:
-                starts={pool.submit(start_actor,rank,episode,shutdown):rank for rank in range(8)}
+                starts={pool.submit(start_actor,rank,episode,shutdown,method):rank for rank in range(8)}
                 for future in as_completed(starts):
                     try:
                         rank=starts[future];process,card=future.result();processes.append(process);cards[rank]=(process,card)
@@ -296,7 +333,7 @@ def main(output):
         if shutdown.is_set():state['phase']='interrupted';save();return
         assert len(rows)==len(ids)
         state['phase']='scoring';save()
-        score_all(output,records,rows,state,save,shutdown,episode)
+        score_all(output,records,rows,state,save,shutdown,episode,method)
         state['phase']='completed_with_errors' if any(r['infrastructure_error'] for r in rows.values()) else 'completed'
         state['finished_at']=now();save()
     except InterruptedError:
@@ -308,7 +345,7 @@ def main(output):
         for p in list(children.values())+processes:stop(p)
 
 
-def score_all(output,records,rows,state,save,shutdown,episode):
+def score_all(output,records,rows,state,save,shutdown,episode,method='lenswalk'):
     from eval.agent_eval.score_crossvid_ccqa import LocalJudge,_score_one,SCORE_PROMPT
     pending=[r for r in rows.values() if not r['infrastructure_error'] and r['task']=='CCQA' and r['score'] is None]
     starter=None
@@ -331,7 +368,7 @@ def score_all(output,records,rows,state,save,shutdown,episode):
                     point_count=len(record.sample.ground_truth),prediction=row['answer'],
                     prompt=SCORE_PROMPT.format(QUESTION=record.judge_question,ANSWER=record.reference_answer,
                                               POINTS=record.sample.ground_truth,OUTPUT=row['answer'])),attempts=3)
-                directory=output/'lenswalk'/row['sample_id'].replace(':','_');write(directory/'judge.json',result)
+                directory=output/method/row['sample_id'].replace(':','_');write(directory/'judge.json',result)
                 if result['status']!='ok':raise RuntimeError(f"Judge failed for {row['sample_id']}: {result.get('error')}")
                 row['score']=result['score']/(2*len(record.sample.ground_truth));write(directory/'record.json',row)
                 return row['sample_id']
@@ -360,6 +397,7 @@ def score_all(output,records,rows,state,save,shutdown,episode):
         results[dataset]=dict(expected=expected,scored=len(valid),score=score,task_scores=tasks,
             infrastructure_failures=[r['sample_id'] for r in selected if r['infrastructure_error']],
             unfinished=[r['sample_id'] for r in valid if r['terminal']=='unfinished_tool_plan'],
+            invalid_answers=[r['sample_id'] for r in valid if r['terminal']=='invalid_decision'],
             terminal_answers=sum(r['terminal'] in ('finish','natural_text') for r in valid),
             total_inference_seconds=sum(r['seconds'] for r in selected),
             total_preparation_seconds=sum(r['prepared_seconds'] for r in selected),
@@ -371,4 +409,5 @@ def score_all(output,records,rows,state,save,shutdown,episode):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--output',type=Path,required=True);p.add_argument('--initialize',action='store_true')
-    args=p.parse_args();initialize(args.output) if args.initialize else main(args.output)
+    p.add_argument('--method',choices=['lenswalk','rsi'],default='lenswalk',help='Initialization only; resume uses frozen manifest')
+    args=p.parse_args();initialize(args.output,args.method) if args.initialize else main(args.output)
