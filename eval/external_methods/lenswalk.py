@@ -54,7 +54,7 @@ def main():
     os.chdir(out)
     started=time.monotonic()
     runpy.run_path(sys.argv[0],run_name='__main__')
-    conversations=list(out.glob('results/*/all_conversations.jsonl'))
+    conversations=list(out.glob('results/run_lods/*/all_conversations.jsonl'))
     if len(conversations)!=1:
         raise RuntimeError(f'Expected one LensWalk output, found {len(conversations)}')
     rows=[json.loads(line) for line in conversations[0].read_text().splitlines()]

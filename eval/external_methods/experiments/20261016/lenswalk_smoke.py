@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import tarfile
 import time
 import urllib.request
 
@@ -42,18 +43,24 @@ def prepare():
     support.mkdir()
     subprocess.run([sys.executable,'-m','pip','install','--target',str(support/'installer'),'uv'],check=True)
     uv=str(support/'installer/bin/uv')
-    env=dict(os.environ,UV_PYTHON_INSTALL_DIR=str(support/'python'),UV_CACHE_DIR='/tmp/lenswalk-uv-cache')
-    subprocess.run([uv,'venv','--python','3.11',str(support/'client')],env=env,check=True)
-    client=str(support/'client/bin/python')
+    # uv's atomic Python installation is unsupported on a Modal volume; build on local disk.
+    env=dict(os.environ,UV_PYTHON_INSTALL_DIR='/opt/lenswalk-python',UV_CACHE_DIR='/tmp/lenswalk-uv-cache')
+    subprocess.run([uv,'venv','--python','3.11','/opt/lenswalk-client'],env=env,check=True)
+    client='/opt/lenswalk-client/bin/python'
     subprocess.run([uv,'pip','install','--python',client,'-r',str(frozen/'external_sources/LensWalk/requirements.txt'),
-                    'openai==2.24.0','transformers==4.57.6','numpy==2.2.6'],env=env,check=True)
+                    'openai==2.24.0','transformers==4.57.6','numpy==2.2.6',
+                    'opencv-python-headless==4.13.0.92','pandas==2.2.3'],env=env,check=True)
     subprocess.run([uv,'pip','freeze','--python',client],env=env,check=True,
                    stdout=(support/'requirements.lock').open('w'))
+    with tarfile.open(support/'client_environment.tar.gz','w:gz') as archive:
+        for name in ('lenswalk-python','lenswalk-client'):
+            archive.add('/opt/'+name,arcname=name)
     env=dict(os.environ,PYTHONPATH=str(frozen/'src'))
     subprocess.run([sys.executable,'-m','compileall','-q','src','scripts','eval/agent_eval','eval/external_methods','demo.py'],
                    cwd=frozen,env=env,check=True)
     for name in ('test_contracts.py','test_transport_audit.py','test_lenswalk_transport.py'):
-        subprocess.run([sys.executable,str(frozen/'eval/external_methods'/name)],env=env,check=True)
+        subprocess.run([sys.executable,str(ADAPTERS/name)],env=env,check=True)
+    subprocess.run([sys.executable,str(ADAPTERS/'test_rsi_timeout.py'),str(frozen/'external_sources/Video-RSI')],env=env,check=True)
     scratch=Path('/tmp/lenswalk-upstream-tests')
     shutil.copytree(frozen/'external_sources/LensWalk',scratch)
     for name in ('mock_inference_smoke.py','mock_subject_registry_smoke.py'):
@@ -69,6 +76,8 @@ def infer():
     frozen=ROOT/'frozen_repo'
     scripts=frozen/'eval/external_methods'
     ready=json.loads((ROOT/'ready.json').read_text())
+    with tarfile.open(ROOT/'support/client_environment.tar.gz') as archive:
+        archive.extractall('/opt',filter='tar')
     sys.path[:0]=[str(scripts),str(frozen/'src')]
     from lenswalk_server import base, validate_card, configure
     state=dict(phase='starting_model',expected=6,completed=0,samples=[])

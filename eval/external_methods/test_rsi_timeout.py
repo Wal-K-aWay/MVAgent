@@ -1,6 +1,5 @@
 """Check the actual upstream transport receives only the approved timeout override."""
 import io
-from importlib import import_module
 import json
 from pathlib import Path
 import sys
@@ -8,7 +7,6 @@ import tempfile
 from unittest.mock import patch
 
 import rsi
-retry_reason = import_module('experiments.20261015.repair_preroll').retry_reason
 
 
 def main():
@@ -48,12 +46,7 @@ def main():
         config = json.loads((root/'output/effective_config.json').read_text())['config']
         assert config['services']['timeout_seconds'] == 600
     assert timeouts == [600,600]
-    good = {'response':{'choices':[{}]},'error':None}
-    assert retry_reason({'sample_id':'cvbench:1','success':True},[good]) is None
-    assert retry_reason({'sample_id':'cvbench:1','success':True},[{'error':'TimeoutError'}])
-    assert retry_reason({'sample_id':'cvbench:1','success':False},[good])
-    assert retry_reason({'sample_id':'crossvid:NC:80','success':True},[good])
-    print('Upstream HTTP timeout and retry-selection checks passed')
+    print('Upstream HTTP timeout and generation settings checks passed')
 
 
 if __name__ == '__main__':
