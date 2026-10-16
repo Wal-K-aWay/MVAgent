@@ -58,7 +58,6 @@ def judge():
         result=read(directory/REPORT)
         assert result['scored_answer_count']==30 and not result['failed_ids'],result
     write(ROOT/'judge_progress.json',dict(phase='completed',at=now()))
-    report()
 
 
 def report():

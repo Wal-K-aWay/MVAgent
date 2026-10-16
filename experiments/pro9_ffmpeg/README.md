@@ -40,7 +40,8 @@
 运行中的实际进展以Modal结果目录的`shard0/progress.json`、`shard1/progress.json`和每rank进度为准，不能把申请成功当作完成测试。
 
 `judge.py prepare`仅整理旧答案；Actor完成后，`judge.py judge`加载原冻结Judge并评分四组各30题。
-Judge错误不计零分，全部成功才聚合；`judge.py report`可以纯CPU复用原始Judge结果。
+Judge错误不计零分，全部成功才聚合；`judge.py report`在闭式评分文件就绪后单独执行，可以纯CPU复用原始Judge结果。
+`finalize.py`核对330条原始记录、旧src哈希、120份Judge与共享缓存，输出最终审计及completed状态。
 
 本次冻结桥在客户端重启时会复用日志编号；运行时已单独归档并逐SHA验证全部28个冒烟响应，
 `smoke_trajectory_audit.json`验证除时间外的完整结果一致。分支后续修复为沿用已有最大编号，远端自检通过；
