@@ -1,5 +1,6 @@
 """Paired official scores and reliability for the frozen enlarged direct-answer panel."""
 from collections import defaultdict
+import argparse
 import json
 from pathlib import Path
 import random
@@ -47,7 +48,7 @@ def self_check():
     print('Official aggregation and paired bootstrap checks passed')
 
 
-def analyze():
+def analyze(*, partial=False, report_dir=None):
     self_check()
     selection = read(OUT/'selection.json')
     records = load_multibench_records('/assets', selection['ids'])
@@ -55,8 +56,12 @@ def analyze():
     summary = dict(at=now(), selection_sha256=sha(OUT/'selection.json'), scorer=identity, models={},
         inference_repeated=False, bootstrap='2000 paired within-task resamples, seed0; no multiplicity or shared-video correction',
         limits='Development/evaluation overlap is disclosed; same-panel improvements are not guarantees for all inputs.')
-    for shard in range(2):
-        assert read(OUT/f'shard{shard}/progress.json')['phase']=='completed'
+    report_dir = report_dir or OUT/'analysis'
+    assert report_dir.is_relative_to(OUT) and report_dir != OUT
+    summary['partial'] = partial
+    summary['shards'] = {str(shard):read(OUT/f'shard{shard}/progress.json')['phase'] for shard in range(2)}
+    if not partial:
+        assert all(phase=='completed' for phase in summary['shards'].values())
     for model in MODELS:
         previous_path = FULL/f'{model}.json'
         previous = {r['sample_id']:r for r in read(previous_path)['rows']}
@@ -65,9 +70,13 @@ def analyze():
         rows=[];errors=[];missing=[];audited_calls=0;failed_attempts=[]
         for shard in range(2):
             group=OUT/f'shard{shard}'
-            judged=read(group/model/REPORT)
-            assert not judged['failed_ids']
-            judge={f"crossvid:CCQA:{r['id']}":r for r in judged['samples']}
+            judge = {}
+            if (group/model/REPORT).exists():
+                judged=read(group/model/REPORT)
+                assert not judged['failed_ids']
+                judge={f"crossvid:CCQA:{r['id']}":r for r in judged['samples']}
+            else:
+                assert partial, ('Missing Judge report',group/model/REPORT)
             for p in (group/model/'attempts').glob('*/result.json'):
                 attempt=read(p)
                 failed_attempts.append(dict(sample_id=attempt['sample_id'],error=attempt.get('error'),path=str(p),sha256=sha(p)))
@@ -92,6 +101,7 @@ def analyze():
                 assert len(workers)==1,(model,sid,workers)
                 old=previous[sid]
                 if rec.native_task=='CCQA':
+                    assert sid in judge, ('Completed CCQA needs a valid Judge result',sid)
                     result=judge[sid]
                     assert result['status']=='ok' and result['prediction']==saved['prediction'].strip()
                     direct=dict(prediction=result['prediction'],score=result['score']/(2*len(result['coverage'])),
@@ -133,14 +143,23 @@ def analyze():
             entry['by_task']={task:dict(n=len(rs),direct=mean_score(rs,'direct'),e2e=mean_score(rs,'e2e'))
                 for task in sorted({r['task'] for r in selected}) if (rs:=[r for r in selected if r['task']==task])}
             result['benchmarks'][ds]=entry
-        write(OUT/'analysis'/f'{model}_paired.json',rows)
-        write(OUT/'analysis'/f'{model}_summary.json',result)
+        if not partial:
+            assert len(rows)==len(selection['ids']) and not errors and not missing
+        write(report_dir/f'{model}_paired.json',rows)
+        write(report_dir/f'{model}_summary.json',result)
         summary['models'][model]=result
-    write(OUT/'analysis/summary.json',summary)
-    write(OUT/'progress.json',dict(phase='completed',at=now(),models={m:{k:v for k,v in r.items() if k in ['expected','valid','empty','closed_format_errors','reused','audited_calls','errors','missing']} for m,r in summary['models'].items()}))
-    print(json.dumps(summary,ensure_ascii=False),flush=True)
+    write(report_dir/'summary.json',summary)
+    if not partial:
+        write(OUT/'progress.json',dict(phase='completed',at=now(),models={m:{k:v for k,v in r.items() if k in ['expected','valid','empty','closed_format_errors','reused','audited_calls','errors','missing']} for m,r in summary['models'].items()}))
+    printable = {m:{k:v for k,v in r.items() if k not in ['missing','failed_attempts','reference_sha256']} for m,r in summary['models'].items()}
+    print(json.dumps(printable,ensure_ascii=False),flush=True)
 
 
 if __name__=='__main__':
-    if '--self-check' in sys.argv:self_check()
-    else:analyze()
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--self-check',action='store_true')
+    parser.add_argument('--partial',action='store_true')
+    parser.add_argument('--report-dir',type=Path)
+    args=parser.parse_args()
+    if args.self_check:self_check()
+    else:analyze(partial=args.partial,report_dir=args.report_dir)
