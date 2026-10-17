@@ -1,6 +1,7 @@
 """Package the completed AgentCVR results on Modal CPU for Lightsail transfer."""
 from concurrent.futures import ThreadPoolExecutor
 import hashlib
+import gzip
 import io
 from itertools import batched
 import json
@@ -99,6 +100,32 @@ def package():
     return result
 
 
+@app.function(image=modal.Image.debian_slim(python_version='3.12'), cpu=2, memory=2048,
+              timeout=1800, volumes={'/runs': runs})
+def compress_archive():
+    output = Path('/runs') / DESTINATION
+    bundle = json.loads((output / 'bundle.json').read_text())
+    source = output / 'results.tar'
+    assert source.stat().st_size == bundle['bytes']
+    temporary = output / 'results.tar.gz.tmp'
+    digest = hashlib.sha256()
+    with source.open('rb') as stream, temporary.open('wb') as destination:
+        with gzip.GzipFile(filename='', mode='wb', fileobj=destination, compresslevel=1, mtime=0) as compressed:
+            while block := stream.read(1024 * 1024):
+                digest.update(block)
+                compressed.write(block)
+    assert digest.hexdigest() == bundle['sha256']
+    target = output / 'results.tar.gz'
+    temporary.replace(target)
+    with target.open('rb') as stream:
+        result = dict(volume_path=DESTINATION + '/results.tar.gz', bytes=target.stat().st_size,
+                      sha256=hashlib.file_digest(stream, 'sha256').hexdigest(),
+                      uncompressed_bytes=bundle['bytes'], uncompressed_sha256=bundle['sha256'])
+    (output / 'release_asset.json').write_text(json.dumps(result, indent=2) + '\n')
+    runs.commit()
+    return result
+
+
 @app.local_entrypoint()
-def main():
-    print(json.dumps(package.remote(), indent=2))
+def main(compress: bool = False):
+    print(json.dumps(compress_archive.remote() if compress else package.remote(), indent=2))

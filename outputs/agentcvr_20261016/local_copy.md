@@ -20,6 +20,6 @@
 
 Modal原件继续保留于volume `wxu-evolve-agent-runs-20261006`的`devbox/agentcvr_eval_h100_20261016_r2/`。打包在Modal CPU执行，经`ssh modal-gpu`流式中转；dev box不暂存大文件，本机只进行流式落盘、解包和SHA校验。媒体、权重和冻结执行环境未迁入。
 
-传输脚本为`eval/external_methods/agentcvr_export.py`和`agentcvr_download.py`。数据与JSON清单不提交Git；GitHub只备份脚本和Markdown说明。最终核验信息以本地`transfer_receipt.json`为准；只有完整验证通过才将`data.partial`改名为`data`。
+传输脚本为`eval/external_methods/agentcvr_export.py`和`agentcvr_download.py`。数据与JSON清单不进入Git提交历史；后续用户要求跨设备获取，改由GitHub Release附件分发，见[下载说明](github_download.md)。最终核验信息以本地`transfer_receipt.json`为准；只有完整验证通过才将`data.partial`改名为`data`。
 
 传输完成：5658个迁入文件共1,796,010,344字节（约1.80GB），整包与每文件大小/SHA256全部一致；另生成本地校验回执。整包SHA256为`2f543ef90e4ada146849d0514f66feed20bf63cc31c62e85b7f6dcaf5746bd91`。997/1824行答案表已核验；未额外保存1.80GB中转tar，正式数据直接解包落盘。归档文件mtime统一为0，不用本地mtime推断推理完成时间；时间以原始JSON和progress为准。
