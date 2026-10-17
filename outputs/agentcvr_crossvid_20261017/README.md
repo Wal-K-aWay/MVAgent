@@ -82,3 +82,7 @@ CPU app `ap-qSho9pZByEysoBYQgpx1Cv`完成旁路检查与自检：15份记录中�
 它等待现有GPU控制器退出，然后执行一次CPU审计；不会申请GPU或重新推理。正式完成写`boundary_audit.json`，若推理失败则保留partial标记。
 
 数据保留在Modal；目前没有新增Lightsail原始结果迁移或GitHub Release数据上传。代码与Markdown报告持续备份，运行配置仍使用冻结d8c3232。
+
+15:41 UTC独立Luna检查：21/2500 valid、0基础设施错误、0未终答，3个CCQA待Judge；BU3/FSA8/MOC1/NC3/PEA2/PSS1/CCQA3，主app仍1个GPU容器正常推理。任务继续，不据早期题型分布报告全量准确率。
+后台CPU边界收尾控制器PID3235778/app ap-PhsXTU8TGswM8FGSrKjkED已明确进入等待GPU控制器3224707退出；不会重复提交推理。
+本轮独立AI巡检已于15:41末次检查后结束；会话外没有持续AI巡检，远端推理/Judge/CPU收尾控制器继续运行。
