@@ -146,6 +146,13 @@ def normalize_lossless(source, destination):
         stream.pix_fmt = original.codec_context.format.name
         for field in ('colorspace', 'color_range', 'color_primaries', 'color_trc'):
             setattr(stream.codec_context, field, getattr(original.codec_context, field))
+        # An absent VUI can retain the preceding segment's BT.709 decoder state.
+        # Make libswscale's existing YUV defaults explicit; keep the RGB pixels unchanged.
+        if stream.pix_fmt.startswith('yuv'):
+            if stream.codec_context.colorspace == 2:
+                stream.codec_context.colorspace = 6
+            if stream.codec_context.color_range == 0:
+                stream.codec_context.color_range = 2 if stream.pix_fmt.startswith('yuvj') else 1
         stream.time_base = stream.codec_context.time_base = clock
         stream.codec_context.thread_count = 1
         stream.options = {'qp':'0', 'preset':'ultrafast', 'bf':'0', 'x264-params':'repeat-headers=1'}

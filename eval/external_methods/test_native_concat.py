@@ -30,6 +30,7 @@ def main():
             ('mixed_vfr', ('mpeg4', 'libx264'), True),
             ('preroll', ('libx264', 'libx264'), False),
             ('mixed_bt709', ('mpeg4', 'libx264'), False),
+            ('mixed_bt709_reverse', ('libx264', 'mpeg4'), False),
             ('mixed_bad_metadata', ('mpeg4', 'libx264'), False),
         ):
             paths = []
@@ -39,7 +40,7 @@ def main():
                            '-i',f'testsrc2=size={size}:rate={fps}']
                 if variable_timing:
                     command += ['-vf', "select='not(eq(mod(n,4),1))'", '-vsync', '0']
-                if name == 'mixed_bt709' and i == 1:
+                if (name == 'mixed_bt709' and i == 1) or (name == 'mixed_bt709_reverse' and i == 0):
                     command += ['-colorspace','bt709','-color_primaries','bt709',
                                 '-color_trc','bt709','-color_range','tv']
                 if name == 'mixed_bad_metadata' and i == 0:
