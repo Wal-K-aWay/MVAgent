@@ -116,7 +116,8 @@ def main():
             if not (args.output / 'records' / destination.name).exists():
                 record_result(args.output, destination, json.loads(destination.read_text()))
             continue
-        assert set(item) == {'sample_id', 'dataset', 'query', 'videos', 'system'}
+        if item['dataset'] != 'crossvid':
+            assert set(item) == {'sample_id', 'dataset', 'query', 'videos', 'system'}
         calls.clear()
         print(json.dumps({'sample_id': sid, 'rank': args.rank, 'phase': 'starting'}), flush=True)
         started = time.monotonic()
@@ -125,17 +126,22 @@ def main():
                   'input_sha256': hashlib.sha256(json.dumps(item, sort_keys=True).encode()).hexdigest()}
         try:
             contexts = []
-            for video in item['videos']:
+            if item['dataset'] == 'crossvid':
+                from agentcvr_crossvid import contexts_for
+                contexts = contexts_for(item, video_processor)
+            for video in ([] if item['dataset'] == 'crossvid' else item['videos']):
                 _, _, _, fps, total_frames, duration = video_processor.process_video(
                     video, 1, [(0, 1)], max_length=360, encode=False)
                 assert fps > 0 and total_frames > 0 and duration > 0, video
                 contexts.append(dict(path=video, fps=fps, total_frames=total_frames,
                                      duration_seconds=duration, clip_begin=0, clip_end=duration))
-            executor.master_prompt_template = item['system'] + '\n\n' + Path(prompt['master']).read_text()
-            executor.init_agent_state(query=item['query'], possible_answers=[], video_contexts=contexts)
+            executor.master_prompt_template = (item['system'] if item['dataset'] == 'crossvid'
+                else item['system'] + '\n\n' + Path(prompt['master']).read_text())
+            executor.init_agent_state(query=item['query'], possible_answers=item.get('options', []), video_contexts=contexts)
             answer, history = executor.run_agent_loop(max_turns=20)
             payload = json.loads(history[1]['content'][0]['text'])
-            assert payload['query'] == item['query'] and 'possible_answers' not in payload
+            assert payload['query'] == item['query']
+            assert payload.get('possible_answers', []) == item.get('options', [])
             last = next((m['content'] for m in reversed(history) if m['role'] == 'assistant'), '')
             try:
                 answered = executor._parse_llm_response(last).get('action') == 'answer'
@@ -143,7 +149,7 @@ def main():
                 answered = False
             result.update(answer=answer, status='answered' if answered else 'no_answer',
                           history=history, tools=executor._tool_history, contexts=contexts)
-            if not isinstance(answer, str):
+            if not isinstance(answer, str) and item['dataset'] != 'crossvid':
                 result.update(answer='', answer_value=answer, status='invalid_answer')
             if any(c.get('error') or c.get('http_status', 200) >= 400 for c in calls):
                 result['transport_errors'] = sum(bool(c.get('error') or c.get('http_status', 200) >= 400)

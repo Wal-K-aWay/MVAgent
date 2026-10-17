@@ -103,9 +103,13 @@ def inherit_results(output, source, items):
         policy='Preserve old run; copy verified non-infrastructure results; rerun one anchor and affected cases.'))
 
 
-def prepare(output, resume_from=None):
+def prepare(output, resume_from=None, benchmark='cv_mvu'):
     output.mkdir(parents=True, exist_ok=True)
-    items, labels = official_inputs()
+    if benchmark == 'crossvid':
+        from agentcvr_crossvid import official_inputs as crossvid_inputs
+        items, labels = crossvid_inputs()
+    else:
+        items, labels = official_inputs()
     inputs = output / 'items.json'
     if inputs.exists():
         assert read(inputs) == items and (output / 'agent_system.prompt').read_text() == protocol_prompt()
@@ -134,6 +138,7 @@ def prepare(output, resume_from=None):
         vision='Qwen3-VL-8B-Thinking', audio='Whisper large-v3', gpu='H100!:8',
         replicas=8, max_turns=20, temperature=.5, max_tokens=8192, seed=0, question_timeout_seconds=3600,
         gpu_memory_utilization={'master': .29, 'vision': .50},
+        benchmark=benchmark, expected=len(items),
         transport_adaptation='tool_call_id and lossless text envelope for upstream tool error objects',
         benchmark_prompts='Verbatim CVBench mvr_doc_to_text; MVU question/instruction/options original order',
         protocol_adaptation='CC role paragraph removed; video-index bound generalized; final format follows Query',
@@ -142,14 +147,20 @@ def prepare(output, resume_from=None):
         assets_sha256={p: sha256(Path('/assets') / p) for p in
                        ('cvbench/QAs.json', 'mvu-eval/MVU_Eval_QAs.json')}))
     write(output / 'smoke_ids.json', [next(x['sample_id'] for x in items if x['dataset'] == dataset)
-                                     for dataset in ('cvbench', 'mvu_eval')])
+                                     for dataset in (('crossvid',) if benchmark == 'crossvid' else ('cvbench', 'mvu_eval'))])
+    if benchmark == 'crossvid':
+        from agentcvr_crossvid import finish_prepare
+        finish_prepare(output, items)
     if resume_from is not None:
         inherit_results(output, resume_from, items)
-    write(output / 'progress.json', dict(phase='prepared', expected=2821,
+    write(output / 'progress.json', dict(phase='prepared', expected=len(items),
         completed=len(list((output / 'records').glob('*.json')))))
 
 
 def summarize(output):
+    if read(output / 'manifest.json').get('benchmark') == 'crossvid':
+        from agentcvr_crossvid import summarize as crossvid_summary
+        return crossvid_summary(output)
     from eval.e2e_eval.harness.cvbench import CVBench
     from eval.e2e_eval.harness.mvu_eval import MVUEval
     cv = CVBench(data_root=Path('/assets'), frames=512, max_side=360)
@@ -190,6 +201,7 @@ def stop(proc):
 
 def run(output, smoke_only=False):
     manifest = read(output / 'manifest.json')
+    expected = manifest.get('expected', 2821)
     assert sha256(output / 'items.json') == manifest['input_sha256']
     for path, digest in manifest['source_hashes'].items():
         assert sha256(REPO / path) == digest, path
@@ -197,7 +209,7 @@ def run(output, smoke_only=False):
     processes, workers = [], []
     started = time.monotonic()
     def progress(phase, **extra):
-        write(output / 'progress.json', dict(phase=phase, expected=2821, updated=time.time(), **extra))
+        write(output / 'progress.json', dict(phase=phase, expected=expected, updated=time.time(), **extra))
     worker_command = [sys.executable, str(HERE / 'agentcvr_worker.py'), '--output', str(output)]
     try:
         progress('starting_models', ready_servers=0)
@@ -254,7 +266,7 @@ def run(output, smoke_only=False):
                                for rank, proc in enumerate(processes) if proc.poll() is not None})
                 raise RuntimeError(f'Processes exited unexpectedly: {exited}; logs: {episode}')
             totals = summarize(output)
-            write(output / 'progress.json', dict(phase='inference', expected=2821,
+            write(output / 'progress.json', dict(phase='inference', expected=expected,
                 completed=sum(x['completed'] for x in totals.values()), datasets=totals, updated=time.time()))
             if time.monotonic()-started > 22*3600:
                 for proc in workers:
@@ -264,8 +276,9 @@ def run(output, smoke_only=False):
             time.sleep(30)
         assert all(proc.returncode == 0 for proc in workers)
         totals = summarize(output)
-        assert sum(x['completed'] for x in totals.values()) == 2821
-        write(output / 'progress.json', dict(phase='completed', expected=2821, completed=2821,
+        assert sum(x['completed'] for x in totals.values()) == expected
+        phase = 'inference_completed' if manifest.get('benchmark') == 'crossvid' else 'completed'
+        write(output / 'progress.json', dict(phase=phase, expected=expected, completed=expected,
             datasets=totals, updated=time.time()))
     except BaseException as exc:
         progress('failed', error=f'{type(exc).__name__}: {exc}')
@@ -280,9 +293,10 @@ if __name__ == '__main__':
     parser.add_argument('mode', choices=['prepare', 'run', 'smoke', 'score'])
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--resume-from', type=Path)
+    parser.add_argument('--benchmark', choices=['cv_mvu', 'crossvid'], default='cv_mvu')
     args = parser.parse_args()
     if args.mode == 'prepare':
-        prepare(args.output, args.resume_from)
+        prepare(args.output, args.resume_from, args.benchmark)
     elif args.mode == 'score':
         print(json.dumps(summarize(args.output)), flush=True)
     else:
