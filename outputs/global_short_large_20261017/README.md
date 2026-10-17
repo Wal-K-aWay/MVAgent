@@ -40,3 +40,5 @@ host控制器PID3183066，路径`~/wxu-evolve-agent/devbox/global-short-large-co
 13:19两分片逐条只读统计为18+58=76份新增结果，全部status=ok，模型请求错误0（开放题仍待后续Judge），加306继承共382/4500已有推理结果。各9B目录`startup_status.json`保留该时点；不是完整模型准确率。独立Luna末检确认两组inference、host存活、近10分钟0Traceback后停止，只停止检查会话，未操作GPU或host控制器。
 
 原已验收基线标签`baseline/mvagent-direct-20261017`、共享代码冻结分支及此前所有结果不改写。实验分支`codex/global-short-large-20261017`。当前已开始新增推理，27B/35B及最终评分尚未完成，不能把启动验证写成整批结果。
+
+后续待办：[VideoAgent 题目背景与职责边界实验计划](video_context_plan.md)。等本批推理、Judge 和汇总完成后再开展，目前仅保存设计，未启动该对照。
