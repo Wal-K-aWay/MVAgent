@@ -54,7 +54,7 @@ Master实际KV容量48,208覆盖40,960上下文；Vision实际KV147,712覆盖131
 - Master：[xiaohua616/qwen8b_crossvidRL](https://huggingface.co/xiaohua616/qwen8b_crossvidRL)，revision `0ca8538758507589a5bada39d2377847649adc09`。8路FSDP actor分片合计32,764,792,152字节；不下载优化器状态。作者发布的配置及训练代码使用纯文本Qwen3；[论文](https://arxiv.org/html/2605.29643v1)写Qwen3-VL，因此本轮是作者公开版本评测，不宣称复现论文42.03%对应的模型。
 - 视觉模型：Qwen/Qwen3-VL-8B-Thinking，revision `92f3c4b4feadd3a016ef468d103bb5f58b2a2c6b`。音频：Whisper large-v3。保留原音视频权限；与仅视觉MVAgent对比时必须披露这一差别。
 - 下载逐文件检查大小，LFS文件检查公布的SHA256；合并文件另记SHA256。PyTorch2.10读旧FSDP DeviceMesh失败后，使用隔离的PyTorch2.8 CPU环境执行原版verl合并器，按原实现转BF16。推理继续使用项目镜像的vLLM0.19.1、PyTorch2.10、Transformers4.57.6。
-- 模型卡训练数据链接目前公开访问401；不能声称已验证训练数据与测试完全无重合。两套benchmark未发现直接训练使用证据，属于跨benchmark评测，而非已证实无污染。
+- 2026-10-17更正：模型卡旧训练链接仍401，但已找到作者公开`xiaohua616/crossvid_dataset`（8407条合成脚本），并完成CrossVid文本精确重合核查；未发现匹配，不能据此证明绝对无污染。详见[训练来源补充](official_settings_audit.md#crossvid训练来源与可测性2026-10-17追加)。CVBench/MVU未发现直接训练使用证据。
 
 ## 用户指定的官方提示
 

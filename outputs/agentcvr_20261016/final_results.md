@@ -15,7 +15,7 @@ CVBench官方共1000题，其中64–66的已知损坏媒体继续排除；不�
 
 这是**作者公开权重及代码默认参数的跨benchmark适配基线**，不是已证明的论文原设置复现。Master为作者`xiaohua616/qwen8b_crossvidRL`（实际Qwen3-8B纯文本），视觉为Qwen3-VL-8B-Thinking，音频Whisper large-v3启用；与仅视觉方法比较时必须披露音频权限。
 
-采用CVBench/MVU官方题面文本、选项和指令顺序；Agent System沿用已披露的CC模板适配。temperature=0.5、每次最多8192输出token、20轮、最长边360、seed=0，8×H100独立TP1执行。论文与公开版本的模型身份、温度及长度表述存在差异，详见[设置核对](official_settings_audit.md)。未取得训练集，不能证明完全无数据污染。
+采用CVBench/MVU官方题面文本、选项和指令顺序；Agent System沿用已披露的CC模板适配。temperature=0.5、每次最多8192输出token、20轮、最长边360、seed=0，8×H100独立TP1执行。论文与公开版本的模型身份、温度及长度表述存在差异，详见[设置核对](official_settings_audit.md)。2026-10-17追加调研已找到作者公开的8407条合成训练数据，并完成CrossVid精确文本重合核查；未发现直接匹配，但不能证明完全无数据污染，详见[训练来源补充](official_settings_audit.md#crossvid训练来源与可测性2026-10-17追加)。
 
 生产冻结代码53a04a4；恢复时只降低Master显存预留，为视觉峰值留空间，并把作者工具错误对象封装为合法OpenAI文本消息。185条正常H100结果经SHA核验继承，其余在恢复批次完成。旧失败记录、320帧OOM及恢复回归原件保留；H200的124条历史结果没有混入本成绩。
 
