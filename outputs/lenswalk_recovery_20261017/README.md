@@ -1,5 +1,7 @@
 # LensWalk 35B 剩余题恢复
 
+2026-10-17 11:51 UTC本批次在2404题后因输出审计错误停止，原GPU和媒体补测队列均已退出。新的[审计修复与剩余恢复](audit_recovery_20261017.md)已继承原结果并交后台；以下运行描述是此前阶段记录。
+
 2026-10-17 11:20 UTC已完成[Video-RSI、LensWalk与当前MVAgent/E2E的同题比较](baseline_comparison_20261017.md)。RSI为1440条已停止批次，四方共同399题；LensWalk另有658题三方对照。
 
 2026-10-17 11:09 UTC的2360题[阶段成绩](partial_results_20261017.md)：CV53.93%、MVU32.34%、CrossVid九类macro21.79%，97条CCQA待评分，仍非全量结论。四份历史散文件归档已完成，详见该报告。
