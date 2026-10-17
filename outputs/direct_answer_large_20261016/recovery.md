@@ -15,3 +15,17 @@
 首次CPU `ap-83vMomVxuSjyYf1PcmTlhB` 的compileall、13项接口检查和准备通过，但媒体验证脚本被历史辅助模块的sys.path覆盖而载入旧VideoAgent，探针失败，整体rc1。已修正验证脚本的导入顺序并加入被测源文件路径断言；首次准备原件保存为`direct_answer_large_recovery_20261017_prepare_initial`，没有GPU推理记录。源码/控制器已提交725bf99、03bb6c7、6501fbe；实际后续启动和验收见下方更新。
 
 原始部分成绩与中断原因见[已有结果](README.md)。后续最终分数以恢复目录`analysis/summary.json`为准；准备完成或提交成功不等于补跑完成。
+
+## 启动更新
+
+第二次CPU `ap-xN9UDQJUKzHCGfkX9KM38k`整体rc0，实际源文件路径断言通过；短视频vLLM采样1→2，重复FFmpeg补帧SHA一致，普通完整视频路径不变。结果存`probe/cpu_check.json`；补帧视频SHA256为`8acca617f65b7d5dda86ffbb16ec9408380ec2bc6089b2b3ec6d7d78d93e8208`。准备快照6501fbe，按manifest记录逐文件SHA。
+
+Sandbox `sb-VSQvjZZgYgGpY3iIy4MB4t`于02:06:35 UTC申请，实际八张NVIDIA H100 80GB HBM3已确认；02:08:09启动恢复driver PID46。devbox名`mvagent-direct-large-recovery-20261017`，host管理器PID2976791，日志`~/wxu-evolve-agent/devbox/watch-direct_answer_large_recovery_20261017.log`。02:09仍加载35B，尚无新题完成；项目app `ap-lluPvOtRg7tYTpbvSVmWFd`近10分钟Traceback为0。该app同时承载其他Sandbox，仅本恢复实例属于本任务。
+
+02:14进入正式推理，八个实际服务manifest与原35B的profile/权重清单完全一致，8个不同H100 UUID、单卡worker 0–7通过，证据`startup_identity.json`。没有沿用前轮失败的服务池，也未关闭身份检查。
+
+02:16:53首批8条新增有效轨迹已完成，0顶层/模型调用错误；覆盖CV、MVU、Cross，含开放CCQA。30次响应检查实际token数量、请求与prompt哈希、cached_tokens=0及整题同一worker通过，证据`startup_records.json`。例：CV934答A、MVU Comparison1198答C、FSA1804答`230,275`、CCQA498提交完整自然语言比较。这里只证明启动与调用链正常，不把8条当最终准确率或新的双遍一致性结论。
+
+原先35B在694条新增题上的平均整题耗时91.37秒，按8卡理想折算另694题约2.20小时；加负载波动、27B加载/整题复核、Judge和CPU汇总，当前估计还需约3小时（约2.5–3.5小时）。这不是完成时限保证；硬上限和失败会保留真实状态。
+
+本轮按用户既有“正常运行后退出”要求结束会话；会话内独立检查代理做末次只读检查后停止，不宣称会话外仍有代理巡检。持续运行的是host后台控制器。27B实际GPU整题/重复性复核、28条新增Judge及4500条最终汇总仍待完成，不提前宣称整批成功。主工作区正式src未改；隔离恢复的修复、驱动和MD报告已在`codex/direct-answer-large-20261016`备份，本地status/benchmarks/skill/检查笔记不入Git。
