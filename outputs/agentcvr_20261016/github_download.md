@@ -24,3 +24,5 @@ tar -xzf agentcvr-results-20261017.tar.gz -C results
 未安装GitHub CLI时，在Release页面Assets直接下载即可。`git clone`和GitHub自动生成的Source code压缩包不包含结果附件。
 
 CVBench567/997=56.87%，MVU-Eval803/1824=44.02%。这是作者公开版本的跨benchmark适配评测，完整差异见final_results.md和official_settings_audit.md；未搬运媒体、权重或冻结执行环境。Lightsail与Modal原件保留。
+
+发布已完成：Release ID `415794574`，tag `agentcvr-results-20261017`，目标源码commit `af110cc`。10个附件的GitHub服务器size/digest与本地大小/SHA256逐一一致，逐题答案和完整包的公开下载HEAD均通过。完整压缩包282,843,210字节，SHA256为`ea8dde3e9802c105f234f4362be2a76a1399d9e926365fe06f8c777d2b0069f6`；解压后的原tar SHA仍为`2f543ef90e4ada146849d0514f66feed20bf63cc31c62e85b7f6dcaf5746bd91`。本地上传回执位于`outputs/agentcvr_20261016/release/release_verification.json`，不入Git。

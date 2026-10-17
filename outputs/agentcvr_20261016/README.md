@@ -1,5 +1,8 @@
 # AgentCVR作者公开8B：CVBench / MVU-Eval
 
+**GitHub数据附件已发布**：[AgentCVR结果Release](https://github.com/Wal-K-aWay/MVAgent/releases/tag/agentcvr-results-20261017)提供逐题答案、官方评分和完整283MB压缩包；[跨设备下载说明](github_download.md)。10个附件均已核对GitHub端大小/SHA256，数据不进入Git历史。
+
+
 **AWS Lightsail本地副本已完成**：`outputs/agentcvr_20261016/data/`包含2821题完整原始JSON、答案表、评分与元数据，5658个迁入文件全部通过大小/SHA256校验；[路径与使用说明](local_copy.md)。Modal原件保留，数据不入Git。
 
 
