@@ -174,7 +174,7 @@ Prompt 与中文镜像同步的完整规则统一保存在 [.claude/rules/prompt
   取证决策的reason仍限1200字符，analyze指令预算不变；answer决策直接携带终答。此改动会影响动作、答案与耗时；历史独立回答器成绩不能视作新协议成绩。
 - **Global 基础提示**：本分支是隔离System对照，默认Global采用PRO6000简洁System；Video候选在冻结副本恢复原Global，详见 `outputs/system_ablation_20261017/README.md`。User 排布为 Question→Videos→Available actions→History；
   主动 answer 直接提交 `reason/action/parameters.answer`，循环耗尽时复用 `decide(answer_only=True)`，只允许 answer。
-  取证阶段核实关键冲突，每次检查针对具体不确定点，一到两句说明决定性证据/缺口与行动目的，不重复论证。
+  Global简洁候选仅保留角色与证据边界；原版的冲突检查和一到两句要求仅在Video候选中保留，不混称两臂提示。
   answer 动作依现有证据提交最佳判断，按题目要求表达结果，在 reason 中简洁保留重要限制；不靠选项枚举限制答案。
   强制终答继续使用决策 System、视频身份、公开 History 与既有 skill 策略，不调用独立回答器，不提供新取证动作。
   空库与进化库使用相同协议。2026-10-16按用户要求恢复900条面板对应的四个Global/Engine源码文件；

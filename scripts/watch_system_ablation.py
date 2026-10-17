@@ -20,6 +20,10 @@ def log(**values):
     print(datetime.now(timezone.utc).isoformat(),json.dumps(values),flush=True)
 
 
+def finished_or_expired(phase,alive,elapsed):
+    return phase in {'completed','failed'} or not alive or elapsed>6900
+
+
 def main():
     lock=(HERE/f'watch-{TAG}.lock').open('w');fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
     pid=HERE/f'watch-{TAG}.pid';pid.write_text(str(os.getpid()))
@@ -46,12 +50,17 @@ def main():
                     if arm not in owned:
                         try:owned[arm]=future.result()
                         except Exception as exc:
+                            path=HERE/f'state-mvagent-system-{arm}-20261017.json'
+                            if path.exists():
+                                sb=modal.Sandbox.from_id(json.loads(path.read_text())['sandbox_id'])
+                                if sb.poll() is None:sb.terminate(wait=True)
+                                path.unlink()
                             log(arm=arm,launch_error=repr(exc));finished.add(arm);continue
                     sb,path=owned[arm];state=progress(arm)
                     key=(state.get('phase'),state.get('model'))
                     if last.get(arm)!=key:log(arm=arm,phase=key,models=state.get('models'));last[arm]=key
                     alive=sb.poll() is None
-                    if state.get('phase') in {'completed','failed'} or not alive or time.monotonic()-start_time>6900:
+                    if finished_or_expired(state.get('phase'),alive,time.monotonic()-start_time):
                         if alive:sb.terminate(wait=True)
                         path.unlink(missing_ok=True);finished.add(arm)
                         log(arm=arm,released=True,final=state)
@@ -70,4 +79,12 @@ def main():
         pid.unlink(missing_ok=True)
 
 
-if __name__=='__main__':main()
+if __name__=='__main__':
+    if '--self-check' in sys.argv:
+        assert finished_or_expired('completed',True,1)
+        assert finished_or_expired('failed',True,1)
+        assert finished_or_expired('inference',False,1)
+        assert finished_or_expired('inference',True,6901)
+        assert not finished_or_expired('inference',True,10)
+        print('Owned lifecycle completion/failure/expiry checks passed')
+    else:main()

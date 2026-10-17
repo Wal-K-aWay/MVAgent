@@ -169,8 +169,14 @@ def worker(arm):
             state['models'][model].update(finished=len(rows),valid=len(rows)-len(errors),errors=errors,inference_done=True)
             save('inference_done',model=model)
         save('judge_loading')
-        from run_mvagent_pilot import stop_actor_servers
-        stop_actor_servers()
+        # All these services belong to this candidate's dedicated Sandbox.
+        subprocess.run(['pkill','-f','[s]ync_server.py'],check=False)
+        deadline=time.monotonic()+600
+        while time.monotonic()<deadline:
+            used=subprocess.check_output(['nvidia-smi','--query-gpu=memory.used','--format=csv,noheader,nounits'],text=True).split()
+            if used and all(int(value)<2048 for value in used):break
+            time.sleep(5)
+        else:raise TimeoutError('Actor services did not release GPU memory before Judge startup')
         os.environ['JUDGE_LOG_DIR']=str(group/'judge_servers')
         run(['bash',source/'eval/agent_eval/serve_ccqa_judge.sh','0-7','8400'],'judge_startup.log')
         for model in MODELS:
