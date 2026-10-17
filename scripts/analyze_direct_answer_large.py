@@ -1,6 +1,8 @@
 """Paired official scores and reliability for the frozen enlarged direct-answer panel."""
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import random
@@ -37,6 +39,8 @@ def interval(rows, arm, repetitions=2000):
 
 
 def self_check():
+    import tempfile
+    from types import SimpleNamespace
     rows = [dict(dataset='crossvid',task=t,task_population=1,points=p,
                  arms={'direct':{'score':a},'e2e':{'score':b}})
             for t,p,a,b in [('CCQA',1,1.,0.),('CCQA',3,0.,0.),('BU',1,.5,.5)]]
@@ -45,13 +49,40 @@ def self_check():
     constant=[dict(dataset='cvbench',task=t,task_population=w,points=1,
                    arms={'direct':{'score':.7},'e2e':{'score':.4}}) for t,w in [('a',9),('b',1)]]
     assert all(abs(v-.3)<1e-10 for v in interval(constant,'e2e',100))
+    with tempfile.TemporaryDirectory() as tmp:
+        root=Path(tmp)
+        path=root/'model/records/test/a/result.json'
+        path.parent.mkdir(parents=True)
+        raw=b'{"sample_id":"a","status":"ok"}'
+        path.write_bytes(raw)
+        rows=list(saved_records(root,'model',['a','b'],{s:SimpleNamespace(dataset='test') for s in ['a','b']}))
+        assert rows[0][2]['sample_id']=='a' and rows[0][3]==hashlib.sha256(raw).hexdigest()
+        assert rows[1][2:] == (None,None)
     print('Official aggregation and paired bootstrap checks passed')
+
+
+def saved_records(group, model, sample_ids, records):
+    def load(sid):
+        path=group/model/'records'/records[sid].dataset/sid/'result.json'
+        try:raw=path.read_bytes()
+        except FileNotFoundError:return sid,path,None,None
+        return sid,path,json.loads(raw),hashlib.sha256(raw).hexdigest()
+    # Bound decoded trajectories in memory while overlapping Volume reads.
+    with ThreadPoolExecutor(max_workers=8) as readers:
+        for start in range(0,len(sample_ids),64):
+            yield from readers.map(load,sample_ids[start:start+64])
 
 
 def analyze(*, partial=False, report_dir=None):
     self_check()
     selection = read(OUT/'selection.json')
-    records = load_multibench_records('/assets', selection['ids'])
+    records = {}
+    chunks = [selection['ids'][i::8] for i in range(8)]
+    with ThreadPoolExecutor(max_workers=8) as readers:
+        for part in readers.map(lambda ids:load_multibench_records('/assets',ids),chunks):
+            assert not records.keys() & part.keys()
+            records.update(part)
+    assert set(records)==set(selection['ids'])
     scorer, identity = build_official_scorer(records,{})
     summary = dict(at=now(), selection_sha256=sha(OUT/'selection.json'), scorer=identity, models={},
         inference_repeated=False, bootstrap='2000 paired within-task resamples, seed0; no multiplicity or shared-video correction',
@@ -80,16 +111,14 @@ def analyze(*, partial=False, report_dir=None):
             for p in (group/model/'attempts').glob('*/result.json'):
                 attempt=read(p)
                 failed_attempts.append(dict(sample_id=attempt['sample_id'],error=attempt.get('error'),path=str(p),sha256=sha(p)))
-            for sid in read(group/'samples.json'):
+            for sid,p,saved,record_sha in saved_records(group,model,read(group/'samples.json'),records):
                 rec=records[sid]
-                p=group/model/'records'/rec.dataset/sid/'result.json'
-                if not p.exists():
+                if saved is None:
                     missing.append(sid);continue
-                saved=read(p)
                 if saved['status']!='ok':
                     errors.append(dict(sample_id=sid,error=saved.get('error'),path=str(p)));continue
                 reused=selection['reused'][model].get(sid)
-                if reused: assert sha(p)==reused['sha256']
+                if reused: assert record_sha==reused['sha256']
                 stats=core.event_stats(saved)
                 workers=set()
                 for e in saved['events']:
@@ -114,6 +143,7 @@ def analyze(*, partial=False, report_dir=None):
                         assert mvu[sid]['status']=='ok'
                         prediction=mvu[sid]['output']
                     direct=core.measure(saved['prediction'],rec,scorer)
+                    assert abs(direct['score']-saved['score'])<1e-8,(model,sid)
                     e2e=core.measure(prediction,rec,scorer)
                     independent=core.measure(old['prediction'],rec,scorer)
                 # Historical infrastructure failure is missing comparison data, never a new zero score.
@@ -121,7 +151,7 @@ def analyze(*, partial=False, report_dir=None):
                 rows.append(dict(sample_id=sid,dataset=rec.dataset,task=rec.native_task,
                     task_population=rec.task_population,points=old['points'],reused=bool(reused),
                     arms=dict(direct=direct,e2e=e2e,independent=independent),stats=stats,
-                    answer_status=saved['result']['answer']['status'],path=str(p),sha256=sha(p)))
+                    answer_status=saved['result']['answer']['status'],path=str(p),sha256=record_sha))
         result=dict(expected=len(selection['ids']),valid=len(rows),errors=errors,missing=missing,
             failed_attempts=failed_attempts,reused=sum(r['reused'] for r in rows),audited_calls=audited_calls,
             empty=sum(r['arms']['direct']['empty'] for r in rows),brace_only=sum(r['arms']['direct']['brace_only'] for r in rows),
