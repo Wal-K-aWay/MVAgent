@@ -73,9 +73,13 @@ def saved_records(group, model, sample_ids, records):
             yield from readers.map(load,sample_ids[start:start+64])
 
 
-def analyze(*, partial=False, report_dir=None):
+def analyze(*, partial=False, report_dir=None, recovery_dir=None):
     self_check()
     selection = read(OUT/'selection.json')
+    recovery = read(recovery_dir/'recovery_manifest.json') if recovery_dir else None
+    if recovery:
+        assert recovery['selection_sha256']==sha(OUT/'selection.json')
+        assert Path(recovery['parent']).resolve()==OUT.resolve()
     records = {}
     chunks = [selection['ids'][i::8] for i in range(8)]
     with ThreadPoolExecutor(max_workers=8) as readers:
@@ -88,17 +92,24 @@ def analyze(*, partial=False, report_dir=None):
         inference_repeated=False, bootstrap='2000 paired within-task resamples, seed0; no multiplicity or shared-video correction',
         limits='Development/evaluation overlap is disclosed; same-panel improvements are not guarantees for all inputs.')
     report_dir = report_dir or OUT/'analysis'
-    assert report_dir.is_relative_to(OUT) and report_dir != OUT
+    assert any(report_dir.is_relative_to(root) and report_dir != root
+               for root in [OUT]+([recovery_dir] if recovery_dir else []))
+    summary['recovery'] = str(recovery_dir) if recovery_dir else None
     summary['partial'] = partial
     summary['shards'] = {str(shard):read(OUT/f'shard{shard}/progress.json')['phase'] for shard in range(2)}
-    if not partial:
+    if not partial and not recovery:
         assert all(phase=='completed' for phase in summary['shards'].values())
     for model in MODELS:
         previous_path = FULL/f'{model}.json'
         previous = {r['sample_id']:r for r in read(previous_path)['rows']}
         mvu_path = Path('/runs/devbox/mvu_instruction_after_20261014')/model/'raw/mvu_eval.jsonl'
         mvu = {r['sample_id']:r for r in map(json.loads,mvu_path.read_text().splitlines())}
-        rows=[];errors=[];missing=[];audited_calls=0;failed_attempts=[]
+        rows=[];errors=[];missing=[];audited_calls=0;failed_attempts=[];recovered=[]
+        recovery_judge={}
+        if recovery and (recovery_dir/model/REPORT).exists():
+            judged=read(recovery_dir/model/REPORT)
+            assert not judged['failed_ids']
+            recovery_judge={f"crossvid:CCQA:{r['id']}":r for r in judged['samples']}
         for shard in range(2):
             group=OUT/f'shard{shard}'
             judge = {}
@@ -107,12 +118,25 @@ def analyze(*, partial=False, report_dir=None):
                 assert not judged['failed_ids']
                 judge={f"crossvid:CCQA:{r['id']}":r for r in judged['samples']}
             else:
-                assert partial, ('Missing Judge report',group/model/REPORT)
+                assert partial or recovery, ('Missing Judge report',group/model/REPORT)
+            assert not judge.keys() & recovery_judge.keys(), 'Recovery must not replace existing Judge scores'
+            judge.update(recovery_judge)
             for p in (group/model/'attempts').glob('*/result.json'):
                 attempt=read(p)
                 failed_attempts.append(dict(sample_id=attempt['sample_id'],error=attempt.get('error'),path=str(p),sha256=sha(p)))
             for sid,p,saved,record_sha in saved_records(group,model,read(group/'samples.json'),records):
                 rec=records[sid]
+                if recovery:
+                    original=recovery['original'][model].get(sid)
+                    assert (original is None and saved is None) or (original and original['sha256']==record_sha),('Original changed',model,sid)
+                    if sid in recovery['targets'].get(model,[]):
+                        assert saved is None or saved['status']!='ok',('Successful original cannot be replaced',model,sid)
+                        if saved is not None:
+                            failed_attempts.append(dict(sample_id=sid,error=saved.get('error'),path=str(p),sha256=record_sha))
+                        p=recovery_dir/model/'records'/rec.dataset/sid/'result.json'
+                        if p.exists():
+                            raw=p.read_bytes();saved=json.loads(raw);record_sha=hashlib.sha256(raw).hexdigest()
+                            recovered.append(sid)
                 if saved is None:
                     missing.append(sid);continue
                 if saved['status']!='ok':
@@ -157,7 +181,7 @@ def analyze(*, partial=False, report_dir=None):
             empty=sum(r['arms']['direct']['empty'] for r in rows),brace_only=sum(r['arms']['direct']['brace_only'] for r in rows),
             closed_format_errors=sum(r['arms']['direct']['format_ok'] is False for r in rows),
             truncations=sum(r['stats']['truncations'] for r in rows),
-            forced=sum(r['answer_status']=='forced_with_gaps' for r in rows),benchmarks={},
+            forced=sum(r['answer_status']=='forced_with_gaps' for r in rows),benchmarks={},recovered=recovered,
             reference_sha256={str(previous_path):sha(previous_path),str(mvu_path):sha(mvu_path)})
         for ds in ['cvbench','mvu_eval','crossvid']:
             selected=[r for r in rows if r['dataset']==ds]
@@ -180,7 +204,10 @@ def analyze(*, partial=False, report_dir=None):
         summary['models'][model]=result
     write(report_dir/'summary.json',summary)
     if not partial:
-        write(OUT/'progress.json',dict(phase='completed',at=now(),models={m:{k:v for k,v in r.items() if k in ['expected','valid','empty','closed_format_errors','reused','audited_calls','errors','missing']} for m,r in summary['models'].items()}))
+        destination=recovery_dir or OUT
+        state=read(destination/'progress.json') if recovery else {}
+        state.update(phase='completed',at=now(),analysis=str(report_dir),models={m:{k:v for k,v in r.items() if k in ['expected','valid','empty','closed_format_errors','reused','audited_calls','errors','missing']} for m,r in summary['models'].items()})
+        write(destination/'progress.json',state)
     printable = {m:{k:v for k,v in r.items() if k not in ['missing','failed_attempts','reference_sha256']} for m,r in summary['models'].items()}
     print(json.dumps(printable,ensure_ascii=False),flush=True)
 
@@ -190,6 +217,7 @@ if __name__=='__main__':
     parser.add_argument('--self-check',action='store_true')
     parser.add_argument('--partial',action='store_true')
     parser.add_argument('--report-dir',type=Path)
+    parser.add_argument('--recovery-dir',type=Path)
     args=parser.parse_args()
     if args.self_check:self_check()
-    else:analyze(partial=args.partial,report_dir=args.report_dir)
+    else:analyze(partial=args.partial,report_dir=args.report_dir,recovery_dir=args.recovery_dir)
