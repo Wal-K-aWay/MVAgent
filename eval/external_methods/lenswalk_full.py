@@ -20,6 +20,9 @@ import time
 import traceback
 import urllib.request
 
+sys.dont_write_bytecode=True
+os.environ['PYTHONDONTWRITEBYTECODE']='1'
+
 ADAPTERS=Path(__file__).resolve().parent
 SOURCE=ADAPTERS.parents[1]
 sys.path[:0]=[str(ADAPTERS),str(SOURCE/'src'),str(SOURCE)]
@@ -209,7 +212,10 @@ def main(output):
         shutdown.set()
     signal.signal(signal.SIGTERM,interrupted);signal.signal(signal.SIGINT,interrupted)
     jobs=queue.Queue()
-    for sid in ids:
+    schedule=manifest.get('recovery_order',ids)
+    assert set(schedule)<=set(ids) and len(schedule)==len(set(schedule))
+    assert set(schedule)|{r['sample_id'] for r in rows.values()}==set(ids)
+    for sid in schedule:
         if sid.replace(':','_') not in rows:jobs.put(sid)
     def worker(rank,process,card):
         restarts=0

@@ -10,6 +10,14 @@ from recover_lenswalk import inherit_record
 
 
 def main():
+    assert verify_concat_clock([(0, .0407)], [0], .04) == .0407
+    for bad in ([(.001, .04)], [(0, .042)], [(0, .04), (.04, .04)]):
+        try:
+            verify_concat_clock(bad, [0], .04)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError('Accepted changed frames or excessive duration drift')
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
         for terminal, failed in [('finish', False), ('empty_answer', False),

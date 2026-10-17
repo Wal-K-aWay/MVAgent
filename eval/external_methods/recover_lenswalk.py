@@ -45,6 +45,11 @@ def recover(previous, output):
     inherited = {sid: evidence for sid, evidence in inherited.items() if evidence is not None}
     ids = read(output/'samples.json')
     pending = [sid for sid in ids if sid not in inherited]
+    # Verify the former batch-stopping input and the HTTP failure before long movie retries.
+    first = ['mvu_eval:OR:440', 'mvu_eval:Counting:11', 'crossvid:NC:889']
+    assert set(first) <= set(pending)
+    pending = first+[sid for sid in pending if sid not in first and sid not in failures]+[
+        sid for sid in pending if sid not in first and sid in failures]
     assert len(ids) == sum(EXPECTED.values()) == len(set(ids))
     assert len(inherited)+len(pending) == len(ids)
     manifest = read(previous/'manifest.json')
@@ -54,6 +59,7 @@ def recover(previous, output):
         original_progress_sha256=sha256(previous/'progress.json'),
         original_manifest_sha256=sha256(previous/'manifest.json')))
     manifest.update(created_at=now(), recovery_from=str(previous),
+        recovery_order=pending,
         recovery_commit=(ADAPTERS.parents[1]/'.git/HEAD').read_text().strip(),
         driver_sha256=sha256(frozen/'eval/external_methods/lenswalk_full.py'),
         source_hashes={str(p.relative_to(frozen)): sha256(p) for p in frozen.rglob('*')
