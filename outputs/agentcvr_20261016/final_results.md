@@ -40,4 +40,4 @@ CPU app `ap-13Z2ymvJj76rJg64gfPZXO`正常完成且容器列表为空，`final_au
 - `recovery_manifest.json`、`recovery_audit.json`：继承来源与恢复验证。
 - `final_audit.json`：最终2821条核验、分题型统计、调用/截断/格式诊断及关键文件SHA。
 
-本地只保存源码和Markdown报告，未迁出原始结果、媒体或权重。
+2026-10-17按用户明确授权，原始逐题结果、答案表、评分和配套元数据已复制到AWS Lightsail的`outputs/agentcvr_20261016/data/`，5658个迁入文件逐大小/SHA256核对通过，Modal原件保留。媒体、权重及冻结执行环境仍留Modal；详见[本地副本说明](local_copy.md)。
