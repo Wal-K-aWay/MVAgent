@@ -161,6 +161,45 @@ def main():
     print('Completed read-only diagnostics',str(OUT),flush=True)
 
 
+def sensitivity():
+    """Check extraction uncertainty and inspect existing Judge outputs, without rejudging."""
+    from copy import deepcopy
+    import importlib.util
+    target=OUT/'sensitivity.json';assert not target.exists()
+    report=dict(models={},new_inference=False,new_judge=False)
+    qa=next(r for r in read(Path('/assets/crossvid/QA/CCQA.json')) if int(r['id'])==327)
+    report['ccqa327_reference']=qa
+    spec=importlib.util.spec_from_file_location('saved_judge_protocol',BASE/'frozen_repo/eval/agent_eval/score_crossvid_ccqa.py')
+    judge=importlib.util.module_from_spec(spec);spec.loader.exec_module(judge)
+    for model in ['9B','27B','35B-A3B']:
+        rows=read(REC/f'analysis/{model}_paired.json')
+        mvu=deepcopy([r for r in rows if r['dataset']=='mvu_eval'])
+        for r in mvu:
+            for arm in ['direct','e2e']:r['arms'][arm]['score']=r['arms'][arm]['robust_score']
+        result=dict(mvu_robust_ci95=analysis.interval(mvu,'e2e'),ccqa327={})
+        judged=[]
+        for base in [BASE/'shard0',BASE/'shard1',REC]:
+            path=base/model/'score/ccqa_scores_official_qwen3_30b_a3b.json'
+            if path.exists():judged.extend(read(path)['samples'])
+        points=sum(len(r['coverage']) for r in judged)
+        assert len(judged)==50
+        result['ccqa_points']=dict(points=points,coverage=sum(sum(r['coverage']) for r in judged)/points,
+                                  correctness=sum(sum(r['correctness']) for r in judged)/points)
+        case=read(OUT/'cases'/model/'crossvid:CCQA:327.json')
+        prompt=judge.SCORE_PROMPT.format(QUESTION=qa['question'],ANSWER=qa['answer'],
+                                        POINTS=qa['scoring_points'],OUTPUT=case['arms']['direct']['prediction'])
+        key=hashlib.sha256(json.dumps({'model':judge.JUDGE_MODEL,'prompt':prompt},ensure_ascii=False,sort_keys=True).encode()).hexdigest()
+        cache=Path(case['path']).parents[3]/'ccqa_judge_cache'/key[:2]/(key+'.json')
+        cached=read(cache);saved=next(r for r in judged if int(r['id'])==327)
+        assert cached['coverage']==saved['coverage'] and cached['correctness']==saved['correctness']
+        result['ccqa327']=dict(cache_path=str(cache),cache_sha256=sha(cache),prompt=prompt,response=cached['response'],
+                              score=saved['score'],cache_matches_report=True)
+        report['models'][model]=result
+        print(model,json.dumps(result,ensure_ascii=False),flush=True)
+    write(target,report);shutil.copy2(__file__,OUT/'sensitivity_source.py')
+
+
 if __name__=='__main__':
     if '--self-check' in sys.argv:self_check()
+    elif '--sensitivity' in sys.argv:sensitivity()
     else:main()
