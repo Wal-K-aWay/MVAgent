@@ -19,7 +19,7 @@ runs = modal.Volume.from_name('wxu-evolve-agent-runs-20261006')
 volumes = {'/weights': weights.with_mount_options(read_only=True),
            '/assets': assets.with_mount_options(read_only=True), '/runs': runs}
 app = modal.App('wxu-sglang-baseline-gpu-test-agentcvr-crossvid-20261017')
-OUTPUT = '/runs/devbox/agentcvr_crossvid_20261017'
+OUTPUT = '/runs/devbox/agentcvr_crossvid_20261017_r2'
 
 
 @app.function(image=image, cpu=4, memory=16384, timeout=1800, volumes=volumes)

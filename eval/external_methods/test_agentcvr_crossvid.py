@@ -2,12 +2,29 @@
 import ast
 import json
 from pathlib import Path
+import tempfile
 from types import SimpleNamespace
 
-from agentcvr_crossvid import COUNTS, UPSTREAM, contexts_for, make_item, official_inputs, score_closed
+from agentcvr_crossvid import COUNTS, UPSTREAM, contexts_for, make_item, official_inputs, score_closed, summarize
+from common import write
+
+
+def check_judge_summary():
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory); sid = 'crossvid:CCQA:0'
+        write(root / 'private_labels.json', {sid: {'task': 'CCQA', 'row': {'scoring_points': ['a', 'b', 'c']}}})
+        write(root / 'records/ccqa.json', dict(sample_id=sid, status='answered', seconds=1, usage={}, answer='raw answer'))
+        write(root / 'judge_scores.json', {sid: dict(sample_id=sid, status='ok', answer='reference',
+            prediction='raw answer', score=2/3, coverage=[True]*3, correctness=[True, False, False])})
+        stats = summarize(root)['crossvid']
+        row = json.loads((root / 'scores.json').read_text())['rows'][0]
+        assert row['answer'] == 'raw answer' and row['status'] == 'answered'
+        assert stats['tasks']['CCQA']['score'] == 2/3 and stats['pending_judge'] == 0
+        assert stats['accuracy'] is None
 
 
 def main():
+    check_judge_summary()
     items, labels = official_inputs()
     for item in items:
         assert set(item) <= {'sample_id', 'dataset', 'task', 'query', 'options', 'videos', 'system', 'uav'}

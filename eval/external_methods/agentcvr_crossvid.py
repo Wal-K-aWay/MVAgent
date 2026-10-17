@@ -192,7 +192,7 @@ def summarize(output):
             tasks[task]['scored'] += 1
             tasks[task]['score_sum'] += scored['score'] * weight
             tasks[task]['weight'] += weight
-        rows.append(dict(sample_id=sid, task=task, status=record['status'], answer=record['answer'], **scored))
+        rows.append(dict(scored, sample_id=sid, task=task, status=record['status'], answer=record['answer']))
     for t in tasks.values():
         t['score'] = t['score_sum'] / t['weight'] if t['weight'] else None
     if all(t['completed'] == t['expected'] and t['scored'] == t['expected'] for t in tasks.values()):
@@ -239,6 +239,10 @@ def judge_and_finish(output):
         audit_records(output)
         write(output / 'progress.json', dict(phase='completed', expected=2500, completed=2500,
             datasets=totals, updated=time.time()))
+    except BaseException as exc:
+        write(output / 'progress.json', dict(phase='failed', stage='judge_or_final_audit',
+            error=f'{type(exc).__name__}: {exc}', expected=2500, completed=2500, updated=time.time()))
+        raise
     finally:
         if starter is not None:
             try:
