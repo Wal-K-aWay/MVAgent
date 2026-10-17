@@ -1,5 +1,56 @@
 # Global简洁System与Video通用要求：隔离对照
 
+## 最终结果（2026-10-17 12:48 UTC）
+
+已完成全部612条新Agent轨迹，三模型每个候选各102/102有效，缺失和整题工程失败均0；90份CCQA Judge全部成功。两个候选各使用8×H100并行执行。11:36开始，12:41前推理和Judge全部完成（约65分钟），12:46 CPU正式汇总完成（约70分钟），在两小时预算内。两个Sandbox、host控制器与本任务state均已释放/清理，没有本实验GPU继续计费。
+
+以下为同题官方分（百分制）；CV30、MVU30按task人口权重估计，Cross42为十task macro，其中15个CCQA按评分点聚合。括号是相对当前MVAgent基线的百分点变化，E2E使用同题结果（MVU为官方指令移后版）。这些102题是开发筛选面板，不是完整benchmark或独立Test。
+
+| 模型 | Benchmark | 当前MVAgent | 简洁Global | Video通用要求＋自身ID | E2E |
+|---|---|---:|---:|---:|---:|
+| 9B | CVBench | 66.60 | 74.70（+8.10） | 64.00（−2.60） | 70.30 |
+| 9B | MVU | 34.49 | 50.96（+16.47） | 37.49（+3.00） | 29.98 |
+| 9B | CrossVid | 30.49 | 40.76（+10.27） | 39.54（+9.05） | 39.50 |
+| 27B | CVBench | 77.55 | 78.40（+0.85） | 79.85（+2.30） | 70.85 |
+| 27B | MVU | 57.90 | 54.02（−3.88） | 57.57（−0.33） | 36.44 |
+| 27B | CrossVid | 50.68 | 52.74（+2.07） | 57.08（+6.41） | 44.85 |
+| 35B-A3B | CVBench | 81.00 | 74.90（−6.10） | 80.05（−0.95） | 69.05 |
+| 35B-A3B | MVU | 46.92 | 43.34（−3.58） | 49.72（+2.80） | 41.84 |
+| 35B-A3B | CrossVid | 48.10 | 53.20（+5.10） | 41.43（−6.67） | 44.79 |
+
+简洁Global的九格点估计均高于同题E2E，但相对当前MVAgent有六正三负；不能因超过E2E就宣称优于当前方案。9B最有继续扩样价值；27B/MVU与35B/CV、MVU仍是负信号。Video候选没有形成统一收益，尤其35B/Cross下降。此轮不据小样本替换统一评测基线，也不按这批题为各模型挑不同prompt后当作独立验证；候选代码留在隔离分支供后续改进。
+
+每task内2000次配对bootstrap（seed0），仅简洁Global的9B/MVU与9B/Cross相对基线95%区间严格高于0，分别[+3.04,+32.82]与[+0.056,+20.76]pp；其余包含或触及0。没有共享视频聚类、多重比较或反复开发校正，Cross多数task每类仅3题，不能作稳定提升证明。
+
+### 格式、截断与成本
+
+| 模型 | 闭式格式错误：基线 / Global / Video（各87题） | 触顶调用：基线 / Global / Video | 平均整题秒：基线 / Global / Video |
+|---|---|---|---|
+| 9B | 2 / 2 / 1 | 5 / 5 / 3 | 55.33 / 49.62 / 45.99 |
+| 27B | 0 / 0 / 1 | 5 / 4 / 3 | 107.03 / 91.71 / 86.38 |
+| 35B-A3B | 0 / 0 / 1 | 5 / 5 / 2 | 89.05 / 90.65 / 76.78 |
+
+三套均0空答案、0仅右花括号。两个新候选全部模型请求错误0；Global中间structured_invalid共14次、repair13次、length14次（13题），Video三项各8次（8题）。最终能交出答案不代表所有中间调用都未截断。Global最终格式错误2/261与基线持平，Video3/261；Video减少触顶，但尚未改善最终格式合格率。
+
+格式失败仍是模型给出不符合题目要求的非空表达：短Global为PEA784的“None of the above”和Counting127的无法判断；Video为CV774的“None of the above”、FSA2115的“No equivalent step found”，以及35B/CV199以长句解释布局不一致而未选项。没有新增选项枚举或硬编码格式限制。
+
+简洁System没有自动产生更短的轨迹：基线/Global/Video总调用3412/3752/3382，输出token为438427/506876/435318。Global输出token增加15.6%，35B增加约28.0%。上述耗时是本轮实测与历史同题对照，不是同时重跑、控制GPU/媒体缓存状态的纯吞吐实验；不要把时间变化全部归因于prompt长短。
+
+CCQA Judge审计：基线与Video有23对逐字相同答案，其中35B/CCQA56出现一次评分差异（基线0，Video为1/3，3个评分点）。其他相同答案评分一致，Global与另外两组没有相同CCQA答案可比较。若仅将该相同答案统一为旧分，Video的35B/Cross由41.43降至41.22（相对基线−6.88pp），不改变负方向；官方原始评分保留，不静默改分。没有人工重评全部开放题。
+
+### 结论与恢复入口
+
+- 保留已验收基线固定标签 `baseline/mvagent-direct-20261017` → `1b711bf6a466c6dee70c273d24fbd98bd4f0c80d`。共享工作区冻结在 `codex/current-code-freeze-20261017` → `d56579030c7f400a2379d822cd976986d136e9ca`，附 `docs/frozen_evaluation_20261017.md`；两者已推送并核验远端SHA。
+- 本次简洁Global及独立Video实验驱动在 `codex/system-ablation-20261017`；实际推理冻结commit为 `519c6984a7a6ca4a136753b71414c890aa88ed54`，后续仅报告变化。主共享工作区和其他在跑实验没有热更新。Video候选由驱动显式生成，不是分支默认启用的生产配置。
+- 9B简洁Global可作为下一次预先冻结样本的扩样候选；现有证据不支持三模型统一采用Video新规则。尚未测试“简洁Global＋Video新规则”的组合，也未测试向Video传完整原题。后者会改变instruction-only信息边界；不能用本轮结果判断加入原题的收益。
+- 新服务器可先clone仓库，然后 `git switch -c my-next-experiment baseline/mvagent-direct-20261017` 恢复固定已验收代码；复现本候选则从 `519c698` 创建分支。依赖、权重/数据挂载、Modal权限和本地环境skill需单独准备，不随Git克隆分发。
+
+证据仅在runs volume `devbox/system_ablation_20261017`：`manifest.json`、`source.tar.gz`、`samples.json`、`baseline.json`、两个候选各模型的原始records与Judge、`analysis/summary.json`、六个配对表以及`analysis/additional_audit.json`。正式CPU汇总app `ap-K2OLy20Bx2pnMs2ceSSbXn`成功，额外统计CPU成功；612条全部核验token长度/缓存计数0/输入hash/整题单worker，闭式官方分重算一致。采用已验收数值配置，未额外全量双遍生成，不能声称任意输入绝对确定。
+
+下面保留设计、启动与阶段记录；其中“运行中”和未完成数字均是当时状态，最终以上述完整结果为准。
+
+## 设计与执行记录
+
 2026-10-17，用户先授权冻结代码，再测试两个提示候选，目标约两小时取得开发面板结果。
 
 共享工作区快照已推送 `codex/current-code-freeze-20261017`，`d56579030c7f400a2379d822cd976986d136e9ca`，恢复说明在该分支 `docs/frozen_evaluation_20261017.md`。本实验从已完成4500条直接回答分支 `1b711bf` 派生，保留已验收的极短视频采样修复。主工作区不热更新，其他实验不改动。
@@ -9,6 +60,10 @@
 | baseline | 已测通用System | 已测System；复用4500条中的同题结果及评分 |
 | global_short | 仅替换为PRO6000的简短角色/证据边界System | 不变 |
 | video_rules | 保留baseline Global System | 普通Planner System增加任务定义传递、具体证据与不确定性保留、简洁但完整；显式写入当前video_id |
+
+简洁Global的完整System（User与schema不变）：
+
+> You are a coordinator for multi-video question answering. You cannot view videos directly. Your visual evidence consists only of successful single-video summaries and completed joint-watch results in History. Preserve video identities and choose one available action that either obtains missing evidence or returns the final answer.
 
 Video没有新增完整原题、其他视频报告或内部跨角色轨迹。加入完整原题会改变既有信息边界，此轮先检验在现有局部instruction下能否改善。video_id以前存在于对象/日志和视觉请求，普通Planner User没有显式身份行；此臂仅在其System显示已有身份。步数耗尽的Video终止性总结沿用原来的空System，不能声称该调用也接受新规则。Video臂合并了通用要求与身份显示，若有效再拆分其贡献。
 
