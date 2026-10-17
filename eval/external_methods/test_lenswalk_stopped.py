@@ -22,6 +22,10 @@ def main():
         write(previous/'samples.json', ids)
         write(previous/'progress.json', {'phase':'failed','completed':4})
         write(previous/'prepared/private_labels.json', {sid:{'sample':{'videos':{'v':'old.mp4'}}} for sid in ids})
+        media=root/'video.mp4';media.write_bytes(b'unchanged cached video')
+        timeline=root/'timeline.json';write(timeline,{'segments':[]})
+        key=recovery.media_key({'v':'old.mp4'})
+        write(previous/'media_cache'/f'{key}.json', {'video_path':str(media),'timeline_path':str(timeline)})
         (previous/'client_environment.tar.gz').write_bytes(b'unchanged')
         model=previous/'frozen_repo/model.py';model.parent.mkdir();model.write_text('original model')
         original={'samples_sha256':sha256(previous/'samples.json'), 'source_hashes':{'model.py':sha256(model)},
@@ -39,6 +43,8 @@ def main():
         evidence=recovery.read(output/'recovery_manifest.json')
         assert evidence['pending']==ids[3:] and evidence['retry_failures']==[ids[3]]
         assert evidence['previously_unfinished']==[ids[4]] and evidence['retained_infrastructure_failures']==[ids[2]]
+        assert evidence['cached_media_groups']==1
+        assert (output/'media_cache'/f'{key}.json').read_bytes()==(previous/'media_cache'/f'{key}.json').read_bytes()
         manifest=recovery.read(output/'manifest.json')
         assert all(manifest[k]==original[k] for k in ('max_turns','request_timeout_seconds','max_output_tokens'))
         assert sha256(model)==original['source_hashes']['model.py']

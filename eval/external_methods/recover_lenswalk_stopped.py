@@ -79,14 +79,17 @@ def recover(previous, output):
     pending = retry+missing
     inherited = {sid:row for sid,row in rows.items() if sid not in retry}
     write(output/'inherited_records.json', {sid.replace(':','_'):row for sid,row in inherited.items()})
-    cached = 0
-    for key in {media_key(labels[sid]['sample']['videos']) for sid in pending}:
+    def copy_cache(key):
         path = previous/'media_cache'/f'{key}.json'
         if path.exists():
             value = read(path)
             assert Path(value['video_path']).is_file() and Path(value['timeline_path']).is_file()
             shutil.copy2(path, output/'media_cache'/path.name)
-            cached += 1
+            return 1
+        return 0
+    keys = {media_key(labels[sid]['sample']['videos']) for sid in pending}
+    with ThreadPoolExecutor(max_workers=16) as pool:
+        cached = sum(pool.map(copy_cache, keys))
     write(output/'recovery_manifest.json', dict(created_at=now(), previous=str(previous),
         original_progress_sha256=sha256(previous/'progress.json'),
         original_manifest_sha256=sha256(previous/'manifest.json'),
@@ -100,7 +103,8 @@ def recover(previous, output):
     write(output/'progress.json', dict(phase='prepared', expected=len(ids), completed=len(inherited),
         remaining=len(pending), updated_at=now()))
     assert len(inherited)+len(pending)==len(ids) and not set(inherited)&set(pending)
-    assert all(sha256(source['path'])==source['sha256'] for _,_,source in loaded)
+    with ThreadPoolExecutor(max_workers=16) as pool:
+        assert all(pool.map(lambda entry: sha256(entry[2]['path'])==entry[2]['sha256'], loaded))
     assert not bulk.exists() or sha256(bulk)==bulk_sha
     print(dict(inherited=len(inherited), pending=len(pending), cached_media_groups=cached,
                retry_media=retry, salvaged=salvaged), flush=True)
