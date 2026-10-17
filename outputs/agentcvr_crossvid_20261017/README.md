@@ -1,10 +1,10 @@
 # AgentCVR：CrossVid Lite2500
 
-用户2026-10-17授权运行同一份CrossVid Lite2500。当前实现与CPU准备已提交，尚无GPU推理成绩；启动/最终状态以后续追加的实测记录为准。
+用户2026-10-17授权运行同一份CrossVid Lite2500。CPU合同检查和完整compileall已通过，正式8H100任务已提交，尚无完整推理成绩；实际阶段以远端progress为准。
 
 - 唯一主执行者：当前Codex会话；独立Luna每15分钟只读检查，会话外不承诺持续巡检。
 - 分支`codex/agentcvr-20261016`，初始实现提交`6d2a7cf`；与此前CVBench/MVU结果分别保存，不重测这两套数据。
-- runs：`devbox/agentcvr_crossvid_20261017/`；仅原始结果/评分/源码快照写此新目录。
+- runs：`devbox/agentcvr_crossvid_20261017_r2/`；仅原始结果/评分/源码快照写此新目录。
 - Modal app：`wxu-sglang-baseline-gpu-test-agentcvr-crossvid-20261017`。只经modal-gpu入口提交；先CPU准备，再单个8×H100任务中冒烟、全量推理和CCQA Judge，结束释放。
 - devbox独立代码`~/wxu-evolve-agent/agentcvr_crossvid_repo`，入口`~/wxu-evolve-agent/agentcvr_crossvid_control/agentcvr_crossvid_modal.py`；不替换其他任务代码或服务。
 
@@ -40,3 +40,11 @@ manifest冻结源码、模型/配置、官方输入清单与prompt/QA哈希；sm
 全量后执行逐题SHA、输入/题面/原System、请求配置、token计数审计。
 
 时间预算：接入/CPU准备约1小时；8H100推理暂估12–18小时、保守24小时，不含排队。实际吞吐出来后更新；22小时执行段保留结果并沿用冻结源码续跑。
+
+## 启动记录
+
+- 生产冻结`d8c323254210cadbc57858961054ec514aaf17f1`，已推送并核对远端SHA。
+- CPU最终app `ap-qJVJlyK9xrnAF37CHheqH2`正常完成：2500题覆盖、未改prompt/原生query、标签隔离、clip/UAV、原答案解析和CCQA汇总回归通过，完整compileall通过。旧CV/MVU2821合同回归在首个CPU app已通过；其后仅CrossVid模块修改。
+- 初始CPU因漏传import_root失败，修复后检查通过；GPU提交前发现并修复CCQA汇总同名字段冲突。旧`devbox/agentcvr_crossvid_20261017`仅prepared/0题，保留作为准备历史；正式结果仅r2。
+- GPU app `ap-SohrpBru66BAiWpCdwLXat`，唯一devbox控制器PID3224707，日志`~/wxu-evolve-agent/agentcvr_crossvid_control/agentcvr-crossvid-20261017.log`。
+- 依次冒烟FSA1004、MOC431、CCQA236；保留成功结果，随后启动8路固定分片，不另跑重复验收矩阵。全量后切换239题CCQA评分、审计、写最终分数并结束GPU。
