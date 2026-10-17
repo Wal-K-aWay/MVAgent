@@ -129,7 +129,8 @@ def contexts_for(item, video_processor):
 
 @lru_cache
 def native_parser():
-    return load_official_module(UPSTREAM / 'utils/answer_parse.py', 'agentcvr_native_answer_parser')
+    return load_official_module(UPSTREAM / 'utils/answer_parse.py', 'agentcvr_native_answer_parser',
+                               import_root=UPSTREAM)
 
 
 def score_closed(label, answer):

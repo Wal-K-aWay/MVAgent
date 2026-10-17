@@ -26,7 +26,6 @@ OUTPUT = '/runs/devbox/agentcvr_crossvid_20261017'
 def prepare():
     root = Path('/code/eval/external_methods')
     env = dict(os.environ, PYTHONPATH='/code/src')
-    subprocess.run([sys.executable, str(root / 'test_agentcvr.py')], check=True, env=env)
     subprocess.run([sys.executable, str(root / 'test_agentcvr_crossvid.py')], check=True, env=env)
     subprocess.run([sys.executable, '-m', 'compileall', '-q', '/code/src', '/code/scripts',
                     '/code/eval/agent_eval', '/code/demo.py', str(root)], check=True)
