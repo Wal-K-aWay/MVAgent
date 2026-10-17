@@ -86,7 +86,7 @@ def parse_args() -> argparse.Namespace:
     infer.add_argument("--api-base-url")
     infer.add_argument("--api-key-env")
     infer.add_argument("--workers", type=int, help="questions prepared concurrently (default: 2 x request slots)")
-    infer.add_argument("--timeout", type=float, default=900.0)
+    infer.add_argument("--timeout", type=float, default=1860.0)
     infer.add_argument("--retries", type=int, default=3)
     infer.add_argument("--media-cache-dir", default=str(PROJECT_ROOT / ".cache/e2e_media"),
                        help="model-independent preprocessing cache; empty string disables it")
@@ -166,11 +166,16 @@ def select(benchmarks: dict[str, Any], config: dict[str, Any]) -> dict[str, list
 
 
 def source_files() -> list[Path]:
-    return [E2E_ROOT / "run.py", *sorted((E2E_ROOT / "harness").glob("*.py"))]
+    return [E2E_ROOT / "run.py", E2E_ROOT / "serve.py", *sorted((E2E_ROOT / "harness").glob("*.py")),
+            PROJECT_ROOT / "src/models/vlm/local/sync_server.py"]
+
+
+def source_key(path: Path) -> Path:
+    return path.relative_to(E2E_ROOT) if path.is_relative_to(E2E_ROOT) else path.relative_to(PROJECT_ROOT)
 
 
 def source_hashes() -> dict[str, str]:
-    return {str(path.relative_to(E2E_ROOT)): sha256_file(path) for path in source_files()}
+    return {str(source_key(path)): sha256_file(path) for path in source_files()}
 
 
 def vendored_hashes() -> dict[str, str]:
@@ -201,11 +206,14 @@ def media_cache_root(base: Path) -> Path:
 
 def freeze_source(output: Path) -> dict[str, str]:
     """Copy the harness into DIR/source once; a resumed run must use identical code."""
+    resuming = (output / 'manifest.json').exists()
     for path in source_files():
-        relative = path.relative_to(E2E_ROOT)
+        relative = source_key(path)
         target = output / "source" / relative
-        if target.exists() and target.read_bytes() != path.read_bytes():
+        if (resuming and not target.exists()) or (target.exists() and target.read_bytes() != path.read_bytes()):
             raise SystemExit(f"{relative} changed since this run started; use a new --output directory")
+    for path in source_files():
+        target = output / 'source' / source_key(path)
         target.parent.mkdir(parents=True, exist_ok=True)
         if not target.exists():
             shutil.copy2(path, target)
@@ -242,12 +250,17 @@ def run_infer(args: argparse.Namespace) -> None:
         "data_root": str(args.data_root),
     }
     backend = make_backend(args)
+    input_manifest = None
+    if args.media_cache_dir and not args.api_model:
+        from harness.common import bind_input
+        prepared = Path(args.media_cache_dir).resolve() / 'input_audit.json'
+        input_manifest = prepared if prepared.exists() else Path(os.environ[CACHE_ENV]) / 'input_audit.json'
     benchmarks = build_benchmarks(config)
     sampled = {name: b.generation for name, b in benchmarks.items() if b.generation["temperature"] != 0}
-    if sampled:  # greedy decoding everywhere: the only setting that is exactly repeatable
+    if sampled:  # Keep the benchmark protocol fixed; greediness alone does not ensure repeatability.
         raise SystemExit(f"non-greedy generation settings: {sampled}")
     selection = select(benchmarks, config)
-    model_identity = {key: value for key, value in backend.identity().items() if key != "endpoints"}
+    model_identity = {key: value for key, value in backend.identity().items() if key not in {"endpoints", "replicas"}}
     identity = {
         "protocol": {"frames_per_call": args.frames, "max_side": args.max_side},
         "config": config,
@@ -297,6 +310,8 @@ def run_infer(args: argparse.Namespace) -> None:
         record = {"sample_id": item["sample_id"], "task": item["task"]}
         try:
             record.update(status="ok", **benchmarks[name].infer(item, backend))
+            if input_manifest:
+                bind_input(input_manifest, item['sample_id'], record['request']['input_sha256'])
         except Exception as exc:  # noqa: BLE001 - recorded and retried on the next run
             record.update(status="error", error=f"{type(exc).__name__}: {exc}")
         record.update(seconds=round(time.monotonic() - started, 3), finished_at=now())
@@ -317,6 +332,10 @@ def run_infer(args: argparse.Namespace) -> None:
                 rate = number / max(time.monotonic() - started, 1e-9) * 3600
                 state = "  ".join(f"{key} ok={value['ok']} err={value['error']}/{len(pending[key])}" for key, value in counts.items())
                 print(f"[{now()}] {number}/{len(queue)} ({rate:.0f}/h)  {state}", flush=True)
+    if input_manifest and input_manifest.exists():
+        # Freeze the evidence used by this run, even when the shared cache later grows.
+        write_json(args.output / 'input_audit.json', read_json(input_manifest))
+        manifest['runs'][-1]['input_audit_sha256'] = sha256_file(args.output / 'input_audit.json')
     manifest["runs"][-1].update(finished_at=now(), results={key: dict(value) for key, value in counts.items()})
     write_json(manifest_path, manifest)
     failed = sum(value["error"] for value in counts.values())

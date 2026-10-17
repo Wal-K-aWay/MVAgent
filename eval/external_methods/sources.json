@@ -1,0 +1,17 @@
+{
+  "Video-RSI": {
+    "url": "https://github.com/bingjunluo/Video-RSI",
+    "commit": "5ad014499a5e009b75e3ef05ac83595b78adda09",
+    "source": "git shallow clone"
+  },
+  "MetaVideoAgent": {
+    "url": "https://github.com/Alibaba-VELLDEPTH/MetaVideoAgent",
+    "commit": "c4c1279dca07c5dd7b1a28a2121dd5d27c5c1a70",
+    "source": "git shallow clone"
+  },
+  "LensWalk": {
+    "url": "https://github.com/likanchuan09171/LensWalk",
+    "commit": "c3cdf13a6ffc6b1ce21af3a0c7813178d17fac77",
+    "source": "git shallow clone of release branch"
+  }
+}

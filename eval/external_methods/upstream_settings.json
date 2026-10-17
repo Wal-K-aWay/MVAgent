@@ -1,0 +1,118 @@
+{
+  "status": "VAM retired; RSI original settings retained; LensWalk release defaults with local Qwen tool API",
+  "sources": {
+    "Video-RSI": {
+      "url": "https://github.com/bingjunluo/Video-RSI",
+      "commit": "5ad014499a5e009b75e3ef05ac83595b78adda09",
+      "source": "git shallow clone"
+    },
+    "MetaVideoAgent": {
+      "url": "https://github.com/Alibaba-VELLDEPTH/MetaVideoAgent",
+      "commit": "c4c1279dca07c5dd7b1a28a2121dd5d27c5c1a70",
+      "source": "git shallow clone"
+    },
+    "LensWalk": {
+      "url": "https://github.com/likanchuan09171/LensWalk",
+      "commit": "c3cdf13a6ffc6b1ce21af3a0c7813178d17fac77",
+      "source": "git shallow clone of release branch"
+    }
+  },
+  "source_sha256": {
+    "rsi_config": "93c903e5d082fb5697eaae17af3d3a883a6af180bb92cff5c9103e84f2905067",
+    "rsi_services": "4a3933a4396d8221d6bb559948860013a725d0c6f33bc7d64d23da44c9183b9c",
+    "rsi_prompt": "ed6e5c2480dfb0259de518ba9cad1221f10b7bdce560a4444e22032c0c1ae53d"
+  },
+  "rsi": {
+    "protocol": "full-candidate-v1",
+    "evolution": {
+      "max_rounds": 20
+    },
+    "solver": {
+      "max_steps": 11,
+      "max_service_calls": 64,
+      "max_frames": 256,
+      "timeout_seconds": 1800
+    },
+    "execution": {
+      "concurrency": 16,
+      "linux_isolation": true,
+      "python": "SET_ABSOLUTE_PYTHON_PATH"
+    },
+    "services": {
+      "endpoint_env": "API_BASE",
+      "key_env": "API_KEY",
+      "deepseek": {
+        "request_model": "deepseek-v4-pro",
+        "max_tokens": 8192
+      },
+      "qwen": {
+        "request_model": "qwen3.6-plus",
+        "max_tokens": 8192
+      },
+      "temperature": 0,
+      "timeout_seconds": 240,
+      "provider_retries": 1,
+      "ffmpeg": "imageio-ffmpeg",
+      "ocr_model_root": "SET_LOCAL_OCR_MODEL_DIRECTORY"
+    },
+    "editor": {
+      "max_provider_calls": 160,
+      "timeout_seconds": 3600,
+      "pause_after_plan": false,
+      "harness_root": "SET_DEEPSEEK_HARNESS_DIRECTORY",
+      "node_binary": "SET_ABSOLUTE_NODE_PATH"
+    },
+    "investigation": {
+      "max_frames": 1024
+    },
+    "gate": {
+      "policy": "accuracy_gain_10pct_or_save_20pct_drop1_v1",
+      "max_mean_frames": null
+    }
+  },
+  "necessary_adaptations": [
+    "Local Qwen model endpoints and model identity",
+    "User-requested multi-video concatenation and timestamp prompt",
+    "Modal filesystem paths and candidate isolation differences, recorded explicitly"
+  ],
+  "user_approved_exceptions": [
+    "local Qwen3.5 Actor endpoints/model identity",
+    "generic nonempty RSI answer strings",
+    "RSI local HTTP timeout 600 seconds; upstream reference remains 240 seconds",
+    "multi-video concat and two-decimal timing prompt"
+  ],
+  "client_environments": {
+    "root": "/runs/devbox/external_methods_20261014/support/upstream_clients_20261015",
+    "rsi": "all 22 versions from upstream requirements-lock.txt",
+    "model_server": "unchanged local Qwen BF16 runtime; not a reproduction of unknown cloud backend defaults"
+  },
+  "image_policy": {
+    "rsi": "upstream Services scale=768:-2, unchanged source hash",
+    "local_server": "no width/height geometry hints; original client images enter the Qwen processor"
+  },
+  "lenswalk": {
+    "commit": "c3cdf13a6ffc6b1ce21af3a0c7813178d17fac77",
+    "max_turns": 5,
+    "limit_scan_calls": false,
+    "subject_registry": false,
+    "insert_frames": false,
+    "use_subtitle": false,
+    "frames": {
+      "scan": 180,
+      "segment": 32,
+      "stitched": 128
+    },
+    "max_edge_length": 512,
+    "observer_temperature": 0.2,
+    "planner_temperature": null,
+    "max_output_tokens": null,
+    "unspecified_parameters": "Resolve through standard local vLLM OpenAI defaults; no inherited 2048 or 8192 cap",
+    "client_python": "3.11",
+    "patch": "Add inference-only scoring flag; preserve all prompts and tool policies",
+    "smoke_batch_size": 1,
+    "upstream_default_batch_size": 15,
+    "workers": 8,
+    "local_request_timeout_seconds": 600,
+    "smoke_question_timeout_seconds": 1800
+  }
+}

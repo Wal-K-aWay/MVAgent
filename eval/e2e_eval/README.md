@@ -38,11 +38,11 @@ eval/e2e_eval/
 CVBench/MVU 全选，CrossVid 使用仓库中的固定 Lite2500。入口自动冻结源码、汇合原始记录、调用原评分接口并释放 GPU。
 可用 `--models 27B 35B-A3B` 只运行指定模型；输出目录名须与 devbox 的任务登记名相同。
 该脚本是本次固定矩阵的控制器；启动及断点续跑均需经环境 skill 的 devbox 工具，
-不可在已有任务运行时重复提交。损坏视频仍明确保留为失败。详见[本次运行记录](../../outputs/e2e_final_20261013/reports/run_history.md)。
+不可在已有任务运行时重复提交。损坏视频仍明确保留为失败。详见[本次运行记录](../../outputs/e2e/reports/final_results.md)。
 
 全量测试暴露了长请求被600秒硬超时中止的问题。2026-10-13已将服务端请求时限提高到1800秒，
 E2E默认HTTP等待提高到1860秒；推理数值配置和生成预算不变。源码哈希随之变化，恢复使用新输出目录，
-保留旧结果和共用的冻结帧缓存，不能绕过旧目录的源码身份检查。见[恢复记录](../../outputs/e2e_final_20261013/reports/run_history.md)。
+保留旧结果和共用的冻结帧缓存，不能绕过旧目录的源码身份检查。见[恢复记录](../../outputs/e2e/reports/final_results.md)。
 
 ## 统一协议与官方对齐
 
@@ -201,7 +201,7 @@ SkyRL的IsoExec也在8×H100上研究了Qwen3.5-35B-A3B的GDN及并行规约，�
   2026-10-08 起取代 deepseek-v4-flash，此前 DeepSeek 评出的 CCQA 分数不要与之混用。
   2026-10-13最终E2E核对发现35B两组相同Judge文本给出不同判定，共享缓存与两条原评分不一致；
   因此不能将Actor 固定配置的重复性验收外推到Judge。全部CCQA已评分，原始结果与敏感性见
-  [最终报告](../../outputs/e2e_final_20261013/reports/final_results.md)及[核对证据](../../outputs/e2e_final_20261013/reports/audit.md)。
+  [最终报告](../../outputs/e2e/reports/final_results.md)及[核对证据](../../outputs/e2e/reports/final_results.md)。
 
 ## 运行
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import fcntl
 import hashlib
 import importlib.util
 import json
@@ -44,6 +45,22 @@ def write_json(path: Path, value: Any) -> None:
     temporary = path.with_name(f".{path.name}.{threading.get_ident()}.tmp")
     temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     temporary.replace(path)
+
+
+def bind_input(path: Path, sample_id: str, input_sha256: str) -> None:
+    """Persist first-seen inputs; later models/repeats must use the same prepared bytes."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.with_suffix('.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        audit = read_json(path) if path.exists() else {'input_sha256': {}}
+        hashes = audit['input_sha256']
+        if sample_id in hashes and hashes[sample_id] != input_sha256:
+            raise ValueError(f'Prepared input changed for {sample_id}; use the frozen media cache')
+        if sample_id not in hashes:
+            if 'independent_decode_comparisons' in audit:
+                raise ValueError(f'{sample_id} is absent from the independently audited input manifest')
+            hashes[sample_id] = input_sha256
+            write_json(path, audit)
 
 
 def load_jsonl(path: Path) -> list[dict[str, Any]]:

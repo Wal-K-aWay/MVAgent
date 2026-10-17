@@ -1,0 +1,48 @@
+--- a/eval/infer_bench_summ_vcs.py
++++ b/eval/infer_bench_summ_vcs.py
+@@ -45,6 +45,7 @@
+     max_scan_calls: Optional[int] = field(default=1)
+     limit_scan_calls: Optional[bool] = field(default=False) 
+ 
++    inference_only: bool = field(default=False)
+     resume: Optional[bool] = field(default=False)
+     resume_log_path: Optional[str] = field(default="")
+     batch_size: Optional[int] = field(default=15)
+@@ -711,7 +712,9 @@
+                 {},
+             )
+             session["output_text"] = last_msg.get("content", "")
+-        if session["question_type"] == "open-ended":
++        if args.inference_only:
++            session["score"] = None
++        elif session["question_type"] == "open-ended":
+             if session["output_text"] is not None:
+                 if len(session["output_text"]) == len(session["gt"]):
+                     session["score"] = 1.0 if session["output_text"].lower() == session["gt"].lower() else 0.0
+@@ -733,7 +736,7 @@
+                 if hasattr(vcs_agent, "compute_score")
+                 else 0.0
+             )
+-        acc += session["score"]
++        acc += session["score"] or 0.0
+         cnt += 1
+ 
+         conversation_record = {
+@@ -749,7 +752,7 @@
+             _cf.write(json.dumps(conversation_record, ensure_ascii=False) + "\n")
+ 
+         results.append({**session["item"], "answer": session["output_text"], "score": session["score"]})
+-        print(f"[idx {session['i']}] score={session['score']} | current ACC={acc / cnt:.4f}")
++        print(f"[idx {session['i']}] score={session['score']} | current ACC={None if args.inference_only else acc / cnt}")
+ 
+         session["finalized"] = True
+         sid = session["i"]
+@@ -1185,7 +1188,7 @@
+     frame_pool.shutdown(wait=True)
+ 
+     print(f"Results saved to {result_filename}")
+-    print(f'Accuracy: {acc / cnt if cnt else 0.0}')
++    print(f'Accuracy: {None if args.inference_only else acc / cnt if cnt else 0.0}')
+     summarize_tool_calls(callback_log_file, save_dir)
+ 
+ 

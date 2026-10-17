@@ -65,6 +65,8 @@ Prompt 与中文镜像同步的完整规则统一保存在 [.claude/rules/prompt
   用户2026-10-13明确授权的例外：三模型最终E2E回答、评分、Judge缓存与配套元数据可保存在
   `outputs/e2e/`供本地轻量分析；迁入文件须核对大小与SHA256，媒体/权重/冻结运行环境仍留Modal。
   用户2026-10-15追加授权将MVU官方指令移后复测的原始回答、评分和配套元数据归入同总目录的对应模型目录（文件名标识提示位置）及analysis/reports；同样核对大小/SHA256并保留Modal原件。
+  用户2026-10-17追加授权将AgentCVR最终H100批次的逐题原始回答、答案表、评分及配套元数据保存到
+  `outputs/agentcvr_20261016/data/`；迁入文件逐一核对大小与SHA256，保留Modal原件，媒体/权重/冻结环境仍留Modal。
 - 复用过的开发数据称为"开发集"，结论要区分"已测到的"和"尚不能声称的"。
 - 凭据（`BIGMODEL_API_KEY`、`DEEPSEEK_API_KEY`）只从环境变量或 Modal Secret 读取。
 - 计算与模型推理都放在 Modal 上；使用 GPU 时，Modal app 名统一为 `wxu-sglang-baseline-gpu-test-*`，
