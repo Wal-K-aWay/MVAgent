@@ -55,3 +55,22 @@ LensWalk相对MVAgent为−10.73/−20.00/−17.92个百分点，相对E2E为−
 - CPU `ap-WxUvAc4m6velyUD9Lt2PQP`完成首轮LensWalk比较；`ap-zjeUzhnnA4RIW9iUgmrTPL`完成RSI和四方汇总，均rc0。新原始/派生数据仅runs `devbox/external_baselines_paired_20261017/`，含summary、paired、rsi_snapshot及实际分析源码。
 
 这些是尚未完成批次和开发面板交集的描述性结果，完成速度与难度可能影响覆盖；没有CCQA评分、独立留出集或显著性结论。不得直接把不同覆盖的全量/阶段分数拿来宣称方法排序。
+
+## MVU的51.15%属于哪个实现，旧实现能否超过RSI
+
+2026-10-17 11:52 UTC追加CPU复核。51.15%属于10月16日恢复的直接回答协议（900条面板同方案，后续扩至每模型1500题）：Global主动answer在本次decision的`parameters.answer`提交；耗尽步骤时复用`answer_only`决策，不调用独立回答器。空skill库、FFmpeg媒体采样、2048输出token、每次最多512帧、Global/Video各5步；Actor为完整Qwen3.5-35B-A3B。该数是四方共同131题的按题准确率，不是500题MVU面板按人口权重估计的51.02%，也不是旧全量独立回答器的52.33%。
+
+统一用当前官方首字符评分，固定上述131个题号，对已有其他35B答案重新评分：
+
+| 实现 | 正确/总数 | 准确率 | 相对Video-RSI |
+|---|---:|---:|---:|
+| 当前MVAgent直接回答版 | 67/131 | 51.15% | −6.87pp |
+| 旧H100独立回答器版 | 68/131 | 51.91% | −6.11pp |
+| 历史PRO6000原35B版 | 67/131 | 51.15% | −6.87pp |
+| Video-RSI | 76/131 | 58.02% | — |
+
+完整覆盖这131题的已测35B实现中，没有一个超过RSI。旧独立回答器相对当前只多答对1题。历史PRO6000的硬件、Prompt和运行协议不同，不是只改变回答器的消融。
+
+“统一恢复PRO旧9B源码＋FFmpeg、接35B模型”只重合9题：恢复版6/9、RSI7/9，当前与独立回答器各5/9、历史PRO35B为8/9。不能选择这个小子集宣布历史PRO总体胜过RSI；它在完整131题仍低于RSI。新System候选不属于本次已完成比较。
+
+新增证据仅runs `devbox/rsi_mvu_agent_versions_20261017/`（summary、paired、实际分析源码和源文件SHA）。源为当前1500题配对文件、历史PRO的`lightsail_outputs/mvagent/no_skill/qwen3_5_35b_a3b/answers.jsonl.gz`，以及`devbox/pro9_ffmpeg_35b_20261016`原始记录。CPU `ap-7yIDZKvPyDMtvjPx3n9rRB` rc0，131题身份、原67/76正确数及旧独立保存分与重算一致的断言通过。没有新Actor或Judge推理，也没有修改原成绩。
