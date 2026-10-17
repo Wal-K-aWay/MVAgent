@@ -65,3 +65,20 @@ GPU容器`ta-01M556T5G2ENMVMPKF5AW5KWZR`，实际hardware.txt为8张H100 80GB。
 
 FSA本次实际返回结构化数值数组。原值完整保留；评分时先将非字符串JSON答案序列化，再调用作者的区间解析/正反序处理与IoU。原入口假定字符串，此处是明确的类型适配；严格原始格式得分另外保存，不能把两者混为一谈。
 15:29时7/16模型服务就绪，继续自动加载其余副本；这是加载阶段，不是全量已完成。
+
+## 正式全量与输入边界旁路审计（2026-10-17 15:40 UTC）
+
+15:34已进入`phase=inference`，16模型服务全部就绪，8个worker并行；15:40 CPU审计快照已有15份完成记录。
+最近主progress快照12/2500有效、0基础设施错、3 CCQA待Judge；这些是运行中快照，不代表最终分数。
+
+检查原版执行器时发现标准视觉工具只加clip_begin，没有强制限制clip_end；PI/PEA/PSS若请求超出片段可能看到题面未提供内容。
+PSS连续包络还可能采到原标注不连续区间之间的空隙。按照用户原版运行要求，未热改推理实现；用独立CPU脚本`agentcvr_boundary_audit.py`随轨迹测量。
+该脚本依据成功视觉调用的frame mapping及原采样公式重建帧时间（容差一帧），对照官方允许区间；音频仅核对实际请求区间，不做媒体内容复解码。
+违规样本单列，原始数据/分数保持，不把“原版能运行”当成“严格benchmark输入边界已验证”。
+
+CPU app `ap-qSho9pZByEysoBYQgpx1Cv`完成旁路检查与自检：15份记录中已有1道相关片段题，3次视觉目标、96帧重建，0越界；样本很少，不能外推到全部2500。
+核查JSON在正式root的`boundary_audit_partial.json`，独立脚本SHA256为`77c0f0ed7800882ed50eef0abc2ca5f4e3239bb7b4d226346b6dc2d00e6761f0`。
+后台收尾入口在devbox控制目录：`modal run --env zheng-dev agentcvr_boundary_audit.py --after-pid 3224707`，日志`boundary-after-run.log`。
+它等待现有GPU控制器退出，然后执行一次CPU审计；不会申请GPU或重新推理。正式完成写`boundary_audit.json`，若推理失败则保留partial标记。
+
+数据保留在Modal；目前没有新增Lightsail原始结果迁移或GitHub Release数据上传。代码与Markdown报告持续备份，运行配置仍使用冻结d8c3232。
