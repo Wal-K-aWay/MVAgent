@@ -7,6 +7,11 @@ import shutil
 from common import sha256, write
 from lenswalk_full import ADAPTERS, EXPECTED, media_key, now, read
 
+PATCH_FILES = ('prepare.py', 'lenswalk_full.py', 'recover_lenswalk.py', 'test_lenswalk_recovery.py',
+               'test_native_concat.py', 'test_color_boundary.py', 'test_contracts.py',
+               'lenswalk_outcome.py', 'test_lenswalk_full.py', 'recover_lenswalk_stopped.py',
+               'test_lenswalk_stopped.py')
+
 
 def media_failure(row):
     return (row['infrastructure_error'] and row['terminal'] == 'execution_error'
@@ -23,8 +28,7 @@ def freeze(previous, output):
     frozen = output/'frozen_repo'
     assert not frozen.exists(), 'Never change a published patch snapshot'
     shutil.copytree(previous/'frozen_repo', frozen, ignore=shutil.ignore_patterns('__pycache__'))
-    for name in ('prepare.py', 'lenswalk_full.py', 'recover_lenswalk.py', 'test_lenswalk_recovery.py',
-                 'test_native_concat.py', 'test_color_boundary.py', 'test_contracts.py'):
+    for name in PATCH_FILES:
         shutil.copy2(ADAPTERS/name, frozen/'eval/external_methods'/name)
     commit = (ADAPTERS.parents[1]/'.git/HEAD').read_text().strip()
     (frozen/'.git').mkdir(exist_ok=True)

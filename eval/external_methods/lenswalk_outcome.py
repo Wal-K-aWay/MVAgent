@@ -39,8 +39,11 @@ def inspect(directory, card):
             row['terminal']='finish'
         elif result.get('answer'):
             transcript=json.loads(Path(result['transcript']).read_text().splitlines()[0])
-            last=next(m for m in reversed(transcript['chat_history']) if m['role']=='assistant')
-            assert last['content']==result['answer']
-            row['terminal']='unfinished_tool_plan' if last.get('tool_calls') else 'natural_text'
+            assert transcript['answer']==result['answer'], 'Adapter changed the upstream answer'
+            last=next((m for m in reversed(transcript['chat_history']) if m['role']!='tool'), {})
+            # Upstream retains earlier output_text when subsequent turns only call tools.
+            row['terminal']=('natural_text' if last.get('role')=='assistant'
+                and last.get('content')==result['answer'] and not last.get('tool_calls')
+                else 'unfinished_tool_plan')
     row['infrastructure_error']=not result or row['http_errors']>0
     return row

@@ -31,6 +31,21 @@ def main():
         assert not attempt.exists() and set(archive['files'])=={'raw.txt'}
         with tarfile.open(archive['path']) as stream:
             assert stream.extractfile('attempt-test/raw.txt').read()=='完整原始记录\n'.encode()
+        audit=root/'audit';audit.mkdir()
+        transcript=audit/'conversation.jsonl'
+        cases=[([{'role':'assistant','content':'A'}], 'natural_text'),
+               ([{'role':'assistant','content':'A'}, {'role':'assistant','content':'Look again',
+                  'tool_calls':[{'id':'call1'}]}, {'role':'tool','content':'Observation'}], 'unfinished_tool_plan'),
+               ([{'role':'assistant','content':'A'}, {'role':'user','content':'Please finish'}], 'unfinished_tool_plan')]
+        for history,terminal in cases:
+            transcript.write_text(json.dumps({'answer':'A','chat_history':history})+'\n')
+            write(audit/'result.json',{'answer':'A','transcript':str(transcript),'finished_with_tool':False})
+            row=inspect(audit,{})
+            assert row['answer']=='A' and row['terminal']==terminal and not row['infrastructure_error']
+        write(audit/'result.json',{'answer':'B','transcript':str(transcript),'finished_with_tool':False})
+        try:inspect(audit,{})
+        except AssertionError:pass
+        else:raise AssertionError('Accepted a changed upstream answer')
     smoke=Path('/runs/devbox/external_lenswalk_20261016_r3')
     card=json.loads((smoke/'startup_verification.json').read_text())
     expected={'cvbench_764':'natural_text','mvu_eval_TR_1585':'finish','crossvid_MSR_361':'unfinished_tool_plan',
