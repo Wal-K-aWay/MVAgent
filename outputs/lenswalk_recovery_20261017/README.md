@@ -39,4 +39,19 @@ OR440的预处理阻断已解除，模型未交付最终答案仍作为负结果
 
 本次仅清理17882个可重新生成的`.pyc`和空`__pycache__`目录，共201313150字节，结果卷空余文件名额从约6697升至28718；未删除源码、原始结果、媒体或权重。两份删除清单位于runs根`devbox/lenswalk_recovery_pyc_cleanup[_extra]_20261017.json`。共享卷未来余量会随其他任务变化。
 
-恢复入口：`eval/external_methods/recover_lenswalk.py --previous OLD --output NEW`，随后从NEW冻结的`lenswalk_full.py`继续。原进度和配置SHA、逐题继承SHA与待处理清单保存在`recovery_manifest.json`，原始数据只留Modal runs volume。
+首轮恢复使用已冻结的5c99eb7入口。原进度和配置SHA、逐题继承SHA与待处理清单保存在`recovery_manifest.json`，原始数据只留Modal runs volume。
+
+## 08:24 UTC后续检查与媒体补测队列
+
+主批次新增609条结果（累计2031/5321），最近一小时99题、两小时205题。新结果包含357终答、199未收尾规划、51空答案和2个工程失败。NC889整段41468帧已通过严格像素/尺寸/时间校验，准备1882.85秒、推理426.40秒，模型未终答照常保留。Counting11重试仍触发600秒服务超时，625.33秒结束；不第三次重复该模型失败。
+
+新增媒体失败NC851发生在第21323帧、870.168041秒：其YUV像素不变，但从BT.709片段切换到未标注色彩的片段时，解码器沿用前一段的色彩状态，RGB改变。新补丁为未标注YUV显式写出原本的默认矩阵/范围，保留原RGB，而非放宽校验。8种合成组合均通过，NC851两个真实来源的102帧RGB/尺寸/PTS逐帧一致；CPU app `ap-1S1gFK1FR2vCBEO0Rlgp15` rc0。
+
+主批次保持原冻结源码继续。后续只补媒体处理失败，保留已有模型结果及HTTP超时；使用单个`inherited_records.json`索引继承结果，避免再复制数千个目录。CPU app `ap-OWLRWc6LYfihE38nHyxy9R`完成继承/筛选/原件不变、阶段门控、官方聚合与完整编译，rc0。
+
+- 补丁快照：`devbox/lenswalk_boundary_fix_20261017/frozen_repo`，commit `48673c1603aa0940131ae58e0b30731019beb661`；driver SHA `2578d49cd45a481fc751ceb0de215d0406a57b719ca68ccf87c20ea7602a3891`。
+- 排队控制器：modal-gpu PID3098699，`watch-lenswalk_full_35b_media_final_20261017.log`；脚本SHA `a721cf2a3e4b4bebc0b83dba2d3034c73013b5a742bbedbce16c1c21a7df5eb0`，源码副本在补丁目录`lifecycle_controller.py`。
+- 后续结果：`devbox/lenswalk_full_35b_media_final_20261017`，DEVBOX_NAME=`mvagent-lenswalk-media-final-35b-20261017`。
+- 08:49实际日志为`waiting_primary`，主批次2081题/inference；尚未为后续队列申请GPU。主批次推理和Judge结束后，CPU冻结继承表，再由原生命周期管理器启动媒体补测、重新汇总并释放GPU。主批次若failed/interrupted则停止排队，不盲目重复提交。
+
+这次验证覆盖了实际失败边界的短片段，NC851完整补测尚未发生；模型、生成预算、帧数、图像限制和超时保持原配置。
