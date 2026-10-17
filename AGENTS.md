@@ -172,7 +172,7 @@ Prompt 与中文镜像同步的完整规则统一保存在 [.claude/rules/prompt
   Global/Video 各最多 5 步。基线分数见 `.claude/benchmarks.md`。
 - **最终回答的理由长度**：终答 `reason` 不设字符硬上限，保留简洁、非空要求；每次完整响应仍受2048输出token预算限制。
   取证决策的reason仍限1200字符，analyze指令预算不变；answer决策直接携带终答。此改动会影响动作、答案与耗时；历史独立回答器成绩不能视作新协议成绩。
-- **Global 基础提示**：本分支是隔离System对照，默认Global采用PRO6000简洁System；Video候选在冻结副本恢复原Global，详见 `outputs/system_ablation_20261017/README.md`。User 排布为 Question→Videos→Available actions→History；
+- **Global 基础提示**：本分支只扩大已测简洁Global System到原1500题/模型，其他运行时文件与102题候选逐字相同；本轮不运行Video候选，详见 `outputs/global_short_large_20261017/README.md`。User 排布为 Question→Videos→Available actions→History；
   主动 answer 直接提交 `reason/action/parameters.answer`，循环耗尽时复用 `decide(answer_only=True)`，只允许 answer。
   Global简洁候选仅保留角色与证据边界；原版的冲突检查和一到两句要求仅在Video候选中保留，不混称两臂提示。
   answer 动作依现有证据提交最佳判断，按题目要求表达结果，在 reason 中简洁保留重要限制；不靠选项枚举限制答案。

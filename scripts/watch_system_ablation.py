@@ -14,6 +14,12 @@ import modal
 HERE=Path.home()/'wxu-evolve-agent/devbox'
 TAG='system_ablation_20261017'
 ARMS=('global_short','video_rules')
+HOURS=2
+MAX_SECONDS=6900
+NAMES={arm:f'mvagent-system-{arm}-20261017' for arm in ARMS}
+WORKERS={arm:f'python /repo/scripts/run_system_ablation.py worker --arm {arm}' for arm in ARMS}
+PROGRESS={arm:f'{arm}/progress.json' for arm in ARMS}
+ANALYSIS_SCRIPT='run_system_ablation.py'
 
 
 def log(**values):
@@ -21,7 +27,7 @@ def log(**values):
 
 
 def finished_or_expired(phase,alive,elapsed):
-    return phase in {'completed','failed'} or not alive or elapsed>6900
+    return phase in {'completed','failed'} or not alive or elapsed>MAX_SECONDS
 
 
 def main():
@@ -29,13 +35,13 @@ def main():
     pid=HERE/f'watch-{TAG}.pid';pid.write_text(str(os.getpid()))
     volume=modal.Volume.from_name('wxu-evolve-agent-runs-20261006',environment_name='zheng-dev')
     def progress(arm):
-        return json.loads(b''.join(volume.read_file(f'devbox/{TAG}/{arm}/progress.json')))
+        return json.loads(b''.join(volume.read_file(f'devbox/{TAG}/{PROGRESS[arm]}')))
     def start(arm):
-        name=f'mvagent-system-{arm}-20261017';env={**os.environ,'DEVBOX_NAME':name}
+        name=NAMES[arm];env={**os.environ,'DEVBOX_NAME':name}
         with (HERE/f'{TAG}_{arm}_launch.log').open('a') as stream:
             subprocess.run([sys.executable,str(HERE/'devbox.py'),'up','--gpu','H100!:8','--no-pool',
-                '--hours','2','--idle','15'],cwd=HERE,env=env,stdout=stream,stderr=subprocess.STDOUT,check=True)
-            command=f'python /repo/scripts/run_system_ablation.py worker --arm {arm}'
+                '--hours',str(HOURS),'--idle','15'],cwd=HERE,env=env,stdout=stream,stderr=subprocess.STDOUT,check=True)
+            command=WORKERS[arm]
             subprocess.run([sys.executable,str(HERE/'devbox.py'),'run',f'{TAG}_{arm}','--b64',
                 base64.b64encode(command.encode()).decode()],cwd=HERE,env=env,stdout=stream,stderr=subprocess.STDOUT,check=True)
         path=HERE/f'state-{name}.json';state=json.loads(path.read_text());sb=modal.Sandbox.from_id(state['sandbox_id'])
@@ -50,7 +56,7 @@ def main():
                     if arm not in owned:
                         try:owned[arm]=future.result()
                         except Exception as exc:
-                            path=HERE/f'state-mvagent-system-{arm}-20261017.json'
+                            path=HERE/f'state-{NAMES[arm]}.json'
                             if path.exists():
                                 sb=modal.Sandbox.from_id(json.loads(path.read_text())['sandbox_id'])
                                 if sb.poll() is None:sb.terminate(wait=True)
@@ -67,7 +73,7 @@ def main():
                 if len(finished)<len(ARMS):time.sleep(45)
         sys.path.insert(0,str(HERE));import cpujob
         command=(f'mkdir -p /tmp/{TAG} && tar xzf /runs/devbox/{TAG}/source.tar.gz -C /tmp/{TAG} && '
-                 f'python /tmp/{TAG}/scripts/run_system_ablation.py analyze > /runs/devbox/{TAG}/analysis.log 2>&1')
+                 f'python /tmp/{TAG}/scripts/{ANALYSIS_SCRIPT} analyze > /runs/devbox/{TAG}/analysis.log 2>&1')
         with cpujob.app.run(environment_name='zheng-dev'):
             rc,_,error=cpujob.job.remote(command)
         assert rc==0,(rc,error)

@@ -115,6 +115,7 @@ def prepare():
 def worker(arm):
     import yaml
     manifest = read(OUT/'manifest.json')
+    expected = len(read(OUT/'samples.json'))
     source = Path('/work/system-ablation')/arm
     source.mkdir(parents=True,exist_ok=False)
     assert sha(OUT/'source.tar.gz') == manifest['archive_sha256']
@@ -139,7 +140,7 @@ def worker(arm):
     try:
         for index,(model,slug) in enumerate(MODELS.items()):
             target=group/model;target.mkdir()
-            state['models'][model]=dict(expected=102,finished=0)
+            state['models'][model]=dict(expected=expected,finished=0)
             cfg=yaml.safe_load((source/f'configs/inference/modal_qwen35_{slug}_no_skill.yaml').read_text())
             exname='modal_h200x8.yaml' if model=='35B-A3B' else f'modal_h200x8_qwen35_{slug}.yaml'
             ex=yaml.safe_load((source/'configs/inference/execution'/exname).read_text())
