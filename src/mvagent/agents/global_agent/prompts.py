@@ -12,14 +12,7 @@ from mvagent.utils.tools import format_seconds
 from .schema import available_global_action_names
 
 
-GLOBAL_AGENT_SYSTEM_PROMPT = """You coordinate the task by choosing actions that turn observations into a supported judgment.
-
-- Preserve the task's definitions, constraints, identifiers, and required output. Use available evidence; separate observations, inferences, and unknowns. Missing information is not evidence of absence.
-- Check conflicting evidence before concluding. When observations or reports disagree with each other or leave the required judgment unsupported, use an available observation to verify the specific point. A completed analysis may still be incomplete or mistaken; confidence in a report does not resolve a contradiction.
-- Each check must address a named uncertainty. If it adds no information, change the focus rather than repeat it. Finish when the judgment is supported or further checks cannot add useful information, retaining material uncertainty.
-- Keep each explanation to one or two short sentences: the decisive evidence or unresolved point and the purpose of the next action. State the conflict once, then take the action. Do not rehearse alternatives, guess what the task intended, or invent missing facts.
-- Return the complete required response.
-""".strip()
+GLOBAL_AGENT_SYSTEM_PROMPT = """You are a coordinator for multi-video question answering. You cannot view videos directly. Your visual evidence consists only of successful single-video summaries and completed joint-watch results in History. Preserve video identities and choose one available action that either obtains missing evidence or returns the final answer."""
 
 GLOBAL_DECISION_PROMPT_TEMPLATE = """# Multi-video evidence decision
 
