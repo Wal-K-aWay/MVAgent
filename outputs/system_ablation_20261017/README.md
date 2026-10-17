@@ -24,4 +24,8 @@ Video新增文字：
 
 验收报告逐模型×benchmark的官方分、对当前baseline及E2E同题差值、格式/空答案/右花括号、翻转数、调用与耗时；Cross报十task macro，CCQA按点评分。保留负结果。改变提示后答案可以变化，固定数值配置已验收的重复性不重新做双遍矩阵。
 
-状态：准备中，尚无本轮模型结果。
+状态（2026-10-17 11:36 UTC）：CPU `ap-rhAeHltojgdDFBYORpgkf9` 完整compileall、13接口测试和System替换自检通过；CPU `ap-sUJ8ieXKVGv0f17PoBzzuA` 完成提交前控制器修正归档，均rc0。首版准备源码与manifest保留在 `preparation_attempts/initial`，题目清单未变。最终冻结提交 `519c6984a7a6ca4a136753b71414c890aa88ed54`，归档SHA `209cc39a79fa2a265e62d6f6b377fcb3aefbfcd16cd2e983d922c63a001f6e48`。
+
+两个候选已申请独立8×H100：Global `sb-33cmVnrutj7rIEiCadGwU7`，Video `sb-dL95bKvQlYPNUFoldBXUTL`，开始9B加载；尚无准确率结论。host控制器PID3147193，日志 `~/wxu-evolve-agent/devbox/watch-system_ablation_20261017.log`；两候选依次9B→27B→35B→固定Judge，完成后自动释放本实验GPU并汇总。服务启动前检查实际manifest/profile/8个GPU身份，正式逐题保留输入哈希和token日志。
+
+基于所选同题旧耗时，单臂9B/27B/35B总GPU秒为5643.52/10916.93/9082.70，按8卡加25%波动及27分钟加载/评分预留，预计约1.56小时；非保证。11:38健康检查：共享项目app有3任务（含无关任务），近5分钟Traceback为0；Global八卡已加载约19GB/卡，处于服务预热。
