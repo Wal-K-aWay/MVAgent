@@ -60,3 +60,5 @@ macOS 可用 `shasum -a 256 -c SHA256SUMS` 替代 `sha256sum -c`。
 不含视频、模型权重、冻结运行环境或服务日志。完整重跑仍需 Modal 冻结源码和媒体；
 manifest 中的提交号不足以重建含未提交改动的历史运行。
 发布前校验数据和归档，上传后核对 GitHub 返回的附件大小与 SHA256，并检查匿名下载。
+
+发布验证：2026-10-17T13:33:58.396883+00:00，5 个附件全部为 uploaded，GitHub 大小/SHA256 与本地一致，匿名下载 HEAD 全部 HTTP 200。校验收据保存在 Lightsail 的 `outputs/e2e_release_20261017/release_verification.json`。
