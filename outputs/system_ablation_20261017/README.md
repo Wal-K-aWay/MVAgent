@@ -29,3 +29,25 @@ Video新增文字：
 两个候选已申请独立8×H100：Global `sb-33cmVnrutj7rIEiCadGwU7`，Video `sb-dL95bKvQlYPNUFoldBXUTL`，开始9B加载；尚无准确率结论。host控制器PID3147193，日志 `~/wxu-evolve-agent/devbox/watch-system_ablation_20261017.log`；两候选依次9B→27B→35B→固定Judge，完成后自动释放本实验GPU并汇总。服务启动前检查实际manifest/profile/8个GPU身份，正式逐题保留输入哈希和token日志。
 
 基于所选同题旧耗时，单臂9B/27B/35B总GPU秒为5643.52/10916.93/9082.70，按8卡加25%波动及27分钟加载/评分预留，预计约1.56小时；非保证。11:38健康检查：共享项目app有3任务（含无关任务），近5分钟Traceback为0；Global八卡已加载约19GB/卡，处于服务预热。
+
+
+## 阶段结果（2026-10-17 12:23 UTC，尚未完成全矩阵）
+
+两候选9B与27B均102/102有效、整题工程失败0；35B当前Global27/102、Video47/102落盘。尚未执行本轮CCQA Judge，不报告Cross十类总分。以下各CV/MVU单元都是同30题、按既有task人口权重估计的开发子集，不能与前4500面板的500题单元直接相减。
+
+| 模型 | Benchmark | 当前基线 | 简洁Global | Video通用要求＋身份 | 同题E2E |
+|---|---|---:|---:|---:|---:|
+| 9B | CVBench | 66.60 | 74.70 | 64.00 | 70.30 |
+| 9B | MVU | 34.49 | 50.96 | 37.49 | 29.98 |
+| 27B | CVBench | 77.55 | 78.40 | 79.85 | 70.85 |
+| 27B | MVU | 57.90 | 54.02 | 57.57 | 36.44 |
+
+每模型87道闭式题：9B基线格式失败2，Global2，Video1；27B基线0，Global0，Video1。四个新模型/候选单元均空答案0、仅右花括号0。9B基线两个格式失败均在MVU，因此Global的CV增益发生在两边格式都合格的题上；Global的格式失败总数虽持平，失败题已变成PEA784和Counting127，不能声称原合格题全部保持合格。Video的9B新失败为CV774，27B为FSA2115（No equivalent step found）。
+
+闭式翻转：9B Global CV5胜3负、MVU6胜1负；Video CV0胜1负、MVU1胜0负。27B Global CV2胜2负、MVU1胜2负；Video CV1胜0负、MVU1胜1负。权重不同，翻转个数不能直接当官方百分点。
+
+案例保存在Global/9B/closed_cases.json并核对基线原件SHA：CV154从C错到D对，两版都3调用，候选区分场地中的标牌与教学活动；CV199从B对到A错，候选从联合观看改为分视频取证、3→24调用，依赖单视频推断跨视频方位。Counting136虽然改答正确，理由仍包含对不确定墙数的猜测；Counting155从F对到E错，候选把未量化的multiple与明确3幅比较，缺少有效复核。没有人工重新观看视频，不将这些文本轨迹当作完整视觉根因证明。
+
+首批实际请求核验：每臂8记录，共133响应（Global76、Video57），seed0/T0/2048、输入hash、实际token计数、cache0和整题单卡全部通过；实际Global System分别为短版SHA e04f4c1c26b17d87ff1c73ab1442969e88e5b9fff4171dc56de715d097ee8320和原版SHA acb36637f9288ad5a5ec6703abeed55d7d46ac253fb4fcf3fd8355ce0cb8b4a3，Video臂19次普通Planner请求已核验新规则与对应video_id。没有额外双遍生成。文件为各臂9B/startup_calls_audit.json；阶段闭式分和格式分别为closed_preliminary.json、format_preliminary.json。
+
+Git冻结另提供固定标签 baseline/mvagent-direct-20261017 → 1b711bf6a466c6dee70c273d24fbd98bd4f0c80d，已推送并核验远端解引用SHA。它保留已验收的直接回答实现；共享工作区快照d565790另存，两个用途不可混为完整研究工作区都已验证。
