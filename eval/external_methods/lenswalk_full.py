@@ -21,6 +21,8 @@ import time
 import traceback
 import urllib.request
 
+sys.dont_write_bytecode=True
+os.environ['PYTHONDONTWRITEBYTECODE']='1'
 ADAPTERS=Path(__file__).resolve().parent
 SOURCE=ADAPTERS.parents[1]
 sys.path[:0]=[str(ADAPTERS),str(SOURCE/'src'),str(SOURCE)]
@@ -135,6 +137,7 @@ def initialize(output,method='lenswalk'):
         unique_media_groups=len({media_key(r.sample.videos) for r in records.values()}),
         existing_cached_groups=len(cache),judge='Qwen3-30B-A3B-Instruct-2507',
         excluded=['cvbench:64','cvbench:65','cvbench:66']))
+    write(output/'inherited_records.json',{})
     write(output/'progress.json',dict(phase='prepared',expected=5321,completed=0,updated_at=now()))
     print(json.dumps(read(output/'manifest.json')|{'source_hashes':'stored','asset_hashes':'stored'}),flush=True)
 
@@ -229,7 +232,8 @@ def main(output):
         assert sha256(RSI_DEPS/'rsi_manifest.json')==manifest['method_settings']['client_manifest_sha256']
         client_env['PYTHONPATH']=str(RSI_DEPS/'rsi')+os.pathsep+client_env['PYTHONPATH']
     ids=read(output/'samples.json');records=load_multibench_records('/assets',ids)
-    rows={p.parent.name:read(p) for p in (output/method).glob('*/record.json')}
+    rows=read(output/'inherited_records.json')
+    rows.update({p.parent.name:read(p) for p in (output/method).glob('*/record.json')})
     shutdown=threading.Event();lock=threading.Lock();children={};active={};cards={}
     media_locks={media_key(r.sample.videos):threading.Lock() for r in records.values()}
     episode=output/'episodes'/str(time.time_ns());episode.mkdir()
@@ -248,7 +252,10 @@ def main(output):
         shutdown.set()
     signal.signal(signal.SIGTERM,interrupted);signal.signal(signal.SIGINT,interrupted)
     jobs=queue.Queue()
-    for sid in ids:
+    schedule=manifest.get('recovery_order',ids)
+    assert len(schedule)==len(set(schedule)) and set(schedule)<=set(ids)
+    assert set(schedule)|{r['sample_id'] for r in rows.values()}==set(ids)
+    for sid in schedule:
         if sid.replace(':','_') not in rows:jobs.put(sid)
     def worker(rank,process,card):
         restarts=0
