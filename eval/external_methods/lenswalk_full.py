@@ -66,7 +66,7 @@ def initialize(output):
     output.mkdir(parents=True)
     frozen=output/'frozen_repo'
     shutil.copytree(SMOKE/'frozen_repo',frozen,ignore=shutil.ignore_patterns('__pycache__'))
-    for name in ('lenswalk_full.py','lenswalk_outcome.py','test_lenswalk_full.py'):
+    for name in ('lenswalk_full.py','lenswalk_outcome.py','prepare.py','test_lenswalk_full.py'):
         shutil.copy2(ADAPTERS/name,frozen/'eval/external_methods'/name)
     # The tested client and upstream source are immutable; no dependency installation is needed.
     (output/'client_environment.tar.gz').symlink_to(SMOKE/'support/client_environment.tar.gz')
@@ -106,6 +106,7 @@ def initialize(output):
         unique_media_groups=len({media_key(r.sample.videos) for r in records.values()}),
         existing_cached_groups=len(cache),judge='Qwen3-30B-A3B-Instruct-2507',
         excluded=['cvbench:64','cvbench:65','cvbench:66']))
+    write(output/'inherited_records.json',{})
     write(output/'progress.json',dict(phase='prepared',expected=5321,completed=0,updated_at=now()))
     print(json.dumps(read(output/'manifest.json')|{'source_hashes':'stored','asset_hashes':'stored'}),flush=True)
 
@@ -193,7 +194,8 @@ def main(output):
     for name,expected in manifest['asset_hashes'].items():assert sha256(Path('/assets')/name)==expected
     with tarfile.open(output/'client_environment.tar.gz') as archive:archive.extractall('/opt',filter='tar')
     ids=read(output/'samples.json');records=load_multibench_records('/assets',ids)
-    rows={p.parent.name:read(p) for p in (output/'lenswalk').glob('*/record.json')}
+    rows=read(output/'inherited_records.json')
+    rows.update({p.parent.name:read(p) for p in (output/'lenswalk').glob('*/record.json')})
     shutdown=threading.Event();lock=threading.Lock();children={};active={};cards={}
     media_locks={media_key(r.sample.videos):threading.Lock() for r in records.values()}
     episode=output/'episodes'/str(time.time_ns());episode.mkdir()

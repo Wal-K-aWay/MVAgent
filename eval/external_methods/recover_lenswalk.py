@@ -1,78 +1,95 @@
-"""Freeze a LensWalk recovery run; inherit model outcomes and retry only infrastructure gaps."""
+"""Freeze a media fix and, after the primary run ends, retry only media failures."""
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import shutil
 
 from common import sha256, write
-from lenswalk_full import ADAPTERS, EXPECTED, now, read
+from lenswalk_full import ADAPTERS, EXPECTED, media_key, now, read
 
 
-def inherit_record(path, output):
+def media_failure(row):
+    return (row['infrastructure_error'] and row['terminal'] == 'execution_error'
+            and row.get('calls') == 0 and row.get('seconds') == 0)
+
+
+def inherit_record(path):
     row = read(path)
-    if row['infrastructure_error']:
-        return row['sample_id'], None
-    target = output/'lenswalk'/path.parent.name/'record.json'
-    target.parent.mkdir(parents=True)
-    shutil.copy2(path, target)
-    digest = sha256(path)
-    assert sha256(target) == digest
-    # Copy the record, not its directory: later CCQA scoring must not write into the old run.
-    return row['sample_id'], dict(path=str(path), sha256=digest,
-                                  raw_archive=row['raw_archive'])
+    evidence = dict(path=str(path), sha256=sha256(path), raw_archive=row['raw_archive'])
+    return row['sample_id'], row, evidence
+
+
+def freeze(previous, output):
+    frozen = output/'frozen_repo'
+    assert not frozen.exists(), 'Never change a published patch snapshot'
+    shutil.copytree(previous/'frozen_repo', frozen, ignore=shutil.ignore_patterns('__pycache__'))
+    for name in ('prepare.py', 'lenswalk_full.py', 'recover_lenswalk.py', 'test_lenswalk_recovery.py',
+                 'test_native_concat.py', 'test_color_boundary.py', 'test_contracts.py'):
+        shutil.copy2(ADAPTERS/name, frozen/'eval/external_methods'/name)
+    commit = (ADAPTERS.parents[1]/'.git/HEAD').read_text().strip()
+    (frozen/'.git').mkdir(exist_ok=True)
+    (frozen/'.git/HEAD').write_text(commit+'\n')
+    write(output/'patch_manifest.json', dict(created_at=now(), commit=commit,
+        previous=str(previous), driver_sha256=sha256(frozen/'eval/external_methods/lenswalk_full.py'),
+        source_hashes={str(p.relative_to(frozen)):sha256(p) for p in frozen.rglob('*')
+                       if p.is_file() and '__pycache__' not in p.parts}))
+    print('Frozen media patch', str(frozen), commit, flush=True)
 
 
 def recover(previous, output):
     assert not output.exists(), 'Never overwrite a recovery or the original run'
-    assert read(previous/'progress.json')['phase'] == 'failed'
+    phase = read(previous/'progress.json')['phase']
+    assert phase in {'completed', 'completed_with_errors'}, 'Wait for the primary run and Judge'
+    source = ADAPTERS.parents[1]
+    identity = read(source.parent/'patch_manifest.json')
+    assert identity['driver_sha256'] == sha256(ADAPTERS/'lenswalk_full.py')
     output.mkdir(parents=True)
-    frozen = output/'frozen_repo'
-    shutil.copytree(previous/'frozen_repo', frozen, ignore=shutil.ignore_patterns('__pycache__'))
-    for name in ('prepare.py', 'lenswalk_full.py', 'recover_lenswalk.py', 'test_lenswalk_recovery.py',
-                 'test_native_concat.py', 'test_contracts.py'):
-        shutil.copy2(ADAPTERS/name, frozen/'eval/external_methods'/name)
+    (output/'frozen_repo').symlink_to(source)
     for name in ('media_cache', 'prepared/items', 'lenswalk', 'episodes'):
         (output/name).mkdir(parents=True, exist_ok=True)
-    for path in (previous/'media_cache').glob('*.json'):
-        shutil.copy2(path, output/'media_cache'/path.name)
     for name in ('samples.json', 'prepared/private_labels.json'):
         shutil.copy2(previous/name, output/name)
     (output/'client_environment.tar.gz').symlink_to(previous/'client_environment.tar.gz')
     paths = list((previous/'lenswalk').glob('*/record.json'))
     with ThreadPoolExecutor(max_workers=16) as pool:
-        inherited = dict(pool.map(lambda p: inherit_record(p, output), paths))
-    failures = sorted(sid for sid, evidence in inherited.items() if evidence is None)
-    inherited = {sid: evidence for sid, evidence in inherited.items() if evidence is not None}
+        loaded = list(pool.map(inherit_record, paths))
     ids = read(output/'samples.json')
-    pending = [sid for sid in ids if sid not in inherited]
-    # Verify the former batch-stopping input and the HTTP failure before long movie retries.
-    first = ['mvu_eval:OR:440', 'mvu_eval:Counting:11', 'crossvid:NC:889']
-    assert set(first) <= set(pending)
-    pending = first+[sid for sid in pending if sid not in first and sid not in failures]+[
-        sid for sid in pending if sid not in first and sid in failures]
-    assert len(ids) == sum(EXPECTED.values()) == len(set(ids))
-    assert len(inherited)+len(pending) == len(ids)
+    rows = {sid:row for sid,row,_ in loaded}
+    assert len(rows) == len(ids) == sum(EXPECTED.values()) == len(set(ids))
+    assert set(rows) == set(ids)
+    pending = [sid for sid in ids if media_failure(rows[sid])]
+    inherited = {sid:evidence for sid,row,evidence in loaded if sid not in pending}
+    # One index keeps inherited records immutable without thousands of duplicate directories.
+    write(output/'inherited_records.json', {sid.replace(':','_'):row for sid,row in rows.items()
+                                           if sid not in pending})
+    labels = read(previous/'prepared/private_labels.json')
+    for sid in pending:
+        key = media_key(labels[sid]['sample']['videos'])
+        cache = previous/'media_cache'/f'{key}.json'
+        if cache.exists():
+            shutil.copy2(cache, output/'media_cache'/cache.name)
     manifest = read(previous/'manifest.json')
     assert sha256(output/'samples.json') == manifest['samples_sha256']
     write(output/'recovery_manifest.json', dict(previous=str(previous), created_at=now(),
-        inherited=inherited, retry_failures=failures, pending=pending,
+        inherited=inherited, retry_failures=pending, pending=pending,
+        retained_infrastructure_failures=[sid for sid in inherited if rows[sid]['infrastructure_error']],
         original_progress_sha256=sha256(previous/'progress.json'),
         original_manifest_sha256=sha256(previous/'manifest.json')))
-    manifest.update(created_at=now(), recovery_from=str(previous),
-        recovery_order=pending,
-        recovery_commit=(ADAPTERS.parents[1]/'.git/HEAD').read_text().strip(),
-        driver_sha256=sha256(frozen/'eval/external_methods/lenswalk_full.py'),
-        source_hashes={str(p.relative_to(frozen)): sha256(p) for p in frozen.rglob('*')
-                       if p.is_file() and '__pycache__' not in p.parts})
+    manifest.update(created_at=now(), recovery_from=str(previous), recovery_order=pending,
+        source_snapshot=str(source), recovery_commit=identity['commit'],
+        driver_sha256=identity['driver_sha256'], source_hashes=identity['source_hashes'])
     write(output/'manifest.json', manifest)
-    write(output/'progress.json', dict(phase='prepared', expected=len(ids),
+    if not pending:
+        shutil.copy2(previous/'summary.json', output/'summary.json')
+    write(output/'progress.json', dict(phase='prepared' if pending else phase, expected=len(ids),
         completed=len(inherited), remaining=len(pending), updated_at=now()))
-    print(dict(inherited=len(inherited), retry_failures=len(failures), pending=len(pending)), flush=True)
+    print(dict(inherited=len(inherited), retry_media_failures=len(pending)), flush=True)
 
 
 if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--previous', type=Path, required=True)
     p.add_argument('--output', type=Path, required=True)
+    p.add_argument('--freeze', action='store_true')
     args = p.parse_args()
-    recover(args.previous, args.output)
+    (freeze if args.freeze else recover)(args.previous, args.output)
