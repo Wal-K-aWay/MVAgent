@@ -62,4 +62,6 @@ OR440的预处理阻断已解除，模型未交付最终答案仍作为负结果
 
 结果卷文件数量接近500000上限。CPU app `ap-wnXVmPiZUC49wQJwsoLr7O`正在将以下退役方法的历史散文件转存为无压缩tar：`external_vam65_20261015/vam`、`external_methods_20261014/vam_remaining`、`meta_rest_run`、`meta_early_run`。归档目标`devbox/lenswalk_storage_relief_20261017`；源码`989ca93`。文件内容、权限及符号/硬链接经校验，原树二次核对未变，归档和清单commit后才移除散文件。当前LensWalk/RSI媒体缓存引用检查已通过，共享媒体和原始评测结论保留。
 
-归档单测已通过，但09:19尚在首目录处理，不能报告已经释放文件名额。完成以目标目录`summary.json`及四份归档清单的`archived_and_loose_files_removed`为准；任务内`progress.json`记录正在处理的目录。CPU任务上限3小时，失败时保留未验证的原散文件；不在失败后盲目覆盖已有归档或重新删除。首次调用因子进程SDK路径缺失，在归档前退出；当前调用显式加入`/pkg`，未安装新依赖。
+归档单测已通过。09:23从外部Volume SDK复读确认首份VAM归档完成：11041文件/11237条目、4811489280字节，SHA256 `a35a06b1f739f68f9a97f9d1a4b5aa3503e39e19b5f6e7fde1efd23c62fe2b62`，manifest为`archived_and_loose_files_removed`且原散文件树不存在。其余三目录继续处理，不能称全部完成；最终以目标目录`summary.json`及四份清单为准。任务内`progress.json`记录当前目录，CPU任务上限3小时，失败时保留未验证的原散文件，不盲目覆盖已有归档或重新删除。首次调用因子进程SDK路径缺失，在归档前退出；当前调用显式加入`/pkg`，未安装新依赖。
+
+09:21独立末次检查为2147/5321、1300终答、673未收尾、172空答案、2工程失败；8个worker仍在处理，媒体补测队列等待中。会话内检查代理已停止，远端主控制器、补测队列和CPU归档继续运行；不宣称会话外仍有独立代理巡检。
