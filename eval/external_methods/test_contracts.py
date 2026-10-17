@@ -38,7 +38,7 @@ def main():
     for clock in ([(.001, .04)], [(0, .042)], [(0, .04), (.04, .04)]):
         try:
             verify_concat_clock(clock, [0], .04)
-        except AssertionError:
+        except ValueError:
             pass
         else:
             raise AssertionError('Accepted changed timestamps, packet count, or excessive duration drift')

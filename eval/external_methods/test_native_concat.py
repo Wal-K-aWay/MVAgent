@@ -12,7 +12,7 @@ from prepare import prepare
 
 
 def decoded(path):
-    with av.open(str(path)) as container:
+    with av.open(str(path), metadata_errors='ignore') as container:
         stream = container.streams.video[0]
         stream.thread_type = 'NONE'
         return [(frame.width, frame.height, float(frame.pts * frame.time_base),
@@ -29,6 +29,8 @@ def main():
             ('mixed', ('libx264', 'mpeg4'), False),
             ('mixed_vfr', ('mpeg4', 'libx264'), True),
             ('preroll', ('libx264', 'libx264'), False),
+            ('mixed_bt709', ('mpeg4', 'libx264'), False),
+            ('mixed_bad_metadata', ('mpeg4', 'libx264'), False),
         ):
             paths = []
             for i, (codec, size, fps) in enumerate(zip(codecs, ('320x240', '480x272'), (10, 15))):
@@ -37,8 +39,24 @@ def main():
                            '-i',f'testsrc2=size={size}:rate={fps}']
                 if variable_timing:
                     command += ['-vf', "select='not(eq(mod(n,4),1))'", '-vsync', '0']
+                if name == 'mixed_bt709' and i == 1:
+                    command += ['-colorspace','bt709','-color_primaries','bt709',
+                                '-color_trc','bt709','-color_range','tv']
+                if name == 'mixed_bad_metadata' and i == 0:
+                    command += ['-metadata','comment=bad_utf8_marker']
                 subprocess.run(command + ['-c:v',codec,'-g','5','-threads','1',
                     '-pix_fmt','yuv420p','-n',str(path)],check=True)
+                if name == 'mixed_bad_metadata' and i == 0:
+                    payload = path.read_bytes()
+                    assert payload.count(b'bad_utf8_marker') == 1
+                    path.write_bytes(payload.replace(b'bad_utf8_marker', b'\xffad_utf8_marker'))
+                    try:
+                        with av.open(str(path)):
+                            pass
+                    except UnicodeDecodeError:
+                        pass
+                    else:
+                        raise AssertionError('Fixture did not reproduce the invalid metadata')
                 if name == 'preroll' and i == 1:
                     original_path = path.with_name('uncut.mp4')
                     path.rename(original_path)

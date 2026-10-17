@@ -8,7 +8,9 @@ from fractions import Fraction
 import json
 from pathlib import Path
 import random
+import shutil
 import subprocess
+import tempfile
 import time
 
 from common import sha256, write
@@ -54,14 +56,14 @@ def video_info(path):
 
 def packet_clock(path):
     import av
-    with av.open(str(path)) as container:
+    with av.open(str(path), metadata_errors='ignore') as container:
         return [(float(packet.pts * packet.time_base), float(packet.duration * packet.time_base))
                 for packet in container.demux(video=0) if packet.pts is not None]
 
 
 def first_displayed_time(path):
     import av
-    with av.open(str(path)) as container:
+    with av.open(str(path), metadata_errors='ignore') as container:
         stream = container.streams.video[0]
         stream.thread_type = 'NONE'
         frame = next(container.decode(stream))
@@ -72,7 +74,7 @@ def first_displayed_time(path):
 
 def frame_signatures(path, offset=0.0):
     import av
-    with av.open(str(path)) as container:
+    with av.open(str(path), metadata_errors='ignore') as container:
         stream = container.streams.video[0]
         stream.thread_type = 'NONE'
         for frame in container.decode(stream):
@@ -97,12 +99,34 @@ def verify_frames(expected, actual, label):
 
 
 def verify_concat_clock(actual, expected, duration):
-    assert len(actual) == len(expected), 'Concatenation changed the packet count'
-    assert all(abs(t-wanted) < .000002 for (t, _), wanted in zip(actual, expected)), 'Frame timestamps changed'
+    if len(actual) != len(expected):
+        raise ValueError('Concatenation changed the packet count')
+    if not all(abs(t-wanted) < .000002 for (t, _), wanted in zip(actual, expected)):
+        raise ValueError('Frame timestamps changed')
     container_duration = max(t+d for t, d in actual)
     # This FFmpeg's MP4 movie clock is 1 kHz; terminal duration metadata can round by <1 ms.
-    assert abs(container_duration-duration) < .001, (container_duration, duration)
+    if abs(container_duration-duration) >= .001:
+        raise ValueError(f'Video duration changed: {container_duration} != {duration}')
     return container_duration
+
+
+def preserve_terminal_duration(path, duration, last_pts):
+    """Remux the final sample duration; concat can substitute the first segment's FPS."""
+    import av
+    with tempfile.TemporaryDirectory() as directory:
+        fixed = Path(directory)/'fixed.mp4'
+        with av.open(str(path), metadata_errors='ignore') as inp, av.open(str(fixed), 'w', options={
+                'video_track_timescale':'1000000', 'movie_timescale':'1000000',
+                'avoid_negative_ts':'disabled'}) as out:
+            stream = out.add_stream_from_template(inp.streams.video[0])
+            for packet in inp.demux(video=0):
+                if packet.pts is None:
+                    continue
+                if abs(float(packet.pts*packet.time_base)-last_pts) < .000002:
+                    packet.duration = round((duration-last_pts)/float(packet.time_base))
+                packet.stream = stream
+                out.mux(packet)
+        shutil.copyfile(fixed, path)
 
 
 def normalize_lossless(source, destination):
@@ -113,16 +137,18 @@ def normalize_lossless(source, destination):
     clock = Fraction(1, 1000000)
     durations, origin, extent = {}, None, 0
     # Use the same decoder as pixel verification; MPEG-4 IDCT rounding differs across FFmpeg versions.
-    with av.open(str(source)) as inp, av.open(str(destination), 'w', options={
+    with tempfile.TemporaryDirectory() as directory, av.open(str(source), metadata_errors='ignore') as inp, av.open(str(Path(directory)/'part.mp4'), 'w', options={
             'video_track_timescale':'1000000', 'movie_timescale':'1000000'}) as out:
         original = inp.streams.video[0]
         original.thread_type = 'NONE'
         stream = out.add_stream('libx264', rate=original.average_rate)
         stream.width, stream.height = original.width, original.height
         stream.pix_fmt = original.codec_context.format.name
+        for field in ('colorspace', 'color_range', 'color_primaries', 'color_trc'):
+            setattr(stream.codec_context, field, getattr(original.codec_context, field))
         stream.time_base = stream.codec_context.time_base = clock
         stream.codec_context.thread_count = 1
-        stream.options = {'qp':'0', 'preset':'fast', 'bf':'0', 'x264-params':'repeat-headers=1'}
+        stream.options = {'qp':'0', 'preset':'ultrafast', 'bf':'0', 'x264-params':'repeat-headers=1'}
         for frame in inp.decode(original):
             if time.monotonic() > deadline:
                 raise TimeoutError('Lossless normalization exceeded 1200 seconds')
@@ -143,10 +169,14 @@ def normalize_lossless(source, destination):
         for packet in stream.encode():
             packet.duration = durations[packet.pts]
             out.mux(packet)
+        out.close()
+        # Encode on local scratch to avoid thousands of small writes to the network volume.
+        shutil.copyfile(Path(directory)/'part.mp4', destination)
     if origin is None:
         raise ValueError('No displayed source frames to normalize')
     return float(origin), float(extent*clock), dict(implementation='PyAV', libraries=av.library_versions,
-        codec='libx264', qp=0, preset='fast', threads=1, b_frames=0, repeat_headers=True)
+        codec='libx264', qp=0, preset='ultrafast', threads=1, b_frames=0, repeat_headers=True,
+        preserve_color_metadata=True, local_encode_scratch=True)
 
 
 def timeline(segments):
@@ -230,6 +260,11 @@ def prepare(record, output):
                     '-map', '0:v:0', '-c:v', 'copy', '-an', '-video_track_timescale', '1000000',
                     '-n', str(video)], check=True, timeout=120)
     combined_clock = packet_clock(video)
+    observed_duration = max(t+d for t, d in combined_clock)
+    verify_concat_clock(combined_clock, clocks, observed_duration)
+    if abs(observed_duration-offset) >= .001:
+        preserve_terminal_duration(video, offset, max(clocks))
+        combined_clock = packet_clock(video)
     container_duration = verify_concat_clock(combined_clock, clocks, offset)
     duration = offset
     if transcode:

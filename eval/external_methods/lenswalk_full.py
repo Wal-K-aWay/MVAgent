@@ -40,10 +40,10 @@ def media_key(videos):
 def archive_attempt(directory):
     assert directory.name.startswith('attempt-') and not directory.is_symlink()
     hashes={str(p.relative_to(directory)):sha256(p) for p in directory.rglob('*') if p.is_file()}
-    archive=directory.with_suffix('.tar.gz');temporary=archive.with_suffix('.tmp')
-    with tarfile.open(temporary,'w:gz',compresslevel=1) as stream:
+    archive=directory.with_suffix('.tar');temporary=archive.with_suffix('.tmp')
+    with tarfile.open(temporary,'w') as stream:
         stream.add(directory,arcname=directory.name)
-    with tarfile.open(temporary,'r:gz') as stream:
+    with tarfile.open(temporary,'r:') as stream:
         observed={}
         for member in stream:
             if not member.isfile():continue
@@ -220,14 +220,14 @@ def main(output):
                 record=records[sid];directory=output/'lenswalk'/sid.replace(':','_')
                 directory.mkdir(exist_ok=True)
                 attempt=directory/('attempt-'+str(time.time_ns()));attempt.mkdir()
-                prep_started=time.monotonic();prep_seconds=0;client=None;restart_needed=False
+                prep_started=time.monotonic();prep_seconds=0;started=None;client=None;restart_needed=False
                 with lock:active[str(rank)]=dict(sample_id=sid,phase='preparing_media',started_at=now());save()
                 write(attempt/'started.json',dict(sample_id=sid,worker=card['worker'],started_at=now()))
                 try:
                     item=prepare_item(output,record,media_locks[media_key(record.sample.videos)])
                     prep_seconds=time.monotonic()-prep_started
                     if shutdown.is_set():break
-                    with lock:active[str(rank)]['phase']='inference';save()
+                    with lock:active[str(rank)].update(phase='inference',started_at=now());save()
                     started=time.monotonic()
                     with (attempt/'job.log').open('w') as log:
                         client=subprocess.Popen([CLIENT,str(ADAPTERS/'lenswalk.py'),'--source',str(SOURCE/'external_sources/LensWalk'),
@@ -250,8 +250,9 @@ def main(output):
                     raise
                 except Exception as exc:
                     if shutdown.is_set():break
+                    if started is None:prep_seconds=time.monotonic()-prep_started
                     outcome=dict(answer='',terminal='execution_error',infrastructure_error=True,
-                        error=repr(exc),traceback=traceback.format_exc(),seconds=time.monotonic()-prep_started-prep_seconds,
+                        error=repr(exc),traceback=traceback.format_exc(),seconds=time.monotonic()-started if started is not None else 0,
                         calls=0,visual_calls=0,http_errors=0,input_tokens=0,output_tokens=0,tool_errors=[])
                 finally:
                     stop(client)
