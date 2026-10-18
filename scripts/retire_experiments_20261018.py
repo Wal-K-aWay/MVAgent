@@ -79,20 +79,25 @@ def prepare():
     assert not (AUDIT/'plan.json').exists(), 'Do not overwrite an existing plan'
     protected=list(PROTECTED);references=[]
     # Find inbound symlinks and Git alternates without reading result payloads.
-    for parent,dirs,files in os.walk(ROOT,followlinks=False):
-        directory=Path(parent)
-        if within(directory,TARGETS):dirs[:]=[];continue
-        for name in dirs+files:
-            p=directory/name
-            if p.is_symlink():
-                dest=normalized_target(p)
-                if within(dest,TARGETS):
-                    protected.append(dest);references.append(dict(source=str(p),target=str(dest)))
-            elif name=='alternates' and '/.git/objects/info/' in str(p):
-                for line in p.read_text().splitlines():
-                    dest=normalized_target(p.parent.parent/line)
+    stack=[ROOT];scanned=0
+    while stack:
+        directory=stack.pop()
+        if within(directory,TARGETS):continue
+        with os.scandir(directory) as entries:
+            for entry in entries:
+                p=Path(entry.path)
+                if entry.is_symlink():
+                    dest=normalized_target(p)
                     if within(dest,TARGETS):
                         protected.append(dest);references.append(dict(source=str(p),target=str(dest)))
+                elif entry.is_dir(follow_symlinks=False):stack.append(p)
+                elif entry.name=='alternates' and '/.git/objects/info/' in str(p):
+                    for line in p.read_text().splitlines():
+                        dest=normalized_target(p.parent.parent/line)
+                        if within(dest,TARGETS):
+                            protected.append(dest);references.append(dict(source=str(p),target=str(dest)))
+        scanned+=1
+        if scanned%10000==0:print('SCANNED directories',scanned,flush=True)
     # Operational manifests of current jobs must not load retired inputs.
     hits=[]
     for name in ACTIVE_ROOTS:
