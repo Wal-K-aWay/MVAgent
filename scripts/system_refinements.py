@@ -151,7 +151,9 @@ def prepare():
         for name in ['src', 'scripts', 'configs', 'eval', '.git', 'requirements.txt', 'demo.py']:
             archive.add(ROOT/name, arcname=name,
                         filter=lambda t: None if {'__pycache__', '.cache'} & set(Path(t.name).parts) else t)
-    manifest = dict(at=now(), commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
+    commit = (ROOT/'.git/HEAD').read_text().strip()
+    assert re.fullmatch(r'[0-9a-f]{40}', commit), 'Stage an immutable detached source checkout'
+    manifest = dict(at=now(), commit=commit,
         baseline_commit='f61946fd9a80daeee025de28b15745605174ab61', profile=execution_profile(),
         archive_sha256=sha(OUT/'source.tar.gz'), baseline_sha256=sha(OUT/'baseline.json'),
         samples_sha256=sha(OUT/'samples.json'), baseline_services_sha256=sha(OUT/'baseline_services.json'),
@@ -414,10 +416,13 @@ def analyze():
             if not paired:
                 continue
             scores = {}
+            robust = {}
             for arm in ['baseline', *ARMS]:
                 values = {r['sample_id']: r['arms'][arm]['score'] for r in paired}
                 scores[arm] = aggregator.aggregate(sample_ids=list(values), scores=values, buckets={}).official_score
-            report['benchmarks'][dataset] = dict(n=len(paired), scores=scores,
+                values = {r['sample_id']: r['arms'][arm].get('robust_score', r['arms'][arm]['score']) for r in paired}
+                robust[arm] = aggregator.aggregate(sample_ids=list(values), scores=values, buckets={}).official_score
+            report['benchmarks'][dataset] = dict(n=len(paired), scores=scores, robust_scores=robust,
                 paired={a: dict(wins=sum(r['arms'][a]['score'] > r['arms']['baseline']['score'] for r in paired),
                                 losses=sum(r['arms'][a]['score'] < r['arms']['baseline']['score'] for r in paired)) for a in ARMS})
         for arm in ['baseline', *ARMS]:
