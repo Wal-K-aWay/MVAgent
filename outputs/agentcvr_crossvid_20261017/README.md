@@ -150,3 +150,30 @@ BU567为模型正常无终答，保留零分；MSR548是视觉请求261571 token
 此项暴露原工具请求与本次部署上下文容量的适配/错误处理不足；不能把配置的131072上限泛化为所有AgentCVR部署的固有限制。失败后给出答案可能使用其他成功证据，尚未逐题归因其得分影响。全部样本照常保留，错误不静默过滤。
 
 每题耗时均值204.12秒、中位182.09秒、P90 325.91秒；这是逐题累计耗时，不是8卡并行墙钟。已记录输入token105087529、输出token20363437；未额外测吞吐或重跑一致性。
+
+## GitHub结果分发（2026-10-18）
+
+用户授权将本批CrossVid结果公开上传；通过独立Release附件分发，不进入Git数据历史：
+https://github.com/Wal-K-aWay/MVAgent/releases/tag/agentcvr-crossvid-results-20261018
+
+- `crossvid.answers.jsonl`：2500题原始答案、题目/选项、参考答案或CCQA评分点、原评分及工程失败计零分、状态、耗时、越界标记与请求错误数、原始文件索引/SHA。
+- `crossvid.task-scores.csv`、`summary.json`：十类任务成绩、两种分母口径及异常统计。
+- `scores.json`：未改写的逐题评分；工程失败仍为null，原accuracy仍为null。
+- `boundary_audit.json`、`request_error_samples.json`、`final_audit.json`：边界事件、87题上下文失败清单、记录校验。边界标记只覆盖已审计的PI/PEA/PSS范围，未标记不能解释为所有潜在问题均已排除。
+- `agentcvr-crossvid-results-20261018.tar.gz`：5506文件，含2500份raw/2500份records、Judge缓存和239份判分、原始输入/参考标签/配置/审计元数据、分析源码与统计、逐文件SHA清单。
+- `README.md`与`SHA256SUMS`：报告及附件校验值。
+
+压缩包314280053字节（约314MB），归档内文件载荷2705190268字节（约2.71GB）；SHA256为`51a4c8dd46f6c5ab37fee55d18e6bb1ad968532b78622ccf176ca887a6e210aa`。
+打包在Modal CPU执行，CPU app `ap-I9k4lmVtLOdB9CHzeRAAwf`完成逐成员大小/SHA回读校验；export root为runs `devbox/agentcvr_crossvid_release_20261018`。仅压缩附件及轻量表格经devbox中转暂存Lightsail `outputs/agentcvr_crossvid_20261017/release/`；原始runs仍保留，未迁移媒体、权重或冻结执行环境。
+
+其他设备可直接打开Release的Assets，或运行：
+
+```bash
+gh release download agentcvr-crossvid-results-20261018 --repo Wal-K-aWay/MVAgent --dir agentcvr-crossvid
+cd agentcvr-crossvid
+sha256sum -c SHA256SUMS --ignore-missing
+mkdir -p results
+tar -xzf agentcvr-crossvid-results-20261018.tar.gz -C results
+```
+
+只看答案可单独下载`crossvid.answers.jsonl`，无需下载完整轨迹包。`git clone`及GitHub自动生成的Source code压缩包不包含这些数据附件。
