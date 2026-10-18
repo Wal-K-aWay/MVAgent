@@ -337,7 +337,7 @@ V 输出 token 比基线多 4.81%，G 少 2.63%；G 最终理由总体变短仍�
 07:04:22 完成最终分析。Sandbox `sb-EnHLS7BUGVf7Pebo8FgzAL` 已退出，host PID3527878 已退出、state 已清理；
 只释放本任务的 Sandbox，没有停止共享 Modal app。15 分钟独立巡检已结束，本轮无遗留推理任务。
 
-## Global 判定标准传递小测（2026-10-18，已提交）
+## Global 判定标准传递小测（2026-10-18，运行中）
 
 用户授权在固定框架上继续单因素测试。只测试优先候选“分派时保留题目判定标准”，不同时加入
 “未报告不等于不存在”或修改修复调用。正式基线 `codex/frozen-framework-20261018@b399d49` 不变。
@@ -371,3 +371,10 @@ User、VideoAgent、schema、History、skill 空库、FFmpeg、步数与预算�
 已启动唯一 host PID3579522，日志 `~/wxu-evolve-agent/devbox/watch-criteria-transfer-20261018.log`，
 自动执行三模型、CCQA Judge、自有 GPU 释放和 CPU 分析；预计容器就绪后约 1.57 小时，排队另计。
 此时尚未确认实际模型推理，不以提交成功视为实验通过。
+
+07:48:41 UTC创建独立 Sandbox `sb-Bn53Xcl4T8xMXXVCcKwInJ`，实测8×H10080GB，13项决策接口检查通过。
+9B八副本约219.6秒就绪，实际模型身份/权重/profile逐卡校验通过。07:54:58首9条轨迹、123模型调用：
+0服务/结构错误、0截断；9条首轮User与基线完全相同，新增System实际生效，token/cache0/sticky检查通过。
+实际输出包括CC434答案D（正确）、PSS65答案`2->1->5->4->3`（错误）；仅作启动证据，不据此推断总分。
+审计在新root的 `startup_audit.json`。共享应用 `ap-TFNTnzO2fRzmaT0Y4oUboU` 最近10分钟Traceback为0；
+该app还有其他任务，控制器只负责释放本次Sandbox。仍待完成三模型和最终评分。
