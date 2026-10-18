@@ -41,6 +41,7 @@ class VideoAgent(BaseAgent):
     def __init__(
         self,
         *,
+        original_question: str,
         video_id: str,
         video_path: str,
         duration_sec: float,
@@ -55,6 +56,7 @@ class VideoAgent(BaseAgent):
         skill_selector_model: Any | None = None,
         skill_selection_scope: str = "decision",
     ) -> None:
+        self.original_question = str(original_question)
         self.video_id = str(video_id)
         self.video_path = str(video_path)
         self.duration_sec = float(duration_sec)
@@ -529,6 +531,8 @@ class VideoAgent(BaseAgent):
                 return selection
             skill = selection["value"]
         prompt = build_video_action_prompt(
+            original_question=self.original_question,
+            video_id=self.video_id,
             instruction=instruction,
             duration_sec=self.duration_sec,
             max_video_frames_per_request=(
@@ -564,6 +568,9 @@ class VideoAgent(BaseAgent):
         try:
             result = self.decide_json(
                 build_video_finish_prompt(
+                    original_question=self.original_question,
+                    video_id=self.video_id,
+                    duration_sec=self.duration_sec,
                     instruction=instruction,
                     memory_view=self.memory.render_planner_view(
                         request_id=request_id
@@ -571,7 +578,7 @@ class VideoAgent(BaseAgent):
                 ),
                 json_schema=VIDEO_FINISH_SCHEMA,
                 schema_name="video_finish",
-                system_prompt="",
+                system_prompt=VIDEO_PLANNER_SYSTEM_PROMPT,
             )
         except Exception as exc:
             terminal_error = str(exc).strip() or type(exc).__name__

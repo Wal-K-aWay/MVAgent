@@ -151,7 +151,7 @@ Prompt 与中文镜像同步的完整规则统一保存在 [.claude/rules/prompt
   - `finish`：若干轮观察后提交报告（至少要有一次成功观察）。
 - **信息边界**：
   - VideoAgent 对 GlobalAgent 是黑盒：输入 instruction，输出报告。
-  - VideoAgent 只看到自己的 instruction 和自己此前被调用时的内部轨迹（action+参数+结果）。
+  - 本实验分支的 VideoAgent 另接收完整原题作为背景及绑定视频 ID；instruction 仍限定当前任务，视觉观察器仍只接收局部 what。普通决策和强制总结共用 Video System。B 对照将原题字段设为 `(not provided)`，其余与 C 相同；历史结果保持原协议。
   - 达到步数上限时，Global 复用决策接口并只允许 answer，沿用决策 System、公开 History 与选中策略提交终答；Video 用已保留的证据做终止性总结。
 - **Skill 运行时**：
   - 两个库都是 schema_version 3 的 JSON，每张卡为 `meta={id, role, stages}` + `when_to_use` + `strategy`，
@@ -172,9 +172,9 @@ Prompt 与中文镜像同步的完整规则统一保存在 [.claude/rules/prompt
   Global/Video 各最多 5 步。基线分数见 `.claude/benchmarks.md`。
 - **最终回答的理由长度**：终答 `reason` 不设字符硬上限，保留简洁、非空要求；每次完整响应仍受2048输出token预算限制。
   取证决策的reason仍限1200字符，analyze指令预算不变；answer决策直接携带终答。此改动会影响动作、答案与耗时；历史独立回答器成绩不能视作新协议成绩。
-- **Global 基础提示**：本分支只扩大已测简洁Global System到原1500题/模型，其他运行时文件与102题候选逐字相同；本轮不运行Video候选，详见 `outputs/global_short_large_20261017/README.md`。User 排布为 Question→Videos→Available actions→History；
+- **Global 基础提示**：本分支沿用已完成扩样的简洁 Global System，只测试 Video 题目背景与职责边界；固定102题/模型，B/C各306条新输出，A复用同题旧 Video 结果。详见 `outputs/video_context_20261018/README.md`。User 排布为 Question→Videos→Available actions→History；
   主动 answer 直接提交 `reason/action/parameters.answer`，循环耗尽时复用 `decide(answer_only=True)`，只允许 answer。
-  Global简洁候选仅保留角色与证据边界；本轮不加入上轮Video候选的System修改。
+  Global简洁候选仅保留角色与证据边界；本轮 Global、schema、预算、数值参数与媒体处理均不改。
   answer 动作依现有证据提交最佳判断，按题目要求表达结果，在 reason 中简洁保留重要限制；不靠选项枚举限制答案。
   强制终答继续使用决策 System、视频身份、公开 History 与既有 skill 策略，不调用独立回答器，不提供新取证动作。
   空库与进化库使用相同协议。2026-10-16按用户要求恢复900条面板对应的四个Global/Engine源码文件；

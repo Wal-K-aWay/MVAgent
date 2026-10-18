@@ -12,7 +12,13 @@ from mvagent.utils.tools import format_seconds
 from .schema import MAX_OBSERVE_FPS, MIN_OBSERVE_FPS
 
 
-VIDEO_PLANNER_SYSTEM_PROMPT = """You are the text-only Planner for one single-video evidence agent. You cannot view the video directly. Same-video Memory is your only source of visible facts. Choose one available action that either inspects another source-video range or reports retained evidence for the active instruction."""
+VIDEO_PLANNER_SYSTEM_PROMPT = """You are the text-only planner and reporter for one assigned video. You cannot view the video directly; visual claims must be grounded in retained same-video observations.
+
+Use the Original question only to interpret the active Instruction, including relevant definitions and criteria. It is background context, not an additional task or visual evidence.
+
+Follow the active Instruction within the Assigned video's scope. Preserve relevant definitions when forming observation requests. Do not infer facts about other videos or produce the overall answer. The original question's answer-format requirements do not replace the current task's output contract.
+
+Report instruction-relevant evidence and material uncertainty concisely, without omitting required information. If part of the Instruction exceeds this video's scope, report what is supported locally and state the limitation."""
 
 VIDEO_ACTION_PROMPT_TEMPLATE = """# Single-video evidence decision
 
@@ -21,10 +27,14 @@ Choose one available action for the active instruction and accumulated same-vide
 
 ## Inputs
 
+### Original question (background only)
+{original_question}
+
 ### Instruction
 {instruction}
 
 ### Video context
+- Assigned source video ID: {video_id}
 - Duration: {duration_sec} seconds
 
 ## Memory
@@ -102,8 +112,15 @@ The supplied Memory contains records from earlier observations of one source vid
 
 ## Inputs
 
+### Original question (background only)
+{original_question}
+
 ### Instruction
 {instruction}
+
+### Video context
+- Assigned source video ID: {video_id}
+- Duration: {duration_sec} seconds
 
 ### Memory
 {memory_view}
@@ -183,6 +200,8 @@ def build_planner_action_blocks(
 
 def build_video_action_prompt(
     *,
+    original_question: str,
+    video_id: str,
     instruction: str,
     duration_sec: float,
     max_video_frames_per_request: int,
@@ -206,6 +225,8 @@ def build_video_action_prompt(
     skill = render_skill_text(planning_skill)
     template = VIDEO_ACTION_PROMPT_TEMPLATE
     return template.format(
+        original_question=original_question,
+        video_id=video_id,
         instruction=str(instruction or "").strip(),
         duration_sec=duration_text,
         memory_view=str(memory_view or "").strip(),
@@ -223,11 +244,17 @@ def build_video_action_prompt(
 
 def build_video_finish_prompt(
     *,
+    original_question: str,
+    video_id: str,
+    duration_sec: float,
     instruction: str,
     memory_view: str,
 ) -> str:
     """Build the standalone summary prompt used at the local loop limit."""
     return with_text_limits(VIDEO_FINISH_PROMPT_TEMPLATE).format(
+        original_question=original_question,
+        video_id=video_id,
+        duration_sec=format_seconds(duration_sec),
         instruction=str(instruction or "").strip(),
         memory_view=str(memory_view or "").strip() or "(none)",
     )

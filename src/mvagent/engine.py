@@ -201,6 +201,7 @@ class MVAgentEngine:
 
         video_agents = {
             video_id: VideoAgent(
+                original_question=question,
                 video_id=video_id,
                 video_path=video_path,
                 duration_sec=video_metadata[video_id]["duration_sec"],
