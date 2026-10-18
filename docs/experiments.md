@@ -378,3 +378,12 @@ User、VideoAgent、schema、History、skill 空库、FFmpeg、步数与预算�
 实际输出包括CC434答案D（正确）、PSS65答案`2->1->5->4->3`（错误）；仅作启动证据，不据此推断总分。
 审计在新root的 `startup_audit.json`。共享应用 `ap-TFNTnzO2fRzmaT0Y4oUboU` 最近10分钟Traceback为0；
 该app还有其他任务，控制器只负责释放本次Sandbox。仍待完成三模型和最终评分。
+
+08:06 UTC，9B 90/90有效、0整题错误，转入27B。9B闭式中间分（不含3道CCQA）：
+CV30题48.35→68.40（+20.05pp），MVU30题52.89→61.43（+8.53pp），Cross九闭式27题38.60→25.40（−13.20pp）。
+格式1→1/87、空/单独右花括号0、model_error0，length9→7、structured_invalid9→7、修复8→7；
+调用1157→1162，输出token150820→144490。截断减少没有保证各benchmark同时受益。
+早期轨迹CV140的局部指令更明确询问手工/速溶，对应A错→B对；MOC531从分派跨视角对象识别改为联合观看，A错→C对。
+ICL710则新增要求局部代理推断关联数值，C对→D错。以上是观察到的决策路径变化，不是单一中间节点的因果证明。
+详细中间数据/分析源码在analysis/9B_closed_interim.json、closed_interim_source.py、early_9b_cases.json；
+完整Cross十任务和三模型结论待Judge后统一汇总，当前不替换正式配置。
