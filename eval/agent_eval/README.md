@@ -10,6 +10,13 @@ This entry evaluates MVAgent on CVBench, MVU-Eval and CrossVid. It uses
 Dataset/scoring adapters live in `skill_evolution/infra/benchmarks`; workers receive
 only the question and ordered videos, never reference answers.
 
+The frozen full-run continuation is `scripts/run_full_mvagent.py`: `prepare` runs on Modal CPU,
+then `launch` runs on the `modal-gpu` dev box using the same immutable staged checkout. It owns
+two disjoint eight-H100 shards, reuses the validated 4,500 records, and infers only the remaining
+11,463. The controller scores new CCQA answers, releases its own GPUs, and aggregates full and
+new-only results. Do not launch a second owner while its lock is held. Exact paths and completion
+state are recorded in [the experiment log](../../docs/experiments.md).
+
 Subsequent Qwen3.5 evaluations use the [fixed evaluation configuration](../../configs/inference/README.md#固定评测方案):
 8 H100 GPUs with independent full-model replicas and `seed=0`. The `h200` execution-file
 names are historical; request `H100!:8` explicitly for this evaluation protocol.

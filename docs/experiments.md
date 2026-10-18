@@ -458,3 +458,21 @@ CV 每 task 2 题；MVU 每 task 至少 2 题，剩余按总体数量分配；Cr
   **08:57:59 释放 GPU，08:58:22 完成最终分析**。
   Sandbox `sb-Bn53Xcl4T8xMXXVCcKwInJ` 已以 0 退出，host PID3579522 已退出、state 已清理。
   独立 15 分钟巡检已停止；没有停止共享 app 或影响其他任务，本轮无遗留推理作业。
+
+## 冻结版本完整补测（2026-10-18，准备中）
+
+用户授权沿用已验收实现补齐完整范围。基线运行时仍为 `e0ace27` 对应的简洁 Global System＋原 VideoAgent；
+`src/`、推理 YAML、Agent 调用与评分入口不改。新增 `scripts/run_full_mvagent.py` 只负责复用、缺题分片、服务生命周期和结果汇总。
+
+- 每模型 CVBench 997 可测题（64–66 媒体损坏另列）、MVU-Eval 1824、原 CrossVid Lite2500；共 5321 题。
+- 三模型各复用 1500 条，合 4500；每模型只补 3821，合 11463；最终目标 15963。
+- 复用不看答案或得分；逐文件验证归档大小/SHA、完整 token、cache=0 和整题固定 worker，保留原始评分及来源。
+- 剩余题按 seed=0 固定打乱、分成 1911/1910 两组，每组依次运行 9B、27B、35B-A3B；两组各 8×H100，均 TP1/DP1/C1。
+- 固定 BF16、seed/temperature=0、FlashInfer GDN、原生 GemmaRMSNorm、prefix/MM cache 关闭；每次加载逐卡核对 profile/权重/8 个独立 worker。
+- 复用原 `eval/agent_eval/run.py` 和 `--resume`；23 小时续接新 Sandbox，非预期退出最多恢复两次，明确运行错误停止并保留证据，不无限重试。
+- 原始记录先落盘，新增 CCQA 用原 Qwen3-30B-A3B-Instruct-2507 Judge；旧分不重新 Judge。两组完成自动释放 GPU，再 CPU 汇总。
+- 结果仅 runs volume：`devbox/frozen_full_20261018`。每组 `shard{0,1}/progress.json`、`<model>/records/` 和 `score/`；最终 `analysis/summary.json` 与三模型逐题配对表。
+- 完整表与新增题子集分别报告；CV/MVU 按题平均，CrossVid 十任务 macro/CCQA 按评分点加权。E2E 对照沿用 MVU 官方指令移后版本。
+- 这是完整可测范围，包含已使用的开发题，不称为独立 Test。工程失败、未完成及 Judge 失败单列，不当零分或正常负结果重跑。
+
+当前仅完成调度实现，远端检查、继承审计和实际推理尚待验证；不得把本段准备状态当作已经完成补测。
