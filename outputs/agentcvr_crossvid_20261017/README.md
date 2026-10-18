@@ -177,3 +177,7 @@ tar -xzf agentcvr-crossvid-results-20261018.tar.gz -C results
 ```
 
 只看答案可单独下载`crossvid.answers.jsonl`，无需下载完整轨迹包。`git clone`及GitHub自动生成的Source code压缩包不包含这些数据附件。
+
+发布已完成：Release tag `agentcvr-crossvid-results-20261018`，目标提交`e75a3ae320a34ab35f06a89de858c55f51644ec6`。10个附件的GitHub服务器大小/digest与本地大小/SHA256逐一一致，逐题答案与完整包的匿名下载HEAD均返回200。附件README固定于发布目标提交；本节是发布后的核验回执，不修改已发布附件及其校验值。
+
+此前TLS故障阻塞的22d1d43/6a8122f报告已随e75a3ae一起补推并核对远端SHA；未更改HTTPS origin或关闭证书校验，仅该次Git调用使用公开DNS查询得到的GitHub地址覆盖解析。数据不入Git；本地附件与核验回执在上述release目录，Modal原件保留。
