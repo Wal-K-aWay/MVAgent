@@ -337,7 +337,7 @@ V 输出 token 比基线多 4.81%，G 少 2.63%；G 最终理由总体变短仍�
 07:04:22 完成最终分析。Sandbox `sb-EnHLS7BUGVf7Pebo8FgzAL` 已退出，host PID3527878 已退出、state 已清理；
 只释放本任务的 Sandbox，没有停止共享 Modal app。15 分钟独立巡检已结束，本轮无遗留推理任务。
 
-## Global 判定标准传递小测（2026-10-18，准备中）
+## Global 判定标准传递小测（2026-10-18，已提交）
 
 用户授权在固定框架上继续单因素测试。只测试优先候选“分派时保留题目判定标准”，不同时加入
 “未报告不等于不存在”或修改修复调用。正式基线 `codex/frozen-framework-20261018@b399d49` 不变。
@@ -363,3 +363,11 @@ User、VideoAgent、schema、History、skill 空库、FFmpeg、步数与预算�
   复用既有数值验收；保留实际服务身份和 token/hash 日志，不重新跑双遍全矩阵。
 - 结果仅留 runs volume 的 `devbox/criteria_transfer_20261018/`；本地/Git 仅源码与此汇总。
   实验完成后释放自有 GPU，并依据结果决定是否扩展；本次不自动替换正式配置。
+
+07:47:54 UTC，远端 compileall、System-only/抽样自检、270 条基线 token/cache/sticky 审计及所需归档文件 SHA 校验通过。
+运行冻结 `d147e02a9c4cab6eada9bc368ed2a809d86a39e1`；源码包 SHA256
+`994743d35a46b95a375755252171487fea71338e460dabbecb4410d69d9dd82d`。
+抽样清单 SHA256 `5e2458e728a37b1c523c9fb039e8736e420b035e8c1b1c4fbeb753771f345aae`。
+已启动唯一 host PID3579522，日志 `~/wxu-evolve-agent/devbox/watch-criteria-transfer-20261018.log`，
+自动执行三模型、CCQA Judge、自有 GPU 释放和 CPU 分析；预计容器就绪后约 1.57 小时，排队另计。
+此时尚未确认实际模型推理，不以提交成功视为实验通过。
