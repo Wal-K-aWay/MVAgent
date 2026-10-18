@@ -169,15 +169,16 @@ E2E分片/合并自检、demo/E2E/Agent/Skill进化四个CLI help均通过（rc=
 
 共享根工作区和其他worktree未切换/覆盖；本分支是清理后的独立恢复入口，历史运行继续自己的冻结源码。
 
-## 后续微调建议（尚未执行）
+## 微调候选与筛选原则
 
 目标拆成三项：输出交付合格、同输入可重复、跨题/模型的准确率收益。已有数值配置只解决第二项，不能替代另外两项。
-当前优先保留原 VideoAgent，不把完整原题或答案选项重新注入每轮报告。
+当前保留原 VideoAgent，不把完整原题或答案选项重新注入每轮报告。
+以下两条 System 候选已完成首轮小测，结果见文末；均未纳入正式配置。第 3 条为后续筛选原则。
 
-1. **先测报告忠实性的一条 System 规则。** 候选：`Keep observations, inferences, and unknowns distinct; preserve uncertainty when summarizing evidence.`
+1. **报告忠实性的一条 System 规则。** 候选：`Keep observations, inferences, and unknowns distinct; preserve uncertainty when summarizing evidence.`
    只加到 Video 报告所用 System，不加题目、示例、选项或额外调用。检查源观察中的“可能/未知”是否在报告中被变成肯定结论。
    是否有净收益须实测；不把负实验的机制分析直接当作有效修复。
-2. **独立测简洁 Global 解释要求。** 候选：`Keep explanations brief and focus on evidence that changes the next decision.`
+2. **独立的简洁 Global 解释要求。** 候选：`Keep explanations brief and focus on evidence that changes the next decision.`
    不叠加多条冲突策略，不更改 User、schema、reason 顺序或 2048 预算。观察 length、重复段、完整答案与准确率；不能只用输出更短判胜。
 3. **按同题、小步筛选，再用未参与调参的题确认。** 开发筛选优先覆盖三模型九格和已见失败类型，并保留正常题作保护组。
    复用固定 baseline，不重跑无关一致性矩阵；只新跑一个候选，初步有收益再扩展。抽样 seed=0，已有面板保持原 manifest。
@@ -223,39 +224,115 @@ SkyRL的IsoExec也在8×H100上研究了Qwen3.5-35B-A3B的GDN及并行规约，�
 生成参数和调度配置；比较完整 token、输入哈希与 Agent 轨迹，并覆盖重启与换卡。
 上述外部研究记录核对于2026-10-10，仅作为方法来源；本项目实测以本文件固定配置记录为准。
 
-## 两项 System 微调小测（2026-10-18，进行中）
+## 两项 System 微调小测（2026-10-18，已完成）
 
-从冻结`f61946f`独立实验，不改变正式基线。入口`scripts/system_refinements.py`，结果仅写
-`/runs/devbox/system_refinements_20261018`。V与G分别以基线为起点，不叠加：
+**结论：保留当前固定基线，两条候选都不统一采用。** Video 证据保真规则收益零散且截断增多；
+Global 简洁解释规则在 27B、35B 部分任务有收益，但 9B 三个 benchmark 均下降。
+没有发现同输入数值重复性退化，Prompt 改动本身改变了观察、总结或决策路径。
 
-- V：Video Planner System追加 `Keep observations, inferences, and unknowns distinct; preserve uncertainty when summarizing evidence.`；步数耗尽的Video总结原来System为空，现在仅使用同一句规则。正常finish同Planner决策生成，因此该规则也可能影响下一次观察，不能把变化仅归于摘要措辞。
-- G：Global System追加 `Keep explanations brief and focus on evidence that changes the next decision.`，主动与强制终答自然沿用；Video完全不变。
-- 两组User、视觉Observer、schema、参数预算、History、FFmpeg和数值profile不变。生成的候选源码及精确patch、源提交/哈希在新运行根冻结，不给正式配置增加实验开关。
-- 三模型每组50题（CV15、MVU15、Cross20含2CCQA），共300新轨迹；同题基线150条来自已完成简洁Global面板。只按题型/人口权重和seed0选题，不按结果选题。CV每task只有1题，不能用本批声称普遍收益或可靠置信区间。
-- 使用独立8×H100顺序加载三模型，同模型复用服务；两候选顺序跨模型轮换。身份/权重/固定profile与历史基线逐卡校验，整题单卡、每卡C1、prefix关闭。既有其他任务不变。
-- 同模型两候选共享Judge缓存，并按完整评分Prompt预填入所选基线CCQA缓存；相同答案不因重新Judge引入分差。旧原始记录只读，基础设施失败与模型错误输出分开。
-- 报告同题官方分（CV/MVU按task人口加权，Cross十task macro/CCQA评分点加权）、稳健提取、格式/空答、截断、修复、调用/token与耗时。小批通过后才考虑扩测；不自动替换基线。
+### 改动与对照
 
-准备已完成：冻结源码`65829c9`，源码包SHA256 `2b0f0454de5281ec693b88839804aa6cfc4eabbbf38bd6d9f615961eb20d9b9b`；
-CPU `ap-A6V4tLs5TuXtLnP2hCCZFJ` prepare与System/抽样检查rc0，
-`ap-EqphXprvu3zcIOmVhtIGHE`核对144闭式评分/格式和150条基线token/sticky/cache记录全部通过。
-首次prepare因CPU镜像无git命令而终止，0模型调用，原记录在`system_refinements_20261018_prepare_initial`；改读冻结HEAD后完成。
-05:43 UTC独立Sandbox `sb-EnHLS7BUGVf7Pebo8FgzAL`已申请，host PID3527878，
-日志`~/wxu-evolve-agent/devbox/watch-system-refinements-20261018.log`。初始仍等待容器执行，尚无新轨迹；
-按旧同题耗时估就绪后约1.6小时，排队另计。控制器依次执行三模型/两候选、Judge、释放本任务GPU、CPU汇总。
-实际推理/评分尚未完成，不以提交成功声称测试通过。
+以冻结 `f61946f` 为基线，V 与 G 分别独立添加一句 System，不叠加：
 
-06:00 UTC新Sandbox就绪（此前约17分钟等待），实查8×H10080GB。两候选决策接口检查通过。
-9B实际8副本约204秒加载完成，startup_identity与历史权重/profile逐卡匹配；首16轨迹185调用
-0模型错、token/cache0/sticky审计通过，V组未改动的首轮Global与基线16对完全一致（startup_audit.json）。
-06:15 UTC两臂9B各50题均有效，0顶层工程错误，开始加载27B。9B初步闭式对照（不含2题CCQA）：
-CV15题基线/V/G=80.90/75.80/75.80；MVU15题60.48/60.48/46.58；Cross九闭式18题39.68/45.24/29.76。
-这是单模型小批、不含开放题的中间结果，不能作为完整九格结论。V截断0→2，G仍0；理由变短不等于准确率不下降。
-CV774旧正确A也缺少明确证据、理由反复纠结，V改C、G改B；该翻转不能当作旧证据充分被新规则破坏的证明。
+- **V（Video 证据保真）**：`Keep observations, inferences, and unknowns distinct; preserve uncertainty when summarizing evidence.`
+  加到 Video Planner System；步数耗尽时 Video 总结原来 System 为空，现在仅使用同一句。
+  正常 finish 与 Planner 决策共用 System，因此也可能改变下一次观察，不能视作纯粹的报告润色。
+- **G（Global 简洁解释）**：`Keep explanations brief and focus on evidence that changes the next decision.`
+  只加到 Global System，主动与强制终答沿用；Video 不变。
+- 两组 User、视觉 Observer、schema、History、FFmpeg、步数与输出预算不变。使用固定 BF16、
+  8×H100、每卡 TP1/DP1/C1、seed=0、temperature=0、prefix/MM processor cache 关闭与整题固定副本。
+  逐卡检查实际权重、profile 与服务身份。同模型两组共用服务，顺序跨模型轮换。
+- 每模型每组 50 题：CVBench 15、MVU 15、CrossVid 20（十任务各 2 题，含 2 CCQA）。
+  **300 条新轨迹全部有效，复用 150 条同题基线。** 来自此前 102 题开发面板，按 task/总体数量权重、seed=0 抽取，未按得分筛题。
+  CV 每 task 仅 1 题，本批不能提供可靠的总体置信区间。
+- CCQA 使用相同 Qwen3-30B-A3B-Instruct-2507 Judge、评分点规则与按完整评分 Prompt 的缓存。
+  两候选共享同模型缓存并预填旧同题缓存；12 个新答案均未命中旧缓存，全部完成新评分、无失败。
+  不能把共享缓存机制写成实际命中，也不能据此保证不同答案的 Judge 判定绝对稳定。
 
-06:37 UTC 27B两臂各50题有效、0顶层错误，转35B；截至06:44 V35B已32/50。
-27B闭式中间结果：CV15基线/V/G=75.80/80.90/85.10；MVU15均61.10；Cross九闭式18题45.27/45.56/54.75。
-27B格式错误0/1/0（48闭式），空答和单独右花括号均0；中间length调用1/2/3，structured_invalid和修复各1/2/3。
-同题CV774在27B基线C错误、两候选A正确，与9B方向相反，不能用单一模型替代统一配置筛选。
-9B格式改善对应PEA784：基线None of the above，两候选提交选项但仍错；不属于CV431选项标注缺陷。
-这些中间表尚缺CCQA，最终统一Judge后再报告CrossVid十任务macro，不据此合入候选。
+### 同题官方分
+
+单位 %；括号为相对**当前固定 MVAgent 基线**的百分点变化，不是相对 E2E。
+CV/MVU 按 task 总体数量加权估计官方分；CrossVid 为完整十任务 macro，CCQA 按评分点计分。
+本批官方与稳健答案提取两种口径的分数完全一致。
+
+| 模型 | Benchmark | 基线 | V：Video 保真 | G：Global 简洁 |
+|---|---|---:|---:|---:|
+| 9B | CVBench | 80.90 | 75.80（−5.10） | 75.80（−5.10） |
+| 9B | MVU-Eval | 60.48 | 60.48（0） | 46.58（−13.90） |
+| 9B | CrossVid | 35.99 | 40.99（+5.00） | 30.12（−5.87） |
+| 27B | CVBench | 75.80 | 80.90（+5.10） | 85.10（+9.30） |
+| 27B | MVU-Eval | 61.10 | 61.10（0） | 61.10（0） |
+| 27B | CrossVid | 44.07 | 44.33（+0.26） | 50.94（+6.87） |
+| 35B-A3B | CVBench | 70.60 | 67.30（−3.30） | 80.00（+9.40） |
+| 35B-A3B | MVU-Eval | 48.06 | 48.06（0） | 48.06（0） |
+| 35B-A3B | CrossVid | 49.06 | 45.44（−3.61） | 49.35（+0.29） |
+
+V 为 3 正 / 3 平 / 3 负，G 为 4 正 / 2 平 / 3 负。
+单题翻转足以改变小批分数，不能据此选择模型专属的正式默认规则。
+
+### 交付、截断与成本
+
+每组各 150 条轨迹，闭式答案格式统计各 144 条；格式错误与中间结构错误分别计数。
+
+| 指标 | 基线 | V | G |
+|---|---:|---:|---:|
+| 最终闭式格式错误 | 1/144 | 1/144 | 0/144 |
+| 最终空答案 / 单独右花括号 | 0 / 0 | 0 / 0 | 0 / 0 |
+| 服务 / 模型调用错误 | 0 | 0 | 0 |
+| 模型调用数 | 1,845 | 1,860 | 1,892 |
+| 达输出 token 上限的调用数（length） | 4 | 10 | 6 |
+| 出现 length 的题目数 | 3 | 8 | 6 |
+| 结构无效调用数（structured_invalid） | 4 | 11 | 6 |
+| 修复请求数 | 3 | 9 | 6 |
+| 输出 token 总数 | 249,351 | 261,337 | 242,789 |
+| 逐题耗时总和 / 秒 | 11,843.89 | 11,292.71 | 10,412.82 |
+
+新实验 3,752 次模型调用无服务故障，但有 16 次 Global 决策达到 2048 token 上限，长 reason 后 JSON 未完整闭合。
+另有 V/9B/CC317 的 Video 参数把结束时间写为 133 秒，超过视频时长 132.97 秒；既有校验拒绝后重试成功。
+这些是模型生成或参数边界问题；既有恢复流程最终交付了全部答案，但不能声称每次无效输出都在第一次修复中成功。
+V 输出 token 比基线多 4.81%，G 少 2.63%；G 最终理由总体变短仍未减少中间截断。
+耗时未控制物理 H100、缓存冷热和先后顺序，以上仅描述实测，不作为因果提速结论。
+
+复用既有 token 日志的离线审计完成 **782 次相同请求比较，完整输出 token、文本与结束原因 0 差异**；
+其中 V 与基线的首轮 Global 共 150 对全部相同，已包含在 782 次中。新轨迹 token 完整、cache=0、sticky 校验通过。
+没有额外进行双遍全矩阵推理；有限共享请求通过不等于任意输入的绝对保证。
+
+### 具体轨迹说明
+
+- **CVBench 774**：9B 基线 A 正确，V 改 C、G 改 B，均错；27B 基线 C 错，两候选均改 A 正确。
+  同一句规则对不同模型方向相反。9B 旧正确理由也在反复说未找到医疗建议并猜选项，不能断言新规则破坏了原本充分的正确证据。
+- **CrossVid PEA784**：9B 原答 `None of the above`，两候选变成选项字母但仍错；这是格式改善而非准确率改善。
+  27B 的 V 反而从选项变成“没有选项得到证据支持”的长答案，新增格式错误，原、新评分均为 0。
+  保留不确定性的通用要求可能影响最终按题交付，不能只凭措辞合理就认定有效。
+- **35B-A3B/FSA1175**：基线区间 `22,37`，IoU 为 0.5556；V 改成 `0,10`，IoU 为 0。
+  **35B-A3B/CCQA188** 的 V 将原先切片面包描述改为面团整形烘烤，Judge 从 1/6 降至 0。
+  本次未人工重看原视频，不把这一 Judge 判定直接写成已核实幻觉。
+
+后续维持“简洁 Global + 原 Video”统一基线。若继续 Prompt 研究，应先在这些已知失分轨迹中区分
+取证改变、证据总结改变与证据不足时猜选项，再用未参与本轮调参的题确认候选。
+本轮不继续放宽预算、不新增格式枚举或二次回答器，也不把不同模型的小样本收益拼成统一成功结论。
+
+### 完成记录与恢复
+
+实验代码位于独立分支 `codex/system-refinements-20261018`，入口 `scripts/system_refinements.py`，
+实际运行冻结提交 `65829c9e545fb6824bc6b673ff26dc910b80ef2e`。
+候选只在新运行目录生成不可变源码；正式分支 `codex/frozen-framework-20261018` 只同步本报告，
+不引入候选 Prompt 或实验开关。共享根工作区及其他任务未切换或覆盖。
+
+原始结果仅在 `wxu-evolve-agent-runs-20261006` 的 `devbox/system_refinements_20261018/`：
+
+- `manifest.json`、`source.tar.gz`、`samples.json`、`baseline.json`、`baseline_services.json`；
+  源码包 SHA256：`2b0f0454de5281ec693b88839804aa6cfc4eabbbf38bd6d9f615961eb20d9b9b`。
+- 两候选各自的源码、`system.patch`、逐题 records、12 条 CCQA 评分与原始 Judge 响应。
+- `services/<model>/startup_identity.json`、`startup_audit.json`；
+  `analysis/summary.json`（`complete=true`）、三个 `<model>_paired.json`、`output_audit.json`、`output_audit.py`、`early_failures.json`。
+- 基线配对来自 `devbox/global_short_large_20261017/analysis/`；所选原始先导轨迹来自
+  `devbox/system_ablation_20261017/global_short/`，原始数据未改写。
+
+远端 compileall、两候选各 13 项决策接口检查通过；prepare 与基线评分/token/sticky/cache 契约检查通过。
+最终 CPU 审计 `ap-jX08sfLSg1abv21KWfnj3B` 返回 0。首次 prepare 因 CPU 镜像无 git CLI 退出，
+0 模型调用；修复后重建，初始失败记录保留在 `devbox/system_refinements_20261018_prepare_initial`。
+
+05:43 UTC 申请、06:00 容器就绪，06:59 完成 300 条 Actor 轨迹；07:03:49 Judge 后释放本任务 GPU，
+07:04:22 完成最终分析。Sandbox `sb-EnHLS7BUGVf7Pebo8FgzAL` 已退出，host PID3527878 已退出、state 已清理；
+只释放本任务的 Sandbox，没有停止共享 Modal app。15 分钟独立巡检已结束，本轮无遗留推理任务。
