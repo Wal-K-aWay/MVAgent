@@ -13,6 +13,8 @@ import modal
 NAMES=['lenswalk_full_35b_20261016','lenswalk_full_35b_recovery_20261017',
        'lenswalk_full_35b_audit_recovery_20261017','rsi_full_35b_20261016',
        'rsi_full_35b_recovery_20261017']
+REFERENCE_NAMES=['rsi_full_35b_20261016_prepare_initial',
+                 'lenswalk_full_35b_audit_recovery_20261017_prepare_interrupted']
 ROOT=Path('/runs/devbox')
 TARGETS=[ROOT/n/'prepared/media' for n in NAMES]
 AUDIT=ROOT/'media_retirement_20261018'
@@ -119,13 +121,35 @@ def prepare():
               bytes=sum(x['bytes'] for x in rows if not x['protected']),
               files=sum(not x['protected'] for x in rows))
     write(AUDIT/'plan.json',plan);runs.commit()
-    print('PLAN',json.dumps({k:v for k,v in plan.items() if k not in ('rows','retained_metadata_sha256','timing')}),flush=True)
+    print('PLAN',json.dumps({k:v for k,v in plan.items() if k not in ('rows','retained_metadata_sha256','timing','references','protected')}),flush=True)
+
+
+def include_paused_preparations():
+    p=read(AUDIT/'plan.json')
+    assert not (AUDIT/'plan_before_paused_references.json').exists()
+    for ref in p['references']:
+        assert any(ROOT/name in Path(ref['source']).parents for name in REFERENCE_NAMES),ref
+    for name in REFERENCE_NAMES:
+        root=ROOT/name
+        assert not list((root/'lenswalk').glob('*/record.json'))
+        assert not list((root/'rsi').glob('*/record.json'))
+        assert not list((root/'episodes').glob('*/pool_verification.json'))
+    write(AUDIT/'plan_before_paused_references.json',p)
+    p['released_references']=p['references'];p['references']=[];p['protected']=[]
+    p['release_reason']='Only two aborted preparations of the same user-paused methods reference these files; no new inference records.'
+    for row in p['rows']:row['protected']=False
+    for name in NAMES:
+        rows=[r for r in p['rows'] if ROOT/name in Path(r['path']).parents]
+        p['roots'][name]=dict(files=len(rows),bytes=sum(r['bytes'] for r in rows))
+    p['files']=len(p['rows']);p['bytes']=sum(r['bytes'] for r in p['rows'])
+    write(AUDIT/'plan.json',p);runs.commit()
+    return dict(files=p['files'],bytes=p['bytes'],released_reference_roots=REFERENCE_NAMES)
 
 
 def apply():
     assert not (AUDIT/'completed.json').exists()
     p=read(AUDIT/'plan.json')
-    for name in NAMES:
+    for name in NAMES+REFERENCE_NAMES:
         write(ROOT/name/'USER_PAUSED.json',dict(at=time.time(),reason='User requested pause and on-demand media',
             resume='Do not resume old frozen cache consumers; create a new run with per-question local scratch media.'))
     runs.commit()
@@ -165,6 +189,7 @@ def job(phase):
     assert not selected(ROOT/NAMES[0]/'results/0.mp4')
     assert not selected(TARGETS[0]/'example/timeline.json')
     if phase=='prepare':return prepare()
+    if phase=='include-paused-preparations':return include_paused_preparations()
     if phase=='apply':return apply()
     if phase=='verify':return verify()
     raise ValueError(phase)
