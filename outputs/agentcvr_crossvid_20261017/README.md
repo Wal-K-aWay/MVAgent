@@ -1,6 +1,6 @@
 # AgentCVR：CrossVid Lite2500
 
-用户2026-10-17授权运行同一份CrossVid Lite2500。CPU合同检查和完整compileall已通过，正式8H100任务已提交，尚无完整推理成绩；实际阶段以远端progress为准。
+用户2026-10-17授权运行同一份CrossVid Lite2500。CPU合同检查和完整compileall已通过；原任务被控制台停止后，用户2026-10-18明确要求恢复，已重新提交8H100。已有1480题记录，尚无完整推理成绩；实际阶段以远端progress及容器为准。
 
 - 唯一主执行者：当前Codex会话；独立Luna每15分钟只读检查，会话外不承诺持续巡检。
 - 分支`codex/agentcvr-20261016`，初始实现提交`6d2a7cf`；与此前CVBench/MVU结果分别保存，不重测这两套数据。
@@ -86,3 +86,19 @@ CPU app `ap-qSho9pZByEysoBYQgpx1Cv`完成旁路检查与自检：15份记录中�
 15:41 UTC独立Luna检查：21/2500 valid、0基础设施错误、0未终答，3个CCQA待Judge；BU3/FSA8/MOC1/NC3/PEA2/PSS1/CCQA3，主app仍1个GPU容器正常推理。任务继续，不据早期题型分布报告全量准确率。
 后台CPU边界收尾控制器PID3235778/app ap-PhsXTU8TGswM8FGSrKjkED已明确进入等待GPU控制器3224707退出；不会重复提交推理。
 本轮独立AI巡检已于15:41末次检查后结束；会话外没有持续AI巡检，远端推理/Judge/CPU收尾控制器继续运行。
+
+## 中断与恢复（2026-10-18）
+
+01:08 UTC主任务和旁路审计日志均记录`user stopped from dashboard`；主progress随后为failed/KeyboardInterrupt。03:18只读核对records共1480：1478 answered、1 no_answer、1 infrastructure_error，剩余1020。scores快照1477条，与records差集的FSA1451/PEA365/NC72均answered。146条CCQA待Judge，最终评分和边界审计未完成。
+
+BU567为模型正常无终答，保留零分；MSR548是视觉请求261571 token超过部署131072上下文导致的工程失败，保留原始记录，不通过缩帧/改提示或同配置重复尝试掩盖。完整2500有效macro仍不可声称。
+
+用户确认恢复后，03:25 UTC经modal-gpu重新提交原控制入口，仅`--mode run`，没有重新prepare或同步覆盖源码：
+
+- GPU app `ap-lYGDWgPZ56UvhmBabqlGav`，容器`ta-01M56GNMART3CT6RN6Y6C5WW6R`；devbox主控制器PID3475555。
+- 日志`~/wxu-evolve-agent/agentcvr_crossvid_control/agentcvr-crossvid-resume-20261018.log`。
+- 原r2结果目录、冻结源码d8c3232、8H100与原模型配置不变；worker按既有raw文件跳过已处理题，缺record则从raw恢复。
+- CPU边界审计控制器PID3475909/app `ap-EHh0Bn87VA0b3x9wOmF6QZ`；等待主控制器退出，日志`boundary-after-resume-20261018.log`，不额外启动GPU。
+- 预计恢复后约8–10小时（含启动、剩余推理和评分收尾，依赖实际吞吐）。03:26容器实查8张H100 80GB，phase=starting_models、ready_servers=0；尚无新增测量，不能把加载阶段写成推理完成。
+
+本轮仅恢复既有任务及更新状态，无模型/推理代码变更，不重复已通过的验收矩阵。原始结果仍仅在Modal。
