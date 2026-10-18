@@ -199,7 +199,22 @@ def apply(plan):
 def job(phase):
     if phase=='test':return self_test()
     if phase=='plan':return discover()
-    if phase=='apply':return apply(discover())
+    if phase=='apply':
+        assert not (AUDIT/'completed.json').exists(), 'This cleanup already completed'
+        return apply(discover())
+    if phase=='verify':
+        report=json.loads((AUDIT/'completed.json').read_text())
+        for action in report['merged']:
+            assert action['phase']=='merged_verified'
+            target=Path(action['target']);canonical=Path(action['canonical'])
+            assert (target/'objects/info/alternates').read_text().strip()==os.path.relpath(canonical/'objects',target/'objects')
+            assert identity(target)==action['before'], target
+        assert all(not Path(item['path']).exists() for item in report['pyc'])
+        return dict(verified=True, merged=len(report['merged']),
+                    canonical_stores=sorted({x['canonical'] for x in report['merged']}),
+                    pyc_files=len(report['pyc']),empty_directories=len(report['empty_directories']),
+                    removed_entries=report['removed_entries'],freed_bytes=report['freed_bytes'],
+                    free_inodes=os.statvfs('/runs').f_ffree,total_inodes=os.statvfs('/runs').f_files)
     raise ValueError(phase)
 
 

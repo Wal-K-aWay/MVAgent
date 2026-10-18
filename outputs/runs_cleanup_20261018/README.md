@@ -53,5 +53,41 @@ file retrieval and `git fsck --full`. Local validation is AST parsing and
 
 ## Outcome
 
-In progress. Final counts and external persistence verification will be added
-when the single Modal cleanup task completes.
+Completed. The mutating job `ap-SAuBuMYoVKvhaI3K1RZzwQ` exited successfully,
+followed by fresh-container verification `ap-4w1XhB5WtJIRkOfwodIVsa` (also successful).
+The mutating helper was committed as `46ab20c`; the final helper additionally
+provides read-only verification and rejects accidentally repeating completed cleanup.
+
+| Action | Result |
+|---|---:|
+| Identical Git stores consolidated | 26 copies → 2 canonical stores + 24 alternates |
+| Net entries eliminated by Git-store consolidation | 19,972 |
+| Disposable bytecode files removed | 1,357 |
+| Empty old-run directories removed | 1,345 |
+| Total entries removed, before small audit-file overhead | **22,674** |
+| Duplicate/bytecode logical bytes removed | **2,391,247,762 (2.39 GB)** |
+
+All 24 repositories had identical HEAD and full object-ID sets before and after
+merging, including verification from a newly mounted container. Their original
+paths and working source files remain. No raw result, score, shared media,
+negative-result evidence or model weight was deleted. No compression was performed.
+
+The job's own post-cleanup mount reported 17,176 free inodes; the subsequent
+fresh mount reported **477,220 used / 500,000, 22,780 free (95.444% used)**.
+Other tasks operate on the shared Volume, so the full snapshot-to-snapshot
+change is not attributed to this cleanup. The action manifest is authoritative
+for this work item's removal counts.
+
+The two retained Git repositories whose object stores are now shared are:
+
+- `/runs/devbox/concise_system_smoke_20261013/frozen_repo/.git`
+- `/runs/devbox/tp8_cache_20261014/freeze_setup_failed/.git`
+
+Their age or the `freeze_setup_failed` name does **not** make these object stores
+disposable. Borrower paths and original object hashes are listed in
+`devbox/runs_cleanup_20261018/merged.json`; full scope and deletion records are in
+`plan.json` and `completed.json`. Those JSON records remain only on Modal.
+
+GitHub's inherited proxy failed TLS during backup. Per-command removal of proxy
+environment variables and `http.proxy` allowed the existing `gh-kw` account to
+push; no global proxy, credential, account or remote setting was changed.
