@@ -174,13 +174,13 @@ Prompt 与中文镜像同步的完整规则统一保存在 [.claude/rules/prompt
   Global/Video 各最多 5 步。基线分数见 `.claude/benchmarks.md`。
 - **最终回答的理由长度**：终答 `reason` 不设字符硬上限，保留简洁、非空要求；每次完整响应仍受2048输出token预算限制。
   取证决策的reason仍限1200字符，analyze指令预算不变；answer决策直接携带终答。此改动会影响动作、答案与耗时；历史独立回答器成绩不能视作新协议成绩。
-- **Global 基础提示**：保留当前决策 System，User 排布为 Question→Videos→Available actions→History；
-  主动 answer 直接提交 `reason/action/parameters.answer`，循环耗尽时复用 `decide(answer_only=True)`，只允许 answer。
-  取证阶段核实关键冲突，每次检查针对具体不确定点，一到两句说明决定性证据/缺口与行动目的，不重复论证。
-  answer 动作依现有证据提交最佳判断，按题目要求表达结果，在 reason 中简洁保留重要限制；不靠选项枚举限制答案。
-  强制终答继续使用决策 System、视频身份、公开 History 与既有 skill 策略，不调用独立回答器，不提供新取证动作。
-  空库与进化库使用相同协议。2026-10-16按用户要求恢复900条面板对应的四个Global/Engine源码文件；
-  历史History前置＋独立兜底及旧PRO源码结果仍保留各自协议，已有任务不热更新，新实验另建结果目录。
+- **Global 基础提示**：唯一基础为已完成4500条测试的“简洁 Global System + 原 VideoAgent”，
+  Runtime 对应 `e0ace27` 的 Global/Video/Engine。System 只规定协调角色、成功视觉证据边界、视频身份和下一动作；
+  User 排布为 Question→Videos→Available actions→History。主动 answer 直接提交答案；
+  循环耗尽时沿用同一决策 System、公开 History 与选中 Skill，只允许 answer，不调用独立回答器。
+  VideoAgent 接收原 instruction 和自身历史，不额外注入完整题目。空库与进化库使用同一协议。
+  FFmpeg 裁剪及极短视频至少两帧的既有修复保留；已有任务不热更新，新实验另建结果目录。
+  方法、负结果、评分限制与下一步建议只在 [实验记录](docs/experiments.md) 维护，不再添加同主题的日期报告或旧配置开关。
 - **进化实验的运行时**（`configs/skill_evolution/runtime/dynamic_35b_embedding.yaml`）：Global 和 Video 共用同一个库文件，
   按 `meta.role` 区分；进化时由算法替换成当前候选库（runtime 配置中的 `dynamic-v003` 路径会被覆盖）。
   不传 `--skills` 时两类卡都为空，Video 卡保持不变（为空，或为 `--skills` 初始库中的 Video 卡）。

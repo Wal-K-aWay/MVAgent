@@ -25,7 +25,7 @@ __pycache__/
 /.venv/
 
 # Local agent environment skill and working notes (not shared).
-/.claude/skills/mvagent-environment/
+/.claude/skills/mvagent-environment
 /.agents/skills/mvagent-environment
 /.claude/status.md
 /.claude/benchmarks.md

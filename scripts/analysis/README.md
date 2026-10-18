@@ -32,10 +32,7 @@ CrossVid 固定 2500 题历史结果复算：`/home/kww/miniconda3/envs/MVAgent/
   match35B-A3B; no replacement, optimizer or API Judge. See
   `analysis/skill_evolution/overnight_watch_20260920.md` for scope, resume and missingness.
 
-- `run_fixed_prompt_validation.py launch --output outputs/analysis/20260922_fixed_prompt_validation`: 冻结并顺序运行无Skill B0/D/S固定Prompt完整轨迹，32题/臂预检后分块配对汇总；来源重叠补充层显式区分，不调用API Judge。`summarize`可离线重算；失败保留状态，重新`launch`按已完成stage恢复，活跃控制器不可重复启动。
 
-- `analyze_fixed_prompt_results.py`：复核B0/D/S全部3600条正式轨迹，分解任务、来源、原始对错组合和证据变化；输出观察一致性哈希、健康指标与宏平均敏感性，不重新推理。
-- `probe_fixed_prompt_final_decisions.py prepare|launch|score`：全部1200题B0末节点的原样/D对照，保留原History和Schema，不执行新工具动作；本地模型调用，无付费Judge。只作节点诊断，不是完整轨迹得分。
 - `run_original_question_watch.py prepare|launch|run|summarize`：完整35B基线E2E对/Agent错的闭式题，B0重跑对照Global原题watch Skill；1600字符模板可行性筛选、24题预检、后台顺序全量、实际原文/动作/覆盖审计。只测错题恢复，无API Judge，无自动部署。
   `--reuse-preflight PATH`仅在新根prepare/launch时复用身份完全核对的已完成预检；复制是否完美作为结果指标，工程门槛检查Skill加载及实际watch，不按准确率停跑。
 - `run_routing_protection.py prepare|launch|run|summarize`：只新跑条件路由RQ，2000题task×cell概率抽样（1200历史正确/800错误），历史B0直接复用，不重跑强制WQ。24题预检、100题块自动汇总；仅完整计划评分后输出加权总体估计，原Skill复制/动作审计沿用共享函数。

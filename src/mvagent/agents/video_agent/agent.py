@@ -2,6 +2,7 @@ from __future__ import annotations
 from models.execution import event_scope
 
 import math
+import cv2
 from typing import Any, Callable, Mapping
 
 from mvagent.agents.base import BaseAgent
@@ -461,7 +462,17 @@ class VideoAgent(BaseAgent):
             and float(time_range[0]) <= 1e-6
             and float(time_range[1]) >= self.duration_sec - 1e-6
         ):
-            return self.video_path
+            # Display duration is rounded; a 5/30-second video can still sample to one frame.
+            capture = cv2.VideoCapture(self.video_path)
+            try:
+                source_fps = float(capture.get(cv2.CAP_PROP_FPS))
+                source_frames = float(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+                if not all(math.isfinite(x) and x > 0 for x in (source_fps, source_frames)):
+                    raise ValueError("Cannot validate the source video's temporal sampling.")
+                if math.floor(source_frames / source_fps * fps) >= 2:
+                    return self.video_path
+            finally:
+                capture.release()
         return cut_video_segment(
             self.video_path,
             time_range,

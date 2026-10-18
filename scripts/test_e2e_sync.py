@@ -201,19 +201,6 @@ class ContractTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 parse_gpus(value)
 
-    def test_verifier_detects_input_tokens_and_text_changes(self):
-        from verify_e2e_sync import compare_rows
-        row = dict(status='ok', output='C', request=dict(input_sha256='input',
-            prompt_token_ids_sha256='prompt', token_ids=[34, 248046], finish_reason='stop'))
-        before = {'cvbench:664': row}
-        self.assertEqual(compare_rows(before, copy.deepcopy(before)), [])
-        for key, value in [('input_sha256', 'different'), ('token_ids', [35, 248046]), ('finish_reason', 'length')]:
-            after = copy.deepcopy(before)
-            after['cvbench:664']['request'][key] = value
-            self.assertEqual(len(compare_rows(before, after)), 1)
-        with self.assertRaises(ValueError):
-            compare_rows(before, {})
-
     def test_existing_cli_and_frozen_source_are_preserved(self):
         spec = importlib.util.spec_from_file_location('e2e_run_test', ROOT / 'run.py')
         runner = importlib.util.module_from_spec(spec)

@@ -1,25 +1,14 @@
 # MVAgent benchmark evaluation
 
-Global 主动选择 `answer` 时在同一决策中直接提交 `parameters.answer`；循环耗尽时复用 `decide(answer_only=True)`，保留决策 System、视频信息、公开 History 和既有 skill 策略，只允许提交答案。两条路径均保持开放非空答案、2048 输出 token、终答 reason 无字符硬限。User 顺序为 Question→Videos→Available actions→History；视频裁剪仍用 FFmpeg。2026-10-16按用户要求恢复900条测试对应协议。已有运行使用冻结源码，不热更新；新运行另建目录。
+Global 主动选择 `answer` 时在同一决策中直接提交 `parameters.answer`；循环耗尽时复用 `decide(answer_only=True)`，保留决策 System、视频信息、公开 History 和既有 skill 策略，只允许提交答案。两条路径均保持开放非空答案、2048 输出 token、终答 reason 无字符硬限。User 顺序为 Question→Videos→Available actions→History；视频裁剪仍用 FFmpeg。基础采用已完成4500条测试的简洁 Global System 与原 VideoAgent。已有运行使用冻结源码，不热更新；新运行另建目录。
 
-Install the project dependencies first: `python -m pip install -r requirements.txt`
+On the remote GPU host, install the project dependencies first: `uv pip install -r requirements.txt`
 from the repository root; see [installation instructions](../../README.md).
 
 This entry evaluates MVAgent on CVBench, MVU-Eval and CrossVid. It uses
 `mvagent.batch.BatchExecutor`, the same question execution API used by Skill rollout.
 Dataset/scoring adapters live in `skill_evolution/infra/benchmarks`; workers receive
 only the question and ordered videos, never reference answers.
-
-The full three-model comparison uses `scripts/run_full_mvagent.py --output /runs/devbox/mvagent_full_20261013`.
-It freezes the current source, reuses the completed E2E selections (997 available CVBench,
-1824 MVU-Eval and CrossVid Lite2500), runs one pass per model through this CLI, then applies
-the existing local CCQA Judge. `comparison.md` and `comparison/<model>.json` pair the exact
-IDs with E2E scores; CVBench uses the same 997-question mean, and CrossVid uses the ten-task
-macro with point-weighted CCQA. Partial coverage is explicitly marked.
-The companion `scripts/watch_full_mvagent.py` runs only on `modal-gpu` and continues the
-frozen run across Sandbox time limits. Do not submit another controller while it is active.
-See the [full-run record](../../outputs/mvagent_full_20261013/README.md) for live paths,
-shutdown instructions and the distinction between system comparison and equal-budget evaluation.
 
 Subsequent Qwen3.5 evaluations use the [fixed evaluation configuration](../../configs/inference/README.md#固定评测方案):
 8 H100 GPUs with independent full-model replicas and `seed=0`. The `h200` execution-file
@@ -60,7 +49,7 @@ This changes wall-clock limits only, preserving the model, generation budget and
 `status: ok` records a completed runtime call; it does not establish answer-format validity.
 The answer action schema accepts any nonblank answer string, including invalid
 choice/interval answers. Report model/structured errors, repeatability and answer format
-separately; see the [current runtime check](../../outputs/validation_history.md#mvagent_runtime_check_20261013-readme).
+separately; see the [experiment record](../../docs/experiments.md).
 
 GlobalAgent submits its final answer in the same decision: `reason`, `action="answer"`,
 `parameters.answer`. Runtime returns the existing `{answer, reason, status}` result directly;
@@ -70,58 +59,17 @@ same decision interface with only `answer` available, preserving `forced_with_ga
 answer decisions have no reason character cap. All responses retain the 2048-token budget,
 and `parameters.answer` remains an open nonblank string with a 2400-character limit.
 
-A single Global System policy preserves task definitions, checks material evidence conflicts,
-and asks for concise decision explanations. The answer action submits the best-supported
-judgment in the requested form; uncertainty belongs in its explanation. Selected skill text
-is visible to these decisions, including direct answers. Public trajectories now expose the
-submitted answer parameter; ordinary answer-parameter faults can be localized by the optimizer.
+The Global System states the coordinator's role and visual evidence boundary. It preserves video
+identities and requests one available action. VideoAgent receives its instruction and own history,
+without an additional copy of the original question. The exact System and accepted results are in
+[the experiment record](../../docs/experiments.md). Do not interpret historical standalone-answer or
+Video-context experiments as supported runtime switches.
 
-This changes the answer protocol and may change upstream choices as well as answers. Use a new
-output directory and compare empty/evolved skill banks with the same protocol. Running jobs
-and resumes continue using their original frozen sources. The prior 25-question fixed-evidence
-comparison is a development diagnostic, not the accuracy of this full integration; see the
-[protocol comparison](../../outputs/answer_ablation_20261015/README.md).
-Current integration checks use `scripts/test_direct_answer.py` and `scripts/verify_direct_answer.py`.
-
-Historical standalone-answer prompt, reason-budget and repeatability experiments retain their
-original evidence in the [validation history](../../outputs/validation_history.md) and dated
-reports. Their results do not certify the new direct-answer protocol.
-
-The small formal HTTP regression (`scripts/verify_formal_repro.py`, 2026-10-12) passed:
-all three BF16 models completed two questions twice through this public CLI, totaling
-12 trajectories and 256 model calls. All six trajectory comparisons and 128 paired
-call comparisons matched, including inputs, complete tokens, text and finish reasons;
-there were no model or structured-validation errors. Two H100 replicas were used per
-model, sequentially; eight-replica throughput and nonempty skills were not retested.
-See the [formal integration report](../../outputs/validation_history.md#formal_repro_integration_20261012-readme);
-the expanded experiment below describes its diagnostic transport separately.
-
-The expanded Agent check (2026-10-12, completed) makes
-`confirm_vllm_repro_fix.py` reuse the fixed E2E `ENGINE_CONFIG` and `ENVIRONMENT`:
-FlashInfer GDN, native GemmaRMSNorm, memory fraction 0.94 and expandable segments.
-`run_mvagent_replica_repro.py --panel ...` accepts a frozen larger panel;
-`--max-steps 10` increases both Agent decision limits for a separate long-task
-stress run. The regular panel keeps five steps. Both retain the original prompts,
-2048-token call budget, 512-frame limit and intermediate-call/trajectory auditing.
-That expansion used the in-process diagnostic transport; those test drivers did
-not change the production service. The subsequent formal integration is described above. Do not mix its results with the older profile.
-All three BF16 models completed 66 questions over four passes, plus a separate
-eight-question stress panel over four passes: 888 trajectories and 11,544 model
-calls in total. The 666 complete-trajectory comparisons and 9,125 comparisons
-grouped by identical request bytes all matched, including process restarts and
-GPU rotation. Raw-record audits found no model errors or structural-validation
-failures. The longest observed traces reached 37 calls or 10,152 output tokens
-(different questions); 12 calls hit their unchanged output limit and repeated
-identically. This does not establish answer-format compliance or correctness.
-See the [regular Agent audit](../../outputs/repro_expanded_20261012/agent.md),
-[identical-input audit](../../outputs/repro_expanded_20261012/identical_inputs_all.md)
-and [expanded experiment](../../outputs/repro_expanded_20261012/README.md).
-The 330-question E2E expansion is tracked separately there. These finite tests
-do not establish determinism for every input, software version or hardware type.
-
-Superseded inference-configuration results were retired on 2026-10-12.
-See the [historical conclusions and cleanup record](../../outputs/validation_history.md#repro_cleanup_20261012-history).
-Current regression inputs and provenance fixtures remain at their original paths.
+Contract checks use `scripts/test_direct_answer.py`, `scripts/test_e2e_sync.py`,
+`scripts/test_model_token_audit.py`, `scripts/test_prefix_cache_usage.py` and
+`scripts/test_agent_finalize.py`. The short-video regression is `scripts/test_short_video.py`.
+`scripts/verify_direct_answer.py` remains available for a deliberately requested isolated GPU check;
+normal evaluations reuse the accepted repeatability evidence instead of rerunning it every time.
 
 The dataset root is the Modal asset Volume mounted at `/assets`, with `crossvid/`, `cvbench/` and
 `mvu-eval/` subdirectories (names defined in `skill_evolution/infra/benchmarks/catalog.py`).
@@ -163,7 +111,7 @@ model client handles requests; the authored OpenQA scoring prompt is unchanged.
 `--limit N` selects N CVBench and N MVU-Eval questions, and N questions per CrossVid
 task. Omit `--benchmarks` to select all three benchmarks. Both Skills default to off;
 other fixed Skill configurations may be evaluated through the same execution path.
-For Qwen3.5-9B, choose `config_qwen3_5_9b.yaml` and a resource file whose model-pool
+For Qwen3.5-9B, choose `configs/inference/modal_qwen35_9b_no_skill.yaml` and a resource file whose model-pool
 name is `qwen3_5_9b_local`, with matching 9B services; incompatible running services
 are rejected rather than replaced.
 

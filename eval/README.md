@@ -1,6 +1,6 @@
 # Benchmark evaluation
 
-- [CrossVid 2500题目ID](crossvid_2500.json): JSON array of 2500 unique full IDs (`crossvid:<task>:<original_id>`), for filtering the original QA records. This is an ID-only export of the [frozen split manifest](../configs/skill_evolution/splits/crossvid_lite2500_eval_seed20260919.json); use that manifest with `--split-manifest` for Skill evaluation. See the [sampling report](../analysis/skill_evolution/crossvid_lite2500.md) for provenance and boundaries.
+- [CrossVid 2500题目ID](crossvid_2500.json): JSON array of 2500 unique full IDs (`crossvid:<task>:<original_id>`), for filtering the original QA records. This is an ID-only export of the [frozen split manifest](../configs/skill_evolution/splits/crossvid_lite2500_eval_seed20260919.json); use that manifest with `--split-manifest` for Skill evaluation. Selection metadata and original sampling seed are retained in the manifest; reuse these IDs rather than resampling.
 
 `eval/e2e_eval/` is the official-source hub. The separate `eval/agent_eval/`
 directory contains the thin MVAgent-system runner for CVBench, MVU-Eval, and CrossVid; it
@@ -143,11 +143,7 @@ Closed tasks retain their existing scorers. Summary fields distinguish inference
 completion, scored completion and deferred scoring; CrossVid `accuracy` is null until
 its CCQA scores exist, while `scored_subset_accuracy` covers scored questions only.
 
-The full no-Skill run uses `outputs/mvagent/no_skill/qwen3_5_35b_a3b_mvagent_no_skill/`, replacing
-its prior contents as authorized. Its frozen driver and stability checks are under
-`outputs/analysis/20260915_no_skill_full_deferred/`; the driver sets `PYTHONPATH`
-to its frozen source and exports `open_qa_pending.jsonl` in the result directory after
-inference completes. Later DeepSeek-v4-flash judging is a separate, not yet implemented
-step. See [the protocol](../analysis/reports/no_skill_full_deferred_20260915.md).
-
-CrossVid 固定 2500 题历史结果复算：`/home/kww/miniconda3/envs/MVAgent/bin/python scripts/analysis/summarize_crossvid_2500.py`，输出 `outputs/reports/crossvid_2500/report.md` 与逐题 CSV。读取已有预测/Judge，不调用模型。
+Current deferred CCQA judging and finalization use the fixed local Judge described in
+[the Agent evaluation guide](agent_eval/README.md). Historical runs and score comparisons
+are recorded in [the experiment history](../docs/experiments.md); do not reuse their output
+directories for a new run.
