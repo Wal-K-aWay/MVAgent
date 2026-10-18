@@ -30,6 +30,14 @@ Modal CPU `ap-JPzaNPMfQBL6rik8Vjmtb8` rc0：两个实际冻结driver仅一个数
 | Video-RSI | sb-v2by7zEl9SftnW2yv9FIbm | ta-01M570XNYTMCQ7B6TW6KZBVK1S | 08:09:53 |
 | LensWalk | sb-TH9BknFkqijvDBGu3iuwPG | ta-01M570RC8PJNNY94WM708QFJTS | 08:08:13 |
 
-08:11两项都在加载模型，尚无新完整结果；RSI此前短暂等待平台分配已经结束。实际模型就绪与新增结果以新root的progress.json为准，当前尚待启动核验。
+08:20 UTC两项均已进入真实推理，实际每箱8个不同H100 worker的execution/weights_manifest全部等于各自上一批；新manifest及正在执行的冻结driver均确认8路准备。检查结果和该时刻完整progress快照已保存到各root的`parallel_media_startup_audit.json`。
+
+RSI已新增7条正常终答、0新增工程失败，总记录2722；Lens已新增1条正常终答、0新增工程失败，总记录3693。新运行保留的17/5失败均来自旧批次，不能误当成这次新失败。
+
+实际输出举例：RSI NC364答`A`，准备18.94秒/推理51.05秒；MOC443答`D`，准备2.24秒/推理96.32秒；CV235答`A`，准备2.09秒/推理44.40秒。Lens BU759答`AC`，准备3.14秒/推理92.69秒。这里验证完整执行与计时，不以几个答案推断总体准确率。
+
+08:18:42 Lens的NC822/246仍在准备，另外6个worker已经进入推理；BU471/759首请求均HTTP200且cached_tokens=0。普通题没有再被两个长视频占住全部准备名额。RSI当时也有3个长视频准备、5题推理；抽查新MOC443的归档清理记录removed=true，实际临时目录不存在。没有增加预取积压或取消用后删除。
+
+两项后台控制器继续剩余题目、原官方评分/Judge与汇总，并负责最终释放GPU。独立AI巡检只在本会话内，退出后仅host控制器继续。实际后续进度读取新root，不恢复旧2路任务。
 
 八路并发会增加瞬时临时盘占用，并共享CPU带宽；不能保证8张GPU始终满载，也不能把名额增加4倍当作吞吐加速4倍。用后删除解决长期累积，无损编码与长模型输出成本仍存在；最终速度以新记录为准。
