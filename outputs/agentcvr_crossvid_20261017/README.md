@@ -181,3 +181,25 @@ tar -xzf agentcvr-crossvid-results-20261018.tar.gz -C results
 发布已完成：Release tag `agentcvr-crossvid-results-20261018`，目标提交`e75a3ae320a34ab35f06a89de858c55f51644ec6`。10个附件的GitHub服务器大小/digest与本地大小/SHA256逐一一致，逐题答案与完整包的匿名下载HEAD均返回200。附件README固定于发布目标提交；本节是发布后的核验回执，不修改已发布附件及其校验值。
 
 此前TLS故障阻塞的22d1d43/6a8122f报告已随e75a3ae一起补推并核对远端SHA；未更改HTTPS origin或关闭证书校验，仅该次Git调用使用公开DNS查询得到的GitHub地址覆盖解析。数据不入Git；本地附件与核验回执在上述release目录，Modal原件保留。
+
+## 三benchmark精简版与轨迹版体积（2026-10-18）
+
+按用户要求重新整理最终CV997/MVU1824/Cross2500，共5321题，不混入旧H200/失败恢复批次重复题。精简版仅5文件：三个benchmark JSONL、239行ccqa_scores.jsonl，以及只有benchmark统计表的statistics.md。每题仅id/gt/output/seconds；output是raw.answer最后返回原值，保留字符串/数组类型，未加入thought/action、未再次提取。CCQA gt保留原参考答案及评分点，判分文件仅id/score/points/coverage/correctness/status/judge_model。
+
+| 文件 | 精简版字节 | 加完整轨迹字节 |
+|---|---:|---:|
+| cvbench.jsonl | 71412 | 201551222 |
+| mvu_eval.jsonl | 142017 | 566833363 |
+| crossvid.jsonl | 436385 | 1118788457 |
+| ccqa_scores.jsonl | 42494 | 42494 |
+| statistics.md | 531 | 531 |
+| 合计 | 692839 | 1887216067 |
+| gzip level 1整包 | 190343 | 411262426 |
+
+完整轨迹版仍是相同5文件，仅三个benchmark JSONL多trajectory字段，保存history/tools/contexts/calls（含请求响应和token ID）及状态/错误；不包括代码、权重、媒体或独立配置文件。原推理时图片payload已脱敏为校验信息，不能把此包当成含视频/图片的完整媒体副本。
+
+Modal CPU app ap-iBselwnEabF7k5wmH8EVW2完成，rc0。raw SHA与records一致，5321行ID/GT/答案原类型/用时核验通过，239CCQA/757评分点/291.5得分点复核通过。只做序列化和体积测量，未新推理/Judge。
+
+两版在runs `devbox/agentcvr_clean_export_20261018/{compact,with_trajectories}`，各5文件；两tar.gz和size_manifest.json位于该root，管理清单不放进包。精简版5文件已经devbox传回Lightsail `outputs/agentcvr_clean_20261018/`，逐大小/SHA核验及JSONL题数/四字段检查通过；目录没有代码、清单或其他内容。轨迹版留Modal，未替换已有GitHub Release附件。Git只备份本报告及[纯统计表](../agentcvr_clean_20261018/statistics.md)，JSONL不入提交历史。
+
+精简包SHA256 `3d7ab90891f3aa9721392f551f3fc750ee32ca6e20f022029f35abdbc431b39d`；轨迹包SHA256 `42ae8fc418168908b0bc5fe3a909a4e4c771448383ff435d31339c875f0bc14b`。单位换算采用十进制：精简0.692839MB/压缩0.190343MB；轨迹1.887216067GB/压缩411.262426MB。
