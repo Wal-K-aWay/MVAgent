@@ -1,7 +1,8 @@
-"""Small, isolated System-only ablation; production src/configs stay frozen."""
+"""Isolated Global criteria-transfer test; fixed production baseline stays unchanged."""
 import argparse
 import ast
 from collections import Counter, defaultdict
+from contextlib import ExitStack
 from datetime import datetime, timezone
 import difflib
 import hashlib
@@ -21,16 +22,14 @@ import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT/'src'), str(ROOT/'eval/e2e_eval')]
-OUT = Path('/runs/devbox/system_refinements_20261018')
+OUT = Path('/runs/devbox/criteria_transfer_20261018')
 BASE = Path('/runs/devbox/global_short_large_20261017')
 PILOT = Path('/runs/devbox/system_ablation_20261017')
 MODELS = {'9B': '9b', '27B': '27b', '35B-A3B': '35b_a3b'}
-ARMS = ('video_fidelity', 'global_brief')
+ARMS = ('criteria_transfer',)
 GLOBAL = 'src/mvagent/agents/global_agent/prompts.py'
-VIDEO = 'src/mvagent/agents/video_agent/prompts.py'
-AGENT = 'src/mvagent/agents/video_agent/agent.py'
-VIDEO_RULE = 'Keep observations, inferences, and unknowns distinct; preserve uncertainty when summarizing evidence.'
-GLOBAL_RULE = 'Keep explanations brief and focus on evidence that changes the next decision.'
+GLOBAL_RULE = "When delegating, preserve the question's definitions, qualifiers, and decision criteria relevant to that video's requested observations."
+ARCHIVES = Path('/runs/devbox/video_context_storage_20261018')
 REPORT = 'score/ccqa_scores_official_qwen3_30b_a3b.json'
 
 
@@ -66,16 +65,8 @@ def add_system_rule(source, name, rule):
 
 
 def sources(arm):
-    original = {p: (ROOT/p).read_text() for p in (GLOBAL, VIDEO, AGENT)}
-    changed = dict(original)
-    if arm == 'global_brief':
-        changed[GLOBAL] = add_system_rule(original[GLOBAL], 'GLOBAL_AGENT_SYSTEM_PROMPT', GLOBAL_RULE)
-    else:
-        assert arm == 'video_fidelity'
-        changed[VIDEO] = add_system_rule(original[VIDEO], 'VIDEO_PLANNER_SYSTEM_PROMPT', VIDEO_RULE)
-        assert original[AGENT].count('system_prompt="",') == 1
-        changed[AGENT] = original[AGENT].replace('system_prompt="",', f'system_prompt={VIDEO_RULE!r},')
-    return {p: text for p, text in changed.items() if text != original[p]}
+    assert arm == 'criteria_transfer'
+    return {GLOBAL: add_system_rule((ROOT/GLOBAL).read_text(), 'GLOBAL_AGENT_SYSTEM_PROMPT', GLOBAL_RULE)}
 
 
 def select(rows):
@@ -84,9 +75,9 @@ def select(rows):
         groups[row['dataset'], row['task']].append(row)
     rng = random.Random(0)
     ids = []
-    for dataset, count in [('cvbench', 15), ('mvu_eval', 15), ('crossvid', 20)]:
+    for dataset, count in [('cvbench', 30), ('mvu_eval', 30), ('crossvid', 30)]:
         keys = sorted(k for k in groups if k[0] == dataset)
-        quota = {k: 2 if dataset == 'crossvid' else 1 for k in keys}
+        quota = {k: 3 if dataset == 'crossvid' else 2 for k in keys}
         weights = {k: groups[k][0]['task_population'] for k in keys}
         while sum(quota.values()) < count:
             available = [k for k in keys if quota[k] < len(groups[k])]
@@ -96,7 +87,7 @@ def select(rows):
         for key in keys:
             ids.extend(r['sample_id'] for r in rng.sample(groups[key], quota[key]))
     rng.shuffle(ids)
-    assert len(ids) == len(set(ids)) == 50
+    assert len(ids) == len(set(ids)) == 90
     return ids
 
 
@@ -109,35 +100,70 @@ def prepare():
     assert core and all(sha(ROOT/p) == digest for p, digest in core.items())
     assert execution_profile() == prior['profile']
     pilot_ids = set(read(PILOT/'samples.json'))
-    previous = {m: [r for r in read(BASE/'analysis'/f'{m}_paired.json') if r['sample_id'] in pilot_ids] for m in MODELS}
-    assert all(len(rows) == 102 for rows in previous.values())
+    previous = {m: [r for r in read(BASE/'analysis'/f'{m}_paired.json') if r['sample_id'] not in pilot_ids] for m in MODELS}
+    assert all(len(rows) == 1398 for rows in previous.values())
     ids = select(previous['9B'])
-    baseline = {m: [r for r in rows if r['sample_id'] in ids] for m, rows in previous.items()}
-    for rows in baseline.values():
-        assert len(rows) == 50
-        for row in rows:
-            assert sha(row['path']) == row['sha256'], row['path']
+    assert not set(ids) & pilot_ids
+    baseline = {m: [dict(r) for r in rows if r['sample_id'] in ids] for m, rows in previous.items()}
+    assert all(len(rows) == 90 and {r['sample_id'] for r in rows} == set(ids) for rows in baseline.values())
     OUT.mkdir(parents=True)
     write(OUT/'samples.json', ids)
-    write(OUT/'baseline.json', baseline)
     cards = {m: read(PILOT/'global_short'/m/'startup_identity.json') for m in MODELS}
     write(OUT/'baseline_services.json', cards)
     sys.path.insert(0, str(ROOT/'eval/agent_eval'))
     from score_crossvid_ccqa import JUDGE_MODEL, SCORE_PROMPT
     qa = {int(r['id']): r for r in read('/assets/crossvid/QA/CCQA.json')}
-    for model, rows in baseline.items():
-        for row in rows:
-            if row['task'] != 'CCQA':
-                continue
-            item = qa[int(row['sample_id'].rsplit(':', 1)[1])]
-            prompt = SCORE_PROMPT.format(QUESTION=item['question'], ANSWER=item['answer'],
-                POINTS=item['scoring_points'], OUTPUT=row['arms']['direct']['prediction'].strip())
-            key = hashlib.sha256(json.dumps(dict(model=JUDGE_MODEL, prompt=prompt),
-                                           ensure_ascii=False, sort_keys=True).encode()).hexdigest()
-            cached = read(Path(row['path']).parents[3]/'ccqa_judge_cache'/key[:2]/f'{key}.json')
-            assert cached['status'] == 'ok'
-            assert abs(cached['score']/(2*len(cached['coverage']))-row['arms']['direct']['score']) < 1e-8
-            write(OUT/'judge_cache'/model/key[:2]/f'{key}.json', cached)
+    restored = []
+    with ExitStack() as stack:
+        archives = {}
+
+        def baseline_file(path):
+            path = Path(path)
+            if path.is_file():
+                return path
+            rel = path.relative_to(BASE)
+            shard, group, model = rel.parts[:3]
+            assert shard in ('shard0', 'shard1') and group == 'global_short' and model in MODELS
+            name = f'global_short_{shard}_{model}'
+            if name not in archives:
+                metadata = read(ARCHIVES/f'{name}.json')
+                archive = stack.enter_context(tarfile.open(ARCHIVES/f'{name}.tar'))
+                archives[name] = metadata, archive
+            metadata, archive = archives[name]
+            member_name = str(Path(model, *rel.parts[3:]))
+            expected = metadata['entries'][member_name]
+            member = archive.getmember(member_name)
+            assert expected['kind'] == 'file' and member.isfile() and member.size == expected['size']
+            target = OUT/'baseline_files'/rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with archive.extractfile(member) as src, target.open('wb') as dst:
+                shutil.copyfileobj(src, dst)
+            assert sha(target) == expected['sha256'], str(path)
+            restored.append(dict(source=str(path), restored=str(target), sha256=expected['sha256'],
+                                 archive=metadata['archive'], archive_sha256=metadata['archive_sha256']))
+            return target
+
+        for model, rows in baseline.items():
+            for row in rows:
+                row['source_path'] = row['path']
+                row['path'] = str(baseline_file(row['path']))
+                assert sha(row['path']) == row['sha256']
+                raw = read(row['path'])
+                assert raw['status'] == 'ok' and raw['prediction'] == row['arms']['direct']['prediction']
+                stats(raw)
+                if row['task'] != 'CCQA':
+                    continue
+                item = qa[int(row['sample_id'].rsplit(':', 1)[1])]
+                prompt = SCORE_PROMPT.format(QUESTION=item['question'], ANSWER=item['answer'],
+                    POINTS=item['scoring_points'], OUTPUT=row['arms']['direct']['prediction'].strip())
+                key = hashlib.sha256(json.dumps(dict(model=JUDGE_MODEL, prompt=prompt),
+                                               ensure_ascii=False, sort_keys=True).encode()).hexdigest()
+                cached = read(baseline_file(Path(row['source_path']).parents[3]/'ccqa_judge_cache'/key[:2]/f'{key}.json'))
+                assert cached['status'] == 'ok'
+                assert abs(cached['score']/(2*len(cached['coverage']))-row['arms']['direct']['score']) < 1e-8
+                write(OUT/'judge_cache'/model/key[:2]/f'{key}.json', cached)
+    write(OUT/'baseline_restore.json', restored)
+    write(OUT/'baseline.json', baseline)
     for arm in ARMS:
         patches = []
         for p, text in sources(arm).items():
@@ -154,18 +180,18 @@ def prepare():
     commit = (ROOT/'.git/HEAD').read_text().strip()
     assert re.fullmatch(r'[0-9a-f]{40}', commit), 'Stage an immutable detached source checkout'
     manifest = dict(at=now(), commit=commit,
-        baseline_commit='f61946fd9a80daeee025de28b15745605174ab61', profile=execution_profile(),
+        baseline_commit='b399d49e58d994cd82dd23dba26ee96c31a6b334', profile=execution_profile(),
         archive_sha256=sha(OUT/'source.tar.gz'), baseline_sha256=sha(OUT/'baseline.json'),
         samples_sha256=sha(OUT/'samples.json'), baseline_services_sha256=sha(OUT/'baseline_services.json'),
         actor_hashes=core, source_changes={a: {p: sha(OUT/a/'code'/p) for p in sources(a)} for a in ARMS},
-        rules=dict(video_fidelity=VIDEO_RULE, global_brief=GLOBAL_RULE),
-        selection_seed=0, inference_seed=0, reused_baseline=150, new_trajectories=300,
-        per_model=dict(cvbench=15, mvu_eval=15, crossvid=20),
-        expected_hours=.45+1.4*2*sum(r['stats']['seconds'] for rows in baseline.values() for r in rows)/8/3600,
-        selection='Task-stratified subset of the existing 102-question development panel; no outcome selection.',
-        limits='Small screening; one CV sample per task. No confidence claim or universal positive-gain guarantee.')
+        rules=dict(criteria_transfer=GLOBAL_RULE),
+        selection_seed=0, inference_seed=0, reused_baseline=270, new_trajectories=270,
+        per_model=dict(cvbench=30, mvu_eval=30, crossvid=30),
+        expected_hours=.45+1.4*sum(r['stats']['seconds'] for rows in baseline.values() for r in rows)/8/3600,
+        selection='Task-stratified subset of 1500 baseline questions excluding all 102 prior System/Video screening IDs; seed=0, no outcome selection.',
+        limits='Development screening, not independent Test. Small strata; no universal positive-gain or non-inferiority guarantee.')
     write(OUT/'manifest.json', manifest)
-    write(OUT/'progress.json', dict(phase='prepared', at=now(), units={}, expected=300))
+    write(OUT/'progress.json', dict(phase='prepared', at=now(), units={}, expected=270))
     print(json.dumps({k: v for k, v in manifest.items() if k not in ['actor_hashes', 'profile']}), flush=True)
 
 
@@ -175,7 +201,7 @@ def worker():
     assert sha(OUT/'source.tar.gz') == manifest['archive_sha256']
     state = read(OUT/'progress.json')
     assert state['phase'] == 'prepared', 'Do not duplicate or silently resume a controller'
-    work = Path('/work/system-refinements')
+    work = Path('/work/criteria-transfer')
     work.mkdir(exist_ok=False)
     candidates = {}
     for arm in ARMS:
@@ -244,11 +270,10 @@ def worker():
                 cards.append(card)
             assert len({c['worker']['gpu_uuid'] for c in cards}) == 8
             write(service/'startup_identity.json', cards)
-            # Alternate order across models; do not attribute warm-cache timing to the System text.
-            for arm in (ARMS if index % 2 == 0 else ARMS[::-1]):
+            for arm in ARMS:
                 source = candidates[arm]
                 target = OUT/arm/model
-                state['units'][str(target.relative_to(OUT))] = dict(expected=50, finished=0)
+                state['units'][str(target.relative_to(OUT))] = dict(expected=90, finished=0)
                 save('inference', model=model, arm=arm)
                 run([sys.executable, source/'eval/agent_eval/run.py', '--config', service/'config.yaml',
                      '--execution-config', service/'execution.yaml', '--dataset-root', '/assets',
@@ -257,7 +282,7 @@ def worker():
                 rows = [read(p) for p in target.glob('records/*/*/result.json')]
                 assert {r['sample_id'] for r in rows} == set(read(OUT/'samples.json'))
                 errors = [r['sample_id'] for r in rows if r['status'] != 'ok']
-                state['units'][str(target.relative_to(OUT))].update(finished=50, valid=50-len(errors), errors=errors)
+                state['units'][str(target.relative_to(OUT))].update(finished=90, valid=90-len(errors), errors=errors)
                 (target/'ccqa_judge_cache').symlink_to(OUT/'judge_cache'/model, target_is_directory=True)
                 save('unit_completed')
         save('judge_loading', arm=None, model=None)
@@ -285,29 +310,23 @@ def worker():
 
 
 def self_check():
-    for arm in ARMS:
-        patched = sources(arm)
-        assert set(patched) == ({GLOBAL} if arm == 'global_brief' else {VIDEO, AGENT})
-        for path, text in patched.items():
-            original = (ROOT/path).read_text()
-            if path == AGENT:
-                restored = text.replace(f'system_prompt={VIDEO_RULE!r},', 'system_prompt="",')
-                assert restored == original
-            else:
-                before, after = ast.parse(original), ast.parse(text)
-                for tree in [before, after]:
-                    for node in tree.body:
-                        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id.endswith('SYSTEM_PROMPT') for t in node.targets):
-                            node.value = ast.Constant('system')
-                assert ast.dump(before) == ast.dump(after), path
+    patched = sources('criteria_transfer')
+    assert set(patched) == {GLOBAL}
+    before, after = ast.parse((ROOT/GLOBAL).read_text()), ast.parse(patched[GLOBAL])
+    for tree in [before, after]:
+        for node in tree.body:
+            if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'GLOBAL_AGENT_SYSTEM_PROMPT' for t in node.targets):
+                node.value = ast.Constant('system')
+    assert ast.dump(before) == ast.dump(after), 'Only the Global System literal may change'
     rows = [dict(sample_id=f'{dataset}:{task}:{i}', dataset=dataset, task=str(task), task_population=task+1)
             for dataset, tasks in [('cvbench', 15), ('mvu_eval', 8), ('crossvid', 10)]
-            for task in range(tasks) for i in range(3)]
+            for task in range(tasks) for i in range(20)]
     chosen = select(rows)
     assert chosen == select([{**r, 'score': 1, 'prediction': 'ignored'} for r in reversed(rows)])
-    assert Counter(s.split(':')[0] for s in chosen) == dict(cvbench=15, mvu_eval=15, crossvid=20)
+    assert Counter(s.split(':')[0] for s in chosen) == dict(cvbench=30, mvu_eval=30, crossvid=30)
     assert len({s.rsplit(':', 1)[0] for s in chosen}) == 33
-    print('Independent candidates change only their specified System messages; User/schema/Observer unchanged')
+    assert min(Counter(s.rsplit(':', 1)[0] for s in chosen).values()) >= 2
+    print('Only Global System changes; deterministic 90-question outcome-independent stratified selection')
 
 
 def measure(text, record, scorer):
@@ -412,7 +431,7 @@ def analyze():
         report = dict(missing_or_errors=missing, benchmarks={}, stability={})
         result['complete'] &= not missing
         for dataset in ['cvbench', 'mvu_eval', 'crossvid']:
-            paired = [r for r in all_rows if r['dataset'] == dataset and len(r['arms']) == 3]
+            paired = [r for r in all_rows if r['dataset'] == dataset and len(r['arms']) == 1+len(ARMS)]
             if not paired:
                 continue
             scores = {}
@@ -446,7 +465,7 @@ def host():
     import modal
     sys.path.insert(0, str(Path.home()/'wxu-evolve-agent/devbox'))
     import devbox
-    name = 'mvagent-system-refinements-20261018'
+    name = 'mvagent-criteria-transfer-20261018'
     devbox.REPO = str(ROOT)
     devbox.NAME = name
     devbox.STATE = str(Path(devbox.HERE)/f'state-{name}.json')
@@ -460,10 +479,10 @@ def host():
         devbox.main()
         sandbox = devbox._sandbox()
         print('OWNED_SANDBOX', sandbox.object_id, flush=True)
-        devbox.start_job(sandbox, 'system_refinements_20261018', 'python /repo/scripts/system_refinements.py worker')
+        devbox.start_job(sandbox, 'criteria_transfer_20261018', 'python /repo/scripts/criteria_transfer.py worker')
         deadline = time.monotonic()+10200
         while time.monotonic() < deadline:
-            state = json.loads(b''.join(volume.read_file('devbox/system_refinements_20261018/progress.json')))
+            state = json.loads(b''.join(volume.read_file('devbox/criteria_transfer_20261018/progress.json')))
             print(now(), json.dumps(state), flush=True)
             if state['phase'] in ['inference_and_judge_completed', 'failed'] or sandbox.poll() is not None:
                 break
@@ -476,10 +495,10 @@ def host():
             sandbox.terminate(wait=True)
         Path(devbox.STATE).unlink(missing_ok=True)
         print('OWNED_GPU_RELEASED', now(), flush=True)
-    import cpujob
-    command = ('mkdir -p /tmp/system-refinements-analysis && '
-               'tar xzf /runs/devbox/system_refinements_20261018/source.tar.gz -C /tmp/system-refinements-analysis && '
-               'python /tmp/system-refinements-analysis/scripts/system_refinements.py analyze')
+    import criteria_transfer_cpu as cpujob
+    command = ('mkdir -p /tmp/criteria-transfer-analysis && '
+               'tar xzf /runs/devbox/criteria_transfer_20261018/source.tar.gz -C /tmp/criteria-transfer-analysis && '
+               'python /tmp/criteria-transfer-analysis/scripts/criteria_transfer.py analyze')
     with cpujob.app.run(environment_name='zheng-dev'):
         rc, out, err = cpujob.job.remote(command)
     print(out, err, flush=True)

@@ -336,3 +336,30 @@ V 输出 token 比基线多 4.81%，G 少 2.63%；G 最终理由总体变短仍�
 05:43 UTC 申请、06:00 容器就绪，06:59 完成 300 条 Actor 轨迹；07:03:49 Judge 后释放本任务 GPU，
 07:04:22 完成最终分析。Sandbox `sb-EnHLS7BUGVf7Pebo8FgzAL` 已退出，host PID3527878 已退出、state 已清理；
 只释放本任务的 Sandbox，没有停止共享 Modal app。15 分钟独立巡检已结束，本轮无遗留推理任务。
+
+## Global 判定标准传递小测（2026-10-18，准备中）
+
+用户授权在固定框架上继续单因素测试。只测试优先候选“分派时保留题目判定标准”，不同时加入
+“未报告不等于不存在”或修改修复调用。正式基线 `codex/frozen-framework-20261018@b399d49` 不变。
+独立分支 `codex/criteria-transfer-20261018` 复用并收窄上轮驱动，入口 `scripts/criteria_transfer.py`。
+
+候选只在冻结运行副本的 Global System 末尾追加：
+
+> When delegating, preserve the question's definitions, qualifiers, and decision criteria relevant to that video's requested observations.
+
+User、VideoAgent、schema、History、skill 空库、FFmpeg、步数与预算保持基线；不透传完整原题，
+不增加工具或模型调用。现有 User 中的单视频可观察范围与 instruction 字符预算继续有效。
+只要 System 发生变化，也可能改变整体决策轨迹；不能预先声称只影响 instruction 措辞。
+
+- 三模型各 90 道同题：CVBench/MVU-Eval/CrossVid 各 30，新增 270 条完整 Agent 轨迹、复用 270 条基线。
+- 从已测 1500 题中排除前几轮 System/Video 筛选的 102 题，seed=0、按 task 分层、不按成绩筛题。
+  CV 每 task 2 题；Cross 十任务各 3 题（含 3 CCQA）；MVU 每 task 至少 2 题，剩余按总体数量分配。
+  这些仍是开发数据；保留未来未参与调参的独立验证，不用小批声称普遍提升或无损。
+- 唯一新 8×H100 Sandbox 顺序加载 9B、27B、35B-A3B；固定 BF16/TP1/DP1/C1、seed=0、temperature=0、
+  FlashInfer GDN/原生 RMSNorm、prefix/MM processor cache 关闭、整题固定副本。
+- 从既有无压缩归档只提取所选 baseline records 与 CCQA 缓存，逐文件 SHA256 对齐原清单；
+  原归档不修改。原始输出先落盘，使用相同 Judge 与统一官方分，错误单列。
+- 报告三模型九格同题官方分/稳健分、格式/空答、截断/修复与成本，并检查原对新错、原错新对的轨迹。
+  复用既有数值验收；保留实际服务身份和 token/hash 日志，不重新跑双遍全矩阵。
+- 结果仅留 runs volume 的 `devbox/criteria_transfer_20261018/`；本地/Git 仅源码与此汇总。
+  实验完成后释放自有 GPU，并依据结果决定是否扩展；本次不自动替换正式配置。
