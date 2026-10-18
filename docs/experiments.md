@@ -459,7 +459,7 @@ CV 每 task 2 题；MVU 每 task 至少 2 题，剩余按总体数量分配；Cr
   Sandbox `sb-Bn53Xcl4T8xMXXVCcKwInJ` 已以 0 退出，host PID3579522 已退出、state 已清理。
   独立 15 分钟巡检已停止；没有停止共享 app 或影响其他任务，本轮无遗留推理作业。
 
-## 冻结版本完整补测（2026-10-18，准备中）
+## 冻结版本完整补测（2026-10-18，启动中）
 
 用户授权沿用已验收实现补齐完整范围。基线运行时仍为 `e0ace27` 对应的简洁 Global System＋原 VideoAgent；
 `src/`、推理 YAML、Agent 调用与评分入口不改。新增 `scripts/run_full_mvagent.py` 只负责复用、缺题分片、服务生命周期和结果汇总。
@@ -475,4 +475,10 @@ CV 每 task 2 题；MVU 每 task 至少 2 题，剩余按总体数量分配；Cr
 - 完整表与新增题子集分别报告；CV/MVU 按题平均，CrossVid 十任务 macro/CCQA 按评分点加权。E2E 对照沿用 MVU 官方指令移后版本。
 - 这是完整可测范围，包含已使用的开发题，不称为独立 Test。工程失败、未完成及 Judge 失败单列，不当零分或正常负结果重跑。
 
-当前仅完成调度实现，远端检查、继承审计和实际推理尚待验证；不得把本段准备状态当作已经完成补测。
+13:53 UTC，Modal CPU `ap-Cox9ZIa7iv6Kivlocy8aXj` 返回0：分片/评分自检、完整 compileall、相关推理/配置/评分文件与已验收源码的逐文件核对、4500条原始记录 SHA/token/cache/sticky 审计全部通过。源码冻结 `677444b`；源码包 SHA256 `755acec352c176443cd298f1ff9f7104ef6d3fce1ff58f61f0d9d7325f1d714e`，selection SHA256 `7d44fda30efdf5fc310e985e7a4bd05cf1fe05a7e8dc63c56d93393bb400996d`。准备完成时 runs 余55908目录项；不展开旧轨迹，新增记录预计约23000项。两组唯一后台控制器已提交，首批实际推理尚待确认。按旧批平均题时及30%余量，预计约23小时（含加载/评分余量），实际依新批吞吐和平台排队更新。
+
+后台主控制器 PID `3683732`，日志 `~/wxu-evolve-agent/devbox/watch-frozen_full_20261018.log`；
+分片0/1分别拥有 `sb-6mL4G9D1gNw9XRkeBqllpT` / `sb-NAuJ2rA0X1k5J5YfmPRrOU`。
+13:57 UTC分片1在8张实际H100上加载9B，分片0等待执行，未重复申请。
+按剩余CV497/MVU1324/Cross2000分别加权历史题时：16卡理想17.60小时，加30%余量及加载/评分约23.88小时。
+这是运行前估计，不包含异常平台排队；后台控制器支持跨23小时边界继续同一冻结输入。
