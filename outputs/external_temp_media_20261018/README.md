@@ -24,6 +24,25 @@ CPU `ap-YMN61EvBKFPM45r71ft0cM` rc0。比较/临时清理自检、完整compilea
 
 全部为stream copy，只有每种存储一次测量，未清空操作系统文件缓存；不能声称稳定加速倍率。记录包含容器最终时间、媒体源SHA和全部处理参数。普通视频临时文件不再长期保留是确定的生命周期行为；性能结论还需结合实际推理和长视频结果。
 
+FSA394实际包含1280×720和320×240两段，保留各自尺寸与帧时间；该例覆盖不同尺寸的原生拼接，没有额外缩放。
+
+## 模型对照（03:49 UTC 中间快照）
+
+LensWalk 8/8 rollout完成，四对最终答案和模型调用多重集合全部相同：配对键包含实际prompt token、图片载荷哈希及完整输出token。PSS341的日志顺序也相同；其余三题的并发回包顺序不同，不把它们描述为逐行原始轨迹一致。没有工程失败。
+
+| 题目 | LensWalk持久卷秒 | LensWalk临时盘秒 | Video-RSI持久卷秒 | Video-RSI临时盘秒 |
+|---|---:|---:|---:|---:|
+| CV764 | 115.67 | 127.91 | 91.70 | 77.38 |
+| MVU TR1585 | 114.18 | 102.82 | 47.45 | 63.37 |
+| Cross PSS341 | 85.05 | 94.70 | 未完成 | 未完成 |
+| Cross FSA394 | 183.02 | 169.81 | 未完成 | 536.68 |
+
+LensWalk四题平均124.48→123.81秒，约−0.5%，没有明显推理提速证据。已完成的两对RSI均为完整有序输入/输出token及最终答案相同。交替存储顺序后，当前所有完整对照的第二臂都更快，不能把暖机、OS缓存和并行负载的影响归给存储位置。
+
+LensWalk FSA两臂均有一次相同的`scan_observer`参数错误（同时给出`num_slices`和`slice_duration_sec`），模型随后继续并完成；这属于原模型工具使用问题，原样保留，不与HTTP或媒体处理故障混为一谈。
+
+RSI剩余Cross题出现原模型长输出：FSA一条决策8192 token/470.12秒，PSS一条视觉报告8192 token/455.29秒，均正常HTTP200但触及生成上限。没有缩短预算、修复答案或重跑择优；这类成本不是更换媒体存储能够消除的。
+
 ## 正在执行
 
 长视频CPU `ap-AuderUvPvpTTySlTs6RSHk`，状态为root的`long_progress.json`。GPU Sandbox `sb-KUxaZqr271wyFhr33lZam7`，DEVBOX_NAME=`mvagent-external-temp-media-20261018`，host watcher3479504，日志`watch-external_temp_media_20261018.log`。实际阶段以`rsi/progress.json`和`lenswalk/progress.json`为准；顶层parent在子进程结束前可能保留starting_models。
