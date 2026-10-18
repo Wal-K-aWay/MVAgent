@@ -222,3 +222,18 @@ SkyRL的IsoExec也在8×H100上研究了Qwen3.5-35B-A3B的GDN及并行规约，�
 本项目按上述固定评测配置验收，固定权重、镜像、硬件、媒体字节、processor/tokenizer、prompt、
 生成参数和调度配置；比较完整 token、输入哈希与 Agent 轨迹，并覆盖重启与换卡。
 上述外部研究记录核对于2026-10-10，仅作为方法来源；本项目实测以本文件固定配置记录为准。
+
+## 两项 System 微调小测（2026-10-18，进行中）
+
+从冻结`f61946f`独立实验，不改变正式基线。入口`scripts/system_refinements.py`，结果仅写
+`/runs/devbox/system_refinements_20261018`。V与G分别以基线为起点，不叠加：
+
+- V：Video Planner System追加 `Keep observations, inferences, and unknowns distinct; preserve uncertainty when summarizing evidence.`；步数耗尽的Video总结原来System为空，现在仅使用同一句规则。正常finish同Planner决策生成，因此该规则也可能影响下一次观察，不能把变化仅归于摘要措辞。
+- G：Global System追加 `Keep explanations brief and focus on evidence that changes the next decision.`，主动与强制终答自然沿用；Video完全不变。
+- 两组User、视觉Observer、schema、参数预算、History、FFmpeg和数值profile不变。生成的候选源码及精确patch、源提交/哈希在新运行根冻结，不给正式配置增加实验开关。
+- 三模型每组50题（CV15、MVU15、Cross20含2CCQA），共300新轨迹；同题基线150条来自已完成简洁Global面板。只按题型/人口权重和seed0选题，不按结果选题。CV每task只有1题，不能用本批声称普遍收益或可靠置信区间。
+- 使用独立8×H100顺序加载三模型，同模型复用服务；两候选顺序跨模型轮换。身份/权重/固定profile与历史基线逐卡校验，整题单卡、每卡C1、prefix关闭。既有其他任务不变。
+- 同模型两候选共享Judge缓存，并按完整评分Prompt预填入所选基线CCQA缓存；相同答案不因重新Judge引入分差。旧原始记录只读，基础设施失败与模型错误输出分开。
+- 报告同题官方分（CV/MVU按task人口加权，Cross十task macro/CCQA评分点加权）、稳健提取、格式/空答、截断、修复、调用/token与耗时。小批通过后才考虑扩测；不自动替换基线。
+
+当前：源码准备完成，生成及抽样自检通过；实际推理/评分尚未完成，以下以实测终态补充。
