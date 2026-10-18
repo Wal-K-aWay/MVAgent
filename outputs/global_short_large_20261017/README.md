@@ -91,3 +91,7 @@ host控制器PID3183066，路径`~/wxu-evolve-agent/devbox/global-short-large-co
 原已验收基线标签`baseline/mvagent-direct-20261017`、共享代码冻结分支及此前所有结果不改写。实验分支`codex/global-short-large-20261017`。以上启动记录当时尚未完成27B/35B及最终评分，现以文首完整结果为准。
 
 后续待办：[VideoAgent 题目背景与职责边界实验计划](video_context_plan.md)。等本批推理、Judge 和汇总完成后再开展，目前仅保存设计，未启动该对照。
+
+## 2026-10-18 存储归档
+
+为下一轮Video实验恢复runs文件配额，已完成的两shard×三模型目录无损归档至`devbox/video_context_storage_20261018/global_short_shard{0,1}_{model}.tar`及逐文件SHA清单。原始答案与评分字节保持不变，分析表/总冻结源码/分片progress仍在原处；历史分析表中的散文件路径需通过对应tar读取或恢复后访问。模型`src`重复副本从总冻结源码恢复。详见[存储清单](../video_context_20261018/README.md#既有结果的无损存储整理)，没有重新推理或评分。
