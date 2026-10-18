@@ -236,4 +236,11 @@ SkyRL的IsoExec也在8×H100上研究了Qwen3.5-35B-A3B的GDN及并行规约，�
 - 同模型两候选共享Judge缓存，并按完整评分Prompt预填入所选基线CCQA缓存；相同答案不因重新Judge引入分差。旧原始记录只读，基础设施失败与模型错误输出分开。
 - 报告同题官方分（CV/MVU按task人口加权，Cross十task macro/CCQA评分点加权）、稳健提取、格式/空答、截断、修复、调用/token与耗时。小批通过后才考虑扩测；不自动替换基线。
 
-当前：源码准备完成，生成及抽样自检通过；实际推理/评分尚未完成，以下以实测终态补充。
+准备已完成：冻结源码`65829c9`，源码包SHA256 `2b0f0454de5281ec693b88839804aa6cfc4eabbbf38bd6d9f615961eb20d9b9b`；
+CPU `ap-A6V4tLs5TuXtLnP2hCCZFJ` prepare与System/抽样检查rc0，
+`ap-EqphXprvu3zcIOmVhtIGHE`核对144闭式评分/格式和150条基线token/sticky/cache记录全部通过。
+首次prepare因CPU镜像无git命令而终止，0模型调用，原记录在`system_refinements_20261018_prepare_initial`；改读冻结HEAD后完成。
+05:43 UTC独立Sandbox `sb-EnHLS7BUGVf7Pebo8FgzAL`已申请，host PID3527878，
+日志`~/wxu-evolve-agent/devbox/watch-system-refinements-20261018.log`。初始仍等待容器执行，尚无新轨迹；
+按旧同题耗时估就绪后约1.6小时，排队另计。控制器依次执行三模型/两候选、Judge、释放本任务GPU、CPU汇总。
+实际推理/评分尚未完成，不以提交成功声称测试通过。
