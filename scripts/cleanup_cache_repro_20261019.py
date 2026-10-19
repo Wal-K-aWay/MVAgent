@@ -34,6 +34,8 @@ TARGETS=[ROOT/n for ns in GROUPS.values() for n in ns]
 PROTECTED=[]
 ALIASES={'mvagent_full_20261014_transport/media':'mvagent_full_20261013/media',
          'e2e_full_20261013_timeout/media':'e2e_full_20261012/media'}
+ALIASES.update({f'mvu_instruction_after_20261014/media/rank{i}/code-806a8aa13418/mvu_eval_frames':
+                f'e2e_full_20261012/media/rank{i}/code-806a8aa13418/mvu_eval_frames' for i in range(8)})
 ACTIVE_ROOTS=['frozen_full_20261018','frozen_full_recovery_20261019',
               'rsi_full_35b_parallel_media_20261018','lenswalk_full_9b_20261019','lenswalk_full_27b_20261019']
 KEEP_DIRS={'.git','frozen_repo','frozen','source','source_cached','src','scripts','configs','eval'}
@@ -198,14 +200,14 @@ def prepare():
 def include_inactive_aliases():
     plan=json.loads((AUDIT/'plan.json').read_text())
     assert not (AUDIT/'plan_before_alias_review.json').exists()
-    cache_roots=[ROOT/n for n in ALIASES.values()]
+    cache_roots=[ROOT/'mvagent_full_20261013/media',ROOT/'e2e_full_20261012/media']
     for ref in plan['inbound_references']:
         if within(Path(ref['target']),cache_roots):assert ref['source'] in [str(ROOT/n) for n in ALIASES],ref
     aliases=[]
     for name,target in ALIASES.items():
         path=ROOT/name;cache=ROOT/target
         assert path.is_symlink() and normalized_target(path)==cache
-        state=json.loads((path.parent/'progress.json').read_text())
+        state=json.loads((ROOT/name.split('/')[0]/'progress.json').read_text())
         assert state['phase'] in {'failed','completed','completed_with_recorded_failures'},state['phase']
         aliases.append(dict(path=str(path),link=os.readlink(path),target=str(cache),owner_phase=state['phase']))
     for name in ACTIVE_ROOTS:

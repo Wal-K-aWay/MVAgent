@@ -10,6 +10,6 @@
 
 当前RSI、新LensWalk9B/27B、冻结MVAgent全量及恢复根均不在候选中。旧缓存删除后，已有成绩仍可从保留记录重新汇总；旧媒体路径与被退役复现实验无法直接重放，重新推理需要重建输入并重新核验。精确JSON审计仅保留runs devbox/cache_repro_cleanup_20261019。
 
-补跑缓存别名也在本次授权范围：`mvagent_full_20261014_transport/media`指向旧Agent缓存，原任务已failed；`e2e_full_20261013_timeout/media`指向固定E2E缓存，原任务已completed_with_recorded_failures。只移除这两个缓存符号链接，补跑结果目录仍保留并加入SHA核验。初始保护计划单独保存，修改计划时再次检查当前任务manifest不能引用这些缓存。
+补跑缓存别名也在本次授权范围：`mvagent_full_20261014_transport/media`指向旧Agent缓存，原任务已failed；`e2e_full_20261013_timeout/media`指向固定E2E缓存，原任务已completed_with_recorded_failures。另有已完成的`mvu_instruction_after_20261014`通过8个rank链接复用同一E2E帧缓存。总计只移除10个缓存符号链接，三个相关批次的答案/评分目录均保留并加入SHA核验。初始保护计划单独保存，修改计划时再次检查当前任务manifest不能引用这些缓存。
 
 状态：准备中，尚未删除。历史报告先推送GitHub，再执行删除。
