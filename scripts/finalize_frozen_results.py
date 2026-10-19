@@ -57,7 +57,7 @@ def prepare():
     assert set(e2e)==set(records)
     inherited={r['sample_id']:r['sha256'] for r in read(RUN/'inheritance.json')['inherited'] if r['model']==MODEL}
     if MODEL=='27B':
-        inherited['crossvid:MOC:552']=read(RUN/'analysis/recovery_smoke.json')['new_result_sha256']
+        inherited['crossvid:MOC:552']=read(RUN/'analysis/recovery_smoke.json')['new_sha256']
     jobs=[(shard,sid) for shard,ids in enumerate(selection['partitions']) for sid in ids]
     def compact(job):
         shard,sid=job
