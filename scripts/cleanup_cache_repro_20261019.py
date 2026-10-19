@@ -45,7 +45,8 @@ image=modal.Image.debian_slim().add_local_dir(
 
 
 def within(path,roots):
-    return any(path==root or root in path.parents for root in roots)
+    ancestors={path,*path.parents}
+    return any(root in ancestors for root in roots)
 
 
 def normalized_target(path):
@@ -54,10 +55,14 @@ def normalized_target(path):
 
 
 def deletions(root,protected):
-    if any(root==p or p in root.parents for p in protected):return []
-    if not any(root in p.parents for p in protected):return [root]
-    assert root.is_dir() and not root.is_symlink()
-    return [p for child in sorted(root.iterdir()) for p in deletions(child,protected)]
+    keep=set(protected)
+    ancestors={parent for p in keep for parent in p.parents}
+    def walk(p):
+        if any(a in keep for a in (p,*p.parents)):return []
+        if p not in ancestors:return [p]
+        assert p.is_dir() and not p.is_symlink()
+        return [item for child in sorted(p.iterdir()) for item in walk(child)]
+    return walk(root)
 
 
 def inventory(root):
@@ -178,7 +183,8 @@ def prepare():
         plan.append(dict(root=str(target),delete=[str(p) for p in paths],inventory=rows,**totals(rows)))
         print('PLANNED',str(target.relative_to(ROOT)),totals(rows),flush=True)
     paths=result_files()
-    assert paths and all(not within(p,[Path(x) for item in plan for x in item['delete']]) for p in paths)
+    deleting={Path(x) for item in plan for x in item['delete']}
+    assert paths and all(not any(a in deleting for a in (p,*p.parents)) for p in paths)
     print('HASHING_RETAINED_RESULTS',len(paths),flush=True)
     with ThreadPoolExecutor(max_workers=12) as pool:hashes=dict(zip(map(str,paths),pool.map(file_sha,paths)))
     record=dict(at=time.time(),groups=GROUPS,plan=plan,protected=list(map(str,protected)),
@@ -263,6 +269,8 @@ def self_test():
         (root/'result.json').write_text('retire')
         (root/'outside_link').symlink_to('/tmp')
         selected=deletions(root,[keep]);assert keep not in selected
+        assert deletions(keep,[root])==[]
+        assert within(keep,[root]) and not within(root,[keep])
         rows=[r for p in selected for r in inventory(p)]
         assert len(rows)==2 and totals(rows)['files']==1
         for p in selected:p.unlink()
