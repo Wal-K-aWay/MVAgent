@@ -514,3 +514,10 @@ Qwen3VLProcessor随后报错并关闭固定副本。这不是模型答案格式�
 - 新汇总引用原分片0与恢复分片1，补齐未Judge的CCQA，再统计15963条；每份源快照和原失败记录保留。
 
 当前修复已写入隔离工作树，合成/真实单帧CPU回归及恢复GPU首题尚待验证。旧的24小时估计已经失效，恢复后重估。
+
+06:37 UTC恢复CPU检查返回0：新增1帧/8FPS回归通过（此前的5帧/30FPS及普通90帧路径也通过）、
+完整compileall与分片/评分自检通过；1909条成功原始结果SHA/token/cache0/sticky核验后以引用继承，
+唯一失败TR1416保留在原目录。恢复源码冻结`a0150f7`，源码包SHA256
+`7cd134bbe0deed652dda9925ff666c26e59516a4ba3dd6dc44b3ab5b49a7a63f`；selection与baseline SHA仍同原批。
+恢复manifest的原始容量/ETA字段明确标为parent历史值，不作为当前余量/耗时证明。
+新分片1的唯一控制器已启动；实际失败题的GPU恢复仍待确认。分片0原源码续跑已拿到`sb-eiSumhObPP38RHbSKX6nO4`，正在加载27B。

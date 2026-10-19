@@ -93,6 +93,8 @@ def prepare():
         parent_manifest_sha256=sha(PARENT/'manifest.json'), inherited_shard1=1909,
         changes={media: 'Require at least two encoded frames even when requested FPS exceeds source FPS.'},
         shard_sources={'0': str(PARENT/'source.tar.gz'), '1': str(OUT/'source.tar.gz')})
+    manifest['parent_free_inodes_at_original_prepare'] = manifest.pop('free_inodes')
+    manifest['parent_expected_hours_at_original_prepare'] = manifest.pop('expected_hours')
     write(OUT/'manifest.json', manifest)
     write(OUT/'progress.json', dict(phase='prepared', at=now(), inherited_panel=4500, inherited_shard1=1909, expected=15963))
     print(json.dumps({k:v for k,v in manifest.items() if k not in ['actor_hashes','profile']}), flush=True)
