@@ -117,14 +117,14 @@ def judge():
     os.environ['JUDGE_LOG_DIR'] = str(OUT/'judge_servers')
     try:
         write(OUT/'progress.json', dict(phase='judge_loading', at=now()))
-        subprocess.run(['bash', frozen/'eval/agent_eval/serve_ccqa_judge.sh', '0-7', '8400'], check=True)
+        subprocess.run(['bash', frozen/'eval/agent_eval/serve_ccqa_judge.sh', '0-3', '8400'], check=True)
         counts = []
         selection = read(RUN/'selection.json')
         for i, ids in enumerate(selection['partitions']):
             target = RUN/f'shard{i}'/MODEL
             expected = {int(s.rsplit(':',1)[1]) for s in ids if s.startswith('crossvid:CCQA:')}
             write(OUT/'progress.json', dict(phase='judging', shard=i, expected=len(expected), at=now()))
-            subprocess.run([sys.executable, frozen/score_source, '--output', target, '--endpoints', '8400-8407'], check=True)
+            subprocess.run([sys.executable, frozen/score_source, '--output', target, '--endpoints', '8400-8403'], check=True)
             result = read(target/REPORT)
             assert not result['failed_ids'] and {r['id'] for r in result['samples']}==expected
             assert all(r['status']=='ok' for r in result['samples'])
