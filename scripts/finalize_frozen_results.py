@@ -1,4 +1,4 @@
-"""Finish the frozen 9B Judge and export AgentCVR-shaped result files on Modal."""
+"""Finish a frozen model Judge and export AgentCVR-shaped result files on Modal."""
 import argparse
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
@@ -21,8 +21,80 @@ from run_full_e2e import now, read, write, sha
 
 SOURCE = Path(__file__).resolve().parents[1]
 RUN = Path('/runs/devbox/frozen_full_final_20261019')
-OUT = Path('/runs/devbox/frozen_9b_results_20261019')
+MODEL = os.environ.get('MVAGENT_EXPORT_MODEL', '9B')
+assert MODEL in {'9B', '27B'}
+SLUG = MODEL.lower()
+OUT = Path('/runs/devbox') / f'frozen_{SLUG}_results_20261019'
 REPORT = 'score/ccqa_scores_official_qwen3_30b_a3b.json'
+
+
+def prepare():
+    """Freeze raw references and compare original answer strings with the same E2E IDs."""
+    import run_full_mvagent as core
+    from skill_evolution.infra.benchmarks.catalog import load_multibench_records, build_official_scorer
+    assert not (OUT/'paired.json').exists(), 'Never overwrite the input snapshot'
+    OUT.mkdir(exist_ok=True)
+    manifest=read(RUN/'manifest.json')
+    assert sha(RUN/'baseline.json')==manifest['baseline_sha256']
+    selection=read(RUN/'selection.json')
+    records=load_multibench_records('/assets', selection['ids'])
+    scorer,identity=build_official_scorer(records,{})
+    baseline=read(RUN/'baseline.json')[MODEL]
+    assert len(baseline)==1500
+    original={r['sample_id']:r for r in baseline}
+    e2e_root=core.E2E[MODEL]
+    after=Path('/runs/devbox/mvu_instruction_after_20261014')/MODEL
+    e2e,source_hashes={},{}
+    scored={r['sample_id']:r for ds in core.EXPECTED for r in read(e2e_root/'scored'/f'{ds}.json')}
+    for ds in core.EXPECTED:
+        path=(after if ds=='mvu_eval' else e2e_root)/'raw'/f'{ds}.jsonl'
+        source_hashes[str(path)]=sha(path)
+        for line in path.read_text().splitlines():
+            row=json.loads(line)
+            if row['sample_id'] in records:
+                assert row['status']=='ok'
+                assert row['sample_id'] not in e2e
+                e2e[row['sample_id']]=row
+    assert set(e2e)==set(records)
+    inherited={r['sample_id']:r['sha256'] for r in read(RUN/'inheritance.json')['inherited'] if r['model']==MODEL}
+    if MODEL=='27B':
+        inherited['crossvid:MOC:552']=read(RUN/'analysis/recovery_smoke.json')['new_result_sha256']
+    jobs=[(shard,sid) for shard,ids in enumerate(selection['partitions']) for sid in ids]
+    def compact(job):
+        shard,sid=job
+        path=RUN/f'shard{shard}'/MODEL/'records'/records[sid].dataset/sid/'result.json'
+        data=path.read_bytes();digest=hashlib.sha256(data).hexdigest();raw=json.loads(data)
+        assert raw['status']=='ok' and raw['sample_id']==sid
+        if sid in inherited: assert digest==inherited[sid],sid
+        prediction=raw['result']['answer']['answer']
+        assert prediction==raw['prediction'],sid
+        return dict(sample_id=sid,path=str(path),sha256=digest,prediction=prediction,
+                    stats=core.stats(raw),saved_score=raw['score'],reused=False)
+    rows=[dict(sample_id=r['sample_id'],path=r['path'],sha256=r['sha256'],
+               prediction=r['arms']['direct']['prediction'],stats=r['stats'],
+               saved_score=r['arms']['direct']['score'],reused=True) for r in baseline]
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        rows.extend(pool.map(compact,jobs))
+    assert len(rows)==len({r['sample_id'] for r in rows})==5321
+    paired=[]
+    for row in rows:
+        sid=row['sample_id'];record=records[sid];prediction=row['prediction'];before=e2e[sid]['output']
+        if record.native_task=='CCQA':
+            agent=dict(prediction=prediction,score=row['saved_score'],format_ok=None,
+                       empty=not prediction.strip(),brace_only=prediction.strip()=='}')
+            previous=dict(prediction=before,score=scored[sid]['score'],format_ok=None,empty=not before.strip())
+        else:
+            agent=core.measure(prediction,record,scorer)
+            previous=core.measure(before,record,scorer)
+            assert abs(agent['score']-row['saved_score'])<1e-9,sid
+        paired.append(dict(row,dataset=record.dataset,task=record.native_task,
+                           points=len(record.sample.ground_truth),agent=agent,e2e=previous))
+    write(OUT/'raw_sha256.json',{r['sample_id']:r['sha256'] for r in rows})
+    write(OUT/'paired.json',paired)
+    write(OUT/'input_manifest.json',dict(at=now(),model=MODEL,samples=5321,
+        source_sha256=sha(Path(__file__)),run_manifest_sha256=sha(RUN/'manifest.json'),
+        e2e_raw_sha256=source_hashes,scorer=identity))
+    print('INPUT_SNAPSHOT_VERIFIED',MODEL,len(paired),flush=True)
 
 
 def judge():
@@ -31,7 +103,7 @@ def judge():
     frozen = OUT/'judge_source'
     frozen.mkdir()
     names = ['eval/agent_eval/serve_ccqa_judge.sh', 'eval/agent_eval/score_crossvid_ccqa.py',
-             'scripts/finalize_frozen_9b.py']
+             'scripts/finalize_frozen_results.py']
     for name in names:
         dest = frozen/name
         dest.parent.mkdir(parents=True, exist_ok=True)
@@ -46,14 +118,14 @@ def judge():
     os.environ['JUDGE_LOG_DIR'] = str(OUT/'judge_servers')
     try:
         write(OUT/'progress.json', dict(phase='judge_loading', at=now()))
-        subprocess.run(['bash', frozen/'eval/agent_eval/serve_ccqa_judge.sh', '0-3', '8400'], check=True)
+        subprocess.run(['bash', frozen/'eval/agent_eval/serve_ccqa_judge.sh', '0-7', '8400'], check=True)
         counts = []
         selection = read(RUN/'selection.json')
         for i, ids in enumerate(selection['partitions']):
-            target = RUN/f'shard{i}/9B'
+            target = RUN/f'shard{i}'/MODEL
             expected = {int(s.rsplit(':',1)[1]) for s in ids if s.startswith('crossvid:CCQA:')}
             write(OUT/'progress.json', dict(phase='judging', shard=i, expected=len(expected), at=now()))
-            subprocess.run([sys.executable, frozen/score_source, '--output', target, '--endpoints', '8400-8403'], check=True)
+            subprocess.run([sys.executable, frozen/score_source, '--output', target, '--endpoints', '8400-8407'], check=True)
             result = read(target/REPORT)
             assert not result['failed_ids'] and {r['id'] for r in result['samples']}==expected
             assert all(r['status']=='ok' for r in result['samples'])
@@ -100,18 +172,12 @@ def export():
     files=OUT/'files'
     assert not files.exists(), 'Never overwrite a verified package'
     files.mkdir()
-    comparison_root=Path('/runs/devbox/frozen_full_9b_comparison_raw_20261019')
-    paired=read(comparison_root/'paired.json')
-    base={r['sample_id']:r for r in read(RUN/'baseline.json')['9B']}
+    paired=read(OUT/'paired.json')
+    base={r['sample_id']:r for r in read(RUN/'baseline.json')[MODEL]}
     selection=read(RUN/'selection.json')
     expected={'cvbench':997,'mvu_eval':1824,'crossvid':2500}
     assert len(paired)==len({r['sample_id'] for r in paired})==5321
-    old_recovery=Path('/runs/devbox/frozen_full_recovery_20261019')
-    expected_sha={sid:r['sha256'] for sid,r in base.items()}
-    for root in [RUN,old_recovery]:
-        expected_sha.update({r['sample_id']:r['sha256'] for r in read(root/'inheritance.json')['inherited'] if r['model']=='9B'})
-    smoke=read(old_recovery/'analysis/recovery_smoke.json')
-    expected_sha['mvu_eval:TR:1416']=smoke['new_result_sha256']
+    expected_sha=read(OUT/'raw_sha256.json')
     assert set(expected_sha)==set(selection['ids'])
     truth={f"cvbench:{r['id']}":r['answer'] for r in read(Path('/assets/cvbench/QAs.json'))}
     truth.update({f"mvu_eval:{r['task']}:{r['id']}":r['answer'] for r in read(Path('/assets/mvu-eval/QAs.json'))})
@@ -137,7 +203,7 @@ def export():
                 if path.exists(): report=read(path)
                 else:
                     ref=row['provenance']
-                    report=json.loads(archive_bytes(ref['archive'],'9B/'+REPORT))
+                    report=json.loads(archive_bytes(ref['archive'],MODEL+'/'+REPORT))
                 assert not report['failed_ids']
                 reports[str(path)]={r['id']:r for r in report['samples']}
             result=reports[str(path)][int(sid.rsplit(':',1)[1])]
@@ -200,14 +266,14 @@ def export():
     summary={ds:dict(n=expected[ds],agent=score([r for r in scored if r['dataset']==ds],'agent'),
         e2e=score([r for r in scored if r['dataset']==ds],'e2e'),
         seconds=sum(r['stats']['seconds'] for r in paired if r['dataset']==ds)/expected[ds]) for ds in expected}
-    lines=['# MVAgent Qwen3.5-9B：最终答案与文本轨迹','',
+    lines=[f'# MVAgent Qwen3.5-{MODEL}：最终答案与文本轨迹','',
         '| Benchmark | 题数 | MVAgent得分（%） | 同题E2E（%） | 差值（pp） | 平均每题用时（秒） |',
         '|---|---:|---:|---:|---:|---:|']
     for ds,s in summary.items():
         lines.append(f"| {ds} | {s['n']} | {s['agent']*100:.2f} | {s['e2e']*100:.2f} | {(s['agent']-s['e2e'])*100:+.2f} | {s['seconds']:.2f} |")
-    lines += ['', '所有5321题推理成功，239条CCQA均已评分；0空答案、0仅右花括号。',
+    lines += ['', f"所有5321题推理成功，239条CCQA均已评分；空答案{sum(r['agent']['empty'] for r in paired)}、仅右花括号{sum(r['agent']['brace_only'] for r in paired)}。",
         'CV/MVU按题平均；CrossVid十任务等权macro，CCQA按评分点加权。',
-        'MVU E2E用官方指令移后；CV双方采用已有YES/NO选项映射，原E2E发布表62.09%，统一映射后62.49%。',
+        'MVU E2E用官方指令移后；CV双方采用已有YES/NO选项映射，原始发布文件不改。',
         '包含1500条复用开发题与3821条补测，不能称为独立Test。', '',
         '## 文件与字段', '',
         '`cvbench.jsonl`、`mvu_eval.jsonl`、`crossvid.jsonl`每行：',
@@ -221,13 +287,13 @@ def export():
         '## 来源', '',f'导出根：`{OUT}`；完整输入映射、逐文件SHA与原件SHA见根目录manifest.json。',
         f'原始运行：`{RUN}`，按baseline/inheritance保留各自源快照。',
         '固定BF16/8个独立H100 TP1 DP1 C1、seed0、temperature0、FlashInfer GDN、prefix/MM cache关闭。',
-        '9B主要源677444b；单帧TR1416采用a0150f7补帧恢复；旧1500面板沿用e0ace27对应协议。',
+        '各题沿用自己的冻结源码；旧1500面板对应e0ace27，补测及媒体恢复来源见manifest和原始运行审计。',
         'Judge沿用Qwen3-30B-A3B-Instruct-2507及原官方Prompt/生成设置；旧50评分保留，新189缓存到原分片。']
     (files/'statistics.md').write_text('\n'.join(lines)+'\n')
     write(OUT/'comparison.json',dict(at=now(),complete=True,benchmarks=summary,ccqa_judged=239))
     write(OUT/'paired_scored.json',paired)
     entries=[dict(name=p.name,bytes=p.stat().st_size,sha256=sha(p)) for p in sorted(files.iterdir())]
-    archive=OUT/'mvagent-9b-results-with-trajectories-20261019.tar.gz'
+    archive=OUT/f'mvagent-{SLUG}-results-with-trajectories-20261019.tar.gz'
     with archive.open('wb') as handle,gzip.GzipFile(filename='',fileobj=handle,mode='wb',compresslevel=1,mtime=0) as compressed,tarfile.open(fileobj=compressed,mode='w|') as pack:
         for entry in entries: pack.add(files/entry['name'],arcname=entry['name'])
     write(OUT/'manifest.json',dict(at=now(),samples=5321,counts=expected,ccqa=239,source_sha256=sha(Path(__file__)),
@@ -266,43 +332,7 @@ def verify():
     print(json.dumps(read(OUT/'verified.json')),flush=True)
 
 
-def complete():
-    """Dev-box-only owner for CPU export after the independent Judge releases its GPUs."""
-    import fcntl
-    import time
-    import modal
-    here=Path('/tmp/mvagent-9b-results-20261019')
-    lock=(here/'complete.lock').open('w')
-    fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
-    volume=modal.Volume.from_name('wxu-evolve-agent-runs-20261006',environment_name='zheng-dev')
-    state=Path.home()/'wxu-evolve-agent/devbox/state-mvagent-frozen-9b-judge-20261019.json'
-    missing_owner=0
-    while True:
-        try:
-            finished=json.loads(b''.join(volume.read_file('devbox/frozen_9b_results_20261019/judge_complete.json')))
-        except FileNotFoundError:
-            finished=None
-        if finished is not None and not state.exists():
-            assert finished['new_judged']==189
-            break
-        try:
-            os.kill(int((here/'controller.pid').read_text()),0)
-            missing_owner=0
-        except ProcessLookupError:
-            missing_owner+=1
-            assert missing_owner<3, 'Judge owner exited without a committed completion marker'
-        print(now(), 'waiting_for_judge_and_gpu_release',flush=True)
-        time.sleep(45)
-    sys.path.insert(0,str(Path.home()/'wxu-evolve-agent/devbox'))
-    import frozen_9b_results_cpu as cpu
-    with cpu.app.run(environment_name='zheng-dev'):
-        rc,out,err=cpu.job.remote('python scripts/finalize_frozen_9b.py self-check && python scripts/finalize_frozen_9b.py export && python scripts/finalize_frozen_9b.py verify')
-    print(out,err,flush=True)
-    assert rc==0,rc
-    print('PACKAGE_VERIFIED',now(),flush=True)
-
-
 if __name__ == '__main__':
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode',choices=['judge','export','verify','self-check','complete'])
+    parser.add_argument('mode',choices=['prepare','judge','export','verify','self-check'])
     globals()[parser.parse_args().mode.replace('-','_')]()
