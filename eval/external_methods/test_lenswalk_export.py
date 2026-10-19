@@ -6,7 +6,7 @@ from pathlib import Path
 import tarfile
 import tempfile
 
-from lenswalk_export import export_row, redact_media, read_trace
+from lenswalk_export import export_row, redact_media, read_trace, saved_prefix, encode
 
 
 def test_saved_trace():
@@ -23,7 +23,7 @@ def test_saved_trace():
             for name, value in data.items():
                 info = tarfile.TarInfo('attempt-1/'+name); info.size = len(value)
                 archive.addfile(info, io.BytesIO(value))
-        row = dict(sample_id='cvbench:0', task='choice', answer=None, seconds=12.5,
+        row = dict(sample_id='cvbench:0', task='choice', answer=None, seconds=12.5, terminal='empty_answer',
                    infrastructure_error=False, raw_archive=dict(path=str(path),
                    sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
                    files={name: hashlib.sha256(value).hexdigest() for name, value in data.items()}))
@@ -39,6 +39,19 @@ def test_saved_trace():
         redacted = redact_media('prefix data:image/jpeg;base64,YWJj suffix')
         assert hashlib.sha256(b'data:image/jpeg;base64,YWJj').hexdigest() in redacted
         assert redacted.startswith('prefix ') and redacted.endswith(' suffix')
+        partial = Path(directory)/'partial.jsonl'
+        original = encode(output)
+        partial.write_bytes(original+b'{"incomplete":')
+        assert saved_prefix(partial, [row], {'cvbench:0': label}) == 1
+        assert partial.read_bytes() == original
+        wrong = dict(output, output='changed')
+        partial.write_bytes(encode(wrong))
+        try:
+            saved_prefix(partial, [row], {'cvbench:0': label})
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError('Changed saved answer was accepted')
         row['raw_archive']['sha256'] = 'corrupt'
         try:
             read_trace(row)

@@ -128,8 +128,33 @@ def encode_row(pair):
     return wire
 
 
+def saved_prefix(path, selected, labels):
+    if not path.exists():
+        return 0
+    count = 0
+    with path.open('rb+') as stream:
+        while True:
+            offset = stream.tell(); line = stream.readline()
+            if not line:
+                break
+            if not line.endswith(b'\n'):
+                # A preempted append may leave only the final line incomplete.
+                stream.truncate(offset)
+                break
+            value = json.loads(line); row = selected[count]; label = labels[row['sample_id']]
+            gt = label['sample']['ground_truth']
+            if row['task'] == 'CCQA':
+                gt = dict(answer=label['reference_answer'], scoring_points=gt)
+            assert set(value) == {'id', 'gt', 'output', 'seconds', 'trajectory'}
+            assert value['id'] == row['sample_id'] and value['gt'] == gt and value['seconds'] == row['seconds']
+            assert value['output'] == (None if row['terminal'] == 'missing_result' else row['answer'])
+            assert value['trajectory']['source_archive_sha256'] == row['raw_archive']['sha256']
+            assert value['trajectory']['terminal'] == row['terminal']
+            count += 1
+    return count
+
+
 def export(root, out):
-    assert not out.exists(), 'Use a new export directory; never overwrite an existing bundle'
     progress = json.loads((root/'progress.json').read_text())
     assert progress['phase'] in ('completed', 'completed_with_errors') and progress['judged'] == 239
     summary_sha = sha256(root/'summary.json')
@@ -139,20 +164,33 @@ def export(root, out):
     assert len(rows) == len(summary['rows']) == sum(EXPECTED.values())
     assert set(rows) == set(labels) == set(json.loads((root/'samples.json').read_text()))
     assert Counter(r['dataset'] for r in rows.values()) == EXPECTED
-    out.mkdir(parents=True)
-    source_dir = out/'export_source'; source_dir.mkdir()
+    if (out/'bundle.json').exists():
+        bundle = json.loads((out/'bundle.json').read_text())
+        assert bundle['source'] == str(root) and bundle['summary_sha256'] == summary_sha
+        for entry in bundle['files']:
+            assert sha256(out/'files'/entry['name']) == entry['sha256']
+        assert sha256(out/bundle['archive']['name']) == bundle['archive']['sha256']
+        write(out/'progress.json', dict(phase='completed', completed=len(rows), expected=len(rows)))
+        print(json.dumps(bundle, ensure_ascii=False), flush=True)
+        return
+    out.mkdir(parents=True, exist_ok=True)
+    source_commit = (Path(__file__).resolve().parents[2]/'.git/HEAD').read_text().strip()
+    source_dir = out/'export_source'/source_commit; source_dir.mkdir(parents=True, exist_ok=True)
     for name in ('lenswalk_export.py', 'test_lenswalk_export.py'):
         shutil.copy2(Path(__file__).with_name(name), source_dir/name)
-    source_commit = (Path(__file__).resolve().parents[2]/'.git/HEAD').read_text().strip()
     (source_dir/'commit.txt').write_text(source_commit+'\n')
-    files = out/'files'; files.mkdir()
+    files = out/'files'; files.mkdir(exist_ok=True)
     completed = 0
     started = time.time()
     for dataset, count in EXPECTED.items():
         selected = [r for sid, r in sorted(rows.items()) if r['dataset'] == dataset]
-        with (files/f'{dataset}.jsonl').open('wb') as stream, ProcessPoolExecutor(max_workers=8) as pool:
+        path = files/f'{dataset}.jsonl'
+        saved = saved_prefix(path, selected, labels)
+        completed += saved
+        print(f'{dataset}: retained {saved}/{count}', flush=True)
+        with path.open('ab') as stream, ProcessPoolExecutor(max_workers=8) as pool:
             # Bound retained traces while reading the 50 GB of original archives.
-            for start in range(0, count, 16):
+            for start in range(saved, count, 16):
                 batch = selected[start:start+16]
                 for wire in pool.map(encode_row, [(r, labels[r['sample_id']]) for r in batch]):
                     stream.write(wire)
