@@ -266,7 +266,38 @@ def verify():
     print(json.dumps(read(OUT/'verified.json')),flush=True)
 
 
+def complete():
+    """Dev-box-only owner for CPU export after the independent Judge releases its GPUs."""
+    import fcntl
+    import time
+    import modal
+    here=Path('/tmp/mvagent-9b-results-20261019')
+    lock=(here/'complete.lock').open('w')
+    fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+    volume=modal.Volume.from_name('wxu-evolve-agent-runs-20261006',environment_name='zheng-dev')
+    state=Path.home()/'wxu-evolve-agent/devbox/state-mvagent-frozen-9b-judge-20261019.json'
+    owner=int((here/'controller.pid').read_text())
+    while True:
+        try:
+            finished=json.loads(b''.join(volume.read_file('devbox/frozen_9b_results_20261019/judge_complete.json')))
+        except FileNotFoundError:
+            finished=None
+        if finished is not None and not state.exists():
+            assert finished['new_judged']==189
+            break
+        os.kill(owner,0)
+        print(now(), 'waiting_for_judge_and_gpu_release',flush=True)
+        time.sleep(45)
+    sys.path.insert(0,str(Path.home()/'wxu-evolve-agent/devbox'))
+    import frozen_9b_results_cpu as cpu
+    with cpu.app.run(environment_name='zheng-dev'):
+        rc,out,err=cpu.job.remote('python scripts/finalize_frozen_9b.py self-check && python scripts/finalize_frozen_9b.py export && python scripts/finalize_frozen_9b.py verify')
+    print(out,err,flush=True)
+    assert rc==0,rc
+    print('PACKAGE_VERIFIED',now(),flush=True)
+
+
 if __name__ == '__main__':
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode',choices=['judge','export','verify','self-check'])
+    parser.add_argument('mode',choices=['judge','export','verify','self-check','complete'])
     globals()[parser.parse_args().mode.replace('-','_')]()
