@@ -562,3 +562,15 @@ FFmpeg流拷贝输出标称14帧/10FPS，顺序只能解码10帧；vLLM OpenCV�
 12:49 UTC唯一新master PID40568提交，日志位于devbox `/tmp/mvagent-frozen-full-final-20261019/`；
 将先验证27B失败整题，然后35B、三模型CCQA Judge，并等待另一分片完成后做总分析。
 旧master仍维持其healthy shard1，不作为新的最终汇总owner。
+
+13:02 UTC GPU整题恢复通过：`crossvid:MOC:552`返回`A`、status=ok、73.65秒，9调用/693输出token；
+模型错误、structured_invalid、repair和length均0。实际[4,5]秒片段使用`decode_repair_transcode`，
+10编码帧/2FPS，未添加额外时间段。旧失败SHA仍为
+`6d235dd9b63d0253c47f90d18a073881477fc9bd0affcb24700d7d7637af82e1`，
+新结果SHA为`43ef51e261d6d9e3ef9e31cf06dc74f431a36f73b8420c67cb339a6015d2054c`；
+修复前后6个完全相同request的完整输出token均一致。证据为新root的`recovery_audit.py`与
+`analysis/recovery_smoke.json`。这验证本次故障路径，不构成任意视频或任意输入的绝对保证。
+
+原有成功结果继续复用，后台控制器继续35B、Judge及汇总，尚未得到完整三模型评分。
+按当前27B尾段与35B历史同配置题时、错峰启动和长尾估计，13:03 UTC起全部仍约12–15小时；
+35B本批尚无稳定吞吐实测。会话末检后停止Luna检查，仅后台控制器继续，不宣称会话外AI巡检。
