@@ -706,3 +706,31 @@ GPU冻结整理脚本对应7e8d4d3；CPU导出126482e按实际27B恢复审计的
 串行owner等待两组均完成后执行原CPU总分析，不把暂停分片标记为完成。
 资源门禁self-check通过；实际串行续跑仍待第一组结束，不能声称已完成。
 控制日志在devbox `/tmp/mvagent-27b-results-20261019/{controller,serial-35b,serial-35b-worker}.log`。
+
+15:27:53 UTC新增189条Judge全部完成（107+82，failed_ids均空），旧50条原判定通过来源与分数核对。
+Judge专用4H100已释放，末检poll137；CPU owner87293于15:32:11完成五文件与压缩包核验后退出。
+原始5321题来源SHA、答案原值、覆盖与唯一性、文件字节数/SHA和包内成员均通过；未重跑Actor。
+
+| 27B完整同题范围 | 题数 | E2E (%) | MVAgent (%) | 差值(pp) | Agent平均秒/题 |
+|---|---:|---:|---:|---:|---:|
+| CVBench | 997 | 68.51 | 70.51 | +2.01 | 99.78 |
+| MVU-Eval | 1824 | 44.46 | 58.00 | +13.54 | 126.91 |
+| CrossVid十类宏平均 | 2500 | 42.13 | 48.10 | +5.97 | 126.84 |
+
+所有5321题正常返回，最终空答案0、仅右花括号0；这里没有声称中间调用从不截断或所有题型均提升。
+包含1500复用开发题；MVU E2E用官方指令移后，CV统一原有YES/NO映射，原E2E发布文件不改。
+本轮未新增统计显著性分析，逐题耗时也不等于并行墙钟时间。
+
+成品仅在runs volume `wxu-evolve-agent-runs-20261006`、环境`zheng-dev`的
+`/runs/devbox/frozen_27b_results_20261019/`，与9B同布局：
+
+- `files/{cvbench,mvu_eval,crossvid}.jsonl`：原值GT/答案、逐题用时与文本轨迹。
+- `files/ccqa_scores.jsonl`、`files/statistics.md`：239条开放题判定与统计说明。
+- `mvagent-27b-results-with-trajectories-20261019.tar.gz`：180,055,502字节；
+  SHA256 `27d76656d65272e8925417832dd172d10ab1e325565e0dcaa35a136951d3e9ad`。
+
+`input_manifest.json`保存5321题输入快照与原始E2E文件哈希，`manifest.json`含逐题来源和文件哈希，
+`verified.json`记录完成证据；导出源码SHA256为
+`eca09230f885688eb1d3708f43b46799d523515015519f8e970b4e5ce21c8ee7`，与126482e一致。
+包不含媒体Base64、完整token ID数组或重复传输日志，完整原件留Modal；不下载本机、不发布Release。
+35B串行owner仍等待第一分片，不因27B包完成而重新扩为16卡；未来续测尚未执行，不冒充全量完成。
