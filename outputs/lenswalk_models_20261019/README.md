@@ -19,6 +19,19 @@ CPU `ap-7PeFQxrXJvldcgXt65Llij`检查通过：真实冻结源只有模型启动�
 | 9B | devbox/lenswalk_full_9b_20261019 | mvagent-lenswalk-9b-20261019 | 4129382 |
 | 27B | devbox/lenswalk_full_27b_20261019 | mvagent-lenswalk-27b-20261019 | 4129397 |
 
-后台继续使用既有`watch_full_mvagent.py`（SHA `ceb088e3c556c2564e8484df05b9ebc5e0288a31e89e5193be187660cc970dc3`），23小时续接、异常恢复次数受限；日志为devbox的`watch-lenswalk_full_{9b,27b}_20261019.log`。已提交控制器，实际模型启动和首题结果仍待验证；提交成功不代表推理或全量评测完成。
+后台继续使用既有`watch_full_mvagent.py`（SHA `ceb088e3c556c2564e8484df05b9ebc5e0288a31e89e5193be187660cc970dc3`），23小时续接、异常恢复次数受限；日志为devbox的`watch-lenswalk_full_{9b,27b}_20261019.log`。
+
+## 实际启动验收（2026-10-19 06:47 UTC）
+
+| 模型 | Sandbox | Container | 已记录 | 终答 / 未收尾 / 工程失败 |
+|---|---|---|---:|---|
+| 9B | sb-Q5gnMBHgavFxolNg76cig3 | ta-01M59E7M99X61PCAT8VBDDS1RS | 5/5321 | 5 / 0 / 0 |
+| 27B | sb-hZrOQnfFTbXo2rhG53vI6q | ta-01M59DYD4TXB46YARYJ78BWHMS | 14/5321 | 11 / 3 / 0 |
+
+两组均进入真实8路推理，合计16个实际H100单卡副本；模型root/服务名、execution和weights_manifest均与各自预期完全一致。9B已覆盖CV3/MVU1/Cross1，27B为CV8/MVU4/Cross2。9B首3份完整轨迹46次调用、27B首份轨迹11次调用通过实际token/输入哈希、固定副本、cache0和原5轮/512最长边/温度/无显式输出上限核验，证据在各root的`startup_audit.json`。
+
+实际输出示例：9B FSA394返回`42.04,52.55`，准备4.99秒/Agent138.21秒；27B同题返回`39.41,52.55`，准备4.79秒/Agent257.28秒；27B TR1587返回`A`，准备1.74秒/Agent117.10秒。这里只验证完整执行、落盘和计时，不据此比较总体准确率。27B已有3题原版步数耗尽后未收尾，按模型负结果保留，不另增预算。
+
+后台控制器继续全部剩余题及官方评分；本会话独立检查结束后，仅host控制器继续，不声称有会话外AI巡检。全量与CCQA评分尚未完成。
 
 原始结果仅保留Modal。35B精简Release和仍在执行的Video-RSI不受本次操作影响；全量分数尚不可报告。
