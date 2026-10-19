@@ -13,7 +13,8 @@ def test_saved_trace():
     with tempfile.TemporaryDirectory() as directory:
         path = Path(directory)/'attempt-1.tar.gz'
         call = dict(request={'messages': [{'content': 'data:image/jpeg;base64,YWJj'}]},
-                    response={'text': 'A, because ...', 'token_ids': [4, 8, 15]}, error=None)
+                    response={'text': 'A, because ...', 'token_ids': [4, 8, 15],
+                              'usage': {'prompt_tokens': 12, 'completion_tokens': 3}}, error=None)
         data = {'result.json': json.dumps(dict(sample_id='cvbench:0', answer=None)).encode(),
                 'all_conversations.jsonl': b'{"answer":null,"chat_history":[]}\n',
                 'requests.jsonl': (json.dumps(call)+'\n{"interrupted":').encode(),
@@ -31,10 +32,13 @@ def test_saved_trace():
         assert set(output) == {'id', 'gt', 'output', 'seconds', 'trajectory'}
         assert output['output'] is None and output['gt'] == ['B'] and output['seconds'] == 12.5
         calls = output['trajectory']['calls']
-        assert calls[0]['response'] == call['response']
-        assert calls[1] == {'unparsed_line': '{"interrupted":'}
-        assert 'YWJj' not in calls[0]['request']['messages'][0]['content']
-        assert hashlib.sha256(b'data:image/jpeg;base64,YWJj').hexdigest() in calls[0]['request']['messages'][0]['content']
+        assert calls[0]['input_tokens'] == 12 and calls[0]['output_tokens'] == 3
+        assert 'request' not in calls[0] and 'response' not in calls[0]
+        assert calls[1]['error'] == 'malformed_saved_jsonl'
+        assert not any(s in json.dumps(output) for s in ('YWJj', 'token_ids'))
+        redacted = redact_media('prefix data:image/jpeg;base64,YWJj suffix')
+        assert hashlib.sha256(b'data:image/jpeg;base64,YWJj').hexdigest() in redacted
+        assert redacted.startswith('prefix ') and redacted.endswith(' suffix')
         row['raw_archive']['sha256'] = 'corrupt'
         try:
             read_trace(row)

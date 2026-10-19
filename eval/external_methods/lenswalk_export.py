@@ -1,10 +1,9 @@
 """Export the saved LensWalk panel in the five-file AgentCVR release layout."""
 import argparse
 from collections import Counter
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 import gzip
 import hashlib
-import io
 import json
 from pathlib import Path
 import re
@@ -15,11 +14,10 @@ import time
 from common import sha256, write
 
 EXPECTED = {'cvbench': 997, 'mvu_eval': 1824, 'crossvid': 2500}
-ARCHIVE = 'lenswalk-results-with-trajectories-20261019.tar.gz'
+ARCHIVE = 'lenswalk-results-compact-20261019.tar.gz'
 MEDIA = re.compile(r'data:((?:image|video|audio)/[\w.+-]+);base64,[A-Za-z0-9+/=\r\n]+')
 MEMBERS = {'input.jsonl': 'input', 'result.json': 'result', 'requests.jsonl': 'calls',
-           'all_conversations.jsonl': 'conversations', 'all_tool_calls.jsonl': 'tool_calls',
-           'job.log': 'log', 'timeline.json': 'timeline'}
+           'all_conversations.jsonl': 'conversations', 'all_tool_calls.jsonl': 'tool_calls'}
 
 
 def redact_media(value):
@@ -43,9 +41,18 @@ class HashedReader:
         return data
 
 
+def call_summary(call):
+    response = call.get('response') or {}
+    usage = response.get('usage') or {}
+    return dict(seconds=call.get('seconds'), http_status=call.get('http_status'),
+                error=call.get('error'), model=response.get('model'),
+                input_tokens=usage.get('prompt_tokens'), output_tokens=usage.get('completion_tokens'),
+                finish_reasons=[choice.get('finish_reason') for choice in response.get('choices', [])])
+
+
 def read_trace(row):
     source = row['raw_archive']
-    trace, hashes, seen = {}, {}, set()
+    trace, seen = {}, set()
     with Path(source['path']).open('rb') as stream:
         reader = HashedReader(stream)
         with tarfile.open(fileobj=reader, mode='r|*') as archive:
@@ -63,15 +70,16 @@ def read_trace(row):
                 data = archive.extractfile(member).read()
                 digest = hashlib.sha256(data).hexdigest()
                 assert digest == source['files'][relative], (row['sample_id'], relative)
-                hashes[relative] = digest
                 if name.endswith('.jsonl'):
                     value = []
                     for line in data.decode().splitlines():
                         try:
-                            value.append(json.loads(line))
+                            parsed = json.loads(line)
+                            value.append(call_summary(parsed) if key == 'calls' else parsed)
                         except json.JSONDecodeError:
                             # Interrupted request logs remain visible rather than being dropped.
-                            value.append({'unparsed_line': line})
+                            value.append({'error': 'malformed_saved_jsonl',
+                                          'line_sha256': hashlib.sha256(line.encode()).hexdigest()})
                 elif name.endswith('.json'):
                     value = json.loads(data)
                 else:
@@ -88,8 +96,6 @@ def read_trace(row):
         assert result['sample_id'] == row['sample_id'] and result['answer'] == row['answer']
         assert len(trace.get('conversations', [])) == 1
         assert trace['conversations'][0]['answer'] == result['answer']
-    trace['record'] = {k: v for k, v in row.items() if k not in ('raw_archive', 'worker', 'attempt')}
-    trace['source'] = dict(archive=source['path'], sha256=source['sha256'], members=hashes)
     return trace
 
 
@@ -98,12 +104,28 @@ def export_row(row, label):
     gt = label['sample']['ground_truth']
     if row['task'] == 'CCQA':
         gt = dict(answer=label['reference_answer'], scoring_points=gt)
+    conversation = trace.get('conversations', [{}])[0]
+    trajectory = dict(question=trace.get('input', [{}])[0].get('question'),
+                      messages=conversation.get('chat_history', []), tools=trace.get('tool_calls', []),
+                      calls=trace.get('calls', []), source_archive_sha256=row['raw_archive']['sha256'])
+    for key in ('terminal', 'infrastructure_error', 'http_errors', 'tool_errors', 'question_timeout',
+                'prepared_seconds', 'archive_seconds', 'score'):
+        trajectory[key] = row.get(key)
     return dict(id=row['sample_id'], gt=gt, output=trace.get('result', {}).get('answer'),
-                seconds=row['seconds'], trajectory=trace)
+                seconds=row['seconds'], trajectory=trajectory)
 
 
 def encode(value):
     return (json.dumps(value, ensure_ascii=False, separators=(',', ':'), allow_nan=False) + '\n').encode()
+
+
+def encode_row(pair):
+    row, label = pair
+    value = export_row(row, label)
+    assert value['id'] == row['sample_id'] and value['seconds'] == row['seconds']
+    wire = encode(value)
+    assert not MEDIA.search(wire.decode()), row['sample_id']
+    return wire
 
 
 def export(root, out):
@@ -128,14 +150,11 @@ def export(root, out):
     started = time.time()
     for dataset, count in EXPECTED.items():
         selected = [r for sid, r in sorted(rows.items()) if r['dataset'] == dataset]
-        with (files/f'{dataset}.jsonl').open('wb') as stream, ThreadPoolExecutor(max_workers=8) as pool:
+        with (files/f'{dataset}.jsonl').open('wb') as stream, ProcessPoolExecutor(max_workers=8) as pool:
             # Bound retained traces while reading the 50 GB of original archives.
             for start in range(0, count, 16):
                 batch = selected[start:start+16]
-                for r, value in zip(batch, pool.map(lambda r: export_row(r, labels[r['sample_id']]), batch)):
-                    assert value['id'] == r['sample_id'] and value['seconds'] == r['seconds']
-                    wire = encode(value)
-                    assert not MEDIA.search(wire.decode()), r['sample_id']
+                for wire in pool.map(encode_row, [(r, labels[r['sample_id']]) for r in batch]):
                     stream.write(wire)
                 completed += len(batch)
                 write(out/'progress.json', dict(phase='exporting', completed=completed, expected=len(rows),
@@ -204,7 +223,8 @@ def export(root, out):
                   export_commit=source_commit, export_code_sha256=sha256(Path(__file__)),
                   files=entries, archive=dict(name=ARCHIVE, bytes=target.stat().st_size, sha256=sha256(target)),
                   source_archives_verified=len(rows), raw_sources_preserved=True,
-                  inline_media='Replaced by MIME type and SHA256 of the original data URL',
+                  omitted=['inline media payloads', 'token ID arrays', 'duplicate HTTP request/response bodies', 'job logs'],
+                  inline_media='Any remaining inline media is replaced by MIME type and data URL SHA256',
                   seconds=time.time()-started)
     write(out/'bundle.json', bundle)
     write(out/'progress.json', dict(phase='completed', completed=completed, expected=len(rows)))
