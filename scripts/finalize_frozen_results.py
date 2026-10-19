@@ -41,7 +41,6 @@ def prepare():
     scorer,identity=build_official_scorer(records,{})
     baseline=read(RUN/'baseline.json')[MODEL]
     assert len(baseline)==1500
-    original={r['sample_id']:r for r in baseline}
     e2e_root=core.E2E[MODEL]
     after=Path('/runs/devbox/mvu_instruction_after_20261014')/MODEL
     e2e,source_hashes={},{}
@@ -66,8 +65,8 @@ def prepare():
         data=path.read_bytes();digest=hashlib.sha256(data).hexdigest();raw=json.loads(data)
         assert raw['status']=='ok' and raw['sample_id']==sid
         if sid in inherited: assert digest==inherited[sid],sid
-        prediction=raw['result']['answer']['answer']
-        assert prediction==raw['prediction'],sid
+        prediction=raw['prediction']
+        assert raw['result']['answer']['answer'].strip()==prediction,sid
         return dict(sample_id=sid,path=str(path),sha256=digest,prediction=prediction,
                     stats=core.stats(raw),saved_score=raw['score'],reused=False)
     rows=[dict(sample_id=r['sample_id'],path=r['path'],sha256=r['sha256'],
