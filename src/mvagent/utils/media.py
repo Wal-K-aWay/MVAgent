@@ -9,6 +9,7 @@ from typing import Any, Dict, Iterable, List
 
 import cv2
 import imageio_ffmpeg
+import numpy as np
 from PIL import Image
 
 from mvagent.utils.tools import resolve_local_path
@@ -207,8 +208,8 @@ def cut_video_segment(
 
     Keep the caller's source time range for prompts. Stream copy preserves codec
     dependencies, so container frame counts and decoded boundaries can differ
-    from an exact re-encoded trim. Only clips needing repeated-frame padding
-    are transcoded; vLLM receives the resulting video through its existing path.
+    from an exact re-encoded trim. Transcode only when padding is needed or the
+    copied clip cannot supply enough decodable samples for temporal input.
     """
     segment = normalize_time_range(time_range)
     if len(segment) != 2 or not all(math.isfinite(t) for t in segment) or segment[1] <= segment[0]:
@@ -244,30 +245,62 @@ def cut_video_segment(
     command = [imageio_ffmpeg.get_ffmpeg_exe(), "-hide_banner", "-loglevel", "error",
                "-nostdin", "-y", "-ss", str(start_frame / fps), "-i", resolved_path,
                "-map", "0:v:0", "-an", "-sn", "-dn"]
-    if padding_frames:
-        filters = (f"trim=end_frame={selected_frames},"
-                   f"tpad=stop_mode=clone:stop={padding_frames},setpts=N/({fps}*TB)")
-        command += ["-vf", filters, "-frames:v", str(minimum_frames), "-r", str(fps),
-                    "-c:v", "mpeg4", "-q:v", "2", "-threads", "2"]
-    else:
-        command += ["-t", str(selected_frames / fps), "-c:v", "copy"]
-    command.append(str(output_path))
     ffmpeg_started = time.monotonic()
-    try:
-        subprocess.run(command, check=True, capture_output=True, text=True,
-                       timeout=remaining_timeout(300))
-    except subprocess.CalledProcessError as exc:
-        raise ValueError(f"Video segment cutting failed: {exc.stderr.strip()}") from exc
-    if not output_path.exists() or output_path.stat().st_size == 0:
-        raise ValueError(f"No video segment written: {resolved_path} {segment}")
+    method = "padded_transcode" if padding_frames else "stream_copy"
+    for transcode in ([True] if padding_frames else [False, True]):
+        if transcode:
+            filters = (f"trim=end_frame={selected_frames},"
+                       f"tpad=stop_mode=clone:stop={padding_frames},setpts=N/({fps}*TB)")
+            options = ["-vf", filters, "-frames:v", str(selected_frames + padding_frames),
+                       "-r", str(fps), "-c:v", "mpeg4", "-q:v", "2", "-threads", "2"]
+        else:
+            options = ["-t", str(selected_frames / fps), "-c:v", "copy"]
+        try:
+            subprocess.run(command + options + [str(output_path)], check=True,
+                           capture_output=True, text=True, timeout=remaining_timeout(300))
+        except subprocess.CalledProcessError as exc:
+            raise ValueError(f"Video segment cutting failed: {exc.stderr.strip()}") from exc
+        if not output_path.exists() or output_path.stat().st_size == 0:
+            raise ValueError(f"No video segment written: {resolved_path} {segment}")
+        if sampling_fps is None or _has_temporal_samples(output_path, sampling_fps, minimum_sampled_frames):
+            break
+        if transcode:
+            raise ValueError(f"Video segment has too few readable samples: {resolved_path} {segment}")
+        method = "decode_repair_transcode"
     finished = time.monotonic()
     emit_event("media_clip_profile", started_at=started_at, seconds=finished - started,
                source=resolved_path, time_range=segment, source_fps=fps, sampling_fps=sampling_fps,
-               method="padded_transcode" if padding_frames else "stream_copy",
+               method=method,
                selected_frames=selected_frames, padding_frames=padding_frames,
                output_bytes=output_path.stat().st_size, open_metadata_seconds=metadata_seconds,
                ffmpeg_seconds=finished - ffmpeg_started)
     return str(output_path.resolve())
+
+
+def _has_temporal_samples(path: Path, sampling_fps: float, minimum: int) -> bool:
+    """Check the decoder's uniform sampling positions, stopping after enough frames."""
+    capture = cv2.VideoCapture(str(path))
+    try:
+        count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+        fps = capture.get(cv2.CAP_PROP_FPS)
+        if not capture.isOpened() or count <= 0 or fps <= 0:
+            return False
+        samples = min(count, math.floor(count / fps * sampling_fps))
+        if samples < minimum:
+            return False
+        indices = set(np.linspace(0, count - 1, samples, dtype=int).tolist())
+        valid = 0
+        for index in range(count):
+            if not capture.grab():
+                continue
+            if index in indices:
+                ok, frame = capture.retrieve()
+                valid += bool(ok and frame is not None and frame.size)
+                if valid >= minimum:
+                    return True
+        return False
+    finally:
+        capture.release()
 
 
 # Previous OpenCV implementation, retained as comments at the user's request.

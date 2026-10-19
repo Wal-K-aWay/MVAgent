@@ -3,16 +3,42 @@ import hashlib
 from pathlib import Path
 import tempfile
 import unittest
+import subprocess
 
 import cv2
+import imageio_ffmpeg
 import numpy as np
 from vllm.multimodal.video import OpenCVVideoBackend
 
 from mvagent.agents.video_agent.agent import VideoAgent
-from mvagent.utils.media import probe_video_info
+from mvagent.utils.media import cut_video_segment, probe_video_info
 
 
 class ShortVideoTest(unittest.TestCase):
+    def test_partial_clip_with_unreadable_container_tail(self):
+        source = Path('/assets/crossvid/.mvagent_media/uav_question_boxes/MOC/552/view_B.mp4')
+        self.assertTrue(source.exists(), 'Run this regression in the Modal dataset environment')
+        with tempfile.TemporaryDirectory() as directory:
+            for interval in ([4., 5.], [4., 8.]):
+                original = Path(directory) / 'original.mp4'
+                subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), '-hide_banner', '-loglevel', 'error',
+                    '-nostdin', '-y', '-ss', str(interval[0]), '-i', str(source), '-map', '0:v:0',
+                    '-an', '-sn', '-dn', '-t', str(interval[1]-interval[0]), '-c:v', 'copy',
+                    str(original)], check=True)
+                before, _ = OpenCVVideoBackend.load_bytes(original.read_bytes(), num_frames=512, fps=2.)
+                fixed = Path(cut_video_segment(str(source), interval, output_dir=directory, sampling_fps=2.))
+                after, _ = OpenCVVideoBackend.load_bytes(fixed.read_bytes(), num_frames=512, fps=2.)
+                self.assertGreaterEqual(len(after), 2)
+                if interval == [4., 5.]:
+                    self.assertEqual(len(before), 1)
+                    self.assertEqual(len(after), 2)
+                else:
+                    self.assertGreaterEqual(len(before), 2)
+                    self.assertEqual(fixed.read_bytes(), original.read_bytes())
+                digest = hashlib.sha256(fixed.read_bytes()).hexdigest()
+                repeated = Path(cut_video_segment(str(source), interval, output_dir=directory, sampling_fps=2.))
+                self.assertEqual(hashlib.sha256(repeated.read_bytes()).hexdigest(), digest)
+
     def test_short_video_padding_and_ordinary_full_video_passthrough(self):
         with tempfile.TemporaryDirectory() as directory:
             for frames, source_fps in [(1, 8), (5, 30), (90, 30)]:

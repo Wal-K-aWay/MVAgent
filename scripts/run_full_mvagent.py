@@ -22,8 +22,9 @@ from run_full_e2e import now, read, write, sha
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT/'src'), str(ROOT/'eval/e2e_eval')]
-TAG = 'frozen_full_recovery_20261019'
+TAG = 'frozen_full_final_20261019'
 PARENT = Path('/runs/devbox/frozen_full_20261018')
+OTHER = Path('/runs/devbox/frozen_full_recovery_20261019')
 OUT = Path('/runs/devbox')/TAG
 BASE = Path('/runs/devbox/global_short_large_20261017')
 PILOT = Path('/runs/devbox/system_ablation_20261017')
@@ -46,6 +47,7 @@ def prepare():
     from models.vlm.local.sync_server import execution_profile
     assert not OUT.exists(), 'Never overwrite an existing recovery'
     prior = read(PARENT/'manifest.json')
+    assert read(PARENT/'shard0/progress.json')['phase'] == 'failed'
     media = 'src/mvagent/utils/media.py'
     changed = {p for p, digest in prior['actor_hashes'].items() if sha(ROOT/p) != digest}
     assert changed == {media} and execution_profile() == prior['profile']
@@ -53,11 +55,11 @@ def prepare():
     for name in ['samples.json', 'selection.json', 'baseline.json', 'baseline_services.json', 'known_unavailable.json']:
         shutil.copy2(PARENT/name, OUT/name)
         assert sha(OUT/name) == sha(PARENT/name)
-    # The unaffected shard resumes its original frozen source and owns its own GPU pool.
-    (OUT/'shard0').symlink_to(PARENT/'shard0', target_is_directory=True)
-    group = OUT/'shard1'
+    # The running shard keeps its own source, results and GPU owner.
+    (OUT/'shard1').symlink_to(OTHER/'shard1', target_is_directory=True)
+    group = OUT/'shard0'
     group.mkdir()
-    shutil.copy2(PARENT/'shard1/samples.json', group/'samples.json')
+    shutil.copy2(PARENT/'shard0/samples.json', group/'samples.json')
     ids = set(read(group/'samples.json'))
     inherited, failed = [], []
     def inspect(path):
@@ -67,10 +69,10 @@ def prepare():
         if raw['status'] == 'ok':
             stats(raw)
         return path, raw['sample_id'], raw['status'], hashlib.sha256(data).hexdigest()
-    files = [p for m in MODELS for p in (PARENT/'shard1'/m).glob('records/*/*/result.json')]
+    files = [p for m in MODELS for p in (PARENT/'shard0'/m).glob('records/*/*/result.json')]
     with ThreadPoolExecutor(max_workers=8) as pool:
         for path, sid, status, digest in pool.map(inspect, files):
-            rel = path.relative_to(PARENT/'shard1')
+            rel = path.relative_to(PARENT/'shard0')
             row = dict(sample_id=sid, model=rel.parts[0], source=str(path), sha256=digest)
             if status != 'ok':
                 failed.append(row)
@@ -79,24 +81,29 @@ def prepare():
             target.parent.mkdir(parents=True, exist_ok=True)
             target.symlink_to(path)
             inherited.append(row)
-    assert len(inherited) == 1909 and [r['sample_id'] for r in failed] == ['mvu_eval:TR:1416']
+    counts = Counter(r['model'] for r in inherited)
+    assert counts == {'9B': 1911, '27B': 1910}, counts
+    assert [r['sample_id'] for r in failed] == ['crossvid:MOC:552'], failed
     write(OUT/'inheritance.json', dict(inherited=inherited, original_failures=failed,
-        prior_progress=read(PARENT/'shard1/progress.json'),
+        prior_progress=read(PARENT/'shard0/progress.json'),
         policy='Only status=ok reused, including wrong/format-invalid model answers. Original files stay unchanged.'))
-    write(group/'progress.json', dict(phase='prepared', models={}, expected=5730, at=now()))
+    write(group/'progress.json', dict(phase='prepared', models={
+        '9B': dict(expected=1911, finished=1911, valid=1911, errors=[], inference_done=True)},
+        expected=5733, at=now()))
     with tarfile.open(OUT/'source.tar.gz', 'w:gz', compresslevel=1) as archive:
         for name in ['src', 'scripts', 'configs', 'eval', '.git', 'requirements.txt', 'demo.py']:
             archive.add(ROOT/name, arcname=name, filter=lambda t: None if {'__pycache__', '.cache'} & set(Path(t.name).parts) else t)
     manifest = dict(prior, at=now(), commit=(ROOT/'.git/HEAD').read_text().strip(),
         archive_sha256=sha(OUT/'source.tar.gz'), baseline_sha256=sha(OUT/'baseline.json'),
         actor_hashes={p: sha(ROOT/p) for p in prior['actor_hashes']}, parent=str(PARENT),
-        parent_manifest_sha256=sha(PARENT/'manifest.json'), inherited_shard1=1909,
-        changes={media: 'Require at least two encoded frames even when requested FPS exceeds source FPS.'},
-        shard_sources={'0': str(PARENT/'source.tar.gz'), '1': str(OUT/'source.tar.gz')})
+        parent_manifest_sha256=sha(PARENT/'manifest.json'), inherited_shard0=len(inherited),
+        changes={media: 'Keep the two-encoded-frame fix; transcode stream copies only when sampled frames cannot decode.'},
+        shard_sources={'0': str(OUT/'source.tar.gz'), '1': str(OTHER/'source.tar.gz')},
+        other_manifest_sha256=sha(OTHER/'manifest.json'))
     manifest['parent_free_inodes_at_original_prepare'] = manifest.pop('free_inodes')
     manifest['parent_expected_hours_at_original_prepare'] = manifest.pop('expected_hours')
     write(OUT/'manifest.json', manifest)
-    write(OUT/'progress.json', dict(phase='prepared', at=now(), inherited_panel=4500, inherited_shard1=1909, expected=15963))
+    write(OUT/'progress.json', dict(phase='prepared', at=now(), inherited_panel=4500, inherited_shard0=len(inherited), expected=15963))
     print(json.dumps({k:v for k,v in manifest.items() if k not in ['actor_hashes','profile']}), flush=True)
 
 
@@ -393,7 +400,7 @@ def host(shard):
     import modal
     sys.path.insert(0, str(Path.home()/'wxu-evolve-agent/devbox'))
     import devbox
-    name = f'mvagent-frozen-full-recovery-20261019-shard{shard}'
+    name = f'mvagent-frozen-full-final-20261019-shard{shard}'
     devbox.REPO = str(ROOT)
     devbox.NAME = name
     devbox.STATE = str(Path(devbox.HERE)/f'state-{name}.json')
@@ -447,7 +454,7 @@ def host(shard):
 
 def launch():
     import fcntl
-    here = Path('/tmp/mvagent-frozen-full-recovery-20261019')
+    here = Path('/tmp/mvagent-frozen-full-final-20261019')
     here.mkdir(mode=0o700, exist_ok=True)
     lock = (here/f'watch-{TAG}.lock').open('w')
     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -459,7 +466,7 @@ def launch():
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
     try:
-        for shard in [1]:
+        for shard in [0]:
             with (here/f'watch-{TAG}-shard{shard}.log').open('a') as log:
                 children.append(subprocess.Popen([sys.executable, __file__, 'host', '--shard', str(shard)],
                     stdout=log, stderr=subprocess.STDOUT))
@@ -468,15 +475,15 @@ def launch():
         import modal
         volume = modal.Volume.from_name('wxu-evolve-agent-runs-20261006', environment_name='zheng-dev')
         while True:
-            state = json.loads(b''.join(volume.read_file('devbox/frozen_full_20261018/shard0/progress.json')))
+            state = json.loads(b''.join(volume.read_file('devbox/frozen_full_recovery_20261019/shard1/progress.json')))
             if state['phase'] == 'completed':
                 break
             assert state['phase'] != 'failed', state
-            marker = Path.home()/'wxu-evolve-agent/devbox/state-mvagent-frozen-full-20261018-shard0.json'
-            assert marker.exists(), 'Unfinished original shard has no live controller'
+            marker = Path.home()/'wxu-evolve-agent/devbox/state-mvagent-frozen-full-recovery-20261019-shard1.json'
+            assert marker.exists(), 'Unfinished other shard has no live controller'
             time.sleep(45)
         sys.path.insert(0, str(Path.home()/'wxu-evolve-agent/devbox'))
-        import frozen_full_recovery_cpu as cpujob
+        import frozen_full_final_cpu as cpujob
         with cpujob.app.run(environment_name='zheng-dev'):
             rc, out, err = cpujob.job.remote('python scripts/run_full_mvagent.py analyze')
         print(out, err, flush=True)
