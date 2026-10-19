@@ -622,3 +622,25 @@ Agent共73595调用，0模型调用错误，381次structured_invalid、348次rep
 最终有答案不表示中间从不截断。历史日志平均整题秒：CV Agent46.53/E2E20.96，
 MVU57.57/12.25，Cross66.30/25.40；这是不同批次日志，非控制缓存/负载的纯吞吐实验，也非并行墙钟耗时。
 独立只读检查确认两GPU分片继续运行并复核CCQA数学界后停止；没有会话外AI巡检。
+
+### 2026-10-19 9B开放题Judge与结果整理
+
+用户要求完成9B开放题Judge后，参考AgentCVR最终包整理结果和轨迹。
+新增独立Judge任务`devbox/frozen_9b_results_20261019`，只评新增189条CCQA，旧50条判定及其coverage/correctness原样复用。
+使用现有`serve_ccqa_judge.sh`和`score_crossvid_ccqa.py`，Qwen3-30B-A3B-Instruct-2507、原官方Prompt和生成设置不改。
+新评分写入两个已完成9B分片的既有score/cache目录，再复制到整理根；后续全量控制器会复用缓存，不重判同一答案。
+不重启或热改27B/35B的Actor、配置与源码，不修改9B原始回答。
+
+独立4H100 Judge的owner为devbox PID54961，Sandbox `sb-6ohNFneCYRh9rOGCNGn0pi`，
+日志`/tmp/mvagent-9b-results-20261019/controller.log`。13:34 UTC仍排队（execution_ready=false），尚无新增判分。
+Judge源码冻结90b7dbe；整理实现f3e4306在`codex/frozen-9b-results-20261019`，未改正式推理入口。
+CPU检查通过文本/媒体脱敏自检与脚本语法，并核对旧15+18+17=50条判定所在报告完整、failed_ids为空。
+
+计划交付五个同布局文件：`cvbench.jsonl`、`mvu_eval.jsonl`、`crossvid.jsonl`、`ccqa_scores.jsonl`、`statistics.md`。
+前三个每行`id/gt/output/seconds/trajectory`；GT保留原数据类型，CCQA为参考答案及评分点；
+output直接取Engine最终answer字段原字符串，保留空白与格式偏差，不做答案纠正。
+trajectory保留Engine完整动作轨迹、Global/Video文本输入输出、模型响应、结构解析/修复与媒体区间，
+只剔除图片/视频Base64、完整token数组及重复传输调度日志；原始完整记录仍在Modal。
+每份原始轨迹在导出时与既有baseline/inheritance SHA对齐，旧归档直接按成员读取。
+评分齐全后生成一个压缩包，逐成员验证题号覆盖、字段、字节数和SHA；来源映射与manifest在同一Modal根。
+本任务只要求整理格式，未将新增MVAgent原始结果移出Modal或自行公开发布。
