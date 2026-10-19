@@ -38,7 +38,8 @@ def main():
         deadline = time.monotonic()+10
         while process(child.pid)['state'] != 'Z' and time.monotonic()<deadline:
             time.sleep(.1)
-        assert process(child.pid)['returncode'] == 7
+        assert process(child.pid)['state'] == 'Z'
+        assert child.wait() == 7
     finally:
         child.wait()
     print('Disjoint full coverage; completed failures/empty answers retained; pending balanced; runtime byte-preserved except counts')

@@ -23,8 +23,7 @@ def read(path):
 def process(pid):
     try:
         fields = Path(f'/proc/{pid}/stat').read_text().rsplit(')', 1)[1].split()
-        return dict(state=fields[0], started_epoch=time.time()-(time.monotonic()-int(fields[19])/os.sysconf('SC_CLK_TCK')),
-                    returncode=os.waitstatus_to_exitcode(int(fields[49])) if fields[0]=='Z' else None)
+        return dict(state=fields[0], started_epoch=time.time()-(time.monotonic()-int(fields[19])/os.sysconf('SC_CLK_TCK')))
     except FileNotFoundError:
         return None
 
@@ -92,7 +91,8 @@ def main(output):
                     os.killpg(client['pid'], signal.SIGKILL)
                 continue
             if info['state']=='Z':
-                client_results[key] = dict(returncode=info['returncode'], question_timeout=key in timed_out_keys,
+                # gVisor exposes a zero exit-code field even for failures; only the paused parent can waitpid.
+                client_results[key] = dict(returncode=None, question_timeout=key in timed_out_keys,
                                            observed_finished_epoch=time.time())
                 print(json.dumps(dict(event='client_finished', key=key, **client_results[key])), flush=True)
         time.sleep(1)
@@ -139,6 +139,7 @@ def main(output):
             prepared_seconds=max(0, start_epoch-datetime.fromisoformat(started['started_at']).timestamp()),
             finished_at=datetime.fromtimestamp(finish_epoch, timezone.utc).isoformat(), worker=card['worker'],
             handoff_timing='Client process start to result-file completion; no additional inference; failure uses 1s polling',
+            handoff_returncode='Unavailable to non-parent; raw result/request audit determines outcome as before',
             adapter_seconds=result.get('seconds') if result else None)
         if outcome['question_timeout']:
             outcome['infrastructure_error']=True
