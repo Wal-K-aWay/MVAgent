@@ -40,10 +40,17 @@ def main():
                 assert tag.encode() in Path(f'/proc/{pid}/cmdline').read_bytes()
                 children.append((tag, pid))
                 continue
+        name = 'mvagent-'+tag.replace('_', '-')
+        command = [sys.executable, '-u', str(here/'watch_full_mvagent.py'),
+                   '--devbox-name', name, '--tag', tag,
+                   '--driver', group['root']+'/frozen_repo/eval/external_methods/lenswalk_full.py']
+        state = here/('state-'+name+'.json')
+        if state.exists():
+            sandbox = modal.Sandbox.from_id(json.loads(state.read_text())['sandbox_id'])
+            if sandbox.poll() is None:
+                command.append('--start-existing')
         with (here/f'watch-{tag}.log').open('a') as log:
-            child = subprocess.Popen([sys.executable, '-u', str(here/'watch_full_mvagent.py'),
-                    '--devbox-name', 'mvagent-'+tag.replace('_', '-'), '--tag', tag,
-                    '--driver', group['root']+'/frozen_repo/eval/external_methods/lenswalk_full.py'],
+            child = subprocess.Popen(command,
                     cwd=here, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
         children.append((tag, child.pid))
     while True:
