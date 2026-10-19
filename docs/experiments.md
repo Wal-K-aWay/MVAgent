@@ -678,3 +678,31 @@ E2E输入、CV答案映射、MVU指令移后及开发题复用限制同上，不
 
 未下载本机或发布Release；源码与本文按项目规则推送Git。包内保留文本轨迹，不包含媒体Base64或
 完整token ID数组；未删改原始Modal记录。27B/35B结果不在本9B包内，仍由原全量任务负责。
+
+### 2026-10-19 27B结果整理与35B单组GPU调度
+
+用户要求27B推理齐后立即Judge并按9B布局整理，撤回原27B卡组对35B的并行投入。
+27B为5321题（1500复用、3821新增），两分片1911/1910均完成且顶层工程错误为空。
+正式Actor、Prompt、数值配置和评分规则不变；通用整理入口改为
+`MVAGENT_EXPORT_MODEL=27B python scripts/finalize_frozen_results.py prepare|judge|export|verify`，
+9B已完成包及其冻结脚本保留原件。
+
+15:18 UTC主动停止旧shard1的35B，保留121条完成记录及在途目录；原progress最后采样120，
+不拿采样计数覆盖实存结果。审计在runs `devbox/frozen_27b_results_20261019/{reallocation,retained_35b}.json`。
+只停止worker后，旧Sandbox退出触发看守器自动续接；再次停止看守器4132281与新worker，
+15:22确认新Sandbox `sb-Y0XVuj0BJZZs6VARWeEcBg` poll137，旧master/host退出。
+续接仅到加载阶段，没有新增回答；这次中断是用户调度要求，不是新的模型故障。
+
+独立4H100 Judge owner87293 / `sb-ImKSHBMcKPLPQHoWYrBAqS` 于15:23开始加载；
+仅补189条CCQA，旧50保留，缓存写回两分片供后续复用。
+完成后自动释放4卡，再用CPU冻结输入、导出和核验五文件；数据继续只留Modal，不发布Release。
+GPU冻结整理脚本对应7e8d4d3；CPU导出126482e按实际27B恢复审计的`new_sha256`键读取，
+不改9B历史审计的`new_result_sha256`，也不改变原始回答。
+
+另一组35B `sb-vgVxKqWaY20PaHrNRgZ5SO`保持原冻结任务。
+串行owner88348及`scripts/continue_frozen_35b_serial.py`只在该组completed、GPU已退出且状态文件移除后，
+才使用原shard1冻结源码续跑1789条剩余题；所以35B同时最多一个8卡池。
+旧原master40568在第一组结束后可能因旧shard1 owner已撤回而退出，其最终汇总职责转交串行owner。
+串行owner等待两组均完成后执行原CPU总分析，不把暂停分片标记为完成。
+资源门禁self-check通过；实际串行续跑仍待第一组结束，不能声称已完成。
+控制日志在devbox `/tmp/mvagent-27b-results-20261019/{controller,serial-35b,serial-35b-worker}.log`。
