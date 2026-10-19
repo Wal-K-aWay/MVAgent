@@ -32,6 +32,8 @@ REPRO=['e2e_sync_norm_20261012','repro_expanded_panel_20261012','repro_expanded_
 GROUPS=dict(caches=CACHES,repro=REPRO)
 TARGETS=[ROOT/n for ns in GROUPS.values() for n in ns]
 PROTECTED=[]
+ALIASES={'mvagent_full_20261014_transport/media':'mvagent_full_20261013/media',
+         'e2e_full_20261013_timeout/media':'e2e_full_20261012/media'}
 ACTIVE_ROOTS=['frozen_full_20261018','frozen_full_recovery_20261019',
               'rsi_full_35b_parallel_media_20261018','lenswalk_full_9b_20261019','lenswalk_full_27b_20261019']
 KEEP_DIRS={'.git','frozen_repo','frozen','source','source_cached','src','scripts','configs','eval'}
@@ -96,9 +98,9 @@ def protected_sources():
     return result
 
 
-def result_files():
+def result_files(extra_owners=()):
     selected=[]
-    for name in sorted({p.split('/')[0] for p in CACHES}):
+    for name in sorted({p.split('/')[0] for p in CACHES}|set(extra_owners)):
         for parent,dirs,files in os.walk(ROOT/name,followlinks=False):
             directory=Path(parent)
             dirs[:]=[d for d in dirs if d not in KEEP_DIRS and not within(directory/d,TARGETS)]
@@ -187,12 +189,52 @@ def prepare():
                 protected_paths=len(protected),references=references[:20],retained_result_files=len(hashes))
 
 
+def include_inactive_aliases():
+    plan=json.loads((AUDIT/'plan.json').read_text())
+    assert not (AUDIT/'plan_before_alias_review.json').exists()
+    cache_roots=[ROOT/n for n in ALIASES.values()]
+    for ref in plan['inbound_references']:
+        if within(Path(ref['target']),cache_roots):assert ref['source'] in [str(ROOT/n) for n in ALIASES],ref
+    aliases=[]
+    for name,target in ALIASES.items():
+        path=ROOT/name;cache=ROOT/target
+        assert path.is_symlink() and normalized_target(path)==cache
+        state=json.loads((path.parent/'progress.json').read_text())
+        assert state['phase'] in {'failed','completed','completed_with_recorded_failures'},state['phase']
+        aliases.append(dict(path=str(path),link=os.readlink(path),target=str(cache),owner_phase=state['phase']))
+    for name in ACTIVE_ROOTS:
+        root=ROOT/name
+        for p in list(root.glob('*.json'))+list(root.glob('shard*/*.json')):
+            if p.is_file() and p.stat().st_size<32*1024**2:
+                body=p.read_text()
+                assert not any(str(ROOT/a) in body or str(ROOT/t) in body for a,t in ALIASES.items()),p
+    save(AUDIT/'plan_before_alias_review.json',plan)
+    plan['protected']=[p for p in plan['protected'] if not within(Path(p),cache_roots)]
+    for item in plan['plan']:
+        root=Path(item['root'])
+        if root not in cache_roots:continue
+        paths=deletions(root,[Path(p) for p in plan['protected']])
+        rows=[r for p in paths for r in inventory(p)]
+        item.update(delete=list(map(str,paths)),inventory=rows,**totals(rows))
+    paths=[p for p in result_files(a.split('/')[0] for a in ALIASES) if str(p) not in plan['retained_results']]
+    with ThreadPoolExecutor(max_workers=12) as pool:
+        plan['retained_results'].update(zip(map(str,paths),pool.map(file_sha,paths)))
+    plan['aliases']=aliases
+    save(AUDIT/'plan.json',plan);volume.commit()
+    return dict(entries=sum(x['entries'] for x in plan['plan'])+len(aliases),
+                bytes=sum(x['bytes'] for x in plan['plan']),aliases=aliases,
+                retained_result_files=len(plan['retained_results']))
+
+
 def apply():
     assert not (AUDIT/'completed.json').exists(), 'Already completed'
     plan=json.loads((AUDIT/'plan.json').read_text())
     for name,digest in plan['documentation'].items():
         assert hashlib.sha256((AUDIT/'documentation'/name).read_bytes()).hexdigest()==digest
     check_retained(plan)
+    for item in plan.get('aliases',[]):
+        p=Path(item['path']);assert p.is_symlink() and os.readlink(p)==item['link'];p.unlink()
+    volume.commit()
     completed=[]
     for item in plan['plan']:
         root=Path(item['root']);assert root in TARGETS and not root.is_symlink()
@@ -208,7 +250,7 @@ def apply():
         print('DELETED',completed[-1],flush=True)
     assert all(Path(p).exists() for p in plan['protected'])
     report=dict(at=time.time(),completed=completed,protected=plan['protected'],compression=False,
-                entries=sum(x['entries'] for x in completed),files=sum(x['files'] for x in completed),
+                entries=sum(x['entries'] for x in completed)+len(plan.get('aliases',[])),files=sum(x['files'] for x in completed),
                 bytes=sum(x['bytes'] for x in completed),free_inodes=os.statvfs('/runs').f_ffree)
     save(AUDIT/'completed.json',report);volume.commit()
     return report
@@ -232,6 +274,7 @@ def self_test():
 def job(phase):
     if phase=='test':return self_test()
     if phase=='prepare':return prepare()
+    if phase=='include-inactive-aliases':return include_inactive_aliases()
     if phase=='apply':return apply()
     if phase=='verify':
         plan=json.loads((AUDIT/'plan.json').read_text())
@@ -240,6 +283,7 @@ def job(phase):
         for item in plan['plan']:
             assert all(not Path(p).exists() and not Path(p).is_symlink() for p in item['delete'])
         assert all(Path(p).exists() for p in plan['protected'])
+        for x in plan.get('aliases',[]):assert not Path(x['path']).is_symlink() and not Path(x['path']).exists()
         check_retained(plan)
         result=dict(verified=True,entries=report['entries'],bytes=report['bytes'],
                     retained_result_files=len(plan['retained_results']),
