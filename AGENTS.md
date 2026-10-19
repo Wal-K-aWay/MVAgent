@@ -67,6 +67,9 @@ Prompt 与中文镜像同步的完整规则统一保存在 [.claude/rules/prompt
   用户2026-10-15追加授权将MVU官方指令移后复测的原始回答、评分和配套元数据归入同总目录的对应模型目录（文件名标识提示位置）及analysis/reports；同样核对大小/SHA256并保留Modal原件。
   用户2026-10-17追加授权将AgentCVR最终H100批次的逐题原始回答、答案表、评分及配套元数据保存到
   `outputs/agentcvr_20261016/data/`；迁入文件逐一核对大小与SHA256，保留Modal原件，媒体/权重/冻结环境仍留Modal。
+  用户2026-10-19追加授权公开发布9B与27B的MVAgent最终答案和文本轨迹包，使用Release
+  `mvagent-results-20261019`；发布包及核验回执可暂存`outputs/mvagent_release_20261019/`，
+  逐大小/SHA256核验并保留Modal原件，数据不进入Git提交历史。包不含媒体Base64、完整token ID数组、权重或冻结环境。
 - 复用过的开发数据称为"开发集"，结论要区分"已测到的"和"尚不能声称的"。
 - 凭据（`BIGMODEL_API_KEY`、`DEEPSEEK_API_KEY`）只从环境变量或 Modal Secret 读取。
 - 计算与模型推理都放在 Modal 上；使用 GPU 时，Modal app 名统一为 `wxu-sglang-baseline-gpu-test-*`，

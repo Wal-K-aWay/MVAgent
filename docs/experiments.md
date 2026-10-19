@@ -734,3 +734,25 @@ Judge专用4H100已释放，末检poll137；CPU owner87293于15:32:11完成五�
 `eca09230f885688eb1d3708f43b46799d523515015519f8e970b4e5ce21c8ee7`，与126482e一致。
 包不含媒体Base64、完整token ID数组或重复传输日志，完整原件留Modal；不下载本机、不发布Release。
 35B串行owner仍等待第一分片，不因27B包完成而重新扩为16卡；未来续测尚未执行，不冒充全量完成。
+
+### 2026-10-19 9B与27B结果公开发布
+
+用户追加要求将两个已核验成品上传GitHub，取代此前“仅留Modal”的交付限制。
+沿用原包，不重新打包、推理或Judge；每模型5321题、239条CCQA、五个成员文件及答案原值/文本轨迹均不变。
+Release为[`mvagent-results-20261019`](https://github.com/Wal-K-aWay/MVAgent/releases/tag/mvagent-results-20261019)，
+目标源码提交9cf198b。发布包与核验回执暂存`outputs/mvagent_release_20261019/`，数据不进入Git历史，Modal原件保留。
+
+| 附件 | 字节数 | SHA256 |
+|---|---:|---|
+| `mvagent-9b-results-with-trajectories-20261019.tar.gz` | 185582658 | `0af9dbda447386f0a13109ad93559a5a52bc2d990245d4f5d3448f41503aa5a3` |
+| `mvagent-27b-results-with-trajectories-20261019.tar.gz` | 180055502 | `27d76656d65272e8925417832dd172d10ab1e325565e0dcaa35a136951d3e9ad` |
+
+另附`SHA256SUMS.txt`；两个包的成员文件名相同，下载后分别解压到9B与27B目录。
+只分发已约定的文本轨迹，媒体Base64、完整token ID数组、权重与冻结环境不进包。
+35B不在本次Release中，现有推理和单组8卡串行调度不变。
+
+发布完成后，GitHub三个附件的`state=uploaded`、大小及服务器SHA256均与本地/Modal一致，
+两个压缩包和校验文本的无需登录完整下载也逐字节数/SHA通过。
+Release ID为417467742，公开tag解析到9cf198b；核验回执为本地
+`outputs/mvagent_release_20261019/verification.json`。只提交说明和授权规则，不提交结果数据，
+未重跑推理或Judge，未操作其他Release或在途GPU任务。
