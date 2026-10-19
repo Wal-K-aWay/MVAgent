@@ -644,3 +644,37 @@ trajectory保留Engine完整动作轨迹、Global/Video文本输入输出、模�
 每份原始轨迹在导出时与既有baseline/inheritance SHA对齐，旧归档直接按成员读取。
 评分齐全后生成一个压缩包，逐成员验证题号覆盖、字段、字节数和SHA；来源映射与manifest在同一Modal根。
 本任务只要求整理格式，未将新增MVAgent原始结果移出Modal或自行公开发布。
+
+13:47:55 UTC Judge完成：新增189条（107+82）全部成功，failed_ids为空；复用旧50条，
+完整239条CCQA、757个评分点，按点加权得分19.81506%。原4H100 Judge由owner正常释放，
+其Sandbox末检poll=137表示已退出；未重启或修改Actor。以下取代上文待判数学区间：
+
+| 9B完整同题范围 | 题数 | E2E (%) | MVAgent (%) | 差值(pp) |
+|---|---:|---:|---:|---:|
+| CVBench | 997 | 62.49 | 64.49 | +2.01 |
+| MVU-Eval | 1824 | 37.72 | 50.55 | +12.83 |
+| CrossVid十类宏平均（含全部CCQA） | 2500 | 31.98 | 35.28 | +3.31 |
+
+E2E输入、CV答案映射、MVU指令移后及开发题复用限制同上，不改变旧发布原文件。
+首轮导出因TR1416历史审计字段名应为`new_result_sha256`而停止；当时仅建立空目录，
+无结果写入。修复237b952后仅重跑CPU导出与核验，没有重跑Actor或Judge；失败说明保留在
+`export_failure.json`。最终导出脚本SHA256为
+`e64497ae4b1ea36c240baaff43ec9560a1c56f309775cb5be704ed436e5f9b46`。
+
+13:56:24 UTC五文件核验完成，13:56:26记录`PACKAGE_VERIFIED`，CPU owner62744成功退出。
+已核对5321条来源原件SHA、题号覆盖、唯一性、字段、各文件字节数/SHA及压缩包成员；
+`manifest.json`保留逐题来源、Judge与导出源码身份，`verified.json`记录完成证据。
+独立检查者复核完成标记、239条Judge、总分及归档摘要后停止，没有会话外AI巡检。
+
+用户明确要求“先保留在modal，后续再处理”。数据仅保留在runs volume
+`wxu-evolve-agent-runs-20261006`（环境`zheng-dev`）的
+`/runs/devbox/frozen_9b_results_20261019/`：
+
+- `files/{cvbench,mvu_eval,crossvid}.jsonl`：997/1824/2500条原值答案、GT、逐题秒数和文本轨迹。
+- `files/ccqa_scores.jsonl`：239条，字段与AgentCVR一致。
+- `files/statistics.md`：评分、耗时、格式及来源说明。
+- `mvagent-9b-results-with-trajectories-20261019.tar.gz`：以上五文件，185,582,658字节；
+  SHA256 `0af9dbda447386f0a13109ad93559a5a52bc2d990245d4f5d3448f41503aa5a3`。
+
+未下载本机或发布Release；源码与本文按项目规则推送Git。包内保留文本轨迹，不包含媒体Base64或
+完整token ID数组；未删改原始Modal记录。27B/35B结果不在本9B包内，仍由原全量任务负责。
