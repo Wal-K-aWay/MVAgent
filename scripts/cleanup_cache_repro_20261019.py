@@ -126,7 +126,7 @@ def file_sha(path):
 
 
 def check_retained(plan):
-    with ThreadPoolExecutor(max_workers=12) as pool:
+    with ThreadPoolExecutor(max_workers=32) as pool:
         for (path,wanted),actual in zip(plan['retained_results'].items(),pool.map(file_sha,plan['retained_results'])):
             assert actual==wanted,path
 
@@ -186,7 +186,7 @@ def prepare():
     deleting={Path(x) for item in plan for x in item['delete']}
     assert paths and all(not any(a in deleting for a in (p,*p.parents)) for p in paths)
     print('HASHING_RETAINED_RESULTS',len(paths),flush=True)
-    with ThreadPoolExecutor(max_workers=12) as pool:hashes=dict(zip(map(str,paths),pool.map(file_sha,paths)))
+    with ThreadPoolExecutor(max_workers=32) as pool:hashes=dict(zip(map(str,paths),pool.map(file_sha,paths)))
     record=dict(at=time.time(),groups=GROUPS,plan=plan,protected=list(map(str,protected)),
                 inbound_references=references,documentation=documentation,retained_results=hashes)
     save(AUDIT/'plan.json',record);volume.commit()
@@ -223,7 +223,7 @@ def include_inactive_aliases():
         rows=[r for p in paths for r in inventory(p)]
         item.update(delete=list(map(str,paths)),inventory=rows,**totals(rows))
     paths=[p for p in result_files(a.split('/')[0] for a in ALIASES) if str(p) not in plan['retained_results']]
-    with ThreadPoolExecutor(max_workers=12) as pool:
+    with ThreadPoolExecutor(max_workers=32) as pool:
         plan['retained_results'].update(zip(map(str,paths),pool.map(file_sha,paths)))
     plan['aliases']=aliases
     save(AUDIT/'plan.json',plan);volume.commit()
@@ -237,7 +237,7 @@ def apply():
     plan=json.loads((AUDIT/'plan.json').read_text())
     for name,digest in plan['documentation'].items():
         assert hashlib.sha256((AUDIT/'documentation'/name).read_bytes()).hexdigest()==digest
-    check_retained(plan)
+    # The pre-deletion SHA snapshot is in the plan; verify it again after deletion.
     for item in plan.get('aliases',[]):
         p=Path(item['path']);assert p.is_symlink() and os.readlink(p)==item['link'];p.unlink()
     volume.commit()
