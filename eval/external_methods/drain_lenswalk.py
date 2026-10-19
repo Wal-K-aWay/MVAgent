@@ -30,6 +30,7 @@ def process(pid):
 
 def main(output):
     driver = output/'frozen_repo/eval/external_methods/lenswalk_full.py'
+    sys.path[:0] = [str(driver.parent), str(driver.parents[2]/'src'), str(driver.parents[2])]
     spec = importlib.util.spec_from_file_location('frozen_drain_driver', driver)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

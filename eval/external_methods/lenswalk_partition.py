@@ -120,6 +120,7 @@ def merge(output):
     for source in manifest['inherited_sources'].values():
         assert sha256(source['path']) == source['sha256'], 'An original saved outcome changed'
     driver = Path(manifest['children'][0]['root'])/'frozen_repo/eval/external_methods/lenswalk_full.py'
+    sys.path[:0] = [str(driver.parent), str(driver.parents[2]/'src'), str(driver.parents[2])]
     spec = importlib.util.spec_from_file_location('partition_frozen_driver', driver)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
