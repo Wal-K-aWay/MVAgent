@@ -555,3 +555,10 @@ FFmpeg流拷贝输出标称14帧/10FPS，顺序只能解码10帧；vLLM OpenCV�
 新的runs根`devbox/frozen_full_final_20261019`计划继承原分片0全部成功结果，失败原件保留，
 仅重跑MOC552再继续35B。分片1继续`frozen_full_recovery_20261019/shard1`原冻结a0150f7，
 新汇总根引用该分片；既有master不热改，新master负责两组完成后的最终汇总。
+
+12:48 UTC新root准备完成：3821条成功轨迹逐SHA/token/cache0/sticky核验后继承，
+原27B的MOC552失败原件保留，未改写旧输出。源码包SHA256为
+`9be4a026452f6f3ea7748ada67ec7dcfdabd820b205e224a7b6062b1579ed773`；selection/baseline仍与原批一致。
+12:49 UTC唯一新master PID40568提交，日志位于devbox `/tmp/mvagent-frozen-full-final-20261019/`；
+将先验证27B失败整题，然后35B、三模型CCQA Judge，并等待另一分片完成后做总分析。
+旧master仍维持其healthy shard1，不作为新的最终汇总owner。
