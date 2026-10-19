@@ -276,7 +276,7 @@ def complete():
     fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
     volume=modal.Volume.from_name('wxu-evolve-agent-runs-20261006',environment_name='zheng-dev')
     state=Path.home()/'wxu-evolve-agent/devbox/state-mvagent-frozen-9b-judge-20261019.json'
-    owner=int((here/'controller.pid').read_text())
+    missing_owner=0
     while True:
         try:
             finished=json.loads(b''.join(volume.read_file('devbox/frozen_9b_results_20261019/judge_complete.json')))
@@ -285,7 +285,12 @@ def complete():
         if finished is not None and not state.exists():
             assert finished['new_judged']==189
             break
-        os.kill(owner,0)
+        try:
+            os.kill(int((here/'controller.pid').read_text()),0)
+            missing_owner=0
+        except ProcessLookupError:
+            missing_owner+=1
+            assert missing_owner<3, 'Judge owner exited without a committed completion marker'
         print(now(), 'waiting_for_judge_and_gpu_release',flush=True)
         time.sleep(45)
     sys.path.insert(0,str(Path.home()/'wxu-evolve-agent/devbox'))
