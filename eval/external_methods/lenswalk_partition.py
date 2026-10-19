@@ -50,10 +50,10 @@ def initialize(previous, output):
     assert len(ids) == 5321 and sha256(previous/'samples.json') == original['samples_sha256']
     rows = read(previous/'inherited_records.json')
     sources = {}
-    for path in (previous/'records').glob('*.json'):
-        row = read(path)
-        rows[path.stem] = row
-        sources[row['sample_id']] = dict(path=str(path), sha256=sha256(path))
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        for path, row, digest in pool.map(lambda p: (p, read(p), sha256(p)), (previous/'records').glob('*.json')):
+            rows[path.stem] = row
+            sources[row['sample_id']] = dict(path=str(path), sha256=digest)
     by_id = {row['sample_id']: row for row in rows.values()}
     assert len(by_id) == len(rows)
     # A result without a record must be salvaged before any question can be reassigned.
