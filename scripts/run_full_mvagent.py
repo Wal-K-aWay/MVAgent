@@ -22,7 +22,8 @@ from run_full_e2e import now, read, write, sha
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT/'src'), str(ROOT/'eval/e2e_eval')]
-TAG = 'frozen_full_20261018'
+TAG = 'frozen_full_recovery_20261019'
+PARENT = Path('/runs/devbox/frozen_full_20261018')
 OUT = Path('/runs/devbox')/TAG
 BASE = Path('/runs/devbox/global_short_large_20261017')
 PILOT = Path('/runs/devbox/system_ablation_20261017')
@@ -41,84 +42,60 @@ def partitions(ids, reused):
 
 
 def prepare():
+    from concurrent.futures import ThreadPoolExecutor
     from models.vlm.local.sync_server import execution_profile
-    assert not OUT.exists(), 'Use a fresh output directory; never replace prior results'
-    prior = read(BASE/'manifest.json')
-    prefixes = ('src/mvagent/', 'src/models/', 'configs/inference/', 'src/skill_evolution/infra/')
-    hashes = {p: h for p, h in prior['actor_source_hashes'].items()
-              if p.startswith(prefixes) and p.endswith(('.py', '.yaml'))}
-    for p in ['eval/agent_eval/run.py', 'eval/agent_eval/score_crossvid_ccqa.py', 'requirements.txt']:
-        hashes[p] = prior['actor_source_hashes'][p]
-    assert all(sha(ROOT/p) == h for p, h in hashes.items()), 'Inference/scoring source changed'
-    assert execution_profile() == prior['profile']
-    selection = read(E2E['9B']/'selection.json')
-    unavailable = read(E2E['9B'].parent/'known_unavailable.json')
-    bad = {r['sample_id'] for r in unavailable['records']}
-    assert bad == {'cvbench:64', 'cvbench:65', 'cvbench:66'}
-    ids = [s for group in selection.values() for s in group if s not in bad]
-    assert Counter(s.split(':')[0] for s in ids) == EXPECTED
-    assert len(ids) == len(set(ids)) == 5321
-    split = ROOT/'configs/skill_evolution/splits/crossvid_lite2500_eval_seed20260919.json'
-    assert set(selection['crossvid']) == {r['sample_id'] for r in read(split)['samples']}
-    baseline = {m: read(BASE/'analysis'/f'{m}_paired.json') for m in MODELS}
-    reused = {r['sample_id'] for r in baseline['9B']}
-    assert len(reused) == 1500 and all({r['sample_id'] for r in rows} == reused and len(rows) == 1500 for rows in baseline.values())
-    parts = partitions(ids, reused)
-    assert list(map(len, parts)) == [1911, 1910]
+    assert not OUT.exists(), 'Never overwrite an existing recovery'
+    prior = read(PARENT/'manifest.json')
+    media = 'src/mvagent/utils/media.py'
+    changed = {p for p, digest in prior['actor_hashes'].items() if sha(ROOT/p) != digest}
+    assert changed == {media} and execution_profile() == prior['profile']
     OUT.mkdir(parents=True)
-    # Validate archived records in place; keep one archive instead of copying 4,500 large trajectories.
-    with ExitStack() as stack:
-        archives = {}
-        for model, rows in baseline.items():
-            for row in rows:
-                path = Path(row['path'])
-                if path.is_file():
-                    data = path.read_bytes()
-                    row['provenance'] = dict(path=str(path), sha256=row['sha256'])
-                else:
-                    rel = path.relative_to(BASE)
-                    shard, group, name = rel.parts[:3]
-                    assert shard in ('shard0', 'shard1') and group == 'global_short' and name == model
-                    key = f'global_short_{shard}_{model}'
-                    if key not in archives:
-                        meta = read(ARCHIVES/f'{key}.json')
-                        archives[key] = (meta, stack.enter_context(tarfile.open(ARCHIVES/f'{key}.tar')))
-                    meta, archive = archives[key]
-                    member = str(Path(model, *rel.parts[3:]))
-                    info = meta['entries'][member]
-                    data = archive.extractfile(member).read()
-                    assert len(data) == info['size'] and info['sha256'] == row['sha256']
-                    row['provenance'] = dict(archive=meta['archive'], member=member,
-                        archive_sha256=meta['archive_sha256'], sha256=row['sha256'])
-                assert hashlib.sha256(data).hexdigest() == row['sha256']
-                raw = json.loads(data)
-                assert raw['status'] == 'ok' and raw['sample_id'] == row['sample_id']
-                assert raw['prediction'] == row['arms']['direct']['prediction']
-                stats(raw)
-    write(OUT/'baseline.json', baseline)
-    write(OUT/'samples.json', ids)
-    write(OUT/'selection.json', dict(ids=ids, reused=sorted(reused), partitions=parts,
-        expected=15963, reused_outputs=4500, new_outputs=11463, counts=EXPECTED))
-    write(OUT/'known_unavailable.json', unavailable)
-    write(OUT/'baseline_services.json', {m: read(PILOT/'global_short'/m/'startup_identity.json') for m in MODELS})
+    for name in ['samples.json', 'selection.json', 'baseline.json', 'baseline_services.json', 'known_unavailable.json']:
+        shutil.copy2(PARENT/name, OUT/name)
+        assert sha(OUT/name) == sha(PARENT/name)
+    # The unaffected shard resumes its original frozen source and owns its own GPU pool.
+    (OUT/'shard0').symlink_to(PARENT/'shard0', target_is_directory=True)
+    group = OUT/'shard1'
+    group.mkdir()
+    shutil.copy2(PARENT/'shard1/samples.json', group/'samples.json')
+    ids = set(read(group/'samples.json'))
+    inherited, failed = [], []
+    def inspect(path):
+        data = path.read_bytes()
+        raw = json.loads(data)
+        assert raw['sample_id'] in ids
+        if raw['status'] == 'ok':
+            stats(raw)
+        return path, raw['sample_id'], raw['status'], hashlib.sha256(data).hexdigest()
+    files = [p for m in MODELS for p in (PARENT/'shard1'/m).glob('records/*/*/result.json')]
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        for path, sid, status, digest in pool.map(inspect, files):
+            rel = path.relative_to(PARENT/'shard1')
+            row = dict(sample_id=sid, model=rel.parts[0], source=str(path), sha256=digest)
+            if status != 'ok':
+                failed.append(row)
+                continue
+            target = group/rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.symlink_to(path)
+            inherited.append(row)
+    assert len(inherited) == 1909 and [r['sample_id'] for r in failed] == ['mvu_eval:TR:1416']
+    write(OUT/'inheritance.json', dict(inherited=inherited, original_failures=failed,
+        prior_progress=read(PARENT/'shard1/progress.json'),
+        policy='Only status=ok reused, including wrong/format-invalid model answers. Original files stay unchanged.'))
+    write(group/'progress.json', dict(phase='prepared', models={}, expected=5730, at=now()))
     with tarfile.open(OUT/'source.tar.gz', 'w:gz', compresslevel=1) as archive:
         for name in ['src', 'scripts', 'configs', 'eval', '.git', 'requirements.txt', 'demo.py']:
             archive.add(ROOT/name, arcname=name, filter=lambda t: None if {'__pycache__', '.cache'} & set(Path(t.name).parts) else t)
-    storage = os.statvfs('/runs')
-    write(OUT/'manifest.json', dict(at=now(), commit=(ROOT/'.git/HEAD').read_text().strip(),
-        accepted_commit=prior['commit'], actor_hashes=hashes, profile=execution_profile(),
-        archive_sha256=sha(OUT/'source.tar.gz'), selection_sha256=sha(OUT/'selection.json'),
-        baseline_sha256=sha(OUT/'baseline.json'), services_sha256=sha(OUT/'baseline_services.json'),
-        inference_seed=0, shuffle_seed=0, skills=None, split_sha256=sha(split),
-        judge='Qwen3-30B-A3B-Instruct-2507', free_inodes=storage.f_favail,
-        expected_hours=1.0+1.3*3821*sum(sum(r['stats']['seconds'] for r in rows)/1500 for rows in baseline.values())/16/3600,
-        policy='Frozen concise Global and original Video; all previous outputs and scores retained, only missing IDs inferred.'))
-    for shard, part in enumerate(parts):
-        group = OUT/f'shard{shard}'
-        write(group/'samples.json', part)
-        write(group/'progress.json', dict(phase='prepared', models={}, expected=len(part)*3, at=now()))
-    write(OUT/'progress.json', dict(phase='prepared', reused=4500, new=0, expected=15963, at=now()))
-    print(json.dumps(read(OUT/'manifest.json')), flush=True)
+    manifest = dict(prior, at=now(), commit=(ROOT/'.git/HEAD').read_text().strip(),
+        archive_sha256=sha(OUT/'source.tar.gz'), baseline_sha256=sha(OUT/'baseline.json'),
+        actor_hashes={p: sha(ROOT/p) for p in prior['actor_hashes']}, parent=str(PARENT),
+        parent_manifest_sha256=sha(PARENT/'manifest.json'), inherited_shard1=1909,
+        changes={media: 'Require at least two encoded frames even when requested FPS exceeds source FPS.'},
+        shard_sources={'0': str(PARENT/'source.tar.gz'), '1': str(OUT/'source.tar.gz')})
+    write(OUT/'manifest.json', manifest)
+    write(OUT/'progress.json', dict(phase='prepared', at=now(), inherited_panel=4500, inherited_shard1=1909, expected=15963))
+    print(json.dumps({k:v for k,v in manifest.items() if k not in ['actor_hashes','profile']}), flush=True)
 
 
 def measure(text, record, scorer):
@@ -414,7 +391,7 @@ def host(shard):
     import modal
     sys.path.insert(0, str(Path.home()/'wxu-evolve-agent/devbox'))
     import devbox
-    name = f'mvagent-frozen-full-20261018-shard{shard}'
+    name = f'mvagent-frozen-full-recovery-20261019-shard{shard}'
     devbox.REPO = str(ROOT)
     devbox.NAME = name
     devbox.STATE = str(Path(devbox.HERE)/f'state-{name}.json')
@@ -468,7 +445,8 @@ def host(shard):
 
 def launch():
     import fcntl
-    here = Path.home()/'wxu-evolve-agent/devbox'
+    here = Path('/tmp/mvagent-frozen-full-recovery-20261019')
+    here.mkdir(mode=0o700, exist_ok=True)
     lock = (here/f'watch-{TAG}.lock').open('w')
     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
     children = []
@@ -479,18 +457,28 @@ def launch():
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
     try:
-        for shard in range(2):
+        for shard in [1]:
             with (here/f'watch-{TAG}-shard{shard}.log').open('a') as log:
                 children.append(subprocess.Popen([sys.executable, __file__, 'host', '--shard', str(shard)],
                     stdout=log, stderr=subprocess.STDOUT))
         codes = [p.wait() for p in children]
         print('SHARDS_FINISHED', codes, flush=True)
-        sys.path.insert(0, str(here))
-        import frozen_full_cpu as cpujob
+        import modal
+        volume = modal.Volume.from_name('wxu-evolve-agent-runs-20261006', environment_name='zheng-dev')
+        while True:
+            state = json.loads(b''.join(volume.read_file('devbox/frozen_full_20261018/shard0/progress.json')))
+            if state['phase'] == 'completed':
+                break
+            assert state['phase'] != 'failed', state
+            marker = Path.home()/'wxu-evolve-agent/devbox/state-mvagent-frozen-full-20261018-shard0.json'
+            assert marker.exists(), 'Unfinished original shard has no live controller'
+            time.sleep(45)
+        sys.path.insert(0, str(Path.home()/'wxu-evolve-agent/devbox'))
+        import frozen_full_recovery_cpu as cpujob
         with cpujob.app.run(environment_name='zheng-dev'):
             rc, out, err = cpujob.job.remote('python scripts/run_full_mvagent.py analyze')
         print(out, err, flush=True)
-        assert rc == 0 and codes == [0, 0], (rc, codes)
+        assert rc == 0 and codes == [0], (rc, codes)
         print('COMPLETE', now(), flush=True)
     finally:
         for child in children:

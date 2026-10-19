@@ -234,7 +234,7 @@ def cut_video_segment(
     start_frame = min(max(0, int(segment[0] * fps)), total_frames - 1)
     end_frame = min(max(start_frame + 1, int(segment[1] * fps)), total_frames)
     selected_frames = end_frame - start_frame
-    minimum_frames = (math.ceil(int(minimum_sampled_frames) * fps / sampling_fps - 1e-9)
+    minimum_frames = (max(int(minimum_sampled_frames), math.ceil(int(minimum_sampled_frames) * fps / sampling_fps - 1e-9))
                       if sampling_fps is not None else 0)
     padding_frames = max(0, minimum_frames - selected_frames)
 

@@ -15,9 +15,9 @@ from mvagent.utils.media import probe_video_info
 class ShortVideoTest(unittest.TestCase):
     def test_short_video_padding_and_ordinary_full_video_passthrough(self):
         with tempfile.TemporaryDirectory() as directory:
-            for frames in [5, 90]:
+            for frames, source_fps in [(1, 8), (5, 30), (90, 30)]:
                 path = Path(directory) / f'{frames}.mp4'
-                writer = cv2.VideoWriter(str(path), cv2.VideoWriter_fourcc(*'mp4v'), 30, (64, 64))
+                writer = cv2.VideoWriter(str(path), cv2.VideoWriter_fourcc(*'mp4v'), source_fps, (64, 64))
                 self.assertTrue(writer.isOpened())
                 try:
                     for index in range(frames):
