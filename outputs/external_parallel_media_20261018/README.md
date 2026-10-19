@@ -19,6 +19,8 @@ Modal CPU `ap-JPzaNPMfQBL6rik8Vjmtb8` rc0：两个实际冻结driver仅一个数
 
 ## LensWalk最终结果（2026-10-19）
 
+精简结果和文本轨迹已按用户要求发布到[GitHub Release](https://github.com/Wal-K-aWay/MVAgent/releases/tag/lenswalk-results-20261019)，共68.46 MB、仅五个文件，不含图片编码、token ID数组或重复HTTP体；[下载与字段说明](../lenswalk_release_20261019/README.md)。原始Modal记录保留。
+
 04:18:18 UTC（北京时间12:18）全部5321题和239道CCQA Judge已完成，状态`completed_with_errors`；04:19控制器结束。05:47只读复查host3587165不存在，实际续接Sandbox `sb-NVXHhVNhafuN1302dcRAgn`已poll137，GPU已释放，无剩余排队题。原Sandbox曾于10月18日20:31退出，后台控制器已用同一冻结源续接，不能把旧Sandbox退出视作最终失败。
 
 | Benchmark | 已处理 | 工程失败 | 工程失败计零得分 | 排除工程失败得分 | Agent平均秒/题 | 视频准备平均秒/题 |
