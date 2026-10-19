@@ -111,7 +111,7 @@ def export():
     for root in [RUN,old_recovery]:
         expected_sha.update({r['sample_id']:r['sha256'] for r in read(root/'inheritance.json')['inherited'] if r['model']=='9B'})
     smoke=read(old_recovery/'analysis/recovery_smoke.json')
-    expected_sha['mvu_eval:TR:1416']=smoke['new_sha256']
+    expected_sha['mvu_eval:TR:1416']=smoke['new_result_sha256']
     assert set(expected_sha)==set(selection['ids'])
     truth={f"cvbench:{r['id']}":r['answer'] for r in read(Path('/assets/cvbench/QAs.json'))}
     truth.update({f"mvu_eval:{r['task']}:{r['id']}":r['answer'] for r in read(Path('/assets/mvu-eval/QAs.json'))})
