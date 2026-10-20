@@ -37,11 +37,12 @@ def main():
             (child/'frozen_repo').symlink_to(old/'frozen_repo', target_is_directory=True)
             children.append(dict(root=str(child), samples_sha256=sha256(child/'samples.json')))
         write(output/'samples.json', ids)
-        write(output/'manifest.json', dict(children=children, inherited_sources={}, created_at='test'))
+        write(output/'manifest.json', dict(model='27B', children=children, inherited_sources={}, created_at='test'))
         merge(output)
         observed = read(output/'summary.json')
         same_statistics(observed['benchmarks'], baseline['benchmarks'])
         assert len(observed['rows'])==5321
+        assert read(output/'progress.json')['models'] == {'27B': {'finished': 5321}}
         # A second owner cannot silently replace an answer in the combined report.
         second = Path(children[1]['root'])
         bad = read(second/'summary.json')

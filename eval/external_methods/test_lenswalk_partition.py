@@ -25,12 +25,19 @@ def main():
         raise RuntimeError('Duplicate accepted')
     except AssertionError:
         pass
-    source = Path('/runs/devbox/lenswalk_full_9b_20261019/frozen_repo/eval/external_methods/lenswalk_full.py').read_text()
-    patched = patch_driver(source)
-    before = {n.name: ast.dump(n) for n in ast.parse(source).body if isinstance(n, ast.FunctionDef)}
-    after = {n.name: ast.dump(n) for n in ast.parse(patched).body if isinstance(n, ast.FunctionDef)}
-    assert {k for k in before if before[k] != after[k]} == {'main'}
-    assert patched.replace('    global EXPECTED\n', '').replace("    EXPECTED=manifest['expected_counts']\n", '') == source
+    costly = {sid: 1 for sid in ids}; costly[ids[1]] = costly[ids[3]] = 1000
+    balanced = partition(ids, completed, costly)
+    assert len(set(sum(balanced, []))) == len(ids)
+    loads = [sum(costly[sid] for sid in group if sid not in completed) for group in balanced]
+    assert abs(loads[0]-loads[1]) <= 1, loads
+    assert balanced == partition(ids, completed, costly)
+    for model in ('9b', '27b'):
+        source = Path(f'/runs/devbox/lenswalk_full_{model}_20261019/frozen_repo/eval/external_methods/lenswalk_full.py').read_text()
+        patched = patch_driver(source)
+        before = {n.name: ast.dump(n) for n in ast.parse(source).body if isinstance(n, ast.FunctionDef)}
+        after = {n.name: ast.dump(n) for n in ast.parse(patched).body if isinstance(n, ast.FunctionDef)}
+        assert {k for k in before if before[k] != after[k]} == {'main'}
+        assert patched.replace('    global EXPECTED\n', '').replace("    EXPECTED=manifest['expected_counts']\n", '') == source
     child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(.2); raise SystemExit(7)'])
     try:
         info = process(child.pid)

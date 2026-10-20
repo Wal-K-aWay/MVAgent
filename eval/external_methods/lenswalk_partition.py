@@ -17,15 +17,23 @@ def read(path):
     return json.loads(Path(path).read_text())
 
 
-def partition(ids, completed):
+def partition(ids, completed, costs=None):
     assert len(ids) == len(set(ids)) and set(completed) <= set(ids)
     groups = [[], []]
-    # Balance pending work within each benchmark; inherited outcomes cost no inference.
+    loads = [0.0, 0.0]
+    if costs is not None:
+        assert set(costs) == set(ids) and all(value >= 0 for value in costs.values())
+    # Saved answers cost no inference; historical time balances only the pending owners.
     for saved in (False, True):
         for dataset in sorted({sid.split(':')[0] for sid in ids}):
             subset = [sid for sid in ids if (sid in completed) == saved and sid.split(':')[0] == dataset]
+            if costs is not None and not saved:
+                subset.sort(key=lambda sid: (-costs[sid], sid))
             for index, sid in enumerate(subset):
-                groups[index % 2].append(sid)
+                owner = min(range(2), key=lambda i: (loads[i], len(groups[i]), i)) if costs is not None and not saved else index % 2
+                groups[owner].append(sid)
+                if costs is not None and not saved:
+                    loads[owner] += max(1, costs[sid])
     assert not set(groups[0]) & set(groups[1])
     assert set(groups[0]) | set(groups[1]) == set(ids)
     owners = [set(group) for group in groups]
@@ -45,7 +53,8 @@ def initialize(previous, output):
     receipt = read(previous/'SCHEDULING_STOPPED.json')
     assert receipt['sandbox_exit_code'] is not None
     original = read(previous/'manifest.json')
-    assert original['model'] == '9B'
+    model = original['model']
+    assert model in ('9B', '27B')
     ids = read(previous/'samples.json')
     assert len(ids) == 5321 and sha256(previous/'samples.json') == original['samples_sha256']
     rows = read(previous/'inherited_records.json')
@@ -59,7 +68,10 @@ def initialize(previous, output):
     # A result without a record must be salvaged before any question can be reassigned.
     assert not [p for p in (previous/'lenswalk').glob('*/attempt-*/result.json')
                 if p.parent.parent.name not in rows]
-    groups = partition(ids, by_id)
+    history_path = Path('/runs/devbox/lenswalk_full_35b_parallel_media_20261018/summary.json')
+    history = read(history_path)['rows']
+    costs = {row['sample_id']:sum(row[key] for key in ('seconds', 'prepared_seconds', 'archive_seconds')) for row in history}
+    groups = partition(ids, by_id, costs)
     commit = (Path(__file__).resolve().parents[2]/'.git/HEAD').read_text().strip()
     children = []
     for index, assigned in enumerate(groups):
@@ -91,13 +103,16 @@ def initialize(previous, output):
               samples_sha256=sha256(child/'samples.json'), full_panel_sha256=original['samples_sha256'],
               expected_counts=expected, inherited_count=len(inherited), partition_index=index))
         write(child/'progress.json', dict(phase='prepared', expected=len(assigned), completed=len(inherited),
-              models={'9B': {'finished': len(inherited)}}))
+              models={model: {'finished': len(inherited)}}))
         children.append(dict(root=str(child), expected=len(assigned), inherited=len(inherited),
-                             pending=len(assigned)-len(inherited), samples_sha256=sha256(child/'samples.json')))
+                             pending=len(assigned)-len(inherited), samples_sha256=sha256(child/'samples.json'),
+                             historical_pending_seconds=sum(costs[sid] for sid in assigned if sid not in by_id)))
     output.mkdir()
     shutil.copy2(previous/'samples.json', output/'samples.json')
     write(output/'manifest.json', dict(original, children=children, inherited_sources=sources,
-          previous=str(previous), partition_commit=commit, stopping_receipt=receipt))
+          previous=str(previous), partition_commit=commit, stopping_receipt=receipt,
+          partition_policy='Historical LensWalk 35B preparation+inference+archive time balances pending owners; answers are never inputs',
+          timing_source=str(history_path), timing_source_sha256=sha256(history_path)))
     write(output/'progress.json', dict(phase='prepared', expected=len(ids), completed=len(rows), children=children))
     print(json.dumps(children), flush=True)
 
@@ -131,7 +146,7 @@ def merge(output):
     module.score_all(output, records, rows, {}, lambda: None, threading.Event(), output)
     write(output/'progress.json', dict(phase='completed_with_errors' if any(r['infrastructure_error'] for r in rows.values()) else 'completed',
           expected=len(ids), completed=len(rows), children=manifest['children'], duplicate_ids=0,
-          models={'9B': {'finished': len(rows)}}))
+          models={manifest['model']: {'finished': len(rows)}}))
     print('Merged 5321 distinct scored outcomes; original records unchanged', flush=True)
 
 

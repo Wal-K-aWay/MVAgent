@@ -59,7 +59,7 @@ def main():
             children.append(dict(root=str(child),samples_sha256=sha256(child/'samples.json')))
         output=root/'merged'
         write(output/'samples.json',ids)
-        write(output/'manifest.json',dict(children=children,inherited_sources={},created_at='test'))
+        write(output/'manifest.json',dict(model='9B',children=children,inherited_sources={},created_at='test'))
         merge(output)
         same_statistics(read(output/'summary.json')['benchmarks'],baseline['benchmarks'])
     print('Four disjoint balanced owners; original RSI runtime preserved; failed outcomes skipped; flat Judge persistence; 5321 scored rows merged without inference/Judge')
