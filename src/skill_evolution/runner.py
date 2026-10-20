@@ -10,7 +10,8 @@ from models.factory import ModelFactory
 from mvagent.configs import MVAgentConfig
 from mvagent.batch import ExecutionConfig
 from mvagent.utils import mask_sensitive_data
-from .infra.benchmarks import FixedOpenQAJudge, SampleTask, build_benchmark_foundation, load_multibench_records
+from .infra.benchmarks import (FixedOpenQAJudge, SampleTask, build_benchmark_foundation, load_multibench_records,
+    score_outcome)
 from .configs.model_config import EvolutionModelConfig
 from .infra.data import DataSplitManifest, EvaluationRequest, audit_split, build_evaluation_context, group_by_media
 from .infra.trajectory import TrajectoryProjector, routing_audit
@@ -157,7 +158,8 @@ def run(args):
                         metadata_cache[path] = probe_video_info(path)
                 return {vid: metadata_cache[path] for vid, path in videos.items()}
             projector = TrajectoryProjector(video_metadata_provider=metadata,
-                outcome_feedback_provider=foundation.scorer.feedback, source_group_provider=groups.__getitem__)
+                outcome_feedback_provider=foundation.scorer.feedback, source_group_provider=groups.__getitem__,
+                outcome_provider=lambda sid, score: score_outcome(records[sid].sample.task, score))
             optimizer = ModelFactory.create_model(EvolutionModelConfig(**raw['optimizer']), mvconfig)
             optimizer_ids = train + partitions.get('cal', ()) if variant == 'cluster_v2' else train
             trainer = module.GlobalTrainer(config=module.GlobalConfig(**raw.get('training', {})),
@@ -171,7 +173,8 @@ def run(args):
                         duration_sec=metadata(records[sid].sample.videos)[vid]['duration_sec'])
                         for vid in records[sid].sample.videos]),
                     reference=dict(ground_truth=list(records[sid].sample.ground_truth),
-                    reference_answer=records[sid].reference_answer), source_group=groups[sid]) for sid in optimizer_ids},
+                    reference_answer=records[sid].reference_answer), source_group=groups[sid],
+                    task=records[sid].sample.task.value) for sid in optimizer_ids},
                 output_dir=output, episode_cache=executor.cache)
             summary = trainer.run(resume=args.resume)
         write_json(output / "summary.json", summary)

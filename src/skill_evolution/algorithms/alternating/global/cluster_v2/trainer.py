@@ -5,6 +5,7 @@ from copy import deepcopy
 import fcntl, json, math
 from pathlib import Path
 from mvagent.skills.bank import MAX_SKILL_WORDS
+from skill_evolution.infra.benchmarks import score_outcome
 from skill_evolution.infra.skills import hash_json
 from skill_evolution.infra.store import tree_hash, write_json
 from .question_groups import QuestionGroups
@@ -241,7 +242,11 @@ class GlobalTrainer:
                 )
                 state["train_errors"] = sorted(
                     (set(state["train_errors"]) - set(pending["ids"]))
-                    | {sid for sid, s in train_report["scores"].items() if s.score < 1}
+                    | {
+                        sid
+                        for sid, s in train_report["scores"].items()
+                        if score_outcome(self.metadata[sid]["task"], s.score) != "pass"
+                    }
                 )
                 issue, plan = self.stages.diagnose(directory, cases, parent)
                 if plan is not None:
@@ -309,7 +314,13 @@ class GlobalTrainer:
                 for n in pending["pool_before"] + candidate_nodes
             }
             search.record_expansion(
-                state, decision, candidate_nodes, reports, self.config, self.store
+                state,
+                decision,
+                candidate_nodes,
+                reports,
+                self.config,
+                self.store,
+                {sid: m["task"] for sid, m in self.metadata.items()},
             )
             self.evaluation.exploring = False
             if (index + 1) % self.config.gate_every == 0:

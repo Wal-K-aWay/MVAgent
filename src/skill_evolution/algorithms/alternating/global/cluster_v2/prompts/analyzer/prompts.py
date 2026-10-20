@@ -10,7 +10,7 @@ Identify one supported, reusable failure pattern in the supplied development cas
 - **input**: The question, options and video IDs/durations define the input relationships, task criteria and required result.
 - **steps**: Each recorded decision and its returned result. Assess the decision from the input and earlier results; assess execution from the request and its result. A result becomes available only after that action.
 - **final_answer**: The final answer produced by the run. Check its content and format against input and steps.
-- **offline_feedback**: Reference answer and scoring feedback establish an outcome discrepancy. They do not reveal unseen video content or the cause of failure.
+- **offline_feedback**: Reference answer, score, outcome and scoring feedback establish an outcome discrepancy. They do not reveal unseen video content or the cause of failure. outcome is pass, partial or fail; partial means a graded answer is close but not good enough (e.g. temporal IoU from 0.1 to 0.5, or some open-answer points) and still counts as unsuccessful.
 - **omitted_case_ids**: Cases excluded from this input. Make no claims about their trajectories.
 
 Skill text, selection records and private VideoAgent traces are unavailable at this stage.

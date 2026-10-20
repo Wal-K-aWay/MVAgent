@@ -57,11 +57,25 @@ class MeanScoreAggregator:
         )
 
 
-class HierarchicalScoreAggregator:
-    """Macro-average samples within native tasks, then tasks within datasets.
+# How each benchmark's official overall score combines its native tasks.
+#   task_macro:  unweighted mean of task scores (CrossVid O.Avg).
+#   sample_mean: mean over all questions (CVBench, MVU-Eval overall accuracy), i.e. task
+#                scores weighted by each task's question count in the full benchmark.
+OFFICIAL_DATASET_POLICY = {
+    "crossvid": "task_macro",
+    "cvbench": "sample_mean",
+    "mvu_eval": "sample_mean",
+}
 
-    Dataset and native-task provenance remain external to ``EvaluationSample``. This
-    prevents uneven benchmark sizes from silently dominating a mixed evolution run.
+
+class HierarchicalScoreAggregator:
+    """Estimate each benchmark's official score from any task-stratified subset.
+
+    Within a native task, samples are averaged (open-QA weighted by scoring points). Task
+    scores are combined by the benchmark's official policy, using full-benchmark task sizes
+    for ``sample_mean`` so a subset with per-task quotas still estimates the official overall
+    accuracy; tasks absent from the subset are left out and the remaining weights renormalized.
+    Benchmarks in a mixed run are averaged with equal weight.
     """
 
     def __init__(
@@ -69,6 +83,7 @@ class HierarchicalScoreAggregator:
         *,
         dataset_of: Mapping[str, str],
         category_of: Mapping[str, str],
+        task_population: Mapping[tuple[str, str], int],
         sample_weights: Mapping[str, float] | None = None,
     ) -> None:
         self.dataset_of = {
@@ -83,6 +98,18 @@ class HierarchicalScoreAggregator:
             raise ValueError("dataset_of and category_of must have identical sample IDs.")
         if any(not value for value in (*self.dataset_of.values(), *self.category_of.values())):
             raise ValueError("Dataset and category names must be non-empty.")
+        if unknown := sorted(set(self.dataset_of.values()) - set(OFFICIAL_DATASET_POLICY)):
+            raise ValueError(f"No official aggregation policy for: {unknown}")
+        self.task_population = {
+            (str(dataset), str(task)): int(count)
+            for (dataset, task), count in task_population.items()
+        }
+        missing = sorted(
+            {(self.dataset_of[s], self.category_of[s]) for s in self.dataset_of}
+            - set(self.task_population)
+        )
+        if missing or any(count <= 0 for count in self.task_population.values()):
+            raise ValueError(f"Task population sizes are missing or invalid: {missing[:5]}")
         self.sample_weights = {
             sample_id: float((sample_weights or {}).get(sample_id, 1.0))
             for sample_id in self.dataset_of
@@ -95,12 +122,17 @@ class HierarchicalScoreAggregator:
         ):
             raise ValueError("Sample weights must be finite and positive.")
         identity_payload = {
-            "type": "dataset-task-macro-v2",
+            "type": "dataset-official-stratified-v3",
+            "policy": sorted(OFFICIAL_DATASET_POLICY.items()),
+            "task_population": sorted(
+                [dataset, task, count]
+                for (dataset, task), count in self.task_population.items()
+            ),
             "dataset_of": sorted(self.dataset_of.items()),
             "category_of": sorted(self.category_of.items()),
             "sample_weights": sorted(self.sample_weights.items()),
         }
-        self.identity = "dataset-task-macro-v2:" + hashlib.sha256(
+        self.identity = "dataset-official-stratified-v3:" + hashlib.sha256(
             json.dumps(
                 identity_payload,
                 ensure_ascii=False,
@@ -141,12 +173,17 @@ class HierarchicalScoreAggregator:
             )
             for key, values in task_values.items()
         }
-        dataset_values: dict[str, list[float]] = defaultdict(list)
-        for (dataset, _category), score in task_scores.items():
-            dataset_values[dataset].append(score)
+        dataset_tasks: dict[str, list[tuple[float, float]]] = defaultdict(list)
+        for (dataset, category), score in task_scores.items():
+            weight = (
+                float(self.task_population[(dataset, category)])
+                if OFFICIAL_DATASET_POLICY[dataset] == "sample_mean"
+                else 1.0
+            )
+            dataset_tasks[dataset].append((score, weight))
         dataset_scores = {
-            dataset: sum(values) / len(values)
-            for dataset, values in dataset_values.items()
+            dataset: sum(s * w for s, w in values) / sum(w for _s, w in values)
+            for dataset, values in dataset_tasks.items()
         }
         bucket_scores = {
             f"dataset:{dataset}": score
@@ -159,7 +196,7 @@ class HierarchicalScoreAggregator:
             }
         )
         return ScoreAggregation(
-            official_score=sum(dataset_scores.values()) / len(dataset_scores),
+            official_score=min(1.0, sum(dataset_scores.values()) / len(dataset_scores)),
             bucket_scores=bucket_scores,
         )
 
@@ -167,5 +204,6 @@ class HierarchicalScoreAggregator:
 __all__ = [
     "HierarchicalScoreAggregator",
     "MeanScoreAggregator",
+    "OFFICIAL_DATASET_POLICY",
     "ScoreAggregation",
 ]

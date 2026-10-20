@@ -6,7 +6,7 @@ FAULT_TYPES = ('action_selection_error', 'action_parameter_error', 'action_execu
 def build_schema(case):
     steps = [s for s in case['steps'] if s['editable']]
     parameter_steps = [s['step'] for s in steps
-                       if s.get('decision', {}).get('action') in ('analyze_videos', 'watch_videos')]
+                       if s.get('decision', {}).get('action') in ('analyze_videos', 'watch_videos', 'answer')]
     item = dict(type='object', properties=dict(
         step=dict(type='integer', enum=[s['step'] for s in steps]),
         fault_type=dict(type='string', enum=list(FAULT_TYPES)),

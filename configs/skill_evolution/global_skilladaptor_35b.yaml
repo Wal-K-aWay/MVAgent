@@ -1,5 +1,5 @@
 algorithm: global-skilladaptor-v1
-dataset_root: /home/kww/datasets/Multi-Video
+dataset_root: /assets
 runtime:
   mvagent_config: configs/skill_evolution/runtime/dynamic_35b_embedding.yaml
   cache_dir: .cache/skill_evolution/global_skilladaptor

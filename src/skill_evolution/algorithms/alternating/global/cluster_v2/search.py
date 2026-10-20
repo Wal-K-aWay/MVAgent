@@ -4,6 +4,7 @@ import json
 import random
 from copy import deepcopy
 from skill_evolution.infra.bank import BankStore
+from skill_evolution.infra.benchmarks import score_change
 from skill_evolution.infra.store import write_json
 
 
@@ -135,7 +136,8 @@ def select_batch(round_index, groups, train_ids, errors, batch_size, seed, error
     return label, values[start : start + batch_size]
 
 
-def update_pool(nodes, candidates, reports, *, capacity, support, exploration_allowed):
+def update_pool(nodes, candidates, reports, *, tasks, capacity, support, exploration_allowed):
+    # A complement gain must exceed the question family's change margin (score_change).
     indexed = {n["hash"]: dict(n) for n in nodes}
     for node in candidates:
         indexed.setdefault(node["hash"], dict(node))
@@ -151,15 +153,23 @@ def update_pool(nodes, candidates, reports, *, capacity, support, exploration_al
         if len(selected) >= capacity:
             break
         report = reports[node["hash"]]
-        gains = [sid for sid in ids if report["scores"][sid] > envelope[sid]]
+        gains = [
+            sid
+            for sid in ids
+            if score_change(tasks[sid], envelope[sid], report["scores"][sid]) > 0
+        ]
         weighted_gain = sum(
             report["weights"][sid] * (report["scores"][sid] - envelope[sid])
             for sid in gains
         )
         stable = all(
             sum(
-                v[sid]
-                > max(reports[n["hash"]]["repeat_vectors"][i][sid] for n in selected)
+                score_change(
+                    tasks[sid],
+                    max(reports[n["hash"]]["repeat_vectors"][i][sid] for n in selected),
+                    v[sid],
+                )
+                > 0
                 for sid in ids
             )
             >= support
@@ -219,7 +229,7 @@ def reserve_author(
     return pending["author_allowed"]
 
 
-def record_expansion(state, decision, candidates, reports, config, store):
+def record_expansion(state, decision, candidates, reports, config, store, tasks):
     """Rebuild pool accounting from pending before the final round commit."""
     pending = state["pending"]
     parent_node = pending["parent"]
@@ -244,6 +254,7 @@ def record_expansion(state, decision, candidates, reports, config, store):
         previous,
         candidates,
         reports,
+        tasks=tasks,
         capacity=config.pool_size,
         support=config.complement_support,
         exploration_allowed=state["exploration_expansions"]

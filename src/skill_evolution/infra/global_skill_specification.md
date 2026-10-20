@@ -25,9 +25,9 @@ Each VideoAgent receives its own instruction and retains its own previous trajec
 | Component | Skill information available |
 |---|---|
 | Runtime eligibility filter | `meta.role` and `meta.stages` |
-| BM25 and embedding retrieval | `description` and `when_to_use` |
+| BM25 and embedding retrieval | `when_to_use` |
 | Actor | `strategy` only |
-| LLM selector | Candidate `id`, `description`, and `when_to_use`, plus the selection input |
+| LLM selector | Candidate `id` and `when_to_use`, plus the selection input |
 | VideoAgent and visual Observer | No automatic inheritance of the Global skill; necessary instructions must be passed through action parameters |
 | Terminal finalizer | No injected skill; it follows its existing finalization contract |
 
@@ -206,7 +206,7 @@ In the current Global evolution workflow, routing revisions preserve strategy, a
 
 This document is an authoring reference; it is not loaded into a model prompt. Its illustrative cards are not installed. Changes to actual authored cards or model-visible prompts must follow the repository's existing Chinese prompt-mirror maintenance rule.
 
-Keep this specification aligned with [SkillCard validation](../../mvagent/skills/bank.py), [Global action Schema](../../mvagent/agents/global_agent/schema.py), [Global prompts](../../mvagent/agents/global_agent/prompts.py), and the active selection profile. Runtime source is authoritative for enforced behavior. The separate [Global evolution design](../../../analysis/skill_evolution/global_skill_evolution_design_20260927.md) covers candidate search and experimental planning.
+Keep this specification aligned with [SkillCard validation](../../mvagent/skills/bank.py), [Global action Schema](../../mvagent/agents/global_agent/schema.py), [Global prompts](../../mvagent/agents/global_agent/prompts.py), and the active selection profile. Runtime source is authoritative for enforced behavior. Candidate search and experimental planning are documented in the [Global algorithm directories](../algorithms/alternating/global/).
 
 当前 Skill 长度规则：两个文本字段合计最多 **1200 words**，when_to_use无独立硬上限；渲染正文（含标题）最多1200 words。统一由 `count_words` 统计字母/数字/下划线组成的词，词内撇号和连字符不拆分，独立标点不计数；cat、analyze_videos、segment_1 各计1 word，1->2 计2 words。这是英文词计数，不是 tokenizer 或中文分词。Prompt 要求简洁英文，通常900–1100 words或更少，上限不是写作目标。配置改为 max_card_words/max_skill_words；旧字符配置不再支持。JSON Schema 仅保留非空和结构检查，单词上限由程序统一校验。冻结实验仍保留原字符口径，不能混用新源码恢复。
 

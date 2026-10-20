@@ -21,19 +21,22 @@ def analyze_instruction_limit(request_count: int) -> int:
     return min(TEXT_LIMITS["instruction"],
                (ANALYZE_TEXT_BUDGET - TEXT_LIMITS["reason"]) // request_count)
 
-def text_schema(field: str, *, allow_empty: bool = False) -> dict:
+def text_schema(field: str, *, allow_empty: bool = False, bounded: bool = True) -> dict:
     schema = {"type": "string", "maxLength": TEXT_LIMITS[field]}
+    if not bounded:
+        schema.pop("maxLength")
     if not allow_empty:
         schema.update(minLength=1, pattern=r"[\s\S]*\S[\s\S]*")
     return schema
 
 
-def with_text_limits(template: str) -> str:
+def with_text_limits(template: str, *, unbounded_fields: tuple[str, ...] = ()) -> str:
     """Annotate authored JSON placeholders before inserting question or memory text."""
     def annotate(match: re.Match) -> str:
         field, content = match.group(1), match.group(2)
         nonblank = "; nonblank" if field != "uncertainty" else ""
-        return f'"{field}": "<{content}{nonblank}; at most {TEXT_LIMITS[field]} characters>"'
+        limit = "" if field in unbounded_fields else f"; at most {TEXT_LIMITS[field]} characters"
+        return f'"{field}": "<{content}{nonblank}{limit}>"'
 
     return re.sub(
         r'"(reason|answer|instruction|what|summary|text|uncertainty)": "<([^>]*)>"',

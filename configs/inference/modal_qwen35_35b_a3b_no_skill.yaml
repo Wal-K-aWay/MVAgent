@@ -1,0 +1,35 @@
+models:
+  qwen3_5_35b_a3b_local:
+    type: local_vllm
+    execution_profile: qwen35-bf16-flashinfer-sync
+    model_name: /weights/Qwen3.5-35B-A3B
+    temperature: 0.0
+    top_p: 1.0
+    max_tokens: 2048
+    max_videos_per_request: 8
+    max_video_frames_per_request: 512
+    video_mode: video_url
+    timeout_sec: 1860
+    max_retries: 1
+    enable_thinking: false
+runtime:
+  output_dir: outputs
+  cache_dir: .cache/mvagent
+  video_concurrency: 2
+agents:
+  global_agent:
+    model:
+      model_type: qwen3_5_35b_a3b_local
+    max_steps: 5
+    max_videos_per_watch: 4
+    skill:
+      enabled: false
+  video_agent:
+    planner:
+      model_type: qwen3_5_35b_a3b_local
+    observer:
+      model_type: qwen3_5_35b_a3b_local
+    max_steps: 5
+    max_ranges_per_action: 8
+    skill:
+      enabled: false

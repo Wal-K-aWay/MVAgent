@@ -16,6 +16,7 @@ SOURCE_ROOT = PROJECT_ROOT / "src"
 if str(SOURCE_ROOT) not in sys.path:
     sys.path.insert(0, str(SOURCE_ROOT))
 
+from skill_evolution.infra.benchmarks.catalog import CROSSVID_DIR, CVBENCH_DIR, MVU_EVAL_DIR
 from skill_evolution.infra.benchmarks import (
     EvaluationSample,
     crossvid_sample,
@@ -117,7 +118,7 @@ def _json_records(
     rows = json.loads(source.read_text(encoding="utf-8"))
     if not isinstance(rows, list):
         raise ValueError(f"{source} must contain a JSON list.")
-    media_root = root / "videos"
+    media_root = root
     records: list[SelectionRecord] = []
     for row in rows:
         if not isinstance(row, Mapping):
@@ -375,14 +376,14 @@ def _parse_args() -> argparse.Namespace:
 def main() -> None:
     args = _parse_args()
     dataset_root = Path(args.dataset_root).expanduser().resolve()
-    crossvid, crossvid_source = _crossvid_records(dataset_root / "CrossVid")
+    crossvid, crossvid_source = _crossvid_records(dataset_root / CROSSVID_DIR)
     cvbench, cvbench_source = _json_records(
-        root=dataset_root / "CVBench",
+        root=dataset_root / CVBENCH_DIR,
         dataset="cvbench",
         adapter=cvbench_sample,
     )
     mvu_eval, mvu_source = _json_records(
-        root=dataset_root / "MVU-Eval",
+        root=dataset_root / MVU_EVAL_DIR,
         dataset="mvu_eval",
         adapter=mvu_eval_sample,
     )
@@ -415,7 +416,7 @@ def main() -> None:
             "sources": [
                 {"path": str(path), "sha256": _sha256(path)}
                 for path in (crossvid_source, cvbench_source, mvu_source,
-                             *sorted((dataset_root / "CrossVid" / "QA").glob("*.json")))
+                             *sorted((dataset_root / CROSSVID_DIR / "QA").glob("*.json")))
             ],
             "excluded_manifests": excluded_audit,
         }

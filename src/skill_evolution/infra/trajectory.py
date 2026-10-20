@@ -142,8 +142,8 @@ exact video IDs and durations, and public History. It never sees a VideoAgent's 
 Observe calls or intermediate observations. It may choose `analyze_videos`,
 `watch_videos` when available, or `answer`. `analyze_videos` sends independent
 self-contained instructions to selected single-video agents. `watch_videos` selects at
-least two distinct video clips for one joint visual comparison. `answer` returns the
-final response. Its strategy can improve action choice, video/clip selection,
+least two distinct video clips for one joint visual comparison. `answer` directly submits
+the final response in `parameters.answer`. Its strategy can improve action choice, video/clip selection,
 single-video instructions, use of returned evidence, and answer timing. Available
 actions and their parameter schemas are fixed by Runtime. Decisions repeat across
 ordinary rounds and each completed action result enters public History, so a later
@@ -401,7 +401,7 @@ def _render_action(
         payload = {"answer": _inline_text(answer)}
         if answer_reason not in (None, ""):
             payload["reason"] = _inline_text(answer_reason)
-        return f"answer() -> {_compact_json(payload)}"
+        return f"answer {_compact_json(dict(parameters))} -> {_compact_json(payload)}"
 
     if action == "finish":
         return "finish"
@@ -456,7 +456,7 @@ def render_global_steps(steps: Sequence[Mapping[str, Any]]) -> str:
         marker = ' (runtime finalizer; not editable)' if step.get('editable') is False else ''
         execution = step.get('execution', {})
         action = decision.get('action', 'None')
-        call = 'answer' if action == 'answer' else f'{action} {parameters}'
+        call = f'{action} {parameters}'
         line = f"Step {step['step']}{marker}: action={call}"
         outcomes = execution.get('outcomes', []) if isinstance(execution, Mapping) else []
         if decision.get('action') == 'analyze_videos' and outcomes:
@@ -468,7 +468,7 @@ def render_global_steps(steps: Sequence[Mapping[str, Any]]) -> str:
         elif decision.get('action') == 'answer':
             answer = execution.get('answer') if isinstance(execution, Mapping) else None
             if answer is None:
-                # Historical rollouts stored the produced answer in the decision record.
+                # The decision retains the submitted answer when no execution view is supplied.
                 answer = decision.get('parameters', {}).get('answer')
             lines.append(line + (f' | output={answer}' if answer is not None else ''))
         else:
@@ -843,8 +843,11 @@ class TrajectoryProjector:
         outcome_feedback_provider: Callable[[Mapping[str, Any]], Mapping[str, Any]]
         | None = None,
         source_group_provider: Callable[[str], str] | None = None,
+        outcome_provider: Callable[[str, float], str] | None = None,
     ) -> None:
         self.case_salt = str(case_salt)
+        # (sample_id, official score) -> pass/partial/fail by the sample's scoring family.
+        self.outcome_provider = outcome_provider
         self.video_metadata_provider = video_metadata_provider
         self.outcome_feedback_provider = outcome_feedback_provider
         self.source_group_provider = source_group_provider
@@ -858,7 +861,7 @@ class TrajectoryProjector:
         outer = _mapping(artifact)
         result = _mapping(outer.get("result")) or outer
         sample_token = str(outer.get("sample_id") or result.get("sample_id") or "unknown")
-        outcome = self._outcome(official_score)
+        outcome = self._outcome(sample_token, official_score)
         outcome_feedback = (
             _compact(self.outcome_feedback_provider(outer))
             if self.outcome_feedback_provider is not None
@@ -1147,10 +1150,11 @@ class TrajectoryProjector:
             {"salt": self.case_salt, "sample": sample_token}
         )[:12]
 
-    @staticmethod
-    def _outcome(score: float | None) -> str:
+    def _outcome(self, sample_id: str, score: float | None) -> str:
         if score is None:
             return "unscored"
+        if self.outcome_provider is not None:
+            return self.outcome_provider(sample_id, float(score))
         value = float(score)
         if value >= 1.0:
             return "pass"

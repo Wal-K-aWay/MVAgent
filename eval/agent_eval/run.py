@@ -20,7 +20,11 @@ from typing import Any, Mapping
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_DATASET_ROOT = Path("/home/kww/datasets/Multi-Video")
+DEFAULT_DATASET_ROOT = Path("/assets")  # Modal asset Volume mount
+# Mirrors CROSSVID_DIR/CVBENCH_DIR/MVU_EVAL_DIR in skill_evolution.infra.benchmarks.catalog.
+CROSSVID_DIR = "crossvid"
+CVBENCH_DIR = "cvbench"
+MVU_EVAL_DIR = "mvu-eval"
 DEFAULT_CONFIG = Path(__file__).resolve().with_name("config.yaml")
 CROSSVID_TASKS = ("BU", "CC", "FSA", "MOC", "MSR", "NC", "PEA", "PI", "PSS", "CCQA")
 CROSSVID_CHOICE_TASKS = frozenset(
@@ -29,10 +33,6 @@ CROSSVID_CHOICE_TASKS = frozenset(
 CROSSVID_TEMPORAL_TASKS = frozenset({"FSA"})
 CROSSVID_ORDERING_TASKS = frozenset({"PSS"})
 CROSSVID_OPEN_QA_TASKS = frozenset({"CCQA"})
-CVBENCH_TASKS_PATH = (
-    PROJECT_ROOT
-    / "eval/e2e_eval/CVBench/Video-R1/src/r1-v/Evaluation/CVBench.json"
-)
 
 
 def _utc_now() -> str:
@@ -71,7 +71,7 @@ def _crossvid_sample_ids(
     dataset_root: Path,
     limit: int | None,
 ) -> tuple[str, ...]:
-    source = dataset_root / "CrossVid" / "qa.jsonl"
+    source = dataset_root / CROSSVID_DIR / "qa.jsonl"
     if not source.is_file():
         raise FileNotFoundError(f"CrossVid manifest not found: {source}")
     counts: Counter[str] = Counter()
@@ -119,10 +119,10 @@ def _sample_ids(
 ) -> tuple[str, ...]:
     sample_ids: list[str] = []
     if "cvbench" in benchmarks:
-        rows = json.loads((dataset_root / "CVBench/QAs.json").read_text(encoding="utf-8"))
+        rows = json.loads((dataset_root / CVBENCH_DIR / "QAs.json").read_text(encoding="utf-8"))
         sample_ids.extend(f"cvbench:{row['id']}" for row in rows[:limit])
     if "mvu_eval" in benchmarks:
-        rows = json.loads((dataset_root / "MVU-Eval/QAs.json").read_text(encoding="utf-8"))
+        rows = json.loads((dataset_root / MVU_EVAL_DIR / "QAs.json").read_text(encoding="utf-8"))
         sample_ids.extend(
             f"mvu_eval:{row.get('task') or 'Unknown'}:{row['id']}"
             for row in rows[:limit]
@@ -208,101 +208,49 @@ def _is_crossvid_open_qa_sample(sample_id: str) -> bool:
     return parts[1].upper() in CROSSVID_OPEN_QA_TASKS
 
 
-def _build_crossvid_scorer(
+def _build_scorer(
     records: Mapping[str, Any],
     *,
     judge_model: Any,
     cache_dir: Path,
 ) -> tuple[Any, Mapping[str, Any]]:
-    """Construct a :class:`DatasetScorer` covering all CrossVid task families."""
+    """Official per-benchmark scorer shared with skill evolution (see benchmarks.catalog)."""
 
     benchmark_module = importlib.import_module("skill_evolution.infra.benchmarks")
-    scoring_module = importlib.import_module("skill_evolution.infra.benchmarks.scoring")
     contracts_module = importlib.import_module("skill_evolution.infra.benchmarks.contracts")
-
-    samples = {
-        sample_id: record.sample for sample_id, record in records.items()
-    }
     open_ids = [
         sample_id
         for sample_id, record in records.items()
         if record.sample.task is contracts_module.SampleTask.OPEN_QA
     ]
     private_scorers: dict[str, Any] = {}
+    judge = None
     if open_ids:
         if judge_model is None:
             raise ValueError("CrossVid OpenQA requires an explicit --judge-model")
-        judge = benchmark_module.FixedOpenQAJudge(
-            model=judge_model,
-            cache_dir=str(cache_dir),
-        )
+        judge = benchmark_module.FixedOpenQAJudge(model=judge_model, cache_dir=str(cache_dir))
         for sample_id in open_ids:
             record = records[sample_id]
             private_scorers[sample_id] = judge.bind(
                 sample_id=sample_id,
-                question=(
-                    record.judge_question
-                    or record.sample.question
-                ),
+                question=record.judge_question or record.sample.question,
                 reference_answer=record.reference_answer,
-                scoring_points=[
-                    str(point) for point in record.sample.ground_truth
-                ],
+                scoring_points=[str(point) for point in record.sample.ground_truth],
             )
-
-    registry = scoring_module.ScorerRegistry(
-        {
-            contracts_module.SampleTask.CHOICE: scoring_module.ChoiceScorer(
-                strict_format=True,
-                separator="",
-            ),
-            contracts_module.SampleTask.ORDERING: scoring_module.OrderingScorer(
-                separator="->",
-                strict_format=True,
-            ),
-            contracts_module.SampleTask.TEMPORAL_LOCALIZATION: scoring_module.TemporalLocalizationScorer(
-                separator=",",
-                strict_format=True,
-            ),
-        }
-    )
-    scorer = benchmark_module.DatasetScorer(
-        samples=samples,
-        registry=registry,
-        scorer_by_sample=private_scorers,
-        prediction_getter=lambda artifact: str(
-            artifact.get("prediction") or ""
-        ).strip(),
-    )
-    scorer_identity = {
-        "choice": "strict-normalized-option-label-v1",
-        "ordering": "crossvid-sequence-exact-v1",
-        "temporal_localization": "crossvid-interval-iou-strict-v1",
-        "open_qa": (
-            dict(private_scorers[open_ids[0]].judge.identity)
-            if open_ids
-            else {"enabled": False}
-        ),
-    }
+    scorer, scorer_identity = benchmark_module.build_official_scorer(records, private_scorers)
+    scorer_identity["open_qa"] = dict(judge.identity) if judge is not None else {"enabled": False}
     return scorer, scorer_identity
-
-
-def _cvbench_categories() -> dict[str, str]:
-    if not CVBENCH_TASKS_PATH.is_file():
-        return {}
-    rows = json.loads(CVBENCH_TASKS_PATH.read_text(encoding="utf-8"))
-    return {f"cvbench:{row['id']}": str(row["task_type"]) for row in rows}
 
 
 def _summarize(
     *,
     output_dir: Path,
     sample_ids: tuple[str, ...],
-    crossvid_scorer: Any = None,
+    records: Mapping[str, Any],
 ) -> dict[str, Any]:
     from models.execution import output_metrics
+    from skill_evolution.infra.benchmarks import OFFICIAL_DATASET_POLICY
 
-    categories = _cvbench_categories()
     output_counts = Counter()
     by_dataset: dict[str, Counter[str]] = defaultdict(Counter)
     by_task: dict[tuple[str, str], Counter[str]] = defaultdict(Counter)
@@ -318,26 +266,44 @@ def _summarize(
         output_counts.update(output_metrics(row.get("events", [])))
         dataset = str(row.get("dataset") or sample_id.split(":", 1)[0])
         native_task = str(row.get("native_task") or "all")
-        category = categories.get(sample_id, native_task)
+        category = native_task
         by_dataset[dataset]["records"] += 1
         if row.get("status") == "ok":
             by_dataset[dataset]["inference_completed"] += 1
         if row.get("status") == "ok" and row.get("scoring_status") == "deferred":
             by_dataset[dataset]["deferred"] += 1
             continue
-        score = row.get("score") if dataset == "crossvid" else None
+        score = row.get("score")
         if row.get("status") == "ok" and row.get("scoring_status") == "ok":
             by_dataset[dataset]["completed"] += 1
-            if score is None:
-                score = float(bool(row.get("correct")))
             by_dataset[dataset]["correct"] += float(score)
             by_task[(dataset, category)]["completed"] += 1
             by_task[(dataset, category)]["correct"] += float(score)
+            weight = records[sample_id].sample_weight  # CCQA: scoring points
+            by_task[(dataset, category)]["weight"] += weight
+            by_task[(dataset, category)]["weighted"] += weight * float(score)
             family = _task_family(native_task) if dataset == "crossvid" else "choice"
             by_task_family[(dataset, family)]["completed"] += 1
             by_task_family[(dataset, family)]["correct"] += float(score)
         else:
             by_dataset[dataset]["errors"] += 1
+
+    population = {
+        (record.dataset, record.native_task): record.task_population
+        for record in records.values()
+    }
+
+    def official_score(dataset: str) -> float | None:
+        tasks = [
+            (values["weighted"] / values["weight"], population[(dataset, task)])
+            for (item_dataset, task), values in by_task.items()
+            if item_dataset == dataset and values["completed"]
+        ]
+        if not tasks or by_dataset[dataset]["deferred"]:
+            return None
+        if OFFICIAL_DATASET_POLICY[dataset] == "task_macro":
+            return sum(score for score, _ in tasks) / len(tasks)
+        return sum(score * size for score, size in tasks) / sum(size for _, size in tasks)
 
     expected = Counter(sample_id.split(":", 1)[0] for sample_id in sample_ids)
     datasets = {}
@@ -352,6 +318,8 @@ def _summarize(
             "errors": stats["errors"],
             "pending": count - stats["records"],
             "score_sum": stats["correct"],
+            "official_score": official_score(dataset),
+            "official_policy": OFFICIAL_DATASET_POLICY[dataset],
             "accuracy": stats["correct"] / completed if completed and not stats["deferred"] else None,
             "scored_subset_accuracy": stats["correct"] / completed if completed else None,
             "by_task": {
@@ -385,11 +353,9 @@ def _summarize(
     summary: dict[str, Any] = {
         "updated_at_utc": _utc_now(),
         "scoring": (
-            "strict per-task-family scorer"
-            " (choice strict-normalized option label, ordering '->', temporal IoU,"
-            " open-QA coverage/correctness judge when enabled; deferred answers are unscored)"
-            if any(sid.startswith("crossvid:") for sid in sample_ids)
-            else "strict exact uppercase option label"
+            "official per-benchmark protocol (CrossVid exact strings, FSA IoU, CCQA judge;"
+            " CVBench lmms-eval regex; MVU-Eval first character); official_score uses each"
+            " benchmark's task aggregation, task-size weighted for subsets; deferred answers are unscored"
         ),
         "output_metrics": dict(output_counts),
         "datasets": datasets,
@@ -414,6 +380,7 @@ def _prepare_output(
     resume: bool,
     defer_open_qa_judge: bool = False,
     split_manifest: Path | None = None,
+    inference_only: bool = False,
 ):
     bootstrap = _load_snapshot_bootstrap()
     bootstrap.configure_workspace_runtime_env()
@@ -452,13 +419,13 @@ def _prepare_output(
         "dataset_root": str(dataset_root),
         "dataset_sha256": {
             "cvbench": (
-                _sha256(dataset_root / "CVBench/QAs.json") if cvbench_present else None
+                _sha256(dataset_root / CVBENCH_DIR / "QAs.json") if cvbench_present else None
             ),
             "mvu_eval": (
-                _sha256(dataset_root / "MVU-Eval/QAs.json") if mvu_present else None
+                _sha256(dataset_root / MVU_EVAL_DIR / "QAs.json") if mvu_present else None
             ),
             "crossvid": (
-                _sha256(dataset_root / "CrossVid/qa.jsonl") if crossvid_ids else None
+                _sha256(dataset_root / CROSSVID_DIR / "qa.jsonl") if crossvid_ids else None
             ),
         },
         "sample_ids_sha256": hashlib.sha256(
@@ -475,6 +442,7 @@ def _prepare_output(
         ),
         "judge_model": judge_model,
         "defer_open_qa_judge": defer_open_qa_judge,
+        "inference_only": inference_only,
     }
     manifest_path = output_dir / "run_manifest.json"
     if manifest_path.is_file():
@@ -499,36 +467,16 @@ def _prepare_output(
     return bootstrap, configs_module, engine_module, records, manifest
 
 
-def _score_sample(
-    *,
-    crossvid_scorer: Any,
-    sample_id: str,
-    dataset: str,
-    native_task: str,
-    prediction: str,
-) -> tuple[float, str | None]:
-    """Score one crossvid sample using its task-family scorer."""
-
-    if dataset != "crossvid" or crossvid_scorer is None:
-        # Exact-match correctness is stored in ``correct`` by the caller;
-        # keep ``score`` empty so summaries fall back to it.
-        return None, None
-    try:
-        result = crossvid_scorer.score_prediction(sample_id, prediction)
-    except Exception as exc:
-        return None, f"scorer-error: {exc}"
-    return float(result.score), None
-
-
 def _score_saved_row(row, record, scorer, *, defer_open_qa_judge):
     if defer_open_qa_judge and _is_crossvid_open_qa_sample(row['sample_id']):
         row.update(score=None, correct=None, scoring_status='deferred', scoring_error='')
         return
-    score, error = _score_sample(crossvid_scorer=scorer, sample_id=row['sample_id'],
-        dataset=record.dataset, native_task=record.native_task, prediction=row['prediction'])
-    row.update(score=score, scoring_status='error' if error else 'ok', scoring_error=error or '',
-        correct=bool(score is not None and score >= 1) if record.dataset == 'crossvid'
-        else row['prediction'] == str(record.sample.ground_truth[0]))
+    try:
+        score, error = float(scorer.score_prediction(row['sample_id'], row['prediction']).score), ''
+    except Exception as exc:
+        score, error = None, f"scorer-error: {exc}"
+    row.update(score=score, scoring_status='error' if error else 'ok', scoring_error=error,
+        correct=bool(score is not None and score >= 1))
 
 
 def _run(args: argparse.Namespace) -> None:
@@ -550,7 +498,7 @@ def _run(args: argparse.Namespace) -> None:
         output_dir=output_dir, config_path=config_path, dataset_root=dataset_root,
         sample_ids=sample_ids, judge_model=args.judge_model, resume=args.resume,
         defer_open_qa_judge=args.defer_open_qa_judge,
-        split_manifest=split_manifest)
+        split_manifest=split_manifest, inference_only=args.inference_only)
     from mvagent.batch import BatchExecutor, ExecutionConfig
     from models.factory import ModelFactory
     from mvagent.configs.agent_config import Agent_Model_Config
@@ -561,7 +509,7 @@ def _run(args: argparse.Namespace) -> None:
     if mask_sensitive_data(live) != yaml.safe_load((output_dir / "input_config.yaml").read_text()):
         raise ValueError("Runtime configuration differs from the frozen configuration")
     config = configs_module.MVAgentConfig.from_dict(live)
-    if any(_is_crossvid_open_qa_sample(sid) for sid in sample_ids) and not args.judge_model and not args.defer_open_qa_judge:
+    if not args.inference_only and any(_is_crossvid_open_qa_sample(sid) for sid in sample_ids) and not args.judge_model and not args.defer_open_qa_judge:
         raise ValueError("OpenQA requires --judge-model naming a configured model")
     _atomic_json(output_dir / "executions" / (str(__import__('time').time_ns()) + '.json'), execution.to_dict())
     event_lock = threading.Lock()
@@ -569,9 +517,13 @@ def _run(args: argparse.Namespace) -> None:
         with event_lock, (output_dir / "execution_events.jsonl").open("a") as stream:
             stream.write(json.dumps(event) + "\n")
     finished = _load_completed(output_dir, sample_ids)
-    done_scores = {"ok", "deferred"} if args.defer_open_qa_judge else {"ok"}
+    done_scores = {'skipped'} if args.inference_only else ({'ok', 'deferred'} if args.defer_open_qa_judge else {'ok'})
+    def summarize():
+        if args.inference_only:
+            return dict(inference_only=True, samples=len(sample_ids), completed=len(_load_completed(output_dir, sample_ids)))
+        return _summarize(output_dir=output_dir, sample_ids=sample_ids, records=records)
     if len(finished) == len(sample_ids) and all(row.get("scoring_status") in done_scores for row in finished.values()):
-        summary = _summarize(output_dir=output_dir, sample_ids=sample_ids)
+        summary = summarize()
         _atomic_json(output_dir / 'summary.json', summary)
         manifest.update(status='completed', finished_at_utc=_utc_now())
         _atomic_json(output_dir / 'run_manifest.json', manifest)
@@ -583,14 +535,14 @@ def _run(args: argparse.Namespace) -> None:
     futures = []
     try:
         batch.prepare(config.to_dict())
-        if args.judge_model:
-            judge_model = ModelFactory.create_model(Agent_Model_Config(model_type=args.judge_model,
-                temperature=0.0, max_tokens=512), config)
-        crossvid = {sid: record for sid, record in records.items() if sid.startswith("crossvid:")
-                    and not (args.defer_open_qa_judge and _is_crossvid_open_qa_sample(sid))}
-        if crossvid:
-            scorer, scorer_identity = _build_crossvid_scorer(crossvid, judge_model=judge_model,
-                                                            cache_dir=output_dir / "crossvid_judge_cache")
+        if not args.inference_only:
+            if args.judge_model:
+                judge_model = ModelFactory.create_model(Agent_Model_Config(model_type=args.judge_model,
+                    temperature=0.0, max_tokens=512), config)
+            scored = {sid: record for sid, record in records.items()
+                      if not (args.defer_open_qa_judge and _is_crossvid_open_qa_sample(sid))}
+            scorer, scorer_identity = _build_scorer(scored, judge_model=judge_model,
+                                                    cache_dir=output_dir / "crossvid_judge_cache")
             if args.defer_open_qa_judge:
                 scorer_identity = {**scorer_identity, "open_qa": {"enabled": False, "status": "deferred"}}
             if args.resume and manifest.get('scorer_identity') != scorer_identity:
@@ -616,13 +568,13 @@ def _run(args: argparse.Namespace) -> None:
                 task_family=_task_family(record.native_task) if record.dataset == 'crossvid' else 'choice',
                 prediction=_extract_prediction(payload['result']), ground_truth=list(record.sample.ground_truth),
                 judge_question=record.judge_question, reference_answer=record.reference_answer,
-                score=None, correct=False, scoring_status='pending',
+                score=None, correct=False, scoring_status='skipped' if args.inference_only else 'pending',
                 status=payload['status'], error=payload.get('error', ''),
                 worker={'pid': payload['worker_pid']}, attempt=payload['attempt'],
                 result=payload['result'], events=payload['events'])
             path = _record_path(output_dir, sid)
             _atomic_json(path, row)
-            if row['status'] == 'ok':
+            if row['status'] == 'ok' and not args.inference_only:
                 futures.append(scoring.submit(score_saved, path))
             progress['finished'] += 1
             state = dict(finished=progress['finished'], total=len(sample_ids), updated_at_utc=_utc_now())
@@ -633,7 +585,7 @@ def _run(args: argparse.Namespace) -> None:
         batch.run(jobs, config.to_dict(), on_complete=completed)
         for future in futures:
             future.result()
-        summary = _summarize(output_dir=output_dir, sample_ids=sample_ids)
+        summary = summarize()
         _atomic_json(output_dir / 'summary.json', summary)
         manifest.update(status='completed', finished_at_utc=_utc_now())
         _atomic_json(output_dir / 'run_manifest.json', manifest)
@@ -677,6 +629,7 @@ def _parser() -> argparse.ArgumentParser:
         default=("cvbench", "mvu_eval", "crossvid"),
         help="Benchmarks to evaluate in one unified run (default: all three).",
     )
+    parser.add_argument("--inference-only", action="store_true", help="Save rollouts and token audits without accuracy scoring or Judge")
     parser.add_argument("--execution-config", type=Path, help="Shared question/model pool configuration")
     parser.add_argument("--judge-model", help="Explicit configured model for OpenQA scoring")
     parser.add_argument("--defer-open-qa-judge", action="store_true",
@@ -702,6 +655,8 @@ def main() -> None:
         return
     if args.defer_open_qa_judge and args.judge_model:
         raise SystemExit("--defer-open-qa-judge cannot be combined with --judge-model")
+    if args.inference_only and args.judge_model:
+        raise SystemExit("--inference-only cannot use --judge-model")
     if args.execution_config is None:
         raise SystemExit("--execution-config is required")
     if args.output is None:

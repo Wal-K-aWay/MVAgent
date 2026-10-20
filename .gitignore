@@ -23,3 +23,9 @@ __pycache__/
 
 # Local Python environment created by the installation guide.
 /.venv/
+
+# Local agent environment skill and working notes (not shared).
+/.claude/skills/mvagent-environment
+/.agents/skills/mvagent-environment
+/.claude/status.md
+/.claude/benchmarks.md

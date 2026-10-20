@@ -16,6 +16,8 @@ from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
 
+from score_crossvid_ccqa import REPORT_NAME
+
 CVBENCH_TASKS_PATH = (
     Path(__file__).resolve().parents[1]
     / "e2e_eval/CVBench/Video-R1/src/r1-v/Evaluation/CVBench.json"
@@ -254,18 +256,18 @@ def _markdown(output_dir: Path, e2e: dict | None) -> str:
     mvu = datasets.get("mvu_eval")
     crossvid = datasets.get("crossvid")
     ccqa_official = None
-    official_path = output_dir / "score" / "ccqa_scores_official_deepseek_v4_flash.json"
+    official_path = output_dir / "score" / REPORT_NAME
     if crossvid and official_path.is_file():
         ccqa_official = _load_json(official_path).get("official_score")
 
     if cvbench:
         lines.append(
-            f"| CVBench | Overall strict-letter accuracy | {_pct(cvbench['accuracy'])} "
+            f"| CVBench | 官方评分，按 task 总体规模加权 | {_pct(cvbench['official_score'])} "
             f"| {cvbench['completed']}/{cvbench['expected']} |"
         )
     if mvu:
         lines.append(
-            f"| MVU-Eval | Overall strict-normalized option accuracy | {_pct(mvu['accuracy'])} "
+            f"| MVU-Eval | 官方评分，按 task 总体规模加权 | {_pct(mvu['official_score'])} "
             f"| {mvu['completed']}/{mvu['expected']} |"
         )
 
@@ -283,7 +285,7 @@ def _markdown(output_dir: Path, e2e: dict | None) -> str:
         macro_values.append(ccqa_display)
         o_avg = sum(macro_values) / len(macro_values) if macro_values else None
         ccqa_label = (
-            "CCQA 用官方 deepseek judge 口径"
+            "CCQA 用本地 Qwen3-30B-A3B-Instruct-2507，官方评分协议"
             if ccqa_official is not None
             else "CCQA 暂用本地 judge 口径（官方打分未生成）"
         )
@@ -424,10 +426,11 @@ def _markdown(output_dir: Path, e2e: dict | None) -> str:
 
 def _merge_deferred_judge(output_dir: Path, summary: dict) -> dict:
     """Join separately judged answers without modifying frozen inference records."""
-    judge_path = output_dir / "score/ccqa_scores_official_deepseek_v4_flash.json"
+    judge_path = output_dir / "score" / REPORT_NAME
     judge = _load_json(judge_path)
     rows = judge["samples"]
-    pending = [json.loads(line) for line in (output_dir / "open_qa_pending.jsonl").read_text().splitlines()]
+    pending = [row for path in (output_dir / "records/crossvid").glob("crossvid:CCQA:*/result.json")
+               if (row := _load_json(path)).get("status") == "ok" and row.get("scoring_status") == "deferred"]
     expected = {int(row["sample_id"].rsplit(":", 1)[1]): row for row in pending}
     assert len(rows) == len(expected) == summary["total_deferred"]
     assert len({row["id"] for row in rows}) == len(rows)
@@ -437,7 +440,7 @@ def _merge_deferred_judge(output_dir: Path, summary: dict) -> dict:
     for row in rows:
         original = expected[row["id"]]
         assert row["status"] == "ok" and row["prediction"] == original["prediction"]
-        n = len(original["scoring_points"])
+        n = len(original["ground_truth"])
         coverage, correctness = row["coverage"], row["correctness"]
         assert n > 0 and len(coverage) == len(correctness) == n
         assert all(type(x) is bool for x in coverage + correctness)
@@ -459,10 +462,11 @@ def _merge_deferred_judge(output_dir: Path, summary: dict) -> dict:
     crossvid["accuracy"] = crossvid["score_sum"] / crossvid["expected"]
     crossvid["scored_subset_accuracy"] = crossvid["accuracy"]
     crossvid["official_task_macro"] = sum(crossvid["by_task"][t]["accuracy"] for t in CROSSVID_TASK_ORDER) / 10
+    crossvid["official_score"] = crossvid["official_task_macro"]
     summary["total_completed"] += len(scores)
     summary["total_deferred"] = 0
     summary["score_complete"] = True
-    summary["external_judge"] = {"path": str(judge_path), "requested_model": judge["model"],
+    summary["external_judge"] = {"path": str(judge_path), "requested_model": judge["judge"]["model"],
                                 "updated_at_utc": judge["updated_at_utc"]}
     summary["scoring_note"] = "CCQA uses external Judge; raw inference summary and records retain deferred status. CrossVid primary metric is official_task_macro, not question-weighted accuracy."
     return summary

@@ -35,7 +35,7 @@ selected skill用于帮助理解行动可能如何产生。遵循Skill规则仍�
 - 行动：Step k记录的action和参数。
 - 结果：Step k返回的观察或答案，供后续决策使用。
 
-选择/参数错误定位在作出决策的步骤，依据该步骤的决策依据判断。执行错误定位在产生缺陷结果的步骤，依据请求和可用证据判断。后续步骤若错误处理该结果，单独分析后续行动。同一analyze_videos调用的报告属于同一步；watch_videos返回联合观察。普通answer无参数，基于自动提供的问题和History产生答案。
+选择/参数错误定位在作出决策的步骤，依据该步骤的决策依据判断。执行错误定位在产生缺陷结果的步骤，依据请求和可用证据判断。后续步骤若错误处理该结果，单独分析后续行动。同一analyze_videos调用的报告属于同一步；watch_videos返回联合观察。普通answer直接提交根据问题和History选择的parameters.answer。
 {trajectory}
 ```
 
@@ -51,19 +51,19 @@ action_selection_error：当前行动不适合当时的证据需求。
 - 示例：关键属性在全部报告中仍未确定，却调用answer。
 
 action_parameter_error：行动合理，但参数不足以正确取证。
-- 特征：保留行动，修改video_id、clip或instruction即可形成合理请求。这些参数属于analyze_videos和watch_videos，answer没有参数。
+- 特征：保留行动，修改video_id、clip、instruction或提交的答案即可满足题目要求；answer携带parameters.answer。
 - 改进：指出参数如何调整，以及依据哪项输入或先前证据。
 - 示例：联合观察窗口排除了报告中已有的候选事件。
 
 action_execution_error：行动和参数合理，但结果存在可证明的缺陷。
-- 特征：指出合理请求、结果中可验证的缺陷，以及该缺陷影响的证据需求。支持的缺陷包括明确要求未获回答、结果内部无效、明确执行失败，或错误处理已充分的证据。普通answer在证据充分时仍输出与History矛盾的答案也属于此类。
+- 特征：指出合理请求、结果中可验证的缺陷，以及该缺陷影响的证据需求。支持的缺陷包括明确要求未获回答、结果内部无效、明确执行失败。answer直接返回提交的参数；提交错误答案属于决策参数错误。
 - 改进：提出公开证据核验或答案一致性规则。不能据结果缺陷捏造合理请求的缺陷，也不要求修改不可见内部实现。若没有可通过现有action或证据处理实现的改进，返回skip，在reason说明执行问题。
-- 示例：History明确video_2对应选项B，answer却返回A。
+- 示例：观察请求明确要求比较两个对象，返回结果却只报告其中一个。
 
 ## Classification Boundaries
 按当前步骤承担的取证目的评价请求。初次概览可以合理地请求近似时间，也可以同步收集参考和目标描述；检查后续是否在回答前细化决定性信息。保留action并改进参数即可形成合理请求时，支持action_parameter_error；存在另一可用action不证明原action选错。
 
-对于answer，先检查History能否支持符合题目要求的答案。单选候选未排除、计数不匹配任何选项、排序关系未确定时，评估具体可行的补证据机会。有可解决的决定性缺口却answer，属于action_selection_error；证据充分但结果误用证据或违反格式时，评估action_execution_error。其他相关证据仍未解决时，仅与某一报告一致不足以支持答案。answer没有参数。
+对于answer，先检查History能否支持符合题目要求的答案。单选候选未排除、计数不匹配任何选项、排序关系未确定时，评估具体可行的补证据机会。有可解决的决定性缺口却answer，属于action_selection_error；证据充分但parameters.answer误用证据或违反格式时，评估action_parameter_error。其他相关证据仍未解决时，仅与某一报告一致不足以支持答案。answer在parameters.answer中携带提交结果。
 
 执行错误需要说明请求要求、直接的结果缺陷，以及为何缺陷属于本步骤。后续报告可能纠正前一报告；报告分歧证明需要协调，不证明哪份报告有错。跨视角矛盾要求对象身份、时间范围和比较标准已经建立。事件时间戳或可疑计数是核验信号，不能揭示内部观察错误或证明观察覆盖范围。
 
@@ -127,13 +127,13 @@ Output（JSON字段与英文示例保持一致）：
 {"status":"located","reason":"The overview was reasonable, but the Agent answered before distinguishing the candidates.","fault_chain":[{"step":2,"fault_type":"action_selection_error","evidence_reason":"Two candidates remain, one with uncertain purpose, and neither has verified boundaries; answer selects the first without resolving these gaps.","improvement_principle":"When an overview leaves multiple functional candidates, use analyze_videos to verify their purposes and the matching candidate's start/end boundaries before answering."}]}
 </example>
 
-<example type="answer_execution_error">
+<example type="answer_parameter_error">
 Input：哪个视频有红车？A=video_1，B=video_2。Videos：各10秒。Selected skill：preserve-identities，整题要求保持视频ID。
-Trajectory：Step1 analyze_videos要求识别颜色；video_1蓝车、无红车；video_2红车、无蓝车。Step2 watch_videos，instruction要求确认哪个视频有红车，两个video的clip均[0,10]；obs确认video_1蓝车、video_2红车。Step3 answer，output=A。
+Trajectory：Step1 analyze_videos要求识别颜色；video_1蓝车、无红车；video_2红车、无蓝车。Step2 watch_videos，instruction要求确认哪个视频有红车，两个video的clip均[0,10]；obs确认video_1蓝车、video_2红车。Step3 answer，parameters.answer=A，output=A。
 Final answer：A。Ground truth：B。
-Analysis：Step2提供一致证据，Step3返回错误选项，故执行错误定位在Step3。证据充分，调用answer合理；结果映射错误，answer没有参数。
+Analysis：Step2提供一致证据，调用answer合理；Step3在parameters.answer中提交错误选项。保留answer并修正该参数即可纠正视频与选项的映射。
 Output：
-{"status":"located","reason":"证据已解决问题，但答案把视频映射到错误选项。","fault_chain":[{"step":3,"fault_type":"action_execution_error","evidence_reason":"History确认video_2红车，输入对应B，answer却返回A。","improvement_principle":"产生答案时核对证据支持的视频ID与题目选项的对应关系。"}]}
+{"status":"located","reason":"证据已解决问题，但答案把视频映射到错误选项。","fault_chain":[{"step":3,"fault_type":"action_parameter_error","evidence_reason":"History确认video_2红车，输入对应B，answer却返回A。","improvement_principle":"产生答案时核对证据支持的视频ID与题目选项的对应关系。"}]}
 </example>
 
 <example type="explicit_label_confusion">
@@ -193,7 +193,7 @@ Output（JSON字段与英文示例保持一致）：
 - fault_chain每项恰好包含step、fault_type、evidence_reason、improvement_principle。
 located要求1–3个不同可编辑步骤，最早有依据根因优先；skip要求空链，在reason解释执行缺陷或不确定性。
 fault_type逐项独立取action_selection_error、action_parameter_error、action_execution_error。
-answer无参数，参数错误仅适用于analyze_videos和watch_videos。仅使用Schema允许的步骤，运行时收尾不能定位。
+先前证据支持修正时，action_parameter_error也可定位parameters.answer；仅有ground truth不足以证明参数应如何修改。仅使用Schema允许的步骤，运行时收尾不能定位。
 直接输出JSON，不加围栏或外部文字。
 {"status":"located","reason":"观察范围不足导致无依据比较。","fault_chain":[{"step":1,"fault_type":"action_parameter_error","evidence_reason":"片段排除了History已有候选。","improvement_principle":"比较片段应包含报告中的候选区间。"}]}
 {"status":"skip","reason":"公开证据未提供可行纠正。","fault_chain":[]}

@@ -1,69 +1,78 @@
 # 系统推理配置
 
-本目录存放模型、Agent和Skill开关；`execution/`存放GPU端点、请求并发与问题worker。
+- 本目录：模型、Agent 与 Skill 开关（MVAgent 配置）。
+- `execution/`：模型池（每个副本的 GPU、端点、`max_inflight`）、问题 worker 与超时（ExecutionConfig）。
 
-Skill 可配置 `mode: static`（默认，固定Markdown）或 `mode: dynamic`（BM25检索、LLM筛选的
-冻结JSON库），都用 `path + sha256` 固定。动态库增删改、冻结与配置方法见
-[`Skill说明`](../../src/mvagent/skills/README.md)。现有默认无Skill配置不变。
-路径按项目根目录使用，文件移动不改变模型或推理参数。
+## 固定评测方案
 
-当前35B-A3B无Skill配置：`local_qwen35_35b_a3b_historical_no_skill.yaml`。
-当前六卡稳定执行：`execution/gpu2_7_single.yaml`（GPU2–7，每端点并发1）。
-27B无Skill配置为`local_qwen35_27b_no_skill.yaml`，对应六卡执行配置为
-`execution/gpu2_7_qwen35_27b_single.yaml`（同样每端点并发1）。
-其他旧命名配置是可选模型/API示例，不能根据文件名推断实际模型：例如
-`local_qwen35_vllm.yaml`实际使用Qwen3.6-27B-FP8并启用authored Skill。
-旧GPU池配置保留原并发，不代表当前推荐设置。
+后续 Qwen3.5 的 E2E 与 MVAgent 评测统一使用下表；推理实现以
+[`sync_server.py`](../../src/models/vlm/local/sync_server.py) 为准。
+
+| 项目 | 固定设置 |
+|---|---|
+| 模型与精度 | Qwen3.5-9B / 27B / 35B-A3B，全部 BF16 |
+| GPU 与并行 | 8×H100，每卡加载一个完整模型；8 个独立 TP=1/DP=1 副本，每卡并发 1，非 vLLM 原生 DP=8 |
+| 执行 profile | `qwen35-bf16-flashinfer-sync`，`uni`、进程内同步 eager；Agent 整题固定副本（sticky session） |
+| 内核 | FlashInfer GDN prefill、原生 GemmaRMSNorm（禁用该算子的内部编译） |
+| 生成 | 引擎和请求均固定 `seed=0`、`temperature=0`、thinking 关闭；不随日期、题号或运行次数更换 seed |
+| 有效采样默认值 | `top_p=1`、`top_k=0`（不限制）、`min_p=0`；`presence_penalty=0`、`frequency_penalty=0`、`repetition_penalty=1` |
+| 容量 | context 131072、prefill 32768、max_num_seqs 1、显存比例 0.94、expandable segments |
+| 缓存 | 正常解码 KV 开启，prefix/MM processor cache 关闭；E2E 复用固定帧缓存并核对输入哈希 |
+| 版本 | vLLM 0.19.1、torch 2.10.0、transformers 4.57.6、xgrammar 0.2.2、FlashInfer 0.6.6、Triton 3.6.0 |
+| E2E 输入与输出 | 每次最多 512 帧、最长边 448；保留各 benchmark 现行提示词与生成预算 |
+| MVAgent 预算 | 每次最多 512 帧、2048 输出 token；Global/Video 各最多 5 步；主动 answer 决策直接提交 parameters.answer，循环耗尽复用仅允许answer的决策接口；两者 reason 无字符硬上限；取证 reason 仍限1200字符，答案保持开放非空字符串 |
+| MVAgent 等待时限 | 服务 1800 秒、客户端 1860 秒、整题 7200 秒 |
+| HTTP 请求体 | 最大 2 GiB；这是视频传输大小限制，与帧数、上下文和生成预算分别校验 |
+
+Global 使用简洁角色 System，VideoAgent 保持原 instruction 边界；历史方法与实测结果统一见 [实验记录](../../docs/experiments.md)。
+
+这是三模型正式评测的唯一配置，不使用配置版本编号。池级 DP=8 指8个独立单卡 worker，
+每个引擎 TP=1/DP=1；复用整题副本租约，Global/Video/Selector在同一副本串行调用，题间分配到空闲卡。
+已有任务和 resume 继续使用各自冻结源码，包括当时记录的服务名称；不把新客户端接到旧冻结服务。
+服务身份同时校验实际配置、依赖版本和源码哈希，名称简化不放宽校验。
+
+逐请求响应始终包含 `usage.prompt_tokens_details.cached_tokens`（未命中也返回0），以及
+`audit.cache_hit_rate = cached_tokens / usage.prompt_tokens`，范围0–1，分母不包含输出 token。
+计数来自 vLLM `RequestOutput.num_cached_tokens`；缺失或越界报错，不伪造0。
+当前prefix关闭，实际计数应为0；保留计数字段不代表启用跨请求缓存。
+本项目直接调用`LLM`，同步封装返回这些观测字段，不使用OpenAI前端的`--enable-prompt-tokens-details`开关。
+服务 `requests.jsonl` 保存 usage 与命中率；E2E 的 request 记录、Agent 的 model_response 事件同样保留。
+汇总命中率用 `sum(cached_tokens)/sum(prompt_tokens)`，不对逐请求比例简单平均。
+
+已验收同配置的常规评测只跑一遍，不每批重复一致性矩阵；继续保存源码与配置快照、输入哈希、完整 token 和服务身份。
+2026-10-13用户确认继续使用上述设置；非零温度与惩罚仅用于冻结实验副本，未启用到正式配置。
+惩罚项沿用锁定vLLM版本的默认值，不向当前严格接口额外传入这些字段。
+只有相关执行条件改变、新故障证据或用户明确要求，才对受影响部分做小规模复核。
+新建抽样/打乱也默认 seed 0；已有 split、面板与冻结运行沿用原 manifest，不重新抽题。
+已有一致性证据及限制见 [E2E 文档](../../eval/e2e_eval/README.md#可复现性) 和
+[Agent 文档](../../eval/agent_eval/README.md)；不将有限实测写成任意输入的绝对保证。
+
+## 配置入口
+
+执行文件名中的 `h200` 是历史命名；GPU 型号由 Modal 申请参数决定，固定评测显式申请 `H100!:8`。
+
+| 文件 | 用途 |
+|---|---|
+| `modal_qwen35_35b_a3b_no_skill.yaml` | 35B-A3B 无 Skill 基线，统一 BF16 同步推理配置，权重路径为 `/weights` |
+| `execution/modal_h200x8.yaml` | 35B 八卡执行池：每卡一个完整副本（TP=1），本机端点 8100–8107，每副本并发 1 |
+| `modal_qwen35_9b_no_skill.yaml`、`modal_qwen35_27b_no_skill.yaml` | 9B、27B 无 Skill 基线；除模型名、权重路径外与 35B 使用相同推理设置 |
+| `execution/modal_h200x8_qwen35_9b.yaml`、`execution/modal_h200x8_qwen35_27b.yaml` | 对应模型的八卡执行池：每卡一个副本（TP=1），每副本并发 1 |
+
+模型池只接受本机 `127.0.0.1` 端点，并会校验本机 vLLM 进程与 GPU 绑定，因此运行时与
+vLLM 必须在同一个容器内。在节点内运行：
+
+2026-10-13：三个 BF16 Actor 配置的请求等待均为1860秒，与共享同步服务的1800秒上限对应。
+本目录的执行配置整题时限为7200秒，容纳多步Agent轨迹；模型、Prompt、2048输出token及Global/Video各5步不变。
+改变运行配置须创建新结果目录，保留原配置快照。
 
 ```bash
 PYTHONPATH=src python eval/agent_eval/run.py \
-  --config configs/inference/local_qwen35_35b_a3b_historical_no_skill.yaml \
-  --execution-config configs/inference/execution/gpu2_7_single.yaml \
-  --output outputs/new_no_skill_run \
-  --defer-open-qa-judge
+  --config configs/inference/modal_qwen35_35b_a3b_no_skill.yaml \
+  --execution-config configs/inference/execution/modal_h200x8.yaml \
+  --dataset-root /assets --benchmarks cvbench mvu_eval \
+  --output <新的输出目录>
 ```
 
-开放问答延后评分；选择新输出路径，避免覆盖或混用实验。当前正在运行的测试
-仍使用自身冻结配置，不受本目录整理影响。共享GPU池也可传给Skill进化入口。
-
-动态Skill配置支持 `retrieval_top_k: 8`，满足`1 <= retrieval_top_k <= 32`。
-所有配置只选一张或空选；`max_selected`字段已删除，旧字段会报错。
-当前库schema_version为2，必须有description。小目录全量筛选；大目录使用配置的Embedding或BM25召回。
-
-
-动态Skill还支持可选独立筛选模型，两角色可分别设置：
-
-```yaml
-skill:
-  enabled: true
-  mode: dynamic
-  path: /absolute/path/to/frozen-bank.json
-  sha256: <bank-sha256>
-  retrieval_top_k: 8
-  selection_scope: task
-  selector:
-    model_type: qwen3_5_35b_a3b_local
-    temperature: 0
-    max_tokens: 2048
-```
-
-`selector`省略时复用所属Global/Video Planner模型；显式设置后，未填写的temperature/max_tokens
-继承所引用`models:`实例默认值。该配置只影响Skill筛选，不改变action/参数生成模型。
-selector只允许model_type、temperature、max_tokens；model_type必须引用注册模型。
-启用时参与能力校验、启动解析、资源池及快照；禁用Skill不加载selector。静态Skill不支持该字段。
-新增本地模型实例须配置对应execution模型池；此功能不会自动替换现有服务。
-
-可选共存配置 `local_qwen35_27b_skill_embedding.yaml`：27B显存预算80%，冻结v003动态
-Skill库，`skill.embedding`连接本地8110。执行仍用27B六卡cap1配置。七张卡在默认K8时
-直接全量进入Selector；只有合格卡超过K时才使用向量召回。
-
-Embedding使用vLLM原生配置（不是BatchExecutor执行配置）：
-
-```bash
-CUDA_VISIBLE_DEVICES=4,5,6,7 /home/kww/miniconda3/envs/MVAgent/bin/vllm serve \
-  --config configs/inference/execution/qwen3_embedding_8b_tp4.yaml
-```
-
-应先等待现有实验退出并验证端点空闲，再用80%配置重启主模型，最后启动embedding。
-TP4分摊8B权重，10%预算不是实测占用保证；留存初始化和共存探测结果。不能直接把80%
-配置交给90%驻留服务：现有身份检查会拒绝不匹配。不要对进行中的实验修改配置或重启。
+固定评测不调整 `max_inflight=1`；另行研究并发时使用独立配置、输出目录和相应验收，不混入固定基线。
+Skill 字段（`mode: dynamic`、`selection_scope`、`selector`、`embedding`）见
+[`src/mvagent/skills/README.md`](../../src/mvagent/skills/README.md)。

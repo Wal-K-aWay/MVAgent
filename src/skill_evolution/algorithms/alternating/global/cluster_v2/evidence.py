@@ -53,6 +53,7 @@ def training_case(report, sample_id, bank, projector, reference):
         offline_feedback=dict(
             reference=reference,
             score=case.official_score,
+            outcome=case.outcome,
             feedback=case.outcome_feedback,
         ),
     )

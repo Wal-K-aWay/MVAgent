@@ -36,7 +36,7 @@ from scripts.visualize_crossvid_question_boxes import (
 
 
 DEFAULT_ROOTS = {
-    "crossvid": Path("/home/kww/datasets/Multi-Video/CrossVid"),
+    "crossvid": Path("/assets/crossvid"),
 }
 CROSSVID_TASK_ORDER = (
     "BU",

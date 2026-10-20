@@ -10,7 +10,8 @@ from mvagent.schema import text_schema, analyze_instruction_limit
 _ANSWER_PARAMETERS_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
-    "properties": {},
+    "required": ["answer"],
+    "properties": {"answer": text_schema("answer")},
 }
 
 _ANALYZE_VIDEOS_PARAMETERS_SCHEMA = {
@@ -175,7 +176,7 @@ def build_global_decision_schema(
                 "additionalProperties": False,
                 "required": ["reason", "action", "parameters"],
                 "properties": {
-                    "reason": text_schema("reason"),
+                    "reason": text_schema("reason", bounded=name != "answer"),
                     "action": {"const": name},
                     "parameters": deepcopy(parameter_schema),
                 }
@@ -183,6 +184,7 @@ def build_global_decision_schema(
         )
 
     properties = deepcopy(_GLOBAL_DECISION_PROPERTIES)
+    properties["reason"] = text_schema("reason", bounded="answer" not in normalized_names)
     properties["action"]["enum"] = list(normalized_names)
     properties["parameters"]["properties"] = parameter_properties
     return {
@@ -198,19 +200,7 @@ GLOBAL_DECISION_SCHEMA: dict[str, Any] = build_global_decision_schema(
     _GLOBAL_ACTION_PARAMETER_SCHEMAS
 )
 
-GLOBAL_ANSWER_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "additionalProperties": False,
-    "required": ["reason", "answer"],
-    "properties": {
-        "reason": text_schema("reason"),
-        "answer": text_schema("answer"),
-    },
-}
-
-
 __all__ = [
-    "GLOBAL_ANSWER_SCHEMA",
     "GLOBAL_DECISION_SCHEMA",
     "available_global_action_names",
     "build_global_decision_schema",

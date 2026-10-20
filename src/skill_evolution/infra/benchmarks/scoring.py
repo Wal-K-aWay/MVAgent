@@ -1,3 +1,10 @@
+"""Official answer scoring plus optimizer-facing outcome labels.
+
+Scores follow each benchmark's official protocol. Outcome labels and change margins are
+derived from those scores for optimizer evidence and diagnostics only; acceptance always
+compares the continuous official aggregate.
+"""
+
 from __future__ import annotations
 
 import math
@@ -9,124 +16,150 @@ from typing import Any, Callable, Mapping, Protocol, Sequence
 from .contracts import EvaluationSample, SampleTask
 
 
-_NUMBER_RE = re.compile(r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)")
-_CHOICE_LABEL_RE = re.compile(r"^[A-Z]$")
-TEMPORAL_REFLECTION_SUCCESS_IOU = 0.5
-OPEN_QA_REFLECTION_SUCCESS_CORRECT_NUMERATOR = 2
-OPEN_QA_REFLECTION_SUCCESS_CORRECT_DENOMINATOR = 3
-REFLECTION_SUCCESS_POLICY = MappingProxyType(
+# (pass_at, fail_below) per scoring family: pass if score >= pass_at, fail if score <
+# fail_below, partial otherwise. Temporal IoU >= 0.5 is the usual R@0.5 hit and IoU < 0.1
+# means the step was essentially not found; open QA uses (covered + correct) / (2 * points),
+# so 2/3 needs most points covered and right, and < 1/3 means at most one point covered.
+OUTCOME_THRESHOLDS = MappingProxyType(
     {
-        SampleTask.CHOICE.value: "exact",
-        SampleTask.ORDERING.value: "exact",
-        SampleTask.TEMPORAL_LOCALIZATION.value: "interval-iou-ge-0.5",
-        SampleTask.OPEN_QA.value: "fully-correct-points-ratio-ge-2/3",
+        SampleTask.CHOICE: (1.0, 1.0),
+        SampleTask.ORDERING: (1.0, 1.0),
+        SampleTask.TEMPORAL_LOCALIZATION: (0.5, 0.1),
+        SampleTask.OPEN_QA: (2 / 3, 1 / 3),
     }
 )
+# Smallest per-question score change counted as an improvement or regression, so boundary
+# jitter (a few IoU points) or one judge coverage flip is not read as a Skill effect.
+CHANGE_MARGINS = MappingProxyType(
+    {
+        SampleTask.CHOICE: 1.0,
+        SampleTask.ORDERING: 1.0,
+        SampleTask.TEMPORAL_LOCALIZATION: 0.2,
+        SampleTask.OPEN_QA: 1 / 3,
+    }
+)
+_EPS = 1e-9
+
+
+def score_outcome(task: SampleTask | str, score: float) -> str:
+    pass_at, fail_below = OUTCOME_THRESHOLDS[SampleTask(task)]
+    if score >= pass_at - _EPS:
+        return "pass"
+    if score < fail_below - _EPS:
+        return "fail"
+    return "partial"
+
+
+def score_change(task: SampleTask | str, before: float, after: float) -> int:
+    """+1 improved, -1 regressed, 0 within the family's change margin."""
+    margin = CHANGE_MARGINS[SampleTask(task)]
+    if after - before >= margin - _EPS:
+        return 1
+    if before - after >= margin - _EPS:
+        return -1
+    return 0
 
 
 @dataclass(frozen=True)
 class ScoreResult:
     score: float
     feedback: str = ""
-    reflection_success: bool | None = None
 
     def __post_init__(self) -> None:
         score = float(self.score)
         if not math.isfinite(score) or not 0.0 <= score <= 1.0:
             raise ValueError("ScoreResult.score must be finite and in [0, 1].")
-        reflection_success = self.reflection_success
-        if reflection_success is None:
-            reflection_success = score >= 1.0
-        elif type(reflection_success) is not bool:
-            raise TypeError("ScoreResult.reflection_success must be bool or None.")
         object.__setattr__(self, "score", score)
         object.__setattr__(self, "feedback", str(self.feedback).strip())
-        object.__setattr__(self, "reflection_success", reflection_success)
-
-    @property
-    def outcome(self) -> str:
-        if self.score >= 1.0:
-            return "pass"
-        if self.score <= 0.0:
-            return "fail"
-        return "partial"
 
 
 class AnswerScorer(Protocol):
     def score(self, *, prediction: str, sample: EvaluationSample) -> ScoreResult: ...
 
 
-def _choice_labels(prediction: str) -> list[str]:
-    text = str(prediction).strip().upper()
-    if re.fullmatch(r"[A-Z]+", text):
-        return list(text)
-    if re.fullmatch(r"[A-Z](?:\s*[,;/|]\s*[A-Z])+", text):
-        return re.findall(r"[A-Z]", text)
-    standalone = re.findall(r"\b([A-Z])\b", text)
-    return standalone if len(standalone) == 1 else []
+_CVBENCH_PREFIXES = (
+    "The best answer is",
+    "The correct answer is",
+    "The answer is",
+    "The answer",
+    "The best option is",
+    "The correct option is",
+    "Best answer:",
+    "Best option:",
+)
+
+
+def _cvbench_extract(prediction: str) -> str:
+    """CVBench lmms-eval ``extract_characters_regex``: first A-D/YES/NO token."""
+    text = str(prediction).strip()
+    for prefix in _CVBENCH_PREFIXES:
+        text = text.replace(prefix, "")
+    if len(text.split()) > 10 and not re.search("[ABCDYESNO]", text):
+        return ""
+    match = re.search(r"(?i)([ABCD]|YES|NO)", text)
+    return match[0].upper() if match else ""
+
+
+def _option_text(option: str) -> str:
+    return re.sub(r"^[A-Z][.)]\s*", "", option).strip().rstrip(".").strip().upper()
 
 
 class ChoiceScorer:
-    def __init__(self, *, strict_format: bool = False, separator: str = "") -> None:
-        self.strict_format = bool(strict_format)
-        self.separator = str(separator)
+    """Option-label answers scored with one benchmark's official parsing.
+
+    - ``exact`` (CrossVid): the answer string equals the concatenated answer labels.
+    - ``first_char`` (MVU-Eval): the first character of the answer is the answer label.
+    - ``cvbench``: lmms-eval regex extraction; a YES/NO token maps to its option label.
+    """
+
+    PROTOCOLS = ("exact", "first_char", "cvbench")
+
+    def __init__(self, *, protocol: str = "exact") -> None:
+        if protocol not in self.PROTOCOLS:
+            raise ValueError(f"Unknown choice protocol: {protocol!r}")
+        self.protocol = protocol
+
+    def _parse(self, prediction: str, sample: EvaluationSample) -> str:
+        text = str(prediction).strip()
+        if self.protocol == "exact":
+            return text
+        if self.protocol == "first_char":
+            return text.upper()[:1]
+        token = _cvbench_extract(text)
+        if token in {"YES", "NO"}:
+            labels = [
+                chr(ord("A") + index)
+                for index, option in enumerate(sample.options)
+                if _option_text(option) == token
+            ]
+            return labels[0] if len(labels) == 1 else token
+        return token
 
     def score(self, *, prediction: str, sample: EvaluationSample) -> ScoreResult:
         if sample.task is not SampleTask.CHOICE:
             raise ValueError("ChoiceScorer requires task=choice.")
-        expected = [str(value).strip() for value in sample.ground_truth]
-        if all(_CHOICE_LABEL_RE.fullmatch(value.upper()) for value in expected):
-            expected = [value.upper() for value in expected]
-            parsed = _choice_labels(prediction)
-            if not parsed:
-                return ScoreResult(0.0, "The answer could not be parsed as option labels.")
-            semantic_match = len(parsed) == len(set(parsed)) and set(parsed) == set(expected)
-            if not semantic_match:
-                return ScoreResult(0.0, "The selected option labels do not match the ground truth.")
-            if self.strict_format:
-                required = self.separator.join(expected)
-                if str(prediction).strip() != required:
-                    return ScoreResult(
-                        0.0,
-                        f"The option set is correct but the required output format is {required!r}.",
-                    )
+        expected = "".join(str(value).strip().upper() for value in sample.ground_truth)
+        parsed = self._parse(prediction, sample)
+        if parsed == expected:
             return ScoreResult(1.0)
-
-        if len(expected) != 1:
-            raise ValueError("Non-label choice ground_truth must contain exactly one value.")
-        if str(prediction).strip().casefold() == expected[0].casefold():
-            return ScoreResult(1.0)
-        return ScoreResult(0.0, "The answer does not match the expected choice text.")
+        if not parsed:
+            return ScoreResult(0.0, "The answer could not be parsed as option labels.")
+        return ScoreResult(
+            0.0,
+            f"The answer {parsed!r} does not match the required option labels {expected!r}.",
+        )
 
 
 class OrderingScorer:
-    def __init__(self, *, separator: str = "->", strict_format: bool = True) -> None:
-        separator = str(separator)
-        if not separator:
-            raise ValueError("OrderingScorer.separator must be non-empty.")
-        self.separator = separator
-        self.strict_format = bool(strict_format)
-
-    def _parse(self, prediction: str) -> list[str]:
-        text = str(prediction).strip()
-        if self.separator in text:
-            return [part.strip() for part in text.split(self.separator) if part.strip()]
-        return [part for part in re.split(r"\s*(?:->|>|,|;)\s*", text) if part]
+    """CrossVid PSS: the answer string equals the reference order, e.g. ``2->4->1->3``."""
 
     def score(self, *, prediction: str, sample: EvaluationSample) -> ScoreResult:
         if sample.task is not SampleTask.ORDERING:
             raise ValueError("OrderingScorer requires task=ordering.")
-        expected = [str(value) for value in sample.ground_truth]
-        parsed = self._parse(prediction)
-        if parsed != expected:
-            return ScoreResult(0.0, "The parsed item order does not match the ground truth.")
-        required = self.separator.join(expected)
-        if self.strict_format and str(prediction).strip() != required:
-            return ScoreResult(
-                0.0,
-                f"The order is correct but the required output format is {required!r}.",
-            )
-        return ScoreResult(1.0)
+        required = "->".join(str(value) for value in sample.ground_truth)
+        if str(prediction).strip() == required:
+            return ScoreResult(1.0)
+        return ScoreResult(0.0, "The answer is not the reference order written as 'a->b->c'.")
 
 
 def _interval_iou(predicted: Sequence[float], expected: Sequence[float]) -> float:
@@ -139,40 +172,26 @@ def _interval_iou(predicted: Sequence[float], expected: Sequence[float]) -> floa
 
 
 class TemporalLocalizationScorer:
-    def __init__(self, *, separator: str = ",", strict_format: bool = False) -> None:
-        separator = str(separator)
-        if not separator:
-            raise ValueError("TemporalLocalizationScorer.separator must be non-empty.")
-        self.separator = separator
-        self.strict_format = bool(strict_format)
+    """CrossVid FSA: ``start,end`` in seconds split on one comma; score is IoU with the reference."""
 
     def score(self, *, prediction: str, sample: EvaluationSample) -> ScoreResult:
         if sample.task is not SampleTask.TEMPORAL_LOCALIZATION:
             raise ValueError(
                 "TemporalLocalizationScorer requires task=temporal_localization."
             )
-        raw = str(prediction).strip()
-        numbers = _NUMBER_RE.findall(raw)
-        if len(numbers) != 2:
-            return ScoreResult(0.0, "The answer must contain exactly one start and end time.")
-        predicted = [float(value) for value in numbers]
-        if not all(math.isfinite(value) for value in predicted) or predicted[0] > predicted[1]:
-            return ScoreResult(0.0, "The predicted time interval is invalid.")
-        if self.strict_format:
-            exact = re.fullmatch(
-                rf"\s*{_NUMBER_RE.pattern}\s*{re.escape(self.separator)}\s*{_NUMBER_RE.pattern}\s*",
-                raw,
-            )
-            if exact is None:
-                return ScoreResult(
-                    0.0,
-                    f"The interval must use {self.separator!r} between start and end.",
-                )
-        score = _interval_iou(predicted, [float(value) for value in sample.ground_truth])
+        parts = str(prediction).split(",")
+        try:
+            if len(parts) != 2:
+                raise ValueError
+            predicted = [float(part) for part in parts]
+        except ValueError:
+            return ScoreResult(0.0, "The answer must be 'start,end' in seconds.")
+        if not all(math.isfinite(value) for value in predicted):
+            return ScoreResult(0.0, "The predicted interval is not finite.")
+        score = min(1.0, _interval_iou(predicted, [float(value) for value in sample.ground_truth]))
         return ScoreResult(
             score,
-            "" if score >= 1.0 else "The predicted interval only partially overlaps the ground truth.",
-            reflection_success=score >= TEMPORAL_REFLECTION_SUCCESS_IOU,
+            "" if score >= 1.0 else f"The predicted interval has IoU {score:.2f} with the reference interval.",
         )
 
 
@@ -277,7 +296,7 @@ class DatasetScorer:
         result = self.score_prediction(sample_id, prediction)
         payload: dict[str, Any] = {
             "ground_truth": list(self.samples[sample_id].ground_truth),
-            "outcome": result.outcome,
+            "outcome": score_outcome(self.samples[sample_id].task, result.score),
         }
         if result.feedback:
             payload["feedback"] = result.feedback
@@ -286,16 +305,16 @@ class DatasetScorer:
 
 __all__ = [
     "AnswerScorer",
+    "CHANGE_MARGINS",
     "ChoiceScorer",
     "DatasetScorer",
-    "OPEN_QA_REFLECTION_SUCCESS_CORRECT_DENOMINATOR",
-    "OPEN_QA_REFLECTION_SUCCESS_CORRECT_NUMERATOR",
+    "OUTCOME_THRESHOLDS",
     "OpenQAJudge",
     "OpenQAScorer",
     "OrderingScorer",
-    "REFLECTION_SUCCESS_POLICY",
     "ScoreResult",
     "ScorerRegistry",
-    "TEMPORAL_REFLECTION_SUCCESS_IOU",
     "TemporalLocalizationScorer",
+    "score_change",
+    "score_outcome",
 ]

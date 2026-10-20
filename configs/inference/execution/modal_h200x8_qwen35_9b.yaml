@@ -1,0 +1,43 @@
+# One Modal H200:8 node for Qwen3.5-9B: one full Qwen3.5 replica per GPU (TP=1), localhost endpoints.
+question_workers: auto
+max_prepared_requests: auto
+question_timeout_sec: 7200
+question_retries: 1
+media_cache:
+  root: .cache/mvagent/media
+  max_bytes: 10737418240
+model_pools:
+  qwen3_5_9b_local:
+    replicas:
+    - gpus:
+      - 0
+      endpoint: http://127.0.0.1:8100/v1
+      max_inflight: 1
+    - gpus:
+      - 1
+      endpoint: http://127.0.0.1:8101/v1
+      max_inflight: 1
+    - gpus:
+      - 2
+      endpoint: http://127.0.0.1:8102/v1
+      max_inflight: 1
+    - gpus:
+      - 3
+      endpoint: http://127.0.0.1:8103/v1
+      max_inflight: 1
+    - gpus:
+      - 4
+      endpoint: http://127.0.0.1:8104/v1
+      max_inflight: 1
+    - gpus:
+      - 5
+      endpoint: http://127.0.0.1:8105/v1
+      max_inflight: 1
+    - gpus:
+      - 6
+      endpoint: http://127.0.0.1:8106/v1
+      max_inflight: 1
+    - gpus:
+      - 7
+      endpoint: http://127.0.0.1:8107/v1
+      max_inflight: 1

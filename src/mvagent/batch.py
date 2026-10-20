@@ -1,5 +1,6 @@
 """Public, question-isolated batch inference shared by evaluation and training."""
 from collections import deque
+from contextlib import ExitStack
 from copy import deepcopy
 from dataclasses import dataclass, field, asdict
 import hashlib
@@ -96,7 +97,14 @@ def question_worker(connection, pools, media_slots, media_cache):
                 break
             try:
                 with execution_scope(emit=lambda e: send(('event', e)), deadline=job['deadline'],
-                                     media_cache=media_cache, media_slots=media_slots):
+                                     media_cache=media_cache, media_slots=media_slots) as scope, ExitStack() as leases:
+                    # Hold one replica for the complete trajectory; calls within it remain serial.
+                    pinned = {}
+                    for name, pool in sorted(pools.items()):
+                        if getattr(pool.runtime_config, 'execution_profile', None):
+                            pinned[name] = (leases.enter_context(pool.acquire(job['deadline'] - time.monotonic())),
+                                            threading.Lock())
+                    scope['model_leases'] = pinned
                     emit_event('worker_runtime', source_root=str(Path(__file__).resolve().parents[1]))
                     if config_key != job['config_key']:
                         if engine:
@@ -157,7 +165,7 @@ class BatchExecutor:
         self.media_slots = dict(root=self.control_dir, limit=prepared)
         self.emit('batch_prepared', question_workers=self.worker_count, max_prepared_requests=prepared,
                   model_pools={n: [r.to_dict() for r in p.replicas] for n, p in self.pools.items()},
-                  unavailable=failures)
+                  unavailable=failures, execution_profiles={n: p.cards for n, p in self.pools.items()})
 
     def _start(self):
         parent, child = self.context.Pipe()

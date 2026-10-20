@@ -15,7 +15,7 @@ Usage:
     python scripts/analyze_official_sensitivity.py \
         --crossvid outputs/qwen36_official_crossvid \
         --mvu-cv outputs/qwen36_official_cvbench_mvu \
-        --crossvid-data /home/kww/datasets/Multi-Video/CrossVid
+        --crossvid-data /assets/crossvid
 """
 from __future__ import annotations
 
@@ -316,7 +316,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--crossvid", type=Path, required=True)
     ap.add_argument("--mvu-cv", type=Path, required=True)
-    ap.add_argument("--crossvid-data", type=Path, default=Path("/home/kww/datasets/Multi-Video/CrossVid"))
+    ap.add_argument("--crossvid-data", type=Path, default=Path("/assets/crossvid"))
     ap.add_argument("--markdown", type=Path, default=None,
                     help="Write the sensitivity analysis Markdown to this path")
     args = ap.parse_args()

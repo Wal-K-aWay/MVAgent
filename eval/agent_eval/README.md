@@ -1,6 +1,8 @@
 # MVAgent benchmark evaluation
 
-Install the project dependencies first: `python -m pip install -r requirements.txt`
+Global 主动选择 `answer` 时在同一决策中直接提交 `parameters.answer`；循环耗尽时复用 `decide(answer_only=True)`，保留决策 System、视频信息、公开 History 和既有 skill 策略，只允许提交答案。两条路径均保持开放非空答案、2048 输出 token、终答 reason 无字符硬限。User 顺序为 Question→Videos→Available actions→History；视频裁剪仍用 FFmpeg。基础采用已完成4500条测试的简洁 Global System 与原 VideoAgent。已有运行使用冻结源码，不热更新；新运行另建目录。
+
+On the remote GPU host, install the project dependencies first: `uv pip install -r requirements.txt`
 from the repository root; see [installation instructions](../../README.md).
 
 This entry evaluates MVAgent on CVBench, MVU-Eval and CrossVid. It uses
@@ -8,44 +10,105 @@ This entry evaluates MVAgent on CVBench, MVU-Eval and CrossVid. It uses
 Dataset/scoring adapters live in `skill_evolution/infra/benchmarks`; workers receive
 only the question and ordered videos, never reference answers.
 
-On a new server, after downloading the three benchmark directories, prepare the
-dataset root once:
+The frozen full-run continuation is `scripts/run_full_mvagent.py`: `prepare` runs on Modal CPU,
+then `launch` runs on the `modal-gpu` dev box using the same immutable staged checkout. It owns
+two disjoint eight-H100 shards, reuses the validated 4,500 records, and infers only the remaining
+11,463. The controller scores new CCQA answers, releases its own GPUs, and aggregates full and
+new-only results. Do not launch a second owner while its lock is held. Exact paths and completion
+state are recorded in [the experiment log](../../docs/experiments.md).
+
+Subsequent Qwen3.5 evaluations use the [fixed evaluation configuration](../../configs/inference/README.md#固定评测方案):
+8 H100 GPUs with independent full-model replicas and `seed=0`. The `h200` execution-file
+names are historical; request `H100!:8` explicitly for this evaluation protocol.
+
+The three `configs/inference/modal_qwen35_*_no_skill.yaml` files and the skill-evolution
+35B Actor configuration select `execution_profile: qwen35-bf16-flashinfer-sync`.
+The shared implementation is [`src/models/vlm/local/sync_server.py`](../../src/models/vlm/local/sync_server.py):
+BF16, TP1/DP1, one in-flight request per GPU, synchronous in-process eager execution,
+FlashInfer GDN prefill and native GemmaRMSNorm. Versions, context length (131072),
+prefill budget (32768), memory fraction (0.94) and disabled prefix/MM processor caching are fixed
+there. Standard decode KV caching remains enabled.
+Per-request `usage.prompt_tokens_details.cached_tokens` and `cache_hit_rate` are saved in model_response events.
+This is the only supported evaluation profile. Cache counters remain observable and are zero with prefix caching disabled. Conflicting configuration is rejected.
+The local service manager starts this server directly; it validates existing service
+metadata before reuse. Each complete question leases one replica, including all
+GlobalAgent, VideoAgent and Selector calls. Parallel videos share that serial lease.
+
+Actual output token IDs, request/input/prompt hashes, finish reasons and worker
+identity are recorded and validated by default for this profile. Ordinary local
+vLLM configurations retain the diagnostic opt-in `MVAGENT_RECORD_TOKEN_IDS=1`.
+For repeatability checks without accuracy scoring or Judge calls, add `--inference-only`;
+records then have `scoring_status: skipped`. Existing CLI arguments remain supported.
+Use a fresh output directory after changing execution profiles; resume uses frozen source.
+
+Inference keeps the validated `seed=0` for every run; it does not change with the date.
+Routine evaluations need only one pass, with the existing identity/input/token audit.
+Repeat a small affected check after changes to weights, numerical settings, dependencies,
+hardware type, concurrency, preprocessing or inference routing, or after new failure evidence;
+new questions alone do not require another repeatability matrix. These finite checks are
+evidence for the tested configuration, not a universal determinism guarantee.
+New sampling/shuffling uses seed 0; reuse existing frozen sample manifests with their original
+data seeds. A data-sampling seed is separate from the model's inference seed.
+
+The supplied Actor configurations now wait 1860 seconds per request (the shared server
+limit is 1800 seconds), and the supplied execution YAMLs allow 7200 seconds per question.
+This changes wall-clock limits only, preserving the model, generation budget and Agent policy.
+`status: ok` records a completed runtime call; it does not establish answer-format validity.
+The answer action schema accepts any nonblank answer string, including invalid
+choice/interval answers. Report model/structured errors, repeatability and answer format
+separately; see the [experiment record](../../docs/experiments.md).
+
+GlobalAgent submits its final answer in the same decision: `reason`, `action="answer"`,
+`parameters.answer`. Runtime returns the existing `{answer, reason, status}` result directly;
+there is no separate final-answer prompt or model call. At the step limit, Runtime calls the
+same decision interface with only `answer` available, preserving `forced_with_gaps` and the
+`terminal_answer` trajectory marker. Evidence decisions still use a 1200-character reason;
+answer decisions have no reason character cap. All responses retain the 2048-token budget,
+and `parameters.answer` remains an open nonblank string with a 2400-character limit.
+
+The Global System states the coordinator's role and visual evidence boundary. It preserves video
+identities and requests one available action. VideoAgent receives its instruction and own history,
+without an additional copy of the original question. The exact System and accepted results are in
+[the experiment record](../../docs/experiments.md). Do not interpret historical standalone-answer or
+Video-context experiments as supported runtime switches.
+
+Contract checks use `scripts/test_direct_answer.py`, `scripts/test_e2e_sync.py`,
+`scripts/test_model_token_audit.py`, `scripts/test_prefix_cache_usage.py` and
+`scripts/test_agent_finalize.py`. The short-video regression is `scripts/test_short_video.py`.
+`scripts/verify_direct_answer.py` remains available for a deliberately requested isolated GPU check;
+normal evaluations reuse the accepted repeatability evidence instead of rerunning it every time.
+
+The dataset root is the Modal asset Volume mounted at `/assets`, with `crossvid/`, `cvbench/` and
+`mvu-eval/` subdirectories (names defined in `skill_evolution/infra/benchmarks/catalog.py`).
+CVBench/MVU-Eval `QAs.json` are built by `scripts/prepare_cvbench_mvu_qas.py`; their video paths
+are relative to each benchmark directory. CrossVid needs a one-time preparation that writes
+`qa.jsonl`, `qa.meta.json` and `.mvagent_media` under `crossvid/`:
 
 ```bash
-PYTHONPATH=src /home/kww/miniconda3/envs/MVAgent/bin/python \
-  scripts/prepare_all_multivideo.py --root /data/Multi-Video
+PYTHONPATH=src python scripts/prepare_all_multivideo.py --root /assets
 ```
 
-This generates CrossVid's `qa.jsonl`, `qa.meta.json` and `.mvagent_media`.
-CVBench and MVU-Eval use their raw `QAs.json` and `videos/`; MVAgent creates its
-runtime media cache on demand.
+Run inside a GPU node whose execution file lists that node's local replicas:
 
 ```bash
-PYTHONPATH=src /home/kww/miniconda3/envs/MVAgent/bin/python eval/agent_eval/run.py \
-  --config eval/agent_eval/config.yaml \
-  --execution-config configs/inference/execution/gpu5_7.yaml \
-  --benchmarks cvbench mvu_eval \
-  --output outputs/mvagent_pool_eval
+PYTHONPATH=src python eval/agent_eval/run.py \
+  --config configs/inference/modal_qwen35_35b_a3b_no_skill.yaml \
+  --execution-config configs/inference/execution/modal_h200x8.yaml \
+  --dataset-root /assets --benchmarks cvbench mvu_eval \
+  --output <fresh output dir>
 ```
 
 There is no implicit GPU selection. The execution YAML lists the allowed model
 replicas, their physical GPU indexes or UUIDs, endpoints and `max_inflight` limits.
 GPU numbers need not be consecutive. Each CPU worker owns one question at a time;
-each model call can use a different matching replica. `question_workers: auto`
-equals the healthy Agent-service capacities (6 for the supplied three-replica pool).
+the validated profile holds one matching replica for its complete trajectory. `question_workers: auto`
+equals the healthy Agent-service capacities (8 for `modal_h200x8.yaml`).
 `max_prepared_requests: auto` bounds media preparation to twice that capacity.
 `runtime.video_concurrency` in MVAgent YAML separately controls parallel VideoAgents.
 
-For all three benchmarks, include `crossvid` and explicitly name the Judge:
-
-```bash
-PYTHONPATH=src /home/kww/miniconda3/envs/MVAgent/bin/python eval/agent_eval/run.py \
-  --config configs/skill_evolution/runtime/local_qwen35_35b_a3b_qwen38_optimizer_gpu5_7.yaml \
-  --execution-config configs/inference/execution/gpu5_7.yaml \
-  --benchmarks cvbench mvu_eval crossvid \
-  --judge-model qwen3_8_27b_optimizer \
-  --output outputs/mvagent_all_benchmarks
-```
+To include CrossVid, add `crossvid` to `--benchmarks`. CCQA is open QA: either pass
+`--judge-model` naming a Judge defined in the model configuration, or pass
+`--defer-open-qa-judge` and score afterwards with `score_crossvid_ccqa.py` (see below).
 
 The Judge model must exist in the model configuration. A local Judge sharing an
 Agent endpoint shares its request admission; an explicitly configured API Judge
@@ -55,7 +118,7 @@ model client handles requests; the authored OpenQA scoring prompt is unchanged.
 `--limit N` selects N CVBench and N MVU-Eval questions, and N questions per CrossVid
 task. Omit `--benchmarks` to select all three benchmarks. Both Skills default to off;
 other fixed Skill configurations may be evaluated through the same execution path.
-For Qwen3.5-9B, choose `config_qwen3_5_9b.yaml` and a resource file whose model-pool
+For Qwen3.5-9B, choose `configs/inference/modal_qwen35_9b_no_skill.yaml` and a resource file whose model-pool
 name is `qwen3_5_9b_local`, with matching 9B services; incompatible running services
 are rejected rather than replaced.
 
@@ -71,12 +134,8 @@ excluded-benchmark IDs are rejected. It cannot be combined with `--limit` or
 keep the input panel and its selection provenance with the experiment. This option
 does not change question text, video order, runtime or scoring.
 
-For four Qwen3.5-9B replicas on GPUs 4–7, use
-`--config eval/agent_eval/config_qwen3_5_9b.yaml`
-`--execution-config configs/inference/execution/qwen35_9b_gpu4_7.yaml`
-`--judge-model qwen3_5_9b_local`. This resource profile uses eight question workers
-and two admitted requests per replica. Always choose a fresh `--output` for a new
-comparison; keep historical results and their frozen source untouched.
+Always choose a fresh `--output` for a new comparison; keep historical results and
+their frozen source untouched.
 
 Append `--resume` with the same input/model/scoring configuration and output directory.
 The execution file may select different GPUs or worker counts. The original runner
@@ -95,12 +154,35 @@ and CrossVid choice, `start,end` for FSA, `1->3->2->4` for PSS, and fixed
 coverage/correctness judging for CCQA. This is an Agent-system evaluation; official
 end-to-end runners under `eval/e2e_eval/` retain their own protocols.
 
-For a completed deferred run with `open_qa_pending.jsonl`, set `DEEPSEEK_API_KEY`
-in the environment, then run `score_crossvid_ccqa.py --output <run>` and
+For a completed run with deferred CCQA records under `records/crossvid/`, start the fixed local Judge
+(`serve_ccqa_judge.sh 0-7`: Qwen3-30B-A3B-Instruct-2507 on vLLM, one replica per GPU on ports
+8100+), then run `score_crossvid_ccqa.py --output <run> --endpoints 8100-8107` and
 `finalize_results.py --output <run>`. The scorer uses the CrossVid coverage/correctness
-prompt, validates scoring-point counts and boolean values, and caches returned model,
-response text and usage. Requested model aliases may resolve to newer provider models.
+prompt, system message and sampling (temperature 0, top_p 0.95), validates scoring-point counts
+and boolean values, caches response text and usage, and records the Judge weights in
+`score/ccqa_scores_official_qwen3_30b_a3b.json`. Each replica serves one request at a time, so
+greedy judgements are reproducible. E2E runs use the same Judge (`eval/e2e_eval/README.md`).
 Finalization requires every deferred answer to match its scored prediction and writes
 `summary_scored.json` plus `benchmark_results.md`; raw records and `summary.json`
 retain their original deferred state. CrossVid's primary O.Avg is the ten-task mean,
 with CCQA weighted by scoring-point count within its task.
+
+## Analysis tables
+
+Raw records are about 270 KB per question, mostly request/response events kept for audit and exact replay.
+For analysis, run `python eval/agent_eval/export_results.py <run>` (standard library only, also on a
+local copy of the records). It reads `records/` and `summary.json`, never modifies them, and writes `<run>/tables/`:
+
+- `answers.jsonl`: one row per question with `sample_id`, `dataset`, `task`, `family`, `status`, `error`,
+  `prediction`, `ground_truth`, `score`, `correct`, `outcome` (pass/partial/fail by the skill-evolution
+  thresholds), `answer_valid` (prediction matches the task's answer form), `evidence_actions`,
+  `n_evidence_actions`, `first_action`, `stop` (`answered` or `forced_with_gaps`), `time_sec`,
+  `prompt_tokens`, `completion_tokens`, `global_skill` (selected card IDs, or null without a dynamic bank).
+- `cases.jsonl.gz`: public trajectories in the skill-evolution case format
+  (`src/skill_evolution/algorithms/alternating/global/scope/views.py`): question without the generic
+  benchmark wrapper, options, video durations, evidence steps with instructions and VideoAgent summaries,
+  final and correct answer, outcome.
+- `scores.json`: official score per benchmark (copied from `summary.json`) and per-task counts, mean
+  score, outcome counts and answer-validity rate.
+
+Deferred CCQA answers have `score: null` until judged; rerun the export after `score_crossvid_ccqa.py`.
