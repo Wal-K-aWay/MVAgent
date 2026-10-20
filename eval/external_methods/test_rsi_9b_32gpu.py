@@ -70,11 +70,12 @@ def check_estimate():
         root=Path(directory);children=[];history={}
         for index in range(4):
             child=root/f'shard{index}';ids=[f'cvbench:{2*index+j}' for j in range(2)]
+            if index==3:ids[1]='crossvid:BU:7'
             children.append(dict(root=str(child),expected=2))
             write(child/'samples.json',ids)
             write(child/'progress.json',dict(phase='inference'))
             for sid in ids:
-                history[sid]=dict(seconds=100,prepared_seconds=10,archive_seconds=1,infrastructure_error=False)
+                history[sid]=dict(dataset=sid.split(':')[0],seconds=100,prepared_seconds=10,archive_seconds=1,infrastructure_error=False)
             row=dict(sample_id=ids[0],seconds=50 if index<3 else 1,prepared_seconds=10,
                      terminal='finish' if index<3 else 'missing_result',infrastructure_error=index==3,
                      finished_at=datetime.now(timezone.utc).isoformat())
@@ -85,7 +86,8 @@ def check_estimate():
         result=read(root/'speed_estimate.json')
         assert result['completed']==4 and result['paired_valid_samples']==3
         assert result['paired_9b_to_35b_inference_ratio']==.5 and result['provisional']
-        assert result['projected_remaining_hours']==61/8/3600
+        assert result['projected_remaining_hours']==111/8/3600
+        assert result['paired_timing_by_dataset']['crossvid']==dict(samples=0,ratio=None)
         assert result['groups'][3]['infrastructure_failures']==1
     print('Speed estimate excludes infrastructure failures from paired timing; early sample caveat and slowest-shard projection retained')
 

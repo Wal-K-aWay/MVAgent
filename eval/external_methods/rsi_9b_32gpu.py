@@ -151,17 +151,26 @@ def estimate(output):
     paired = [r for r in rows if not r['infrastructure_error'] and not history[r['sample_id']]['infrastructure_error']]
     old_inference = sum(history[r['sample_id']]['seconds'] for r in paired)
     ratio = sum(r['seconds'] for r in paired)/old_inference if old_inference else None
+    timing = {}
+    for dataset in EXPECTED:
+        selected = [r for r in paired if history[r['sample_id']]['dataset']==dataset]
+        previous = sum(history[r['sample_id']]['seconds'] for r in selected)
+        timing[dataset] = dict(samples=len(selected), ratio=sum(r['seconds'] for r in selected)/previous
+                               if len(selected)>=3 and previous else None)
     projections=[]
     completed = {r['sample_id'] for r in rows}
     for child in manifest['children']:
         todo=[sid for sid in read(Path(child['root'])/'samples.json') if sid not in completed]
-        work=sum(history[sid]['seconds']*(ratio if ratio is not None else 1)
+        work=sum(history[sid]['seconds']*(timing[history[sid]['dataset']]['ratio']
+                 if timing[history[sid]['dataset']]['ratio'] is not None else 1)
                  +history[sid]['prepared_seconds']+history[sid]['archive_seconds'] for sid in todo)
         projections.append(work/8/3600)
     result=dict(updated_at=now.isoformat(), completed=len(rows), expected=5321, groups=groups,
           paired_valid_samples=len(paired), paired_9b_to_35b_inference_ratio=ratio, projected_remaining_hours=max(projections),
-          provisional=any(g['completed']<50 or (g['measurement_seconds'] or 0)<3600 for g in groups),
-          limitations='Early completed questions favor short runs; historical media timing includes prior cache regimes. Projection excludes resource queues, loading and final Judge; 32/8=4 is a capacity ceiling, not a measured speedup.')
+          paired_timing_by_dataset=timing, estimate_source_sha256=sha256(Path(__file__)),
+          provisional=any(g['completed']<50 or (g['measurement_seconds'] or 0)<3600 for g in groups)
+                      or any(t['samples']<20 for t in timing.values()),
+          limitations='Early completed questions favor short runs; historical media timing includes prior cache regimes. Benchmarks with fewer than 3 valid pairs retain the historical timing placeholder. Projection excludes resource queues, loading and final Judge; 32/8=4 is a capacity ceiling, not a measured speedup.')
     write(output/'speed_estimate.json', result)
     print(json.dumps(result, ensure_ascii=False), flush=True)
 
