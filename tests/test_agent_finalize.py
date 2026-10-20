@@ -5,9 +5,15 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+import subprocess
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'eval/agent_eval'))
-from finalize_results import CROSSVID_TASK_ORDER, REPORT_NAME, _merge_deferred_judge
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from finalize_results import (
+    CROSSVID_TASK_ORDER, REPORT_NAME, CVBENCH_TASKS_PATH, CVBENCH_TASK_CATEGORY,
+    _cvbench_category_table, _merge_deferred_judge,
+)
+from scripts.prepare_cvbench_mvu_qas import DEFAULT_CVBENCH_SOURCE, cvbench_rows
 
 
 class DeferredJudgeTest(unittest.TestCase):
@@ -52,6 +58,42 @@ class DeferredJudgeTest(unittest.TestCase):
         self.judge_path.write_text(json.dumps(self.judge))
         with self.assertRaises(AssertionError):
             _merge_deferred_judge(self.root, copy.deepcopy(self.summary))
+
+    def test_cvbench_annotations_still_prepare_and_classify_records(self):
+        self.assertEqual(DEFAULT_CVBENCH_SOURCE, CVBENCH_TASKS_PATH)
+        rows = cvbench_rows(DEFAULT_CVBENCH_SOURCE)
+        self.assertEqual(len(rows), 1000)
+        representatives = {}
+        for row in rows:
+            category = CVBENCH_TASK_CATEGORY[row["task_type"]]
+            representatives.setdefault(category, row)
+        self.assertEqual(len(representatives), 3)
+        for row in representatives.values():
+            sid = f"cvbench:{row['id']}"
+            path = self.root / "records/cvbench" / sid / "result.json"
+            path.parent.mkdir(parents=True)
+            path.write_text(json.dumps(dict(dataset="cvbench", sample_id=sid,
+                                           status="ok", correct=True)))
+        stats, correct, total = _cvbench_category_table(self.root)
+        self.assertEqual((correct, total), (3, 3))
+        self.assertEqual(set(stats), set(representatives))
+        self.assertTrue(all(s["correct"] == s["total"] == 1 for s in stats.values()))
+
+    def test_finalize_cli_without_e2e_checkout(self):
+        before = [p.read_bytes() for p in self.rows]
+        summary = copy.deepcopy(self.summary)
+        summary["datasets"]["crossvid"].update(errors=0, pending=0)
+        (self.root / "summary.json").write_text(json.dumps(summary))
+        (self.root / "run_manifest.json").write_text("{}")
+        (self.root / "input_config.yaml").write_text(
+            "model_name: test\nmax_video_frames_per_request: 512\nenabled: false\n")
+        script = Path(__file__).resolve().parents[1] / "eval/agent_eval/finalize_results.py"
+        subprocess.run([sys.executable, str(script), "--output", str(self.root)],
+                       check=True, capture_output=True, text=True)
+        scored = json.loads((self.root / "summary_scored.json").read_text())
+        self.assertEqual(scored["datasets"]["crossvid"]["official_score"], .925)
+        self.assertIn("92.50", (self.root / "benchmark_results.md").read_text())
+        self.assertEqual(before, [p.read_bytes() for p in self.rows])
 
 
 if __name__ == '__main__':

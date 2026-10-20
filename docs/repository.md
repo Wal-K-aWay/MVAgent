@@ -4,7 +4,7 @@
 |---|---|
 | `src/` | MVAgent, model adapters, skill runtime and evolution infrastructure |
 | `configs/` | Inference settings, evolution recipes and frozen split manifests |
-| `eval/` | Benchmark preparation references, inference, scoring and trajectory export |
+| `eval/` | MVAgent evaluation, scoring, trajectory export and required annotation metadata |
 | `scripts/` | Supported preprocessing, visualization and skill-management tools |
 | `tests/` | Six existing runtime regression checks |
 | `docs/` | Shared documentation, historical findings and protocol differences |
@@ -47,8 +47,10 @@ current entry points. No Git history or Release is rewritten by this cleanup.
 A normal full clone still downloads historical Git objects.
 
 The cleanup preserves the contents of runtime code, model-facing prompts, inference
-and split configurations, benchmark/scoring code, dependencies, and the retained
-preprocessing tools. The six regression files are moved without content changes.
+and split configurations and dependencies. The follow-up evaluation cleanup removes
+the E2E runner and moves required CVBench metadata unchanged into `eval/agent_eval/`.
+The scoring formulas and Judge prompt are preserved; the optional E2E report
+comparison is removed. The Actor-pool regression is retained without E2E imports.
 Completed answers and scores are not recomputed. Existing jobs keep their frozen
 source and paths; they must not be switched to a new checkout while running.
 

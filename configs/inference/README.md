@@ -5,7 +5,7 @@
 
 ## 固定评测方案
 
-后续 Qwen3.5 的 E2E 与 MVAgent 评测统一使用下表；推理实现以
+Qwen3.5 的 MVAgent 评测使用下表；推理实现以
 [`sync_server.py`](../../src/models/vlm/local/sync_server.py) 为准。
 
 | 项目 | 固定设置 |
@@ -19,7 +19,7 @@
 | 容量 | context 131072、prefill 32768、max_num_seqs 1、显存比例 0.94、expandable segments |
 | 缓存 | 正常解码 KV 开启，prefix/MM processor cache 关闭；E2E 复用固定帧缓存并核对输入哈希 |
 | 版本 | vLLM 0.19.1、torch 2.10.0、transformers 4.57.6、xgrammar 0.2.2、FlashInfer 0.6.6、Triton 3.6.0 |
-| E2E 输入与输出 | 每次最多 512 帧、最长边 448；保留各 benchmark 现行提示词与生成预算 |
+| 视觉输入 | 每次最多 512 帧、最长边 448 |
 | MVAgent 预算 | 每次最多 512 帧、2048 输出 token；Global/Video 各最多 5 步；主动 answer 决策直接提交 parameters.answer，循环耗尽复用仅允许answer的决策接口；两者 reason 无字符硬上限；取证 reason 仍限1200字符，答案保持开放非空字符串 |
 | MVAgent 等待时限 | 服务 1800 秒、客户端 1860 秒、整题 7200 秒 |
 | HTTP 请求体 | 最大 2 GiB；这是视频传输大小限制，与帧数、上下文和生成预算分别校验 |
@@ -44,7 +44,7 @@ Global 使用简洁角色 System，VideoAgent 保持原 instruction 边界；历
 惩罚项沿用锁定vLLM版本的默认值，不向当前严格接口额外传入这些字段。
 只有相关执行条件改变、新故障证据或用户明确要求，才对受影响部分做小规模复核。
 新建抽样/打乱也默认 seed 0；已有 split、面板与冻结运行沿用原 manifest，不重新抽题。
-已有一致性证据及限制见 [E2E 文档](../../eval/e2e_eval/README.md#可复现性) 和
+已有一致性证据及限制见 [实验记录](../../docs/experiments.md) 和
 [Agent 文档](../../eval/agent_eval/README.md)；不将有限实测写成任意输入的绝对保证。
 
 ## 配置入口

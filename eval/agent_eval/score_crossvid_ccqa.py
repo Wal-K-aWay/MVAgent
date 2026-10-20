@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Score CrossVid CCQA predictions with the fixed local judge and the official protocol.
 
-Reuses ``eval/e2e_eval/CrossVid/eval/score_CCQA.py`` prompt, system message,
+Implements the pinned CrossVid official CCQA prompt, system message,
 generation settings and ``<score>`` parsing, with strict response validation.
 The judge is Qwen3-30B-A3B-Instruct-2507 served by vLLM (one replica per GPU, started
 with ``--generation-config vllm``); one request in flight per replica keeps every batch
@@ -286,7 +286,7 @@ def main() -> None:
         "updated_at_utc": _utc_now(),
         "task": "CCQA",
         "scoring_protocol": "CrossVid official score_CCQA.py",
-        "official_source": "eval/e2e_eval/CrossVid/eval/score_CCQA.py",
+        "official_source": "https://github.com/chuntianli666/CrossVid/blob/b53ada63551f9ac4a726b381b627d17ece066281/eval/score_CCQA.py",
         "judge": judge.identity,
         "qa_path": str(args.qa_path),
         "qa_sha256": hashlib.sha256(args.qa_path.read_bytes()).hexdigest(),

@@ -3,7 +3,6 @@
 # (replica i on port BASE_PORT+i), and wait until every replica answers /v1/models.
 #   serve_ccqa_judge.sh [GPUS: 0 | 0,1 | 0-7 (default 0)] [BASE_PORT (default 8100)]
 # Then score with: score_crossvid_ccqa.py --endpoints 8100-8107 (MVAgent) or
-# e2e_eval/run.py score --judge-endpoints 8100-8107 (E2E).
 # `--generation-config vllm` keeps the model's generation_config.json from overriding the official sampling.
 set -euo pipefail
 GPUS=${1:-0}

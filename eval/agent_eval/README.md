@@ -70,16 +70,17 @@ without an additional copy of the original question. The exact System and accept
 [the experiment record](../../docs/experiments.md). Do not interpret historical standalone-answer or
 Video-context experiments as supported runtime switches.
 
-Contract checks live in [`tests/`](../../tests/README.md): direct answers, E2E serving,
+Contract checks live in [`tests/`](../../tests/README.md): direct answers, model-pool leasing,
 token audits, cache accounting, score finalization and the short-video regression.
-Their contents are unchanged by the repository cleanup.
+The model-pool check covers the Actor profile and per-question replica binding.
 Normal evaluations reuse the accepted repeatability evidence instead of rerunning it every time.
 
 Pass the parent dataset directory with `--dataset-root`. The original Modal environment
 uses `/assets`; an ordinary GPU server can use another local path. It contains `crossvid/`,
 `cvbench/` and `mvu-eval/` subdirectories for the requested benchmarks
 (names defined in `skill_evolution/infra/benchmarks/catalog.py`).
-CVBench/MVU-Eval `QAs.json` are built by `scripts/prepare_cvbench_mvu_qas.py`; their video paths
+CVBench/MVU-Eval `QAs.json` are built by `scripts/prepare_cvbench_mvu_qas.py`, using
+`eval/agent_eval/metadata/CVBench.json` and user-supplied MVU annotations; their video paths
 are relative to each benchmark directory. CrossVid needs a one-time preparation that writes
 `qa.jsonl`, `qa.meta.json` and `.mvagent_media` under `crossvid/`:
 
@@ -150,8 +151,7 @@ are recorded per invocation under `executions/`; raw events are in
 
 Scores keep the existing strict task contracts: uppercase options for CVBench/MVU
 and CrossVid choice, `start,end` for FSA, `1->3->2->4` for PSS, and fixed
-coverage/correctness judging for CCQA. This is an Agent-system evaluation; official
-end-to-end runners under `eval/e2e_eval/` retain their own protocols.
+coverage/correctness judging for CCQA. This directory evaluates the MVAgent system.
 
 For a completed run with deferred CCQA records under `records/crossvid/`, start the fixed local Judge
 (`serve_ccqa_judge.sh 0-7`: Qwen3-30B-A3B-Instruct-2507 on vLLM, one replica per GPU on ports
@@ -160,7 +160,7 @@ For a completed run with deferred CCQA records under `records/crossvid/`, start 
 prompt, system message and sampling (temperature 0, top_p 0.95), validates scoring-point counts
 and boolean values, caches response text and usage, and records the Judge weights in
 `score/ccqa_scores_official_qwen3_30b_a3b.json`. Each replica serves one request at a time, so
-greedy judgements are reproducible. E2E runs use the same Judge (`eval/e2e_eval/README.md`).
+the existing fixed judging protocol is preserved.
 Finalization requires every deferred answer to match its scored prediction and writes
 `summary_scored.json` plus `benchmark_results.md`; raw records and `summary.json`
 retain their original deferred state. CrossVid's primary O.Avg is the ten-task mean,
