@@ -75,8 +75,10 @@ token audits, cache accounting, score finalization and the short-video regressio
 Their contents are unchanged by the repository cleanup.
 Normal evaluations reuse the accepted repeatability evidence instead of rerunning it every time.
 
-The dataset root is the Modal asset Volume mounted at `/assets`, with `crossvid/`, `cvbench/` and
-`mvu-eval/` subdirectories (names defined in `skill_evolution/infra/benchmarks/catalog.py`).
+Pass the parent dataset directory with `--dataset-root`. The original Modal environment
+uses `/assets`; an ordinary GPU server can use another local path. It contains `crossvid/`,
+`cvbench/` and `mvu-eval/` subdirectories for the requested benchmarks
+(names defined in `skill_evolution/infra/benchmarks/catalog.py`).
 CVBench/MVU-Eval `QAs.json` are built by `scripts/prepare_cvbench_mvu_qas.py`; their video paths
 are relative to each benchmark directory. CrossVid needs a one-time preparation that writes
 `qa.jsonl`, `qa.meta.json` and `.mvagent_media` under `crossvid/`:
@@ -182,4 +184,7 @@ local copy of the records). It reads `records/` and `summary.json`, never modifi
 - `scores.json`: official score per benchmark (copied from `summary.json`) and per-task counts, mean
   score, outcome counts and answer-validity rate.
 
-Deferred CCQA answers have `score: null` until judged; rerun the export after `score_crossvid_ccqa.py`.
+For runs using deferred CCQA judging, the original records and `summary.json` remain
+deferred even after judging. The exporter does not merge the separate Judge file.
+Use `summary_scored.json` and `benchmark_results.md` for final metrics; join the saved
+CCQA scores by question ID when analyzing per-question judged results.
