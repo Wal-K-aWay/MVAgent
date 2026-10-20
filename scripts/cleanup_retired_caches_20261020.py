@@ -149,6 +149,44 @@ def verify_retained(plan):
             assert expected == actual, path
 
 
+def extend_runtime():
+    """Consolidate runtime source copies using the already retained per-file hashes."""
+    assert not (AUDIT/'plan_before_runtime.json').exists()
+    plan = read(AUDIT/'plan.json')
+    protected = [Path(r['target']) for r in plan['references']]
+    groups = defaultdict(list)
+    for parent, dirs, _ in os.walk(REPRO, followlinks=False):
+        if 'runtime' not in dirs:
+            continue
+        path = Path(parent)/'runtime'
+        dirs.remove('runtime')
+        assert not path.is_symlink()
+        if any(shared.within(p, [path]) or shared.within(path, [p]) for p in protected):
+            continue
+        rows = shared.inventory(path)
+        assert not any(stat.S_ISLNK(r['mode']) for r in rows)
+        content = [(str(Path(r['path']).relative_to(path)), r['mode'],
+                    plan['retained'][r['path']] if stat.S_ISREG(r['mode']) else None) for r in rows]
+        digest = hashlib.sha256(json.dumps(content).encode()).hexdigest()
+        groups[digest].append(dict(path=str(path), inventory=rows))
+    save(AUDIT/'plan_before_runtime.json', plan)
+    added = []
+    for digest, rows in groups.items():
+        if len(rows) < 2:
+            continue
+        canonical = AUDIT/'shared_dependencies'/digest
+        shutil.copytree(rows[0]['path'], canonical)
+        assert signature(canonical) == digest
+        group = dict(sha256=digest, canonical=str(canonical),
+                     canonical_totals=shared.totals(shared.inventory(canonical)), sources=rows)
+        plan['copies'].append(group)
+        added.append(dict(copies=len(rows), sha256=digest, canonical=group['canonical_totals']))
+    save(AUDIT/'plan.json', plan)
+    volume.commit()
+    return dict(runtime_groups=added, total_groups=len(plan['copies']),
+                total_copies=sum(len(g['sources']) for g in plan['copies']))
+
+
 def apply():
     assert not (AUDIT/'completed.json').exists()
     plan = read(AUDIT/'plan.json')
@@ -165,7 +203,7 @@ def apply():
         assert signature(Path(group['canonical'])) == group['sha256']
         for row in group['sources']:
             path = Path(row['path'])
-            assert path.is_relative_to(REPRO) and path.name == 'driver_dependencies'
+            assert path.is_relative_to(REPRO) and path.name in {'driver_dependencies','runtime'}
             assert not path.is_symlink() and shared.normalized_target(path) == path
             assert not any(shared.within(p, [path]) or shared.within(path, [p]) for p in protected)
             assert shared.inventory(path) == row['inventory']
@@ -254,5 +292,5 @@ def job(phase):
 
 @app.local_entrypoint()
 def main(phase: str='test'):
-    assert phase in {'test','prepare','apply','verify'}
+    assert phase in {'test','prepare','extend_runtime','apply','verify'}
     print('RESULT',json.dumps(job.remote(phase)),flush=True)
