@@ -7,13 +7,17 @@ from datetime import datetime, timezone
 
 from common import sha256, write
 from lenswalk_partition import merge, read
-from rsi_9b_32gpu import TEMPLATE, partition, patch_driver, estimate
+from rsi_parallel import TEMPLATE, partition, patch_driver, estimate
 from test_lenswalk_partition_merge import same_statistics
 
 
 def main():
     original = (TEMPLATE/'frozen_repo/eval/external_methods/lenswalk_full.py').read_text()
-    patched = patch_driver(original)
+    patched = patch_driver(original, '27B')
+    previous_9b = Path('/runs/devbox/rsi_9b_32gpu_20261020-shard0/frozen_repo/eval/external_methods/lenswalk_full.py')
+    assert patch_driver(original, '9B') == previous_9b.read_text(), 'Existing 9B runtime must remain identical'
+    assert "'--model','/weights/Qwen3.5-27B'" in patched
+    assert "models={'27B':{'finished':len(values)}}" in patched
     functions = lambda source:{n.name:ast.dump(n) for n in ast.parse(source).body if isinstance(n,ast.FunctionDef)}
     before, after = functions(original), functions(patched)
     assert {key for key in before if before[key]!=after[key]}=={'start_actor','main','score_all'}
@@ -24,11 +28,12 @@ def main():
     baseline = read(TEMPLATE/'summary.json')
     by_id = {row['sample_id']:row for row in baseline['rows']}
     costs={sid:sum(by_id[sid][key] for key in ('seconds','prepared_seconds','archive_seconds')) for sid in ids}
-    groups, loads = partition(ids, costs)
-    assert len(groups)==4 and sum(map(len,groups))==len(set(sum(groups,[])))==5321
-    assert max(loads)-min(loads)<=max(costs.values())
-    assert partition(ids,costs)==(groups,loads)
-    assert len(set(sum(partition(ids,dict.fromkeys(ids,0))[0],[])))==5321
+    for group_count in (4, 2):
+        groups, loads = partition(ids, costs, group_count)
+        assert len(groups)==group_count and sum(map(len,groups))==len(set(sum(groups,[])))==5321
+        assert max(loads)-min(loads)<=max(costs.values())
+        assert partition(ids,costs,group_count)==(groups,loads)
+        assert len(set(sum(partition(ids,dict.fromkeys(ids,0),group_count)[0],[])))==5321
     with tempfile.TemporaryDirectory() as directory:
         root=Path(directory);(root/'records').mkdir()
         write(root/'records/cvbench_72.json',dict(sample_id='cvbench:72',infrastructure_error=True))
@@ -59,10 +64,11 @@ def main():
             children.append(dict(root=str(child),samples_sha256=sha256(child/'samples.json')))
         output=root/'merged'
         write(output/'samples.json',ids)
-        write(output/'manifest.json',dict(model='9B',children=children,inherited_sources={},created_at='test'))
+        write(output/'manifest.json',dict(model='27B',children=children,inherited_sources={},created_at='test'))
         merge(output)
         same_statistics(read(output/'summary.json')['benchmarks'],baseline['benchmarks'])
-    print('Four disjoint balanced owners; original RSI runtime preserved; failed outcomes skipped; flat Judge persistence; 5321 scored rows merged without inference/Judge')
+        assert read(output/'progress.json')['models']=={'27B':{'finished':5321}}
+    print('Two/four disjoint balanced owners; 9B runtime identical; original RSI protocol preserved for 27B; failed outcomes skipped; flat Judge persistence; 5321 scored rows merged without inference/Judge')
 
 
 def check_estimate():
@@ -80,12 +86,12 @@ def check_estimate():
                      terminal='finish' if index<3 else 'missing_result',infrastructure_error=index==3,
                      finished_at=datetime.now(timezone.utc).isoformat())
             write(child/'records'/(ids[0].replace(':','_')+'.json'),row)
-        write(root/'manifest.json',dict(children=children))
+        write(root/'manifest.json',dict(model='27B',children=children))
         write(root/'historical_timing.json',history)
         estimate(root)
         result=read(root/'speed_estimate.json')
         assert result['completed']==4 and result['paired_valid_samples']==3
-        assert result['paired_9b_to_35b_inference_ratio']==.5 and result['provisional']
+        assert result['model']=='27B' and result['paired_model_to_35b_inference_ratio']==.5 and result['provisional']
         assert result['projected_remaining_hours']==111/8/3600
         assert result['paired_timing_by_dataset']['crossvid']==dict(samples=0,ratio=None)
         assert result['groups'][3]['infrastructure_failures']==1

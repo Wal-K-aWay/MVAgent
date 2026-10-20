@@ -10,8 +10,8 @@
 
 - 总根：`/runs/devbox/rsi_9b_32gpu_20261020`
 - 分片：同总根名称加 `-shard0` 至 `-shard3`；实时进度读各自的 `progress.json`。
-- 准备/速度估计：`eval/external_methods/rsi_9b_32gpu.py initialize|estimate`。
-- 主控：复用 `scripts/watch_lenswalk_partition.py --merge-script eval/external_methods/rsi_9b_32gpu.py`。
+- 当时准备/速度估计使用`eval/external_methods/rsi_9b_32gpu.py`，当前共享入口为`eval/external_methods/rsi_parallel.py`；新建9B四组使用`initialize --model 9B --groups 4`，另有`estimate|merge`。已有运行继续使用自己的冻结源码。
+- 主控：复用`scripts/watch_lenswalk_partition.py`，新运行的`--merge-script`为`eval/external_methods/rsi_parallel.py`；不更换正在运行的9B控制器。
 - 主控日志：modal-gpu `/tmp/rsi-9b-32gpu-20261020/controller.log`。
 
 相对同配置8卡，32卡的并发容量上限是4倍，尚不能称为实测4倍加速。历史35B逐题工作量除以32约17小时，只是启动参考；9B可能产生不同轨迹和输出长度。运行中速度估计用同题已完成且无工程错误的9B/35B推理时间比，分别校正三个benchmark，按最慢分片估剩余时间；某benchmark不足3个有效配对时保留历史耗时占位，不套用其他benchmark的速度。短题先结束会造成偏差，排队、加载和最终Judge另计。没有为了对照重跑已有题。

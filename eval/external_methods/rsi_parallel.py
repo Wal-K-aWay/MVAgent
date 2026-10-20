@@ -1,4 +1,4 @@
-"""Fresh Video-RSI 9B panel on four disjoint eight-H100 groups."""
+"""Fresh Video-RSI panels on disjoint eight-H100 groups."""
 import argparse
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
@@ -12,17 +12,17 @@ from lenswalk_models import replace_once
 from lenswalk_partition import merge, read
 
 TEMPLATE = Path('/runs/devbox/rsi_full_35b_parallel_media_20261018')
-WEIGHTS_SOURCE = Path('/runs/devbox/lenswalk_full_9b_20261019/expected_service.json')
 EXPECTED = {'cvbench': 997, 'mvu_eval': 1824, 'crossvid': 2500}
 
 
-def partition(ids, costs):
+def partition(ids, costs, group_count):
+    assert group_count in (2, 4)
     assert len(ids)==len(set(ids)) and set(ids)==set(costs)
-    groups, loads = [[] for _ in range(4)], [0.0]*4
+    groups, loads = [[] for _ in range(group_count)], [0.0]*group_count
     # Historical runtimes balance ownership only; answers never enter the new model's input.
     for sid in sorted(ids, key=lambda sid: (-costs[sid], sid)):
         assert costs[sid]>=0
-        index = min(range(4), key=lambda i: (loads[i], len(groups[i]), i))
+        index = min(range(group_count), key=lambda i: (loads[i], len(groups[i]), i))
         groups[index].append(sid)
         loads[index] += max(1, costs[sid])
     assert len(set().union(*map(set, groups)))==sum(map(len, groups))==len(ids)
@@ -30,12 +30,13 @@ def partition(ids, costs):
     return [[sid for sid in ids if sid in group] for group in owners], loads
 
 
-def patch_driver(source):
+def patch_driver(source, model):
+    assert model in ('9B', '27B')
     changes = [
-        ("'--model','/weights/Qwen3.5-35B-A3B'", "'--model','/weights/Qwen3.5-9B'"),
+        ("'--model','/weights/Qwen3.5-35B-A3B'", f"'--model','/weights/Qwen3.5-{model}'"),
         ('def main(output):\n', 'def main(output):\n    global EXPECTED\n'),
         ("    manifest=read(output/'manifest.json')\n", "    manifest=read(output/'manifest.json')\n    EXPECTED=manifest['expected_counts']\n"),
-        ("models={'35B-A3B':{'finished':len(values)}}", "models={'9B':{'finished':len(values)}}"),
+        ("models={'35B-A3B':{'finished':len(values)}}", "models={'"+model+"':{'finished':len(values)}}"),
         ("rows.update({p.parent.name:read(p) for p in (output/method).glob('*/record.json')})",
          "rows.update({p.stem:read(p) for p in (output/'records').glob('*.json')})"),
         ("                outcome['raw_archive']=archive_attempt(attempt,compress=method=='lenswalk')\n",
@@ -52,11 +53,12 @@ def patch_driver(source):
     ]
     for before, after in changes:
         source = replace_once(source, before, after)
-    compile(source, '<four-group RSI 9B driver>', 'exec')
+    compile(source, '<partitioned RSI driver>', 'exec')
     return source
 
 
-def initialize(output):
+def initialize(output, model, group_count):
+    assert model in ('9B', '27B') and group_count in (2, 4)
     assert not output.exists(), 'Never overwrite a run'
     original = read(TEMPLATE/'manifest.json')
     assert read(TEMPLATE/'progress.json')['phase']=='completed_with_errors'
@@ -69,9 +71,10 @@ def initialize(output):
     times = {row['sample_id']:{k:row[k] for k in ('dataset','task','seconds','prepared_seconds','archive_seconds','infrastructure_error')}
              for row in history}
     costs = {sid:sum(row[k] for k in ('seconds','prepared_seconds','archive_seconds')) for sid,row in times.items()}
-    groups, loads = partition(ids, costs)
+    groups, loads = partition(ids, costs, group_count)
+    weights_source = Path(f'/runs/devbox/lenswalk_full_{model.lower()}_20261019/expected_service.json')
     expected_service = read(TEMPLATE/'expected_service.json')
-    expected_service['weights_manifest'] = read(WEIGHTS_SOURCE)['weights_manifest']
+    expected_service['weights_manifest'] = read(weights_source)['weights_manifest']
     assert expected_service['weights_manifest']['shards']
     source = Path(__file__).resolve().parents[2]
     commit = (source/'.git/HEAD').read_text().strip()
@@ -84,7 +87,7 @@ def initialize(output):
         shutil.copytree(TEMPLATE/'frozen_repo', frozen, ignore=shutil.ignore_patterns('__pycache__'))
         driver = frozen/'eval/external_methods/lenswalk_full.py'
         assert sha256(driver)==original['driver_sha256']
-        driver.write_text(patch_driver(driver.read_text()))
+        driver.write_text(patch_driver(driver.read_text(), model))
         (frozen/'.git/HEAD').write_text(commit+'\n')
         files = [p for p in frozen.rglob('*') if p.is_file() and '__pycache__' not in p.parts]
         with ThreadPoolExecutor(max_workers=8) as pool:
@@ -101,7 +104,7 @@ def initialize(output):
         write(child/'expected_service.json', expected_service)
         first = [next(sid for sid in assigned if sid.startswith(dataset+':')) for dataset in EXPECTED]
         order = first+[sid for sid in assigned if sid not in first]
-        manifest = dict(original, created_at=now, model='9B', model_root='/weights/Qwen3.5-9B',
+        manifest = dict(original, created_at=now, model=model, model_root='/weights/Qwen3.5-'+model,
               source_snapshot=str(frozen), driver_commit=commit, driver_sha256=sha256(driver), source_hashes=hashes,
               samples_sha256=sha256(child/'samples.json'), full_panel_sha256=original['samples_sha256'],
               expected_counts=dict(Counter(s.split(':')[0] for s in assigned)), recovery_order=order,
@@ -112,21 +115,21 @@ def initialize(output):
         write(child/'manifest.json', manifest)
         write(child/'source_audit.json', dict(template_manifest_sha256=sha256(TEMPLATE/'manifest.json'),
               permitted_changes=sorted(allowed), unchanged_source_files=len(original['source_hashes'])-len(allowed),
-              inherited_answers=0, weights_source=str(WEIGHTS_SOURCE), weights_source_sha256=sha256(WEIGHTS_SOURCE)))
+              inherited_answers=0, weights_source=str(weights_source), weights_source_sha256=sha256(weights_source)))
         write(child/'progress.json', dict(phase='prepared', expected=len(assigned), completed=0,
-              updated_at=now, models={'9B': {'finished': 0}}))
+              updated_at=now, models={model: {'finished': 0}}))
         children.append(dict(root=str(child), expected=len(assigned), inherited=0, pending=len(assigned),
               historical_work_seconds=loads[index], samples_sha256=sha256(child/'samples.json')))
     output.mkdir()
     shutil.copy2(TEMPLATE/'samples.json', output/'samples.json')
     write(output/'historical_timing.json', times)
-    write(output/'manifest.json', dict(method='rsi', model='9B', created_at=now, children=children,
+    write(output/'manifest.json', dict(method='rsi', model=model, created_at=now, children=children,
           inherited_sources={}, inherited_answers=0, template=str(TEMPLATE), source_commit=commit,
-          samples_sha256=original['samples_sha256'], expected_counts=EXPECTED, total_gpus=32,
+          samples_sha256=original['samples_sha256'], expected_counts=EXPECTED, total_gpus=8*group_count,
           partition_policy='Balance historical 35B preparation+inference+archive time; no historical answers inherited',
-          historical_35b_32gpu_hours=max(loads)/8/3600))
+          historical_35b_same_gpu_hours=max(loads)/8/3600))
     write(output/'progress.json', dict(phase='prepared', expected=5321, completed=0, children=children))
-    print(json.dumps(dict(children=children, inherited_answers=0, historical_35b_32gpu_hours=max(loads)/8/3600,
+    print(json.dumps(dict(model=model, children=children, inherited_answers=0, historical_35b_same_gpu_hours=max(loads)/8/3600,
                           source_commit=commit)), flush=True)
 
 
@@ -165,12 +168,12 @@ def estimate(output):
                  if timing[history[sid]['dataset']]['ratio'] is not None else 1)
                  +history[sid]['prepared_seconds']+history[sid]['archive_seconds'] for sid in todo)
         projections.append(work/8/3600)
-    result=dict(updated_at=now.isoformat(), completed=len(rows), expected=5321, groups=groups,
-          paired_valid_samples=len(paired), paired_9b_to_35b_inference_ratio=ratio, projected_remaining_hours=max(projections),
+    result=dict(updated_at=now.isoformat(), model=manifest['model'], completed=len(rows), expected=5321, groups=groups,
+          paired_valid_samples=len(paired), paired_model_to_35b_inference_ratio=ratio, projected_remaining_hours=max(projections),
           paired_timing_by_dataset=timing, estimate_source_sha256=sha256(Path(__file__)),
           provisional=any(g['completed']<50 or (g['measurement_seconds'] or 0)<3600 for g in groups)
                       or any(t['samples']<20 for t in timing.values()),
-          limitations='Early completed questions favor short runs; historical media timing includes prior cache regimes. Benchmarks with fewer than 3 valid pairs retain the historical timing placeholder. Projection excludes resource queues, loading and final Judge; 32/8=4 is a capacity ceiling, not a measured speedup.')
+          limitations='Early completed questions favor short runs; historical media timing includes prior cache regimes. Benchmarks with fewer than 3 valid pairs retain the historical timing placeholder. Projection excludes resource queues, loading and final Judge; GPU count is not a measured speedup.')
     write(output/'speed_estimate.json', result)
     print(json.dumps(result, ensure_ascii=False), flush=True)
 
@@ -179,5 +182,12 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=['initialize','merge','estimate'])
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--model', choices=['9B', '27B'])
+    parser.add_argument('--groups', type=int, choices=[2, 4])
     args=parser.parse_args()
-    {'initialize':initialize, 'merge':merge, 'estimate':estimate}[args.action](args.output)
+    if args.action=='initialize':
+        if not args.model or not args.groups:
+            parser.error('initialize requires --model and --groups')
+        initialize(args.output, args.model, args.groups)
+    else:
+        {'merge':merge, 'estimate':estimate}[args.action](args.output)
