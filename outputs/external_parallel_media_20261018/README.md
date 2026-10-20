@@ -20,7 +20,7 @@ Modal CPU `ap-JPzaNPMfQBL6rik8Vjmtb8` rc0：两个实际冻结driver仅一个数
 ## Video-RSI35B最终结果（2026-10-20整理）
 
 全5321题/239CCQA已完成；工程失败计零CVBench62.39%、MVU-Eval51.43%、CrossVid十任务macro33.47%，Agent均值181.61/224.60/417.65秒。5196正常终答、86无效决策、39工程失败均保留。
-按用户授权，已核验的五文件精简结果包及文本轨迹准备发布至`video-rsi-results-20261020`；[结果、协议与下载说明](../video_rsi_release_20261020/README.md)。本次纯CPU整理，无新推理或Judge；下方RSI启动记录为历史。
+按用户授权，已核验的五文件精简结果包及文本轨迹已发布至[GitHub Release](https://github.com/Wal-K-aWay/MVAgent/releases/tag/video-rsi-results-20261020)；[结果、协议与下载说明](../video_rsi_release_20261020/README.md)。本次纯CPU整理，无新推理或Judge；下方RSI启动记录为历史。
 
 ## LensWalk最终结果（2026-10-19）
 
@@ -38,7 +38,7 @@ Modal CPU `ap-JPzaNPMfQBL6rik8Vjmtb8` rc0：两个实际冻结driver仅一个数
 
 终态为2938 `finish`、294 `natural_text`、1669 `unfinished_tool_plan`、411 `empty_answer`、9 `missing_result`，共5321个唯一题号。未收尾和空答案是已执行完的模型负结果，不是尚待处理的题。9个工程失败均有HTTP错误并缺失结果：MVU Counting11/619/591/63、SU1201/1218、ICL632，CrossVid MSR62/32。本轮不重复这些失败或增加原预算，未诊断所有HTTP失败根因。
 
-最终原始记录、轨迹、Judge、冻结源及summary仅保存在runs `devbox/lenswalk_full_35b_parallel_media_20261018`。summary大小26105423字节，SHA256 `36bd24d692daabc1ca71e323700da173812efccfbec803c05c13eb70c0cff6f8`；本次核对5321唯一题号及三benchmark完整数量，无新推理/Judge。Video-RSI不属于本次完成声明，其最近状态仍需单独查询。
+最终原始记录、轨迹、Judge、冻结源及summary仅保存在runs `devbox/lenswalk_full_35b_parallel_media_20261018`。summary大小26105423字节，SHA256 `36bd24d692daabc1ca71e323700da173812efccfbec803c05c13eb70c0cff6f8`；本次核对5321唯一题号及三benchmark完整数量，无新推理/Judge。本节记录LensWalk；Video-RSI最终结果见上节。
 
 ## 启动与切换记录（历史）
 

@@ -29,3 +29,5 @@
 导出逻辑为`b438ca7`（前段同逻辑`1638719`，计数问题输入读取修复后保留完整已导出记录）；原始5321份归档、选用成员和五个打包成员的SHA已核验。全量验证核对5321题答案/标注/秒数与37,552次调用计数及token数量一致，无图片编码或完整token ID数组。原始summary、面板、标注、manifest及生效服务配置SHA保存在Modal的bundle.json，逐题源归档SHA在发布文件中。
 
 本机仅在`outputs/video_rsi_release_20261020/`暂存发布包、元数据与核验回执；数据不入Git。工程实现和此说明在`codex/rsi35-results-release-20261020`，原始Modal记录及其他Release保留。
+
+2026-10-20 01:03 UTC发布并验证：Release ID417898090，附件ID657881085；GitHub服务器大小/digest、本地暂存和Modal原件一致。经modal-gpu无凭据完整下载HTTP200，140,697,956字节及SHA256再次一致。原始数据与其他Release保留。
