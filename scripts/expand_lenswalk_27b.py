@@ -71,7 +71,8 @@ def main():
         " print('HANDOFF_ALREADY_DRAINED',d)\n"
         "else:exec(compile(sys.argv.pop(3),'<drain>','exec'))\n",
         '--output', '/runs/devbox/'+OLD,
-        (BASE/'repo/eval/external_methods/drain_lenswalk.py').read_text(), timeout=3600)
+        (BASE/'repo/eval/external_methods/drain_external.py').read_text(),
+        '--method', 'lenswalk', timeout=3600)
     # Sandbox background commits persist writes; a fresh mount below verifies every saved outcome.
     cpu("python - <<'PY'\n"
         "import sys,json;from pathlib import Path\n"

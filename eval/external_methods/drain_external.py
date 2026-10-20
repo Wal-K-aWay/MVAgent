@@ -1,7 +1,7 @@
 """One-time handoff: suspend the old dispatcher, finish its independent clients, save outcomes.
 
 The original driver has no drain signal. Only its parent is suspended; already
-launched clients and model servers keep running with the original 1800 s budget.
+launched clients and model servers keep running with their original question budget.
 Unfinished media preparation can restart, but a started inference is never retried.
 """
 import argparse
@@ -28,14 +28,16 @@ def process(pid):
         return None
 
 
-def main(output):
+def main(output, method):
+    assert method in ('lenswalk', 'rsi')
+    question_timeout = 1800 if method == 'lenswalk' else 7200
     driver = output/'frozen_repo/eval/external_methods/lenswalk_full.py'
     sys.path[:0] = [str(driver.parent), str(driver.parents[2]/'src'), str(driver.parents[2])]
     spec = importlib.util.spec_from_file_location('frozen_drain_driver', driver)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     from common import write, sha256
-    from lenswalk_outcome import inspect
+    inspect = importlib.import_module(method+'_outcome').inspect
     from skill_evolution.infra.benchmarks.catalog import load_multibench_records
     assert read(output/'manifest.json')['driver_sha256'] == sha256(driver)
     snapshot_path = output/'handoff_snapshot.json'
@@ -60,15 +62,16 @@ def main(output):
                     argv = [part.decode() for part in path.read_bytes().split(b'\0') if part]
                 except (FileNotFoundError, ProcessLookupError):
                     continue
-                if len(argv)<2 or not argv[1].endswith('/lenswalk.py') or '--output' not in argv:
+                if len(argv)<2 or not argv[1].endswith('/'+method+'.py') or '--output' not in argv:
                     continue
                 attempt = Path(argv[argv.index('--output')+1])
-                if output/'lenswalk' not in attempt.parents:
+                if output/method not in attempt.parents:
                     continue
                 child = int(path.parent.name)
                 clients[attempt.parent.name] = dict(pid=child, attempt=str(attempt), **process(child))
             snapshot = dict(driver_pid=pid, progress=progress, clients=clients,
                             frozen_at=module.now(), old_records={p.name:sha256(p) for p in (output/'records').glob('*.json')})
+            assert set(clients) <= {a['sample_id'].replace(':', '_') for a in progress['active'].values()}, 'Unrecorded active client; inspect before handing off'
             write(snapshot_path, snapshot)
         except BaseException:
             os.kill(pid, signal.SIGCONT)
@@ -83,7 +86,7 @@ def main(output):
                 continue
             info = process(client['pid'])
             assert info is not None, 'Paused parent cannot reap its child; inspect before recovery'
-            timed_out = time.time()-client['started_epoch']>1800 and info['state']!='Z'
+            timed_out = time.time()-client['started_epoch']>question_timeout and info['state']!='Z'
             if timed_out:
                 timed_out_keys.add(key)
                 os.killpg(client['pid'], signal.SIGTERM)
@@ -106,7 +109,7 @@ def main(output):
         destination = output/'records'/(key+'.json')
         if destination.exists():
             continue
-        directory = output/'lenswalk'/key
+        directory = output/method/key
         attempts = sorted(directory.glob('attempt-*')) if directory.exists() else []
         folders = [p for p in attempts if p.is_dir()]
         archives = [p for p in attempts if p.name.endswith('.tar')]
@@ -146,7 +149,8 @@ def main(output):
             outcome['infrastructure_error']=True
         outcome['score'] = None if outcome['infrastructure_error'] else module.closed_score(records[sid], outcome['answer'])
         archive_started = time.monotonic()
-        outcome['raw_archive'] = module.archive_attempt(attempt)
+        outcome['raw_archive'] = (module.archive_attempt(attempt, compress=False) if method == 'rsi'
+                                  else module.archive_attempt(attempt))
         archive = Path(outcome['raw_archive']['path'])
         target = output/'raw'/(key+'-'+archive.name)
         archive.replace(target)
@@ -166,5 +170,6 @@ def main(output):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--method', choices=['lenswalk', 'rsi'], required=True)
     args = parser.parse_args()
-    main(args.output)
+    main(args.output, args.method)
