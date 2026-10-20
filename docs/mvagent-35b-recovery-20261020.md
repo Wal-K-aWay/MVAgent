@@ -9,4 +9,4 @@ Qwen3VLProcessor要求至少2帧，因此8302副本失败；固定副本协议�
 引用已完成shard0和旧1的9B/27B；逐SHA检查、继承1909份35B成功记录，仅重新推理MOC268整题。
 原失败与所有成功原件保留。唯一8H100池先补题再换Judge，完成82条评分后释放GPU，由CPU汇总三模型。
 
-状态：准备中。没有修改共享运行源码、main或其他正在进行的实验。
+CPU准备已完成（ap-2RbyxmOcxdWQNJFM2ayvBV，rc0）：compileall、分片/评分self-check与真实MOC268回归通过，坏裁剪采样1帧→修复后至少2帧，重复生成SHA一致。1909份成功轨迹已核对SHA/token/cache/sticky并只读继承。接下来执行唯一8H100补题与Judge；尚未产生新的GPU结果。没有修改共享运行源码、main或其他正在进行的实验。
