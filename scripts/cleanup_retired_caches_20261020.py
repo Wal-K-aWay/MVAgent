@@ -150,16 +150,16 @@ def verify_retained(plan):
 
 
 def extend_runtime():
-    """Consolidate runtime source copies using the already retained per-file hashes."""
-    assert not (AUDIT/'plan_before_runtime.json').exists()
+    """Consolidate runtime/src while preserving distinct per-rank input configurations."""
+    assert not (AUDIT/'plan_before_runtime_src.json').exists()
     plan = read(AUDIT/'plan.json')
     protected = [Path(r['target']) for r in plan['references']]
     groups = defaultdict(list)
     for parent, dirs, _ in os.walk(REPRO, followlinks=False):
-        if 'runtime' not in dirs:
+        if Path(parent).name != 'runtime' or 'src' not in dirs:
             continue
-        path = Path(parent)/'runtime'
-        dirs.remove('runtime')
+        path = Path(parent)/'src'
+        dirs.remove('src')
         assert not path.is_symlink()
         if any(shared.within(p, [path]) or shared.within(path, [p]) for p in protected):
             continue
@@ -169,7 +169,7 @@ def extend_runtime():
                     plan['retained'][r['path']] if stat.S_ISREG(r['mode']) else None) for r in rows]
         digest = hashlib.sha256(json.dumps(content).encode()).hexdigest()
         groups[digest].append(dict(path=str(path), inventory=rows))
-    save(AUDIT/'plan_before_runtime.json', plan)
+    save(AUDIT/'plan_before_runtime_src.json', plan)
     added = []
     for digest, rows in groups.items():
         if len(rows) < 2:
@@ -203,7 +203,8 @@ def apply():
         assert signature(Path(group['canonical'])) == group['sha256']
         for row in group['sources']:
             path = Path(row['path'])
-            assert path.is_relative_to(REPRO) and path.name in {'driver_dependencies','runtime'}
+            assert path.is_relative_to(REPRO) and (
+                path.name == 'driver_dependencies' or (path.name == 'src' and path.parent.name == 'runtime'))
             assert not path.is_symlink() and shared.normalized_target(path) == path
             assert not any(shared.within(p, [path]) or shared.within(path, [p]) for p in protected)
             assert shared.inventory(path) == row['inventory']
