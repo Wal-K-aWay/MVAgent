@@ -56,6 +56,7 @@ def owner(tag):
 def expand(method):
     previous = PREVIOUS[method]
     new = method+'_27b_32gpu_20261020'
+    old = [state(previous+'-shard'+str(i)) for i in (0, 1)]
     extra = [state(new+'-shard'+str(i))[2] for i in (2, 3)]
     while not all(asyncio.run(ready(s)) for s in extra):
         assert all(s.poll() is None for s in extra)
@@ -66,12 +67,11 @@ def expand(method):
     stopped = threading.Event()
     def keep_alive():
         while not stopped.wait(30):
-            for sandbox in extra:
+            for sandbox in extra + [item[2] for item in old]:
                 assert sandbox.exec('touch', '/work/heartbeat', timeout=30).wait() == 0
     heartbeat = threading.Thread(target=keep_alive, daemon=True)
     heartbeat.start()
     parents = [owner(previous)] + [owner(previous+'-shard'+str(i)) for i in (0, 1)]
-    old = [state(previous+'-shard'+str(i)) for i in (0, 1)]
     for _, pid in parents:
         os.kill(pid, signal.SIGSTOP)
     print(method, 'OLD_DISPATCH_OWNERS_SUSPENDED', parents, flush=True)
@@ -85,6 +85,17 @@ def expand(method):
         list(pool.map(one, enumerate(old)))
     cpu(f'python eval/external_methods/expand_external.py initialize --method {method} '
         f'--previous /runs/devbox/{previous} --output /runs/devbox/{new}')
+    finish(method)
+    stopped.set()
+
+
+def finish(method):
+    """Finish a committed handoff; an expired idle node needs an allocated replacement."""
+    previous = PREVIOUS[method]
+    new = method+'_27b_32gpu_20261020'
+    assert not (BASE/(method+'-master.pid')).exists(), 'A new owner already exists'
+    parents = [owner(previous)] + [owner(previous+'-shard'+str(i)) for i in (0, 1)]
+    old = [state(previous+'-shard'+str(i)) for i in (0, 1)]
     volume = modal.Volume.from_name('wxu-evolve-agent-runs-20261006', environment_name='zheng-dev')
     manifest = json.loads(b''.join(volume.read_file('devbox/'+new+'/manifest.json')))
     assert manifest['model'] == '27B' and manifest['total_gpus'] == 32
@@ -108,10 +119,15 @@ except ProcessLookupError:pass
 print('OLD_MODELS_STOPPED_DATA_PRESERVED')
 """
     for index, (path, data, sandbox) in enumerate(old):
-        execute(sandbox, cleanup, '/runs/devbox/'+previous+'-shard'+str(index))
         target = HERE/('state-mvagent-'+(new+'-shard'+str(index)).replace('_', '-')+'.json')
-        assert not target.exists()
-        target.write_text(json.dumps(data))
+        if sandbox.poll() is None:
+            assert not target.exists()
+            execute(sandbox, cleanup, '/runs/devbox/'+previous+'-shard'+str(index))
+            target.write_text(json.dumps(data))
+        else:
+            replacement = state(new+'-shard'+str(index))[2]
+            assert replacement.object_id != sandbox.object_id and replacement.poll() is None
+            execute(replacement, "import subprocess;x=subprocess.check_output(['nvidia-smi','--query-gpu=name','--format=csv,noheader'],text=True).splitlines();assert len(x)==8 and all('H100' in n for n in x);print('REPLACEMENT_EIGHT_H100_READY')")
         path.unlink()
     for path, pid in parents:
         assert previous.encode() in Path(f'/proc/{pid}/cmdline').read_bytes()
@@ -122,7 +138,6 @@ print('OLD_MODELS_STOPPED_DATA_PRESERVED')
             '--tag', new, '--cpu-helper', str(BASE/'cpu.py'), '--merge-script', 'eval/external_methods/expand_external.py'],
             cwd=HERE, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
     (BASE/(method+'-master.pid')).write_text(str(master.pid))
-    stopped.set()
     print(method, 'FOUR_GROUP_MASTER_STARTED', master.pid, flush=True)
 
 
