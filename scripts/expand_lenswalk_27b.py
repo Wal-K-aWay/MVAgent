@@ -61,9 +61,18 @@ def main():
     assert OLD.encode() in Path(f'/proc/{pid}/cmdline').read_bytes()
     os.kill(pid, signal.SIGSTOP)
     print('OLD_WATCHER_SUSPENDED', pid, old.object_id, flush=True)
-    execute(old, (BASE/'repo/eval/external_methods/drain_lenswalk.py').read_text(),
-            '--output', '/runs/devbox/'+OLD, timeout=3600)
-    execute(old, "import modal;modal.Volume.from_name('wxu-evolve-agent-runs-20261006',environment_name='zheng-dev').commit();print('HANDOFF_COMMITTED')")
+    execute(old,
+        "import sys,json;from pathlib import Path\n"
+        "r=Path(sys.argv[2]);receipt=r/'handoff_drained.json'\n"
+        "if receipt.exists():\n"
+        " d=json.loads(receipt.read_text());p=Path('/proc')/str(d['dispatcher_pid'])/'stat'\n"
+        " assert not p.exists() or p.read_text().rsplit(')',1)[1].split()[0]=='Z'\n"
+        " assert d['inference_retries']==0\n"
+        " print('HANDOFF_ALREADY_DRAINED',d)\n"
+        "else:exec(compile(sys.argv.pop(3),'<drain>','exec'))\n",
+        '--output', '/runs/devbox/'+OLD,
+        (BASE/'repo/eval/external_methods/drain_lenswalk.py').read_text(), timeout=3600)
+    # Sandbox background commits persist writes; a fresh mount below verifies every saved outcome.
     cpu("python - <<'PY'\n"
         "import sys,json;from pathlib import Path\n"
         "sys.path.insert(0,'/repo/eval/external_methods');from common import sha256,write\n"
