@@ -127,7 +127,8 @@ def settings():
     import yaml
     manifests, source_files, cards = {}, {}, []
     # Actual admitted cards and frozen source hashes, including the reused panel.
-    for name in ['frozen_full_20261018','frozen_full_final_20261019','frozen_full_recovery_20261019','frozen_full_35b_finish_20261020']:
+    for name in ['frozen_full_20261018','frozen_full_final_20261019','frozen_full_recovery_20261019',
+                 'frozen_full_35b_finish_20261020','system_ablation_20261017','global_short_large_20261017']:
         root = Path('/runs/devbox')/name
         m = read(root/'manifest.json')
         manifests[name] = {k:m[k] for k in ['commit','profile','changes'] if k in m}

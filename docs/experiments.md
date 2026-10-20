@@ -762,3 +762,67 @@ Release为[`mvagent-results-20261019`](https://github.com/Wal-K-aWay/MVAgent/rel
 Release ID为417467742，公开tag解析到9cf198b；核验回执为本地
 `outputs/mvagent_release_20261019/verification.json`。只提交说明和授权规则，不提交结果数据，
 未重跑推理或Judge，未操作其他Release或在途GPU任务。
+
+### 2026-10-20 三模型逐题耗时与配置核验
+
+只读审计已发布9B、27B与35B-A3B包的全部15,963题及201,928次模型响应，未新增Actor/Judge/GPU，
+不修改正式配置或Release。原始分析只在runs `devbox/mvagent_timing_audit_20261020`，
+以`final_report.json`为最终报告；`settings.json`保留服务身份与冻结源码，`final_source.py`保留分析实现。
+初版`report.json`和逐题表中的`global_steps`实际指轨迹条目数，最终报告改名`trajectory_entries`，
+不可将它解读为Global决策步数。实测处理脚本为`scripts/audit_mvagent_timing.py`，语法和均值/分位数自检通过。
+
+| 模型 | CVBench 997题(s/题) | MVU-Eval 1824题(s/题) | CrossVid 2500题(s/题) | 全5321题加权均值(s/题) | 全题中位数(s) | 全题P95(s) |
+|---|---:|---:|---:|---:|---:|---:|
+| 9B | 46.53 | 57.57 | 66.30 | 59.60 | 50.40 | 127.60 |
+| 27B | 99.78 | 126.91 | 126.84 | 121.79 | 100.78 | 268.91 |
+| 35B-A3B | 103.06 | 122.04 | 130.43 | 122.43 | 102.93 | 272.71 |
+
+三模型题号集合完全相同，每题`seconds`均等于`trajectory.result.time`；无重复/漏题、非有限值或非正耗时。
+重算9个benchmark均值与发布包`comparison.json`差异均小于1e-8秒；均值不是已四舍五入的表格数再平均。
+全部题目seconds之和分别317131.04、648068.17、651427.54秒，除以5321得到上表加权均值。
+CrossVid耗时按2500题平均，与其准确率采用十任务macro不同；不以GPU数再次除逐题时间。
+
+`MVAgentEngine.answer()`在`_preprocess()`之前记录`perf_counter()`，在`_postprocess()`中
+计算差值并存为两位小数秒数。计入视频元信息检查、题内预处理/裁剪、Agent调用、视觉输入处理、
+推理、题内等待及发生于这段区间的日志开销；**不计**最初等待副本租约、模型加载/Engine初始化、
+结束后的cache清理、结果序列化/落盘、评分/Judge、归档和历史失败/被中断尝试。
+因此建议论文称“成功整题Agent执行耗时”，不是总任务墙钟除题数，也不是纯GPU解码时间。
+
+实际请求和运行配置核验：
+
+- 73,595 / 65,037 / 63,296次响应全部来自H100 80GB HBM3；每题固定同一个worker，prefix命中数全部0。
+- 201,928份请求均为temperature=0、top_p=1、max_tokens=2048、seed=0；未传thinking字段时，
+  固定服务验证器及renderer仍强制`enable_thinking=False`，不是启用了默认thinking。
+- 224份服务card引用（含重复引用，不是224张卡）仅一套profile：BF16、TP1、max_num_seqs=1、
+  max_model_len=131072、max_num_batched_tokens=32768、显存比例0.94、FlashInfer GDN、原生GemmaRMSNorm、
+  enforce_eager=True、prefix/MM processor cache关闭；vLLM/torch/transformers等版本一致。
+- 15组来源的`input_config.yaml`齐全，剔除模型名/权重路径和输出/cache目录后完全一致：
+  每次最多512帧、2048输出token、Global/Video各5步、video_concurrency=2、空skill库。
+  实际batch_prepared均8个question workers、16个预处理slot、8个单卡C1副本；16个slot不是每卡16并发。
+- 继承9B旧分片从result符号链接解析回原运行配置；旧1500题的归档配置也纳入检查。
+  六份生产/恢复/旧面板源码归档中Engine与Batch代码各只有一个SHA，计时起止位置没有模型特例。
+  媒体修复、恢复批次、GPU UUID及历史同时运行的池数存在差异，不能称所有执行环境条件完全受控一致。
+
+服务器计时采用每次响应的`inference_seconds`；它包含renderer/视觉处理、prefill与生成，
+不是纯GPU kernel时间。固定整题单副本使各请求的服务器区间串行，求和没有多VideoAgent并行重复计时。
+全部题目服务器累计时间及事件时间跨度均未超过Engine时间（容差0.02/0.05秒）。
+
+| 模型 | 平均调用数/题 | 平均输出token/题 | 服务器累计秒/题 | Engine减服务器秒/题 |
+|---|---:|---:|---:|---:|
+| 9B | 13.83 | 1646 | 55.54 | 4.06 |
+| 27B | 12.22 | 1941 | 118.39 | 3.41 |
+| 35B-A3B | 11.90 | 1631 | 118.20 | 4.23 |
+
+服务器部分占整题93.19%/97.20%/96.55%，27B/35B相对9B的主要时间增量在这里；
+不是35B因调用次数更多或客户端排队多了约一分钟。27B和35B全题均值仅差0.63秒（约0.52%），
+这些跨批次轨迹不足以对两者做严格速度排名。
+
+按角色分解的服务器平均秒/题：Global决策9B19.15、27B36.60、35B47.58；
+Video行动规划13.73/36.09/34.53；视觉观察19.61/42.47/33.03。
+35B相对27B在Global决策多10.98秒，在视觉观察少9.44秒、Video规划少1.56秒，整体大体抵消。
+这是实际轨迹的耗时分解，不是固定完全相同请求后证明某种架构/内核的因果收益。
+
+旧1500开发题均值54.79/102.13/99.17秒，新增3821题为61.49/129.51/131.56秒；
+问题构成、实际观察范围/FPS、输出轨迹和运行批次均会影响总耗时。
+未新增同输入性能对照、GPU kernel profiler或吞吐实验；无需更正已发布seconds与均值。
+CPU审计完成，独立检查只读核对全部主指标与配置分组后停止，不宣称后台持续AI巡检。
