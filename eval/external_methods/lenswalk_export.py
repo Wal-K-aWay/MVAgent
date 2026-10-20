@@ -124,8 +124,11 @@ def export_row(row, label):
         if item is None:
             for service in result.get('service_trace', []):
                 if service['service'] == 'deepseek':
-                    item = json.loads(service['arguments']['messages'][1]['content'])['item']
-                    break
+                    payload = json.loads(service['arguments']['messages'][1]['content'])
+                    candidate = payload.get('item', payload)
+                    if 'question' in candidate:
+                        item = candidate
+                        break
         trajectory['question'] = item.get('question') if item else None
     for key in ('terminal', 'infrastructure_error', 'http_errors', 'tool_errors', 'question_timeout',
                 'prepared_seconds', 'archive_seconds', 'score', 'error'):

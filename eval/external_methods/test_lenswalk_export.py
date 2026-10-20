@@ -66,11 +66,13 @@ def test_rsi_trace():
                            ('invalid_decision', None), ('engineering_error', None)]:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory)/'attempt-1.tar'
+            payload = {'question': 'Multi-video question'}
+            if status == 'answered': payload = {'item': payload}
             result = dict(sample_id='crossvid:CCQA:1', status=status, answer=answer,
                           trace=[{'decision_attempts': [{'raw_response': 'Unmodified model response'}]}],
                           service_trace=[dict(service='deepseek', arguments={'messages': [
                               {'role': 'system', 'content': 'original system'},
-                              {'role': 'user', 'content': json.dumps({'item': {'question': 'Multi-video question'}})}]},
+                              {'role': 'user', 'content': json.dumps(payload)}]},
                               result={'text': 'data:image/jpeg;base64,YWJj'})])
             raw = json.dumps(result).encode()
             with tarfile.open(path, 'w') as archive:
