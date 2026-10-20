@@ -178,7 +178,7 @@ def score(rows, arm):
 def analyze():
     audit = read(OUT/'inheritance.json')
     for row in audit['inherited'] + audit['original_failures']:
-        assert sha(row['source']) == row['sha256'], row['sample_id']
+        assert sha(Path(row['source'])) == row['sha256'], row['sample_id']
     fixed = OUT/'shard1/35B-A3B/records/crossvid/crossvid:MOC:268/result.json'
     raw = read(fixed)
     assert raw['status'] == 'ok'
@@ -193,6 +193,7 @@ def analyze():
     scorer, scorer_identity = build_official_scorer(records, {})
     baseline = read(OUT/'baseline.json')
     summary = dict(at=now(), complete=True, models={}, scorer=scorer_identity,
+        analysis_source_sha256=sha(Path(__file__)),
         note='Full available evaluation; includes 1500 reused development questions per model, not independent Test.')
     for model in MODELS:
         old = {r['sample_id']: r for r in baseline[model]}

@@ -12,3 +12,5 @@ Qwen3VLProcessor要求至少2帧，因此8302副本失败；固定副本协议�
 CPU准备已完成（ap-2RbyxmOcxdWQNJFM2ayvBV，rc0）：compileall、分片/评分self-check与真实MOC268回归通过，坏裁剪采样1帧→修复后至少2帧，重复生成SHA一致。1909份成功轨迹已核对SHA/token/cache/sticky并只读继承。接下来执行唯一8H100补题与Judge；尚未产生新的GPU结果。没有修改共享运行源码、main或其他正在进行的实验。
 
 08:04 UTC实际GPU补题完成：MOC268返回B，官方闭式得分1.0，耗时456.75秒；13次模型响应、0模型错误，保留2次可恢复结构输出偏差。关键view_B [2.5,3.5]片段实用decode_repair_transcode，原错误未再出现。该分片1910/1910推理齐、0工程失败，82条开放题仍待Judge。运行代码始终冻结358120f；新的MD提交不改变运行源。
+
+08:09:17剩余82条Judge成功、failed_ids为空；08:10:22唯一GPU池已释放（poll0）。首轮CPU汇总在新增保留SHA检查处因传入字符串而非Path停止，修正路径类型后仅重跑CPU汇总，不重推理/Judge。运行源仍358120f，分析脚本哈希另记在summary。
