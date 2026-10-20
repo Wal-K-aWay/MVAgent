@@ -39,6 +39,22 @@ class ShortVideoTest(unittest.TestCase):
                 repeated = Path(cut_video_segment(str(source), interval, output_dir=directory, sampling_fps=2.))
                 self.assertEqual(hashlib.sha256(repeated.read_bytes()).hexdigest(), digest)
 
+    def test_moc268_repair_uses_two_readable_samples(self):
+        source = '/assets/crossvid/.mvagent_media/uav_question_boxes/MOC/268/view_B.mp4'
+        with tempfile.TemporaryDirectory() as directory:
+            old = Path(directory)/'old.mp4'
+            subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), '-hide_banner', '-loglevel', 'error',
+                '-nostdin', '-y', '-ss', '2.5', '-i', source, '-map', '0:v:0', '-an', '-sn', '-dn',
+                '-t', '1.0', '-c:v', 'copy', str(old)], check=True)
+            before, _ = OpenCVVideoBackend.load_bytes(old.read_bytes(), num_frames=512, fps=2.)
+            fixed = Path(cut_video_segment(source, [2.5, 3.5], output_dir=directory, sampling_fps=2.))
+            after, _ = OpenCVVideoBackend.load_bytes(fixed.read_bytes(), num_frames=512, fps=2.)
+            self.assertEqual(len(before), 1)
+            self.assertGreaterEqual(len(after), 2)
+            digest = hashlib.sha256(fixed.read_bytes()).hexdigest()
+            repeated = Path(cut_video_segment(source, [2.5, 3.5], output_dir=directory, sampling_fps=2.))
+            self.assertEqual(hashlib.sha256(repeated.read_bytes()).hexdigest(), digest)
+
     def test_short_video_padding_and_ordinary_full_video_passthrough(self):
         with tempfile.TemporaryDirectory() as directory:
             for frames, source_fps in [(1, 8), (5, 30), (90, 30)]:
