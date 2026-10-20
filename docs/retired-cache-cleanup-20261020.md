@@ -24,9 +24,32 @@
 `completed.json`保存执行结果，独立新挂载的`verified.json`保存最终核验。
 
 脚本：`scripts/cleanup_retired_caches_20261020.py`，复用前次清理的保护路径、清单和SHA实现。
-准备检查已完成：两个旧媒体目录共12,184,735,617字节列入删除清单；
-`external_methods_20261014/media`因历史符号链接及在用冻结源码引用而整目录保留。
-已对24,695份缓存之外文件保存SHA，80份依赖目录完全一致；
-runtime的`input_config.yaml`存在逐rank差异，全部保留，只核对并合并其`src`子树。
-尚未执行删除。准备任务`ap-dZfU1PKNxetZcEaFWJef2d`、保护/内容/链接测试
-`ap-7gN4aBGSwHNd4o8rN99NqZ`均已正常结束。
+已执行清理，内容净减少12,294,433,042字节（约12.29GB），26,594个文件/目录项。
+净减少量已扣除两份保留的共享源码树，但不包括新增的小型审计记录，也不抵消其他实验同时写入的数据。
+
+| 范围 | 实际操作 |
+|---|---|
+| `external_upstream_nc80_20261015/prepared/media` | 删除7,762,969,306字节 |
+| `rsi_budget_20261015/prepared/media` | 删除4,421,766,311字节 |
+| `external_methods_20261014/media` | 保留约2.94GB，存在历史链接及在用冻结源码引用 |
+| 80份`driver_dependencies` | 内容相同，共用一份；旧路径保留为目录链接 |
+| 80份`runtime/src` | 内容相同，共用一份；旧路径保留为目录链接 |
+| 各rank的`input_config.yaml` | 存在真实差异，逐份原样保留 |
+
+80份依赖目录的统一签名为`92624f2531cc16ad87500230432e66038325228f06e55c95aab8a804d0749335`，
+80份源码目录为`8ee884dae3186fc8fda338f535fca032e0468f43b385aee6bfc850dae419815b`；
+签名包含相对路径、文件模式和内容SHA，而不只比较目录大小。
+此前复现实验设计与负结果文档保留不动；assets、weights、LensWalk正式原始结果及新任务继承原件均未删除。
+
+准备任务`ap-dZfU1PKNxetZcEaFWJef2d`正常结束，并保存24,695份保留文件SHA；
+保护/内容差异/符号链接测试`ap-7gN4aBGSwHNd4o8rN99NqZ`、`ap-0r9fdc77zjKb69XiEuDmOn`通过。
+runtime/src核验`ap-g6x6TF2J6Xyq1Ub4nAKqIn`完成；apply任务
+`ap-VAAND4VE5ni3wipwjBJPOf`于2026-10-20 13:52:48 UTC正常结束，执行源码`985abaf`。
+执行前当前8个GPU容器的进程与打开文件检查未发现候选路径占用；再次核对引用和清单后才删除。
+未启动新GPU、没有压缩、没有停止或重启原任务。
+
+独立新挂载核验`ap-319PRx49s0hfrUVuRJUXnC`已正常结束，`verified=true`：
+24,695份保留文件SHA全部一致，160个旧源码路径均链接到正确规范副本，源码签名不变，
+清单内已删除路径均不存在。核验时目录项已用413,544/500,000（82.7088%），剩余86,456。
+此前apply启动快照为440,378（88.08%）；其他实验同时新增/删除文件，因此配额差值不等同于本次净减少量。
+审计原件及规范源码仅留Modal；本地状态/环境skill笔记不进入Git。其他会话未提交的源码未纳入本次备份。
