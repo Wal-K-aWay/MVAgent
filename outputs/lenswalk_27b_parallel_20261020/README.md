@@ -17,4 +17,8 @@
 
 CPU `ap-k8sCxdXF6YMsshPDFfaBHB`已通过：9B/27B实际冻结driver只改分片计数、待测耗时均衡/失败保留/互斥覆盖、历史5321评分原样汇总及重复题拒绝、RSI四分片调用者回归、完整项目compileall。无需新推理或Judge完成这些检查。初始分片代码`0f8035e`，交接控制器`0ab49d3`，均已远端备份。
 
-08:42 UTC额外8H100 Sandbox `sb-ukvl24pb5RlGob5p3qsaRd`仍排队，不能称16卡已同时推理。唯一交接host781681，日志modal-gpu `/tmp/lenswalk-27b-parallel-20261020/transition.log`；额外卡申请owner778550，原27B watcher4129397仍继续，其他实验未改。后台控制器在资源就绪后自动推进；实际启动和新增题验证待补。
+09:04 UTC交接核验通过：额外8H100 Sandbox `sb-ukvl24pb5RlGob5p3qsaRd`已实际就绪；原2434条记录SHA不变，7道在途推理及归档保存成功，共继承2441题、剩2880题、推理重跑0。旧Sandbox `sb-6yTs7tAhfQey2F1lr7TktP`已退出，旧watcher4129397已停止，退出回执为原根`SCHEDULING_STOPPED.json`。
+
+交接曾因Sandbox镜像没有Modal SDK而在额外commit调用处停止；保存结果的drainer已成功。`62a72f1`移除此调用，改由[Modal后台提交](https://modal.com/docs/guide/volumes#background-commits)及新CPU挂载逐SHA验证确认持久性；添加已完成交接的回执续接检查，禁止再次drain或接受仍运行的旧dispatcher。首次执行/跳过已完成/拒绝活动dispatcher的远端自检通过。CPU `ap-34oKRUJPgaZIWj3LMbCZ3U`最终输出`PERSISTED 2441`、rc0，才停止旧节点；后续初始化CPU为`ap-6qU9oZP0vTrMqKi4fGgNvO`。
+
+唯一交接host现787332；日志modal-gpu `/tmp/lenswalk-27b-parallel-20261020/transition.log`。自动首题/16个GPU UUID/模型身份/题号互斥检查host783916，输出父根`startup_audit.json`。两组实际启动和新增题验证待补，不能把资源申请或交接通过当作已实测加速。
