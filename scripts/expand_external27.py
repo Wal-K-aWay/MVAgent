@@ -53,6 +53,21 @@ def owner(tag):
     return path, pid
 
 
+def wait_for_drained(previous):
+    volume = modal.Volume.from_name('wxu-evolve-agent-runs-20261006', environment_name='zheng-dev')
+    deadline = time.monotonic()+180
+    for index in (0, 1):
+        while True:
+            try:
+                receipt = json.loads(b''.join(volume.read_file(f'devbox/{previous}-shard{index}/handoff_drained.json')))
+            except FileNotFoundError:
+                assert time.monotonic() < deadline, 'Drain receipt not committed; preserve nodes and inspect'
+                time.sleep(5)
+            else:
+                assert receipt['inference_retries'] == 0
+                break
+
+
 def expand(method):
     previous = PREVIOUS[method]
     new = method+'_27b_32gpu_20261020'
@@ -83,6 +98,7 @@ def expand(method):
     # Started clients finish under their original budget; no replacement model request is made.
     with ThreadPoolExecutor(max_workers=2) as pool:
         list(pool.map(one, enumerate(old)))
+    wait_for_drained(previous)
     cpu(f'python eval/external_methods/expand_external.py initialize --method {method} '
         f'--previous /runs/devbox/{previous} --output /runs/devbox/{new}')
     finish(method)

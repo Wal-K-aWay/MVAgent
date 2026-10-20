@@ -1,15 +1,23 @@
 """Exercise idle-node recovery without submitting jobs or touching real processes."""
 import json
 import os
+import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
-import expand_external27 as control
+with patch.dict(sys.modules, {'modal': Mock()}):
+    import expand_external27 as control
 
 
 def main():
+    receipt = iter([json.dumps({'inference_retries': 0}).encode()])
+    volume = SimpleNamespace(read_file=Mock(side_effect=[FileNotFoundError(), receipt, iter([b'{"inference_retries":0}'])]))
+    with patch.object(control.modal.Volume, 'from_name', return_value=volume), \
+         patch.object(control.time, 'sleep') as sleep:
+        control.wait_for_drained('old')
+    assert volume.read_file.call_count == 3 and sleep.call_count == 1
     with TemporaryDirectory() as directory:
         root = Path(directory)
         old_paths = [root/'old0.json', root/'old1.json']
