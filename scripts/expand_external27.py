@@ -119,9 +119,14 @@ def finish(method):
 import json,os,signal,time
 from pathlib import Path
 root=Path(__import__('sys').argv[1]);read=lambda p:json.loads(p.read_text())
-d=read(root/'handoff_drained.json');p=read(root/'progress.json')
-cards=read(Path(p['episode'])/'pool_verification.json')
-pids=[c['worker']['pid'] for c in cards.values()]
+d=read(root/'handoff_drained.json')
+# Native servers can restart; their startup verification contains obsolete PIDs.
+pids=[]
+for path in Path('/proc').glob('[0-9]*/cmdline'):
+ try:cmd=path.read_bytes()
+ except (FileNotFoundError,ProcessLookupError):continue
+ if str(root).encode() in cmd and any(a.endswith((b'/native_server.py',b'/sync_server.py')) for a in cmd.split(b'\\0')):
+  pids.append(int(path.parent.name))
 for sig in (signal.SIGTERM,signal.SIGKILL):
  for pid in pids:
   cmd=Path('/proc')/str(pid)/'cmdline'
@@ -132,7 +137,7 @@ for sig in (signal.SIGTERM,signal.SIGKILL):
  time.sleep(3)
 try:os.killpg(d['dispatcher_pid'],signal.SIGKILL)
 except ProcessLookupError:pass
-print('OLD_MODELS_STOPPED_DATA_PRESERVED')
+print('OLD_MODELS_STOPPED_DATA_PRESERVED',pids)
 """
     for index, (path, data, sandbox) in enumerate(old):
         target = HERE/('state-mvagent-'+(new+'-shard'+str(index)).replace('_', '-')+'.json')
