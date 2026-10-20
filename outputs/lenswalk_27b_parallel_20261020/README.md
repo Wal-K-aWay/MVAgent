@@ -21,4 +21,17 @@ CPU `ap-k8sCxdXF6YMsshPDFfaBHB`已通过：9B/27B实际冻结driver只改分片�
 
 交接曾因Sandbox镜像没有Modal SDK而在额外commit调用处停止；保存结果的drainer已成功。`62a72f1`移除此调用，改由[Modal后台提交](https://modal.com/docs/guide/volumes#background-commits)及新CPU挂载逐SHA验证确认持久性；添加已完成交接的回执续接检查，禁止再次drain或接受仍运行的旧dispatcher。首次执行/跳过已完成/拒绝活动dispatcher的远端自检通过。CPU `ap-34oKRUJPgaZIWj3LMbCZ3U`最终输出`PERSISTED 2441`、rc0，才停止旧节点；后续初始化CPU为`ap-6qU9oZP0vTrMqKi4fGgNvO`。
 
-唯一交接host现787332；日志modal-gpu `/tmp/lenswalk-27b-parallel-20261020/transition.log`。自动首题/16个GPU UUID/模型身份/题号互斥检查host783916，输出父根`startup_audit.json`。两组实际启动和新增题验证待补，不能把资源申请或交接通过当作已实测加速。
+09:05 UTC初始化通过，交接host787332正常结束，唯一主控791633启动两子控791638/791639；日志modal-gpu `/tmp/lenswalk-27b-parallel-20261020/{transition,controller}.log`。每组独立8H100，执行名为`mvagent-lenswalk-27b-parallel-20261020-shard0/1`：
+
+| 组 | Sandbox | 总题数 | 继承 | 待测 | 历史待测耗时合计（秒） |
+|---|---|---:|---:|---:|---:|
+| 0 | `sb-gbxCFXVpXbLkGlOOZCO6Vk` | 2661 | 1221 | 1440 | 458567.09 |
+| 1 | `sb-ukvl24pb5RlGob5p3qsaRd` | 2660 | 1220 | 1440 | 458567.39 |
+
+题号交集0、并集5321；历史耗时只用于均衡，不代表27B实测速度。
+
+09:14 UTC父根`startup_audit.json`验证通过：16个不同H100 UUID、全部服务的27B权重及execution身份与原配置一致、两组实际推理且在途题号不重叠。快照为1225/2661与1221/2660，合2446/5321，剩2875题；新增5条记录、43次调用、新工程错误0。进度是已处理题数，包含原有9个工程失败以及模型未正常终答，不能当作全部成功题数。
+
+真实新增输出示例：组0 `mvu_eval:Counting:148 → B`，推理54.34秒、准备3.66秒、3调用；组1 `mvu_eval:Comparison:1737 → G`，推理78.11秒、准备3.02秒、5调用。此处只验证运行，并未据此判断准确率。新记录中`crossvid:PSS:266/287`仍有原方法的`unfinished_tool_plan`，照原协议保留，不因扩容重试或更改提示。
+
+后台主控继续执行各组剩余题、CCQA评分、释放GPU和CPU合并；首题检查已完成，不宣称会话外仍有AI巡检。仍预计余15–19小时：按原8卡近期96–108题/小时投影并留长尾/评分余量；当前首批样本不足以测量16卡稳定吞吐，不能声称已实测2倍加速。两组实际开始时间略有差异，原始逐题推理/准备/归档耗时继续保存于Modal。
