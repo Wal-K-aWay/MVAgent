@@ -198,6 +198,10 @@ def refine():
     for model,summary in report['models'].items():
         for source in summary['sources']:
             path=Path(source)
+            if path.suffix!='.tar' and not (path/'input_config.yaml').exists():
+                refs=read(EXPORTS[model]/'manifest.json')['raw_sources']
+                ref=next(r for r in refs if 'path' in r and str(Path(r['path']).parents[3])==source)
+                path=Path(ref['path']).resolve().parents[3]
             archive=tarfile.open(path) if path.suffix=='.tar' else None
             def get(relative):
                 if archive is not None:
@@ -207,7 +211,7 @@ def refine():
                 return f.read_bytes() if f.exists() else None
             try:
                 config=get('input_config.yaml')
-                item=dict(model=model,source=source,config_found=config is not None)
+                item=dict(model=model,source=source,resolved_source=str(path),config_found=config is not None)
                 if config is not None:
                     cfg=yaml.safe_load(config)
                     item['config_sha256']=hashlib.sha256(config).hexdigest()
@@ -232,7 +236,7 @@ def refine():
                             if e['kind']=='batch_prepared':
                                 item['question_workers']=e['question_workers']
                                 item['max_prepared_requests']=e['max_prepared_requests']
-                                item['replicas']=[dict(gpus=r['gpus'],max_inflight=r['max_inflight']) for p in e['model_pools'].values() for r in p]
+                                item['replicas']=[dict(gpu_count=len(r['gpus']),max_inflight=r['max_inflight']) for p in e['model_pools'].values() for r in p]
                                 executions[json.dumps({k:item[k] for k in ['question_workers','max_prepared_requests','replicas']},sort_keys=True)].append(source)
                                 break
                 evidence.append(item)
