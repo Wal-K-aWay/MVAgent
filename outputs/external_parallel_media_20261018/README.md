@@ -17,6 +17,11 @@ Modal CPU `ap-JPzaNPMfQBL6rik8Vjmtb8` rc0：两个实际冻结driver仅一个数
 
 新运行启动后会沿用原逐卡execution/weights_manifest比较、token/输入哈希与prefix cache审计，首批实际输出计入正式结果。后台控制器仍负责续跑、官方评分、汇总准确率与耗时并释放GPU。
 
+## Video-RSI35B最终结果（2026-10-20整理）
+
+全5321题/239CCQA已完成；工程失败计零CVBench62.39%、MVU-Eval51.43%、CrossVid十任务macro33.47%，Agent均值181.61/224.60/417.65秒。5196正常终答、86无效决策、39工程失败均保留。
+按用户授权，已核验的五文件精简结果包及文本轨迹准备发布至`video-rsi-results-20261020`；[结果、协议与下载说明](../video_rsi_release_20261020/README.md)。本次纯CPU整理，无新推理或Judge；下方RSI启动记录为历史。
+
 ## LensWalk最终结果（2026-10-19）
 
 精简结果和文本轨迹已按用户要求发布到[GitHub Release](https://github.com/Wal-K-aWay/MVAgent/releases/tag/lenswalk-results-20261019)，共68.46 MB、仅五个文件，不含图片编码、token ID数组或重复HTTP体；[下载与字段说明](../lenswalk_release_20261019/README.md)。原始Modal记录保留。
