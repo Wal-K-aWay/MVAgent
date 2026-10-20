@@ -5,6 +5,7 @@ from concurrent.futures import ProcessPoolExecutor
 import gzip
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -14,12 +15,57 @@ import time
 from common import sha256, write
 
 EXPECTED = {'cvbench': 997, 'mvu_eval': 1824, 'crossvid': 2500}
-ARCHIVES = {'lenswalk': 'lenswalk-results-compact-20261019.tar.gz',
-            'rsi': 'video-rsi-35b-results-compact-20261020.tar.gz'}
 MEDIA = re.compile(r'data:((?:image|video|audio)/[\w.+-]+);base64,[A-Za-z0-9+/=\r\n]+')
 MEMBERS = {'input.jsonl': 'input', 'result.json': 'result', 'requests.jsonl': 'calls',
            'all_conversations.jsonl': 'conversations', 'all_tool_calls.jsonl': 'tool_calls',
            'item.json': 'item'}
+
+
+def source_metadata(root, method):
+    read = lambda p: json.loads(p.read_text())
+    manifest = read(root/'manifest.json')
+    assert manifest.get('method', method) == method
+    children = [Path(c['root']) for c in manifest['children']] if 'children' in manifest else [root]
+    owners, paths, labels_hash = {}, {root/'manifest.json', root/'samples.json', root/'summary.json'}, None
+    for child in children:
+        files = [child/name for name in ('manifest.json', 'samples.json', 'prepared/private_labels.json',
+                                        'expected_service.json')]
+        paths.update(files)
+        digest = sha256(files[2])
+        assert labels_hash is None or digest == labels_hash, 'Partitions disagree on labels'
+        labels_hash = digest
+        expected = read(files[3])
+        assert expected['execution']['profile'] == {
+            'rsi': 'qwen35-bf16-external-upstream', 'lenswalk': 'qwen35-bf16-lenswalk-tools'}[method]
+        for sid in read(child/'samples.json'):
+            assert sid not in owners, 'Duplicate question ownership'
+            owners[sid] = child/'judgements'/(sid.replace(':', '_')+'.json') if 'children' in manifest else (
+                child/method/sid.replace(':', '_')/'judge.json')
+    assert set(owners) == set(read(root/'samples.json'))
+    labels = read(children[0]/'prepared/private_labels.json')
+    assert set(labels) == set(owners)
+    hashes = {os.path.relpath(p, root): sha256(p) for p in paths}
+    return labels, owners, hashes
+
+
+def export_score(row, label, judge):
+    points = len(label['sample']['ground_truth'])
+    if row['infrastructure_error']:
+        assert judge is None and row['score'] is None
+        return dict(id=row['sample_id'], score=None, points=points, coverage=None, correctness=None,
+                    status='infrastructure_error', judge_model=None, error=row.get('error'))
+    assert judge['sample_id'] == row['sample_id'] and judge['status'] == 'ok'
+    assert len(judge['coverage']) == len(judge['correctness']) == points
+    assert judge['prediction'] == row['answer']
+    assert judge['score'] == sum(judge['coverage']) + sum(judge['correctness'])
+    assert row['score'] == judge['score']/(2*points)
+    return dict(id=row['sample_id'], score=row['score'], points=points, coverage=judge['coverage'],
+                correctness=judge['correctness'], status=judge['status'], judge_model=judge['response_model'])
+
+
+def score_with_failures(rows, labels):
+    weights = [len(labels[r['sample_id']]['sample']['ground_truth']) if r['task']=='CCQA' else 1 for r in rows]
+    return sum((r['score'] if not r['infrastructure_error'] else 0)*w for r, w in zip(rows, weights))/sum(weights)
 
 
 def redact_media(value):
@@ -178,23 +224,21 @@ def saved_prefix(path, selected, labels):
     return count
 
 
-def export(root, out):
-    method = json.loads((root/'manifest.json').read_text())['method']
-    archive_name = ARCHIVES[method]
+def export(root, out, method, archive_name):
+    assert Path(archive_name).name == archive_name and archive_name.endswith('.tar.gz')
     progress = json.loads((root/'progress.json').read_text())
-    assert progress['phase'] in ('completed', 'completed_with_errors') and progress['judged'] == 239
+    assert progress['phase'] in ('completed', 'completed_with_errors') and progress['completed'] == 5321
     summary_sha = sha256(root/'summary.json')
-    source_hashes = {name: sha256(root/name) for name in
-                     ('summary.json', 'samples.json', 'prepared/private_labels.json', 'manifest.json', 'expected_service.json')}
+    labels, judge_paths, source_hashes = source_metadata(root, method)
     summary = json.loads((root/'summary.json').read_text())
     rows = {r['sample_id']: r for r in summary['rows']}
-    labels = json.loads((root/'prepared/private_labels.json').read_text())
     assert len(rows) == len(summary['rows']) == sum(EXPECTED.values())
     assert set(rows) == set(labels) == set(json.loads((root/'samples.json').read_text()))
     assert Counter(r['dataset'] for r in rows.values()) == EXPECTED
     if (out/'bundle.json').exists():
         bundle = json.loads((out/'bundle.json').read_text())
         assert bundle['source'] == str(root) and bundle['summary_sha256'] == summary_sha
+        assert bundle['method'] == method and bundle['archive']['name'] == archive_name
         for entry in bundle['files']:
             assert sha256(out/'files'/entry['name']) == entry['sha256']
         assert sha256(out/bundle['archive']['name']) == bundle['archive']['sha256']
@@ -231,31 +275,26 @@ def export(root, out):
     for sid, row in sorted(rows.items()):
         if row['task'] != 'CCQA':
             continue
-        judge = json.loads((root/method/sid.replace(':', '_')/'judge.json').read_text())
-        points = len(labels[sid]['sample']['ground_truth'])
-        assert judge['sample_id'] == sid and judge['status'] == 'ok'
-        assert len(judge['coverage']) == len(judge['correctness']) == points
-        assert judge['prediction'] == row['answer']
-        assert judge['score'] == sum(judge['coverage']) + sum(judge['correctness'])
-        assert row['score'] == judge['score']/(2*points)
-        judges.append(dict(id=sid, score=row['score'], points=points, coverage=judge['coverage'],
-                           correctness=judge['correctness'], status=judge['status'],
-                           judge_model=judge['response_model']))
+        judge = None
+        if not row['infrastructure_error']:
+            path = judge_paths[sid]
+            source_hashes[os.path.relpath(path, root)] = sha256(path)
+            judge = json.loads(path.read_text())
+        judges.append(export_score(row, labels[sid], judge))
     assert len(judges) == 239
     (files/'ccqa_scores.jsonl').write_bytes(b''.join(map(encode, judges)))
     table = ['| Benchmark | 题数 | 评分方式 | 得分（%） | 有最终答案 | 未收尾 | 空答案 | 无效决策 | 工程失败 | 平均Agent用时（秒） | 平均视频准备用时（秒） |',
              '|---|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|']
     for dataset, count in EXPECTED.items():
         selected = [r for r in rows.values() if r['dataset'] == dataset]
-        score = sum(r['score'] if not r['infrastructure_error'] else 0 for r in selected)/count
+        score = score_with_failures(selected, labels)
         rule = '官方逐题评分平均；工程失败计0'
         if dataset == 'crossvid':
             tasks = summary['benchmarks'][dataset]['task_scores']
             scores = []
             for task in tasks:
                 group = [r for r in selected if r['task'] == task]
-                scores.append(tasks[task]['score'] if task == 'CCQA' else
-                              sum(r['score'] if not r['infrastructure_error'] else 0 for r in group)/len(group))
+                scores.append(score_with_failures(group, labels))
             assert len(scores) == 10
             score = sum(scores)/10
             rule = '十任务等权macro；工程失败计0；CCQA评分点加权'
@@ -287,7 +326,10 @@ def export(root, out):
     assert len(checked) == 5 and sha256(root/'summary.json') == summary_sha
     assert all(sha256(root/name) == digest for name, digest in source_hashes.items())
     bundle = dict(source=str(root), summary_sha256=summary_sha, samples=len(rows), ccqa_scores=len(judges),
-                  method=method, source_hashes=source_hashes,
+                  method=method, model=json.loads((root/'manifest.json').read_text()).get('model'),
+                  ccqa_judged=sum(j['status']=='ok' for j in judges),
+                  ccqa_infrastructure_failures=sum(j['status']=='infrastructure_error' for j in judges),
+                  source_hashes=source_hashes,
                   export_commit=source_commit, export_code_sha256=sha256(Path(__file__)),
                   files=entries, archive=dict(name=archive_name, bytes=target.stat().st_size, sha256=sha256(target)),
                   source_archives_verified=len(rows), raw_sources_preserved=True,
@@ -303,5 +345,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--method', choices=['rsi', 'lenswalk'], required=True)
+    parser.add_argument('--archive-name', required=True)
     args = parser.parse_args()
-    export(args.root, args.output)
+    export(args.root, args.output, args.method, args.archive_name)

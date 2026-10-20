@@ -6,7 +6,7 @@ from pathlib import Path
 import tarfile
 import tempfile
 
-from lenswalk_export import export_row, redact_media, read_trace, saved_prefix, encode
+from lenswalk_export import export_row, redact_media, read_trace, saved_prefix, encode, export_score, score_with_failures, source_metadata
 
 
 def test_saved_trace():
@@ -93,9 +93,46 @@ def test_rsi_trace():
             assert saved_prefix(saved, [row], {row['sample_id']: label}) == 1
 
 
+def test_partition_sources_and_failed_ccqa():
+    with tempfile.TemporaryDirectory() as directory:
+        root=Path(directory)/'merged';root.mkdir()
+        ids=['crossvid:CCQA:1','crossvid:CCQA:2']
+        labels={ids[0]:dict(sample={'ground_truth':['a','b','c']}),
+                ids[1]:dict(sample={'ground_truth':['d']})}
+        children=[]
+        for i,sid in enumerate(ids):
+            child=Path(directory)/f'part{i}';(child/'prepared').mkdir(parents=True)
+            for name,value in [('manifest.json',{}),('samples.json',[sid]),
+                               ('prepared/private_labels.json',labels),
+                               ('expected_service.json',dict(execution={'profile':'qwen35-bf16-lenswalk-tools'}))]:
+                (child/name).write_text(json.dumps(value))
+            children.append(dict(root=str(child)))
+        for name,value in [('manifest.json',dict(children=children)),('samples.json',ids),('summary.json',{})]:
+            (root/name).write_text(json.dumps(value))
+        found,paths,hashes=source_metadata(root,'lenswalk')
+        assert found==labels and len(hashes)==11
+        assert paths[ids[1]]==Path(children[1]['root'])/'judgements/crossvid_CCQA_2.json'
+        rows=[dict(sample_id=ids[0],task='CCQA',answer='raw',score=.5,infrastructure_error=False),
+              dict(sample_id=ids[1],task='CCQA',answer=None,score=None,infrastructure_error=True)]
+        judge=dict(sample_id=ids[0],status='ok',prediction='raw',score=3,coverage=[1,1,0],
+                   correctness=[1,0,0],response_model='judge')
+        assert export_score(rows[0],labels[ids[0]],judge)['score']==.5
+        failed=export_score(rows[1],labels[ids[1]],None)
+        assert failed['status']=='infrastructure_error' and failed['score'] is None
+        assert score_with_failures(rows,labels)==.375
+        try:export_score(rows[0],labels[ids[0]],dict(judge,status='error'))
+        except AssertionError:pass
+        else:raise AssertionError('Judge error was accepted')
+        (Path(children[1]['root'])/'samples.json').write_text(json.dumps([ids[0]]))
+        try:source_metadata(root,'lenswalk')
+        except AssertionError:pass
+        else:raise AssertionError('Overlapping owners were accepted')
+
+
 if __name__ == '__main__':
     test_saved_trace()
     test_rsi_trace()
+    test_partition_sources_and_failed_ccqa()
     text = 'Keep the full answer, including repeated instructions.'
     assert redact_media(text) == text
     print('LensWalk and RSI export checks passed')

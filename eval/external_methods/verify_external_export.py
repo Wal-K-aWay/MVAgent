@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 from common import sha256, write
-from lenswalk_export import EXPECTED, MEDIA
+from lenswalk_export import EXPECTED, MEDIA, source_metadata, export_score
 
 
 def verify(output):
@@ -15,7 +15,7 @@ def verify(output):
         assert sha256(root/name) == digest, name
     source = read(root/'summary.json')
     rows = {r['sample_id']: r for r in source['rows']}
-    labels = read(root/'prepared/private_labels.json')
+    labels, judge_paths, _ = source_metadata(root, bundle['method'])
     assert set(rows) == set(labels) and len(rows) == 5321
     calls = tokens_in = tokens_out = 0
     for entry in bundle['files']:
@@ -55,11 +55,14 @@ def verify(output):
     scores = [json.loads(line) for line in (output/'files/ccqa_scores.jsonl').read_text().splitlines()]
     assert len(scores) == len({s['id'] for s in scores}) == 239
     for score in scores:
-        assert score['status'] == 'ok' and score['score'] == rows[score['id']]['score']
-        assert score['points'] == len(labels[score['id']]['sample']['ground_truth'])
+        row = rows[score['id']]
+        judge = None if row['infrastructure_error'] else read(judge_paths[score['id']])
+        assert score == export_score(row, labels[score['id']], judge)
     archive = bundle['archive']; path = output/archive['name']
     assert path.stat().st_size == archive['bytes'] and sha256(path) == archive['sha256']
-    result = dict(samples=5321, ccqa_scores=239, calls=calls, input_tokens=tokens_in, output_tokens=tokens_out,
+    result = dict(samples=5321, ccqa_scores=239, ccqa_judged=bundle['ccqa_judged'],
+                  ccqa_infrastructure_failures=bundle['ccqa_infrastructure_failures'],
+                  calls=calls, input_tokens=tokens_in, output_tokens=tokens_out,
                   benchmarks=stats, archive=archive, fidelity_verified=True, no_inline_media_or_token_arrays=True,
                   verifier_sha256=sha256(Path(__file__)))
     write(output/'verified.json', result)
