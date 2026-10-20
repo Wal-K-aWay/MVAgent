@@ -20,11 +20,12 @@ import traceback
 from run_full_e2e import now, read, write, sha
 
 SOURCE = Path(__file__).resolve().parents[1]
-RUN = Path('/runs/devbox/frozen_full_final_20261019')
 MODEL = os.environ.get('MVAGENT_EXPORT_MODEL', '9B')
-assert MODEL in {'9B', '27B'}
+assert MODEL in {'9B', '27B', '35B-A3B'}
+DATE = '20261020' if MODEL == '35B-A3B' else '20261019'
+RUN = Path('/runs/devbox') / ('frozen_full_35b_finish_20261020' if MODEL == '35B-A3B' else 'frozen_full_final_20261019')
 SLUG = MODEL.lower()
-OUT = Path('/runs/devbox') / f'frozen_{SLUG}_results_20261019'
+OUT = Path('/runs/devbox') / f'frozen_{SLUG}_results_{DATE}'
 REPORT = 'score/ccqa_scores_official_qwen3_30b_a3b.json'
 
 
@@ -136,6 +137,31 @@ def judge():
     except BaseException:
         write(OUT/'progress.json',dict(phase='failed',at=now(),error=traceback.format_exc()))
         raise
+
+
+def reuse_judge():
+    """Snapshot the completed judgments without starting a model or changing the source."""
+    assert not (OUT/'judge_complete.json').exists(), 'Judge snapshot already exists'
+    selection = read(RUN/'selection.json')
+    reports, sources = [], {}
+    for i, ids in enumerate(selection['partitions']):
+        path = RUN/f'shard{i}'/MODEL/REPORT
+        report = read(path)
+        expected = {int(s.rsplit(':', 1)[1]) for s in ids if s.startswith('crossvid:CCQA:')}
+        assert not report['failed_ids'] and len(report['samples']) == len(expected)
+        assert {r['id'] for r in report['samples']} == expected
+        assert all(r['status'] == 'ok' for r in report['samples'])
+        reports.append(report)
+        sources[str(path)] = sha(path)
+    counts = [len(r['samples']) for r in reports]
+    assert sum(counts) == 189
+    for i, report in enumerate(reports):
+        write(OUT/f'judge/shard{i}.json', report)
+    write(OUT/'judge_manifest.json', dict(at=now(), root=str(RUN),
+        model='Qwen3-30B-A3B-Instruct-2507', report_sha256=sources,
+        policy='Reuse all completed judgments; no new inference or Judge calls.'))
+    write(OUT/'judge_complete.json', dict(at=now(), new_judged=189, prior_judged=50,
+        shards=counts, reused=True))
 
 
 MEDIA = re.compile(r'data:(?:image|video|audio)/[^;,\s]+;base64,[A-Za-z0-9+/=]+')
@@ -265,6 +291,12 @@ def export():
     summary={ds:dict(n=expected[ds],agent=score([r for r in scored if r['dataset']==ds],'agent'),
         e2e=score([r for r in scored if r['dataset']==ds],'e2e'),
         seconds=sum(r['stats']['seconds'] for r in paired if r['dataset']==ds)/expected[ds]) for ds in expected}
+    if MODEL == '35B-A3B':
+        final = read(RUN/'analysis/summary.json')['models'][MODEL]
+        assert final['valid'] == 5321 and not final['missing'] and not final['errors']
+        for ds in expected:
+            for arm in ['agent', 'e2e']:
+                assert abs(summary[ds][arm] - final['benchmarks'][ds][arm]) < 1e-9, (ds, arm)
     lines=[f'# MVAgent Qwen3.5-{MODEL}：最终答案与文本轨迹','',
         '| Benchmark | 题数 | MVAgent得分（%） | 同题E2E（%） | 差值（pp） | 平均每题用时（秒） |',
         '|---|---:|---:|---:|---:|---:|']
@@ -292,7 +324,7 @@ def export():
     write(OUT/'comparison.json',dict(at=now(),complete=True,benchmarks=summary,ccqa_judged=239))
     write(OUT/'paired_scored.json',paired)
     entries=[dict(name=p.name,bytes=p.stat().st_size,sha256=sha(p)) for p in sorted(files.iterdir())]
-    archive=OUT/f'mvagent-{SLUG}-results-with-trajectories-20261019.tar.gz'
+    archive=OUT/f'mvagent-{SLUG}-results-with-trajectories-{DATE}.tar.gz'
     with archive.open('wb') as handle,gzip.GzipFile(filename='',fileobj=handle,mode='wb',compresslevel=1,mtime=0) as compressed,tarfile.open(fileobj=compressed,mode='w|') as pack:
         for entry in entries: pack.add(files/entry['name'],arcname=entry['name'])
     write(OUT/'manifest.json',dict(at=now(),samples=5321,counts=expected,ccqa=239,source_sha256=sha(Path(__file__)),
@@ -333,5 +365,5 @@ def verify():
 
 if __name__ == '__main__':
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode',choices=['prepare','judge','export','verify','self-check'])
+    parser.add_argument('mode',choices=['prepare','judge','reuse-judge','export','verify','self-check'])
     globals()[parser.parse_args().mode.replace('-','_')]()

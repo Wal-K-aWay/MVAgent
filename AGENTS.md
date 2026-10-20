@@ -79,6 +79,9 @@ Prompt 与中文镜像同步的完整规则统一保存在 [.claude/rules/prompt
   用户2026-10-20授权参照MVAgent/AgentCVR/LensWalk公开发布Video-RSI35B精简答案及文本轨迹，使用Release
   `video-rsi-results-20261020`；发布包及核验回执可暂存`outputs/video_rsi_release_20261020/`，逐大小/SHA256核验，
   数据不进入Git提交历史，Modal原始记录保留；不迁入媒体、图片Base64、完整token ID数组、权重或冻结环境。
+  用户2026-10-20追加授权将MVAgent 35B完整最终答案及文本轨迹按9B/27B格式整理，追加至现有Release
+  `mvagent-results-20261019`；发布包与核验回执可暂存`outputs/mvagent_35b_release_20261020/`，
+  逐大小/SHA256核验，原始Modal记录和既有9B/27B附件保留，数据不进入Git；不分发媒体Base64、完整token ID数组、权重或冻结环境。
 - 复用过的开发数据称为"开发集"，结论要区分"已测到的"和"尚不能声称的"。
 - 凭据（`BIGMODEL_API_KEY`、`DEEPSEEK_API_KEY`）只从环境变量或 Modal Secret 读取。
 - 计算与模型推理都放在 Modal 上；使用 GPU 时，Modal app 名统一为 `wxu-sglang-baseline-gpu-test-*`，
