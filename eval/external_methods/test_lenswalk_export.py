@@ -61,8 +61,39 @@ def test_saved_trace():
             raise AssertionError('Corrupt source archive was accepted')
 
 
+def test_rsi_trace():
+    for status, answer in [('answered', 'A -> B\nOriginal answer.'),
+                           ('invalid_decision', None), ('engineering_error', None)]:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory)/'attempt-1.tar'
+            result = dict(sample_id='crossvid:CCQA:1', status=status, answer=answer,
+                          trace=[{'decision_attempts': [{'raw_response': 'Unmodified model response'}]}],
+                          service_trace=[dict(service='deepseek', arguments={'messages': [
+                              {'role': 'system', 'content': 'original system'},
+                              {'role': 'user', 'content': json.dumps({'item': {'question': 'Multi-video question'}})}]},
+                              result={'text': 'data:image/jpeg;base64,YWJj'})])
+            raw = json.dumps(result).encode()
+            with tarfile.open(path, 'w') as archive:
+                info = tarfile.TarInfo('attempt-1/result.json'); info.size = len(raw)
+                archive.addfile(info, io.BytesIO(raw))
+            row = dict(sample_id=result['sample_id'], task='CCQA', answer=answer or '', seconds=19.2,
+                       terminal='finish' if status=='answered' else status,
+                       infrastructure_error=status=='engineering_error', raw_archive=dict(path=str(path),
+                       sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
+                       files={'result.json': hashlib.sha256(raw).hexdigest()}))
+            label = dict(sample={'ground_truth': ['first point']}, reference_answer='reference')
+            value = export_row(row, label)
+            assert value['output'] == answer and value['gt'] == dict(answer='reference', scoring_points=['first point'])
+            assert value['trajectory']['question'] == 'Multi-video question'
+            assert value['trajectory']['steps'] == result['trace']
+            assert 'YWJj' not in json.dumps(value)
+            saved = Path(directory)/'results.jsonl'; saved.write_bytes(encode(value))
+            assert saved_prefix(saved, [row], {row['sample_id']: label}) == 1
+
+
 if __name__ == '__main__':
     test_saved_trace()
+    test_rsi_trace()
     text = 'Keep the full answer, including repeated instructions.'
     assert redact_media(text) == text
-    print('LensWalk export checks passed')
+    print('LensWalk and RSI export checks passed')

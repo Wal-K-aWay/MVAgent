@@ -1,4 +1,4 @@
-"""Export the saved LensWalk panel in the five-file AgentCVR release layout."""
+"""Export saved LensWalk or Video-RSI panels in the five-file AgentCVR layout."""
 import argparse
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor
@@ -14,10 +14,12 @@ import time
 from common import sha256, write
 
 EXPECTED = {'cvbench': 997, 'mvu_eval': 1824, 'crossvid': 2500}
-ARCHIVE = 'lenswalk-results-compact-20261019.tar.gz'
+ARCHIVES = {'lenswalk': 'lenswalk-results-compact-20261019.tar.gz',
+            'rsi': 'video-rsi-35b-results-compact-20261020.tar.gz'}
 MEDIA = re.compile(r'data:((?:image|video|audio)/[\w.+-]+);base64,[A-Za-z0-9+/=\r\n]+')
 MEMBERS = {'input.jsonl': 'input', 'result.json': 'result', 'requests.jsonl': 'calls',
-           'all_conversations.jsonl': 'conversations', 'all_tool_calls.jsonl': 'tool_calls'}
+           'all_conversations.jsonl': 'conversations', 'all_tool_calls.jsonl': 'tool_calls',
+           'item.json': 'item'}
 
 
 def redact_media(value):
@@ -93,9 +95,14 @@ def read_trace(row):
     if result is None:
         assert row['infrastructure_error'], row['sample_id']
     else:
-        assert result['sample_id'] == row['sample_id'] and result['answer'] == row['answer']
-        assert len(trace.get('conversations', [])) == 1
-        assert trace['conversations'][0]['answer'] == result['answer']
+        assert result['sample_id'] == row['sample_id']
+        if 'status' in result:  # RSI's scorer stores null answers as empty strings; export the original null.
+            assert (result['answer'] or '') == row['answer']
+            assert ('finish' if result['status'] == 'answered' else result['status']) == row['terminal']
+        else:
+            assert result['answer'] == row['answer']
+            assert len(trace.get('conversations', [])) == 1
+            assert trace['conversations'][0]['answer'] == result['answer']
     return trace
 
 
@@ -108,8 +115,20 @@ def export_row(row, label):
     trajectory = dict(question=trace.get('input', [{}])[0].get('question'),
                       messages=conversation.get('chat_history', []), tools=trace.get('tool_calls', []),
                       calls=trace.get('calls', []), source_archive_sha256=row['raw_archive']['sha256'])
+    result = trace.get('result', {})
+    if 'status' in result:
+        trajectory.pop('messages'); trajectory.pop('tools')
+        trajectory.update(steps=result.get('trace', []), services=result.get('service_trace', []),
+                          diagnostics=result.get('diagnostics', {}), usage=result.get('usage', {}))
+        item = trace.get('item')
+        if item is None:
+            for service in result.get('service_trace', []):
+                if service['service'] == 'deepseek':
+                    item = json.loads(service['arguments']['messages'][1]['content'])['item']
+                    break
+        trajectory['question'] = item.get('question') if item else None
     for key in ('terminal', 'infrastructure_error', 'http_errors', 'tool_errors', 'question_timeout',
-                'prepared_seconds', 'archive_seconds', 'score'):
+                'prepared_seconds', 'archive_seconds', 'score', 'error'):
         trajectory[key] = row.get(key)
     return dict(id=row['sample_id'], gt=gt, output=trace.get('result', {}).get('answer'),
                 seconds=row['seconds'], trajectory=trajectory)
@@ -147,7 +166,9 @@ def saved_prefix(path, selected, labels):
                 gt = dict(answer=label['reference_answer'], scoring_points=gt)
             assert set(value) == {'id', 'gt', 'output', 'seconds', 'trajectory'}
             assert value['id'] == row['sample_id'] and value['gt'] == gt and value['seconds'] == row['seconds']
-            assert value['output'] == (None if row['terminal'] == 'missing_result' else row['answer'])
+            assert value['output'] == row['answer'] or (value['output'] is None and
+                row['terminal'] in ('invalid_decision', 'engineering_error', 'missing_result', 'execution_error')
+                and not row['answer'])
             assert value['trajectory']['source_archive_sha256'] == row['raw_archive']['sha256']
             assert value['trajectory']['terminal'] == row['terminal']
             count += 1
@@ -155,9 +176,13 @@ def saved_prefix(path, selected, labels):
 
 
 def export(root, out):
+    method = json.loads((root/'manifest.json').read_text())['method']
+    archive_name = ARCHIVES[method]
     progress = json.loads((root/'progress.json').read_text())
     assert progress['phase'] in ('completed', 'completed_with_errors') and progress['judged'] == 239
     summary_sha = sha256(root/'summary.json')
+    source_hashes = {name: sha256(root/name) for name in
+                     ('summary.json', 'samples.json', 'prepared/private_labels.json', 'manifest.json', 'expected_service.json')}
     summary = json.loads((root/'summary.json').read_text())
     rows = {r['sample_id']: r for r in summary['rows']}
     labels = json.loads((root/'prepared/private_labels.json').read_text())
@@ -189,7 +214,7 @@ def export(root, out):
         completed += saved
         print(f'{dataset}: retained {saved}/{count}', flush=True)
         with path.open('ab') as stream, ProcessPoolExecutor(max_workers=8) as pool:
-            # Bound retained traces while reading the 50 GB of original archives.
+            # Bound retained traces while reading original archives.
             for start in range(saved, count, 16):
                 batch = selected[start:start+16]
                 for wire in pool.map(encode_row, [(r, labels[r['sample_id']]) for r in batch]):
@@ -203,7 +228,7 @@ def export(root, out):
     for sid, row in sorted(rows.items()):
         if row['task'] != 'CCQA':
             continue
-        judge = json.loads((root/'lenswalk'/sid.replace(':', '_')/'judge.json').read_text())
+        judge = json.loads((root/method/sid.replace(':', '_')/'judge.json').read_text())
         points = len(labels[sid]['sample']['ground_truth'])
         assert judge['sample_id'] == sid and judge['status'] == 'ok'
         assert len(judge['coverage']) == len(judge['correctness']) == points
@@ -215,8 +240,8 @@ def export(root, out):
                            judge_model=judge['response_model']))
     assert len(judges) == 239
     (files/'ccqa_scores.jsonl').write_bytes(b''.join(map(encode, judges)))
-    table = ['| Benchmark | 题数 | 评分方式 | 得分（%） | 有最终答案 | 未收尾 | 空答案 | 工程失败 | 平均Agent用时（秒） | 平均视频准备用时（秒） |',
-             '|---|---:|---|---:|---:|---:|---:|---:|---:|---:|']
+    table = ['| Benchmark | 题数 | 评分方式 | 得分（%） | 有最终答案 | 未收尾 | 空答案 | 无效决策 | 工程失败 | 平均Agent用时（秒） | 平均视频准备用时（秒） |',
+             '|---|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|']
     for dataset, count in EXPECTED.items():
         selected = [r for r in rows.values() if r['dataset'] == dataset]
         score = sum(r['score'] if not r['infrastructure_error'] else 0 for r in selected)/count
@@ -234,14 +259,14 @@ def export(root, out):
         terminal = Counter(r['terminal'] for r in selected)
         table.append(f"| {dataset} | {count} | {rule} | {score*100:.2f} | "
                      f"{terminal['finish']+terminal['natural_text']} | {terminal['unfinished_tool_plan']} | "
-                     f"{terminal['empty_answer']} | {sum(r['infrastructure_error'] for r in selected)} | "
+                     f"{terminal['empty_answer']} | {terminal['invalid_decision']} | {sum(r['infrastructure_error'] for r in selected)} | "
                      f"{sum(r['seconds'] for r in selected)/count:.2f} | "
                      f"{sum(r['prepared_seconds'] for r in selected)/count:.2f} |")
     (files/'statistics.md').write_text('\n'.join(table)+'\n')
     entries = [dict(name=p.name, bytes=p.stat().st_size, sha256=sha256(p)) for p in sorted(files.iterdir())]
     assert len(entries) == 5
     write(out/'progress.json', dict(phase='packing', completed=completed, expected=len(rows)))
-    target = out/ARCHIVE
+    target = out/archive_name
     with target.open('wb') as stream, gzip.GzipFile(fileobj=stream, filename='', mode='wb',
             compresslevel=1, mtime=0) as zipped, tarfile.open(fileobj=zipped, mode='w|') as archive:
         for entry in entries:
@@ -257,9 +282,11 @@ def export(root, out):
                 assert hashlib.file_digest(data, 'sha256').hexdigest() == entry['sha256']
             checked.append(member.name)
     assert len(checked) == 5 and sha256(root/'summary.json') == summary_sha
+    assert all(sha256(root/name) == digest for name, digest in source_hashes.items())
     bundle = dict(source=str(root), summary_sha256=summary_sha, samples=len(rows), ccqa_scores=len(judges),
+                  method=method, source_hashes=source_hashes,
                   export_commit=source_commit, export_code_sha256=sha256(Path(__file__)),
-                  files=entries, archive=dict(name=ARCHIVE, bytes=target.stat().st_size, sha256=sha256(target)),
+                  files=entries, archive=dict(name=archive_name, bytes=target.stat().st_size, sha256=sha256(target)),
                   source_archives_verified=len(rows), raw_sources_preserved=True,
                   omitted=['inline media payloads', 'token ID arrays', 'duplicate HTTP request/response bodies', 'job logs'],
                   inline_media='Any remaining inline media is replaced by MIME type and data URL SHA256',
