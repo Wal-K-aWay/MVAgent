@@ -39,7 +39,7 @@ def summarize(rows):
     n = len(rows)
     times = [r['seconds'] for r in rows]
     sums = {key: math.fsum(r[key] for r in rows) for key in
-            ['seconds', 'server_seconds', 'calls', 'output_tokens', 'input_tokens', 'global_steps',
+            ['seconds', 'server_seconds', 'calls', 'output_tokens', 'input_tokens', 'trajectory_entries',
              'media_work_seconds', 'invalid', 'repair', 'truncated']}
     return dict(n=n, mean=statistics.fmean(times), sum_seconds=sums['seconds'],
                 median=statistics.median(times), p90=percentile(times, .9), p95=percentile(times, .95),
@@ -94,7 +94,7 @@ def scan(model):
                 item = dict(id=row['id'], dataset=ds, seconds=seconds, server_seconds=server,
                     calls=len(calls), output_tokens=sum(e['usage']['completion_tokens'] for e in calls),
                     input_tokens=sum(e['usage']['prompt_tokens'] for e in calls),
-                    global_steps=len(result['trajectory']), event_span=span,
+                    trajectory_entries=len(result['trajectory']), event_span=span,
                     media_work_seconds=sum(e.get('seconds', 0) for e in events if e['kind']=='media_clip_profile'),
                     invalid=sum(e['kind']=='structured_invalid' for e in events),
                     repair=sum(e['kind']=='structured_repair' for e in events),
@@ -184,6 +184,70 @@ def self_check():
     assert statistics.fmean([1,1,10])==4 and (statistics.fmean([1,1])+10)/2==5.5
 
 
+def refine():
+    """Inspect each source cohort's frozen config without rescanning the published trajectories."""
+    import yaml
+    report=read(OUT/'report.json')
+    # Trajectory entries include action results as well as decisions, not just Global steps.
+    def labels(value):
+        if isinstance(value,dict): return {('trajectory_entries' if k=='global_steps' else k):labels(v) for k,v in value.items()}
+        if isinstance(value,list): return [labels(v) for v in value]
+        return value
+    report=labels(report)
+    evidence=[]; configs=defaultdict(list); executions=defaultdict(list); source_hashes=defaultdict(lambda:defaultdict(list))
+    for model,summary in report['models'].items():
+        for source in summary['sources']:
+            path=Path(source)
+            archive=tarfile.open(path) if path.suffix=='.tar' else None
+            def get(relative):
+                if archive is not None:
+                    try: return archive.extractfile(model+'/'+relative).read()
+                    except KeyError: return None
+                f=path/relative
+                return f.read_bytes() if f.exists() else None
+            try:
+                config=get('input_config.yaml')
+                item=dict(model=model,source=source,config_found=config is not None)
+                if config is not None:
+                    cfg=yaml.safe_load(config)
+                    item['config_sha256']=hashlib.sha256(config).hexdigest()
+                    name,parameters=next(iter(cfg['models'].items()))
+                    cfg['models']={'MODEL':{k:v for k,v in parameters.items() if k!='model_name'}}
+                    for key in ['cache_dir','output_dir']:cfg['runtime'].pop(key,None)
+                    normalized=json.dumps(cfg,sort_keys=True).replace(name,'MODEL')
+                    configs[normalized].append(source)
+                for relative in ['src/mvagent/engine.py','src/mvagent/batch.py',
+                    'src/mvagent/agents/global_agent/prompts.py','src/mvagent/agents/video_agent/prompts.py']:
+                    data=get(relative)
+                    if data is not None: source_hashes[relative][hashlib.sha256(data).hexdigest()].append(source)
+                if archive is not None:
+                    try: stream=archive.extractfile(model+'/execution_events.jsonl')
+                    except KeyError: stream=None
+                else:
+                    f=path/'execution_events.jsonl';stream=f.open('rb') if f.exists() else None
+                if stream:
+                    with stream:
+                        for line in stream:
+                            e=json.loads(line)
+                            if e['kind']=='batch_prepared':
+                                item['question_workers']=e['question_workers']
+                                item['max_prepared_requests']=e['max_prepared_requests']
+                                item['replicas']=[dict(gpus=r['gpus'],max_inflight=r['max_inflight']) for p in e['model_pools'].values() for r in p]
+                                executions[json.dumps({k:item[k] for k in ['question_workers','max_prepared_requests','replicas']},sort_keys=True)].append(source)
+                                break
+                evidence.append(item)
+            finally:
+                if archive is not None:archive.close()
+    report['source_cohorts']=dict(evidence=evidence,
+        configurations=[dict(config=json.loads(k),sources=v) for k,v in configs.items()],
+        actual_batch_settings=[dict(config=json.loads(k),sources=v) for k,v in executions.items()],
+        frozen_file_hashes=source_hashes)
+    write(OUT/'final_report.json',report)
+    (OUT/'final_source.py').write_bytes(Path(__file__).read_bytes())
+    print('REFINED_COHORTS',json.dumps(report['source_cohorts']),flush=True)
+
+
 if __name__=='__main__':
     if sys.argv[1:]==['self-check']: self_check()
+    elif sys.argv[1:]==['refine']: refine()
     else: main()
