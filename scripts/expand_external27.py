@@ -67,7 +67,7 @@ def expand(method):
     def keep_alive():
         while not stopped.wait(30):
             for sandbox in extra:
-                assert sandbox.exec('true', timeout=30).wait() == 0
+                assert sandbox.exec('touch', '/work/heartbeat', timeout=30).wait() == 0
     heartbeat = threading.Thread(target=keep_alive, daemon=True)
     heartbeat.start()
     parents = [owner(previous)] + [owner(previous+'-shard'+str(i)) for i in (0, 1)]
