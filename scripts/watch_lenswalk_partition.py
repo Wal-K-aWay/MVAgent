@@ -1,4 +1,4 @@
-"""Run on modal-gpu: own two disjoint LensWalk groups, then merge scored results on CPU."""
+"""Run on modal-gpu: own disjoint external-method groups, then merge scored results on CPU."""
 import argparse
 import base64
 from datetime import datetime, timezone
@@ -16,6 +16,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--tag', required=True)
     parser.add_argument('--cpu-helper', type=Path, required=True)
+    parser.add_argument('--merge-script', default='eval/external_methods/lenswalk_partition.py')
     args = parser.parse_args()
     here = Path.home()/'wxu-evolve-agent/devbox'
     lock = (here/f'watch-{args.tag}.lock').open('w')
@@ -67,7 +68,7 @@ def main():
                 assert tag.encode() in Path(f'/proc/{pid}/cmdline').read_bytes()
         time.sleep(60)
     # Each child controller releases its GPU allocation when scoring completes.
-    command = 'set -e; cd /repo; python eval/external_methods/lenswalk_partition.py merge --output '+shlex.quote('/runs/devbox/'+args.tag)
+    command = 'set -e; cd /repo; python '+shlex.quote(args.merge_script)+' merge --output '+shlex.quote('/runs/devbox/'+args.tag)
     subprocess.run([str(Path.home()/'.local/bin/modal'), 'run', '--env', 'zheng-dev', str(args.cpu_helper),
                     '--b64', base64.b64encode(command.encode()).decode()], check=True, cwd=here)
     assert read('devbox/'+args.tag+'/progress.json')['phase'] in ('completed', 'completed_with_errors')
