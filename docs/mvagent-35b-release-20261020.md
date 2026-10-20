@@ -22,4 +22,20 @@
 导出时断言主指标与已完成分析完全一致；验证归档五成员的大小/SHA、题数及答案/轨迹结构。
 本地仅暂存发布包与核验回执于`outputs/mvagent_35b_release_20261020/`，不进入Git数据历史。
 
-当前阶段：导出与验证准备中，尚未上传35B附件。
+Modal CPU任务`ap-ptm0IAFlUN6ZDwt4a5d2y5`于2026-10-20 08:28:08 UTC完成，rc0。
+全项目语法、媒体文本清理及Judge复用检查通过；不完整Judge报告会被拒绝。
+5321份原件SHA与输出/轨迹对应关系、239条评分、五个归档成员大小/SHA与题数均通过；
+导出分数与最终分析逐项完全一致。导出源码提交`75d909c`。
+
+发布包：`mvagent-35b-a3b-results-with-trajectories-20261020.tar.gz`。
+大小173,059,464字节，五文件解压合计1,047,201,850字节。
+SHA256：`21930f8c318b6d57b2b3ccde767ce493a6dfb2f097a64729fd9e82b7f0204bf0`。
+Modal到devbox及Lightsail暂存均已核对大小与SHA一致。
+
+2026-10-20 08:30:03 UTC发布核验完成：
+[下载35B完整包](https://github.com/Wal-K-aWay/MVAgent/releases/download/mvagent-results-20261019/mvagent-35b-a3b-results-with-trajectories-20261020.tar.gz)。
+GitHub附件状态、大小及服务端SHA一致；无需登录完整下载HTTP200，实收字节与SHA再次一致。
+更新后的`SHA256SUMS.txt`覆盖三个模型，公开下载内容已核对；原9B/27B附件ID、大小和SHA均未改变。
+核验回执保存在本地暂存目录的`github_verified.json`与`release_after.json`。
+
+本次未重跑Actor或Judge、未分配GPU。发布数据不进入Git历史；本地状态笔记及其他会话未提交工作未纳入本工作项备份。

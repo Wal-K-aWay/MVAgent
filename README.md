@@ -86,6 +86,7 @@ python scripts/run_skill_evolution.py --help
 - [E2E benchmark setup and data preparation](eval/README.md)
 - [Architecture and repository rules](AGENTS.md)
 - [Accepted baseline, historical experiments and next refinements](docs/experiments.md)
+- [Final 9B, 27B and 35B answers, text trajectories and CCQA scores](https://github.com/Wal-K-aWay/MVAgent/releases/tag/mvagent-results-20261019)
 
 Record the Git commit, model/Judge versions, inference settings, dataset split and
 Skill hashes for each run. Keep frozen run sources and scored outputs together.
