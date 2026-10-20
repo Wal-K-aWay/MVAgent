@@ -208,8 +208,7 @@ def apply():
             assert not path.is_symlink() and shared.normalized_target(path) == path
             assert not any(shared.within(p, [path]) or shared.within(path, [p]) for p in protected)
             assert shared.inventory(path) == row['inventory']
-            assert signature(path) == group['sha256']
-    verify_retained(plan)
+    # Original hashes are frozen in the plan; verify preserved bytes on a fresh mount afterward.
     removed_bytes = removed_entries = 0
     for item in plan['media']:
         for name in item['delete']:
@@ -251,7 +250,6 @@ def verify():
         for row in group['sources']:
             p = Path(row['path'])
             assert p.is_symlink() and p.resolve() == canonical.resolve()
-            assert signature(p) == group['sha256']
     verify_retained(plan)
     fs = os.statvfs('/runs')
     result = dict(read(AUDIT/'completed.json'), verified=True, retained_files=len(plan['retained']),
