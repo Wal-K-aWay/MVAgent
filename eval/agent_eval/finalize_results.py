@@ -3,8 +3,7 @@
 
 Reads ``summary.json`` / ``run_manifest.json`` / per-benchmark records from the
 run output directory, aggregates per-benchmark and CrossVid per-task tables,
-optionally parses a matching e2e ``benchmark_results.md`` for comparison, and
-writes ``benchmark_results.md`` plus ``score/ccqa_scores_local_judge.json``.
+and writes ``benchmark_results.md`` plus ``score/ccqa_scores_local_judge.json``.
 """
 
 from __future__ import annotations
@@ -19,12 +18,11 @@ from pathlib import Path
 from score_crossvid_ccqa import REPORT_NAME
 
 CVBENCH_TASKS_PATH = (
-    Path(__file__).resolve().parents[1]
-    / "e2e_eval/CVBench/Video-R1/src/r1-v/Evaluation/CVBench.json"
+    Path(__file__).resolve().parent / "metadata/CVBench.json"
 )
 CROSSVID_TASK_ORDER = ("BU", "NC", "CC", "PEA", "PI", "FSA", "PSS", "MSR", "MOC", "CCQA")
 CVBENCH_CATEGORY_KEYS = ("Object Association", "Event Association", "Complex Reasoning")
-# CVBench 官方三分类映射（与 e2e / official_results.md 的聚合口径一致）。
+# CVBench 官方三分类映射。
 CVBENCH_TASK_CATEGORY = {
     "Cross-video Object Recognition": "Object Association",
     "Multi-video Attribute Recognition": "Object Association",
@@ -179,26 +177,7 @@ def _crossvid_stats_from_records(output_dir: Path) -> dict:
     }
 
 
-def _parse_e2e_md(path: Path) -> dict:
-    """Extract comparison numbers from an e2e benchmark_results.md."""
-    result: dict = {"overview": {}, "crossvid_tasks": {}, "cvbench_overall": None, "mvu_overall": None}
-    text = path.read_text(encoding="utf-8")
-    for name, value in re.findall(
-        r"\| (CVBench|MVU-Eval|CrossVid) \|[^\n]*?\| ([0-9.]+) \|", text
-    ):
-        result["overview"][name] = float(value)
-    crossvid_section = text.split("## CrossVid", 1)[-1]
-    match = re.search(
-        r"\|\s*分数（%）\s*\|((?:\s*[0-9.]+ \|)+)", crossvid_section
-    )
-    if match:
-        values = [float(v) for v in re.findall(r"([0-9.]+)", match.group(1))]
-        for task, value in zip(CROSSVID_TASK_ORDER, values):
-            result["crossvid_tasks"][task] = value
-    return result
-
-
-def _markdown(output_dir: Path, e2e: dict | None) -> str:
+def _markdown(output_dir: Path) -> str:
     manifest = _load_json(output_dir / "run_manifest.json")
     scored_path = output_dir / "summary_scored.json"
     summary = _load_json(scored_path if scored_path.exists() else output_dir / "summary.json")
@@ -376,33 +355,6 @@ def _markdown(output_dir: Path, e2e: dict | None) -> str:
             lines.append("按题型家族：" + " ｜ ".join(fam_items) + "。")
             lines.append("")
 
-        if e2e and e2e.get("crossvid_tasks"):
-            lines.append("### 与端到端（e2e）对照")
-            lines.append("")
-            lines.append("| Task | MVAgent no-skill | e2e | 差值 |")
-            lines.append("|---|---:|---:|---:|")
-            diff_count = 0
-            for task in CROSSVID_TASK_ORDER:
-                ours = ccqa_display if task == "CCQA" else by_task[task]["accuracy"] * 100
-                theirs = e2e["crossvid_tasks"].get(task)
-                if theirs is None:
-                    continue
-                diff_count += 1
-                lines.append(f"| {task} | {ours:.2f} | {theirs:.2f} | {ours - theirs:+.2f} |")
-            e2e_o = e2e.get("overview", {}).get("CrossVid")
-            if e2e_o is not None and diff_count == len(CROSSVID_TASK_ORDER) and o_avg is not None:
-                lines.append(
-                    f"| **O.Avg** | **{o_avg:.2f}** | **{e2e_o:.2f}** | **{o_avg - e2e_o:+.2f}** |"
-                )
-            lines.append("")
-            lines.append(
-                "注意：CCQA 双方为同一官方 deepseek judge 协议，直接可比；"
-                "choice 类与 CVBench/MVU 官方口径可比；MSR/MOC（e2e 用最终选项解析）"
-                "与 FSA/PSS（e2e 对自由文本严格解析，Agent 输出天然满足格式契约）"
-                "存在解析口径差异，对比需谨慎。"
-            )
-            lines.append("")
-
     lines.append("## 数据完整性")
     lines.append("")
     for name in ("cvbench", "mvu_eval", "crossvid"):
@@ -475,11 +427,6 @@ def _merge_deferred_judge(output_dir: Path, summary: dict) -> dict:
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True, help="Agent-eval run output dir")
-    parser.add_argument(
-        "--e2e-results",
-        type=Path,
-        help="Optional e2e benchmark_results.md for the comparison table",
-    )
     return parser
 
 
@@ -488,9 +435,6 @@ def main() -> None:
     output_dir = args.output.expanduser().resolve()
     if not (output_dir / "summary.json").is_file():
         raise SystemExit(f"summary.json not found under {output_dir}")
-    e2e = None
-    if args.e2e_results is not None and args.e2e_results.is_file():
-        e2e = _parse_e2e_md(args.e2e_results)
     summary = _load_json(output_dir / "summary.json")
     if summary.get("total_deferred"):
         summary = _merge_deferred_judge(output_dir, summary)
@@ -498,7 +442,7 @@ def main() -> None:
             json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     elif (output_dir / "records" / "crossvid").is_dir():
         _crossvid_local_ccqa_report(output_dir)
-    report = _markdown(output_dir, e2e)
+    report = _markdown(output_dir)
     save_path = output_dir / "benchmark_results.md"
     save_path.write_text(report, encoding="utf-8")
     print(f"[DONE] saved={save_path}")

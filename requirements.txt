@@ -1,4 +1,4 @@
-# Complete project environment: MVAgent + skill evolution + local vLLM + E2E runners.
+# Reference environment: MVAgent + skill evolution + local vLLM.
 # Reference platform: Linux x86_64, Python 3.12, NVIDIA GPU for local inference.
 # Shared runtime, optimizer, model API and scoring dependencies.
 PyYAML==6.0.3
@@ -28,8 +28,8 @@ transformers==4.57.6
 xgrammar==0.2.2
 qwen-vl-utils==0.0.14
 
-# E2E benchmark preprocessing and media diagnostic scripts.
+# Retain the validated media dependency versions for runtime consistency.
 av==17.1.0
-# Upstream wheel has a Python-tag metadata issue; see README before E2E evaluation.
+# Upstream wheel has a Python-tag metadata issue; see README.
 decord==0.6.0
 tqdm==4.68.3

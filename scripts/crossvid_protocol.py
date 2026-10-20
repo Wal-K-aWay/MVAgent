@@ -1,7 +1,6 @@
 """MVAgent-specific CrossVid manifest and prompt-format helpers.
 
-Benchmark inference and scoring live only in the vendored official source under
-``eval/e2e_eval``.
+MVAgent evaluation and scoring enter through ``eval/agent_eval``.
 """
 
 from __future__ import annotations

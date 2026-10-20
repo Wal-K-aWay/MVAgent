@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_CVBENCH_SOURCE = PROJECT_ROOT / "eval/e2e_eval/CVBench/Video-R1/src/r1-v/Evaluation/CVBench.json"
+DEFAULT_CVBENCH_SOURCE = PROJECT_ROOT / "eval/agent_eval/metadata/CVBench.json"
 
 
 def cvbench_rows(source: Path) -> list[dict[str, Any]]:

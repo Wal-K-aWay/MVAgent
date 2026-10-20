@@ -54,11 +54,10 @@ profile's transitive kernel requirements explicit. Do not upgrade these packages
 independently when comparing with the reference results. The requirements are
 not a complete transitive lock or a prevalidated image for every GPU server.
 
-**Known E2E dependency issue:** the public decord 0.6.0 wheel has an internal
-Python tag that can cause a Python 3.12 compatibility complaint despite successful
-imports. This concerns the optional E2E decoder. Investigate dependency errors;
-do not suppress unrelated failures. See [E2E evaluation](eval/e2e_eval/README.md).
-Do not install upstream SkillOpt or the vendored training frameworks to run MVAgent.
+The reference environment retains its pinned media dependencies. A decord 0.6.0
+wheel can report a Python 3.12 tag mismatch despite successful import; investigate
+installation errors and validate video decoding on the target server. Do not
+install upstream SkillOpt or third-party training frameworks to run MVAgent.
 
 ## Data and model preparation
 
@@ -74,12 +73,8 @@ mkdir -p "$DATA_ROOT/crossvid" "$MODEL_ROOT" "$RUN_ROOT"
 
 ### CrossVid data
 
-Download the annotations and available media from
-[CrossVid on Hugging Face](https://huggingface.co/datasets/Chuntianli/CrossVid),
-following the [official preparation instructions](https://github.com/chuntianli666/CrossVid#1-preparation).
-Charades and Animal Kingdom videos must be obtained separately from their official
-sources and placed in `videos/behavior/`, as described upstream. Extract the data
-into this layout, retaining original names:
+Supply a complete CrossVid dataset yourself. This guide starts from locally
+available annotations and original media, arranged as follows:
 
 ```text
 $DATA_ROOT/crossvid/
@@ -95,8 +90,7 @@ $DATA_ROOT/crossvid/
     └── frames/
 ```
 
-The preprocessing scripts transform local media; they do not download missing
-source datasets. Only CrossVid is required for the main walkthrough below.
+Only CrossVid is required for the main walkthrough below.
 Do not replace source videos with re-encoded copies when comparing input hashes.
 
 ### Actor and Judge weights
@@ -152,7 +146,7 @@ The retained preprocessing uses 10 FPS, a maximum frame side of 960, and the
 `mvagent_question_boxes` protocol: referenced MOC/MSR objects are marked during
 their first visible second. These are media-preparation settings; Actor requests
 still use the fixed 512-frame/448-pixel limits. The question-box representation is
-MVAgent's evaluation input protocol, distinct from official CrossVid E2E inputs.
+MVAgent's fixed evaluation input protocol.
 Do not change these settings for a reproduction comparison.
 
 The lower-level entry is `scripts/prepare_multivideo_benchmarks.py crossvid`;
@@ -285,8 +279,8 @@ Download the published answers, text trajectories and CCQA scores from
 The 9B, 27B and 35B-A3B packages are separate attachments; their `statistics.md`
 contains the reference metrics. Verify the published SHA256 values. GitHub's
 automatic source archives do not contain these result attachments.
-[E2E, AgentCVR, LensWalk and Video-RSI results](docs/repository.md#released-results)
-remain available in their existing Releases.
+Previously published comparison results remain in their existing Releases;
+this repository now contains only the MVAgent evaluation implementation.
 
 For a reproduction comparison:
 
@@ -316,8 +310,6 @@ Historical protocol changes and negative findings remain in
   `--benchmarks cvbench mvu_eval crossvid` with the same split manifest; the split
   filters CrossVid while leaving the other two complete. See
   [benchmark setup](eval/README.md) and [Agent evaluation](eval/agent_eval/README.md).
-- **Direct E2E evaluation:** use [the E2E runner](eval/e2e_eval/README.md).
-  Its prompts and media protocol differ from MVAgent's agent workflow.
 - **Skill evolution:** use `scripts/run_skill_evolution.py --mode train|evaluate`
   and [the evolution recipes](configs/skill_evolution/README.md). These require
   separate Train/Cal/Gate data and optimizer/embedding services; they are not needed

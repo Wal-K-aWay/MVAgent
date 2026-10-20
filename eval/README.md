@@ -1,149 +1,54 @@
-# Benchmark evaluation
+# MVAgent evaluation
 
-- [CrossVid 2500题目ID](crossvid_2500.json): JSON array of 2500 unique full IDs (`crossvid:<task>:<original_id>`), for filtering the original QA records. This is an ID-only export of the [frozen split manifest](../configs/skill_evolution/splits/crossvid_lite2500_eval_seed20260919.json); use that manifest with `--split-manifest` for Skill evaluation. Selection metadata and original sampling seed are retained in the manifest; reuse these IDs rather than resampling.
+`agent_eval/` is the only evaluation implementation in this repository. It evaluates
+MVAgent on locally supplied CVBench, MVU-Eval and CrossVid data. See the
+[root walkthrough](../README.md) for CrossVid preprocessing, fixed inference and
+CCQA judging, and [the runner guide](agent_eval/README.md) for all CLI options.
 
-`eval/e2e_eval/` is the official-source hub. The separate `eval/agent_eval/`
-directory contains the thin MVAgent-system runner for CVBench, MVU-Eval, and CrossVid; it
-does not modify or replace official inference and scoring.
+| Entry | Purpose |
+|---|---|
+| `agent_eval/run.py` | Freeze inputs/configuration, run MVAgent and score closed tasks |
+| `agent_eval/serve_ccqa_judge.sh` | Start the fixed local CCQA Judge |
+| `agent_eval/score_crossvid_ccqa.py` | Judge saved CCQA answers with the existing protocol |
+| `agent_eval/finalize_results.py` | Merge deferred scores and report final metrics |
+| `agent_eval/export_results.py` | Export saved answers and text trajectories |
+| `agent_eval/metadata/CVBench.json` | Annotation metadata for preparation and reporting |
+| `crossvid_2500.json` | Frozen list of 2,500 CrossVid evaluation IDs |
 
-The parent MVAgent repository directly tracks the required official evaluation sources
-under `eval/e2e_eval/`; there are no nested repositories or submodules. Non-evaluation
-assets, data-generation tools, training code, saved predictions, and unrelated lmms-eval
-tasks are omitted. The retained files preserve the upstream evaluation logic and their
-source URLs/commits are recorded in `eval/e2e_eval/README.md`.
+Dataset paths are relative to the `--dataset-root` parent directory:
 
-## Official-code audit
-
-| Benchmark | Official test code | Assessment | Important boundary |
-|---|---|---|---|
-| CVBench | `lmms-eval/lmms_eval/tasks/mvr/` and `Video-R1/src/eval_bench.py` | Complete retained MVR task with the official Qwen2.5-VL and OpenAI-compatible adapters | The upstream adapter runs Qwen2.5-VL in-process; `eval/e2e_eval/run.py` reproduces its message layout, prompt and scorer over an OpenAI-compatible endpoint. |
-| MVU-Eval | `inference/main.py` and `inference/analyze.py` | Functionally complete vLLM inference and aggregate analysis path | `analyze.py` hard-codes its result folder in `__main__`; configure that in an experiment-local copy and keep the upstream answer parsing unchanged for official numbers. |
-| CrossVid | ten task scripts under `eval/` plus `eval/score_CCQA.py` | Functionally complete and the clearest of the three; inference supports OpenAI-compatible APIs | `score_CCQA.py` hard-codes API placeholders and service settings. Configure an experiment-local copy, keep its scoring logic unchanged, and never write a real key into this repository or the vendored source. |
-
-All end-to-end runs go through the unified harness `eval/e2e_eval/run.py` (vLLM endpoints or
-the official API profiles in `eval/e2e_eval/api/`). It executes or reads the official prompts,
-message order, sampling and scoring from the vendored sources. The protocol parameters are the
-video frames per model call (`--frames`, default 512) and the longest frame edge (`--max-side`,
-default 448); frames are always sent as images and videos are separated by `Video k:` labels
-without file names. See `eval/e2e_eval/README.md` for the alignment table, the list of deviations,
-commands and output layout.
-
-## Source provenance and scope
-
-No initialization step is required after cloning MVAgent. The benchmark sources are
-ordinary files in the same Git worktree. CVBench retains the lmms-eval runtime, its MVR
-task, Qwen2.5-VL/OpenAI-compatible adapters, cue images, and Video-R1 evaluation entry; MVU-Eval retains
-`inference/`; CrossVid retains `eval/`. See `eval/e2e_eval/README.md` for exact upstream
-commits and omitted directories.
-
-## MVAgent-system evaluation
-
-`eval/agent_eval/run.py` evaluates the normal online MVAgent Runtime from one
-frozen source snapshot. It reuses the canonical CVBench/MVU-Eval/CrossVid sample adapters and
-`mvagent.batch.BatchExecutor`. `--execution-config` supplies explicitly allowed GPUs
-and shared request limits; OpenQA requires an explicit `--judge-model`. It writes
-every inference result atomically before independent scoring, and
-resumes without rerunning successful samples. See `eval/agent_eval/README.md`.
-
-Its strict option-label score describes the complete Agent system. It is not an
-official upstream framework score; publication claims still use the entries under
-`eval/e2e_eval/`.
-
-## Official source and local configuration policy
-
-The vendored snapshot is the protocol source. Avoid editing imported upstream logic.
-When an upstream script requires a hard-coded local path, endpoint, or credential,
-copy that script into the experiment output directory, change configuration values
-only, and record the source commit plus the copied-script diff or hash. This preserves
-the official inference/scoring logic while keeping machine-specific settings and
-secrets outside Git. A rewritten parser, metric, prompt, or request
-flow is not an official result path.
-
-## Run the upstream evaluations
-
-First follow each upstream README for dependencies and dataset placement. Keep large
-datasets and result files outside tracked upstream files.
-
-### CVBench
-
-CVBench's primary path is its bundled lmms-eval task:
-
-```bash
-cd eval/e2e_eval/CVBench/lmms-eval
-pip install -e .
-python -m accelerate.commands.launch --num_processes=1 -m lmms_eval \
-  --model qwen2_5_vl \
-  --tasks mvr \
-  --batch_size 1 \
-  --output_path /absolute/path/to/outputs/cvbench
+```text
+DATA_ROOT/
+├── crossvid/       # QA/, videos/, uav/; preprocessing creates qa.jsonl and media
+├── cvbench/        # QAs.json and original media paths
+└── mvu-eval/       # QAs.json and original media paths
 ```
 
-The alternative official Video-R1 path is documented in
-`eval/e2e_eval/CVBench/README.md`.
-
-### MVU-Eval
-
-Start the vLLM server exactly as documented upstream, then from the vendored source root run:
+Supply only the benchmarks selected by `--benchmarks`. To build CVBench/MVU-Eval
+question manifests from locally available annotations and media:
 
 ```bash
-python inference/main.py \
-  --model_name Qwen/Qwen2.5-VL-3B-Instruct \
-  --port 8007 \
-  --data_filename QA_json_file.json \
-  --data_root /absolute/path/to/MVU-Eval-Data/videos
-
-python inference/analyze.py
+python scripts/prepare_cvbench_mvu_qas.py \
+  --mvu-source "$DATA_ROOT/mvu-eval/MVU_Eval_QAs.json" \
+  --cvbench-output "$DATA_ROOT/cvbench/QAs.json" \
+  --mvu-output "$DATA_ROOT/mvu-eval/QAs.json" \
+  --cvbench-media-root "$DATA_ROOT/cvbench" \
+  --mvu-media-root "$DATA_ROOT/mvu-eval"
 ```
 
-Before running `analyze.py`, make an experiment-local configuration copy as described
-above and point its hard-coded result folder at the output from `main.py`. Do not edit
-the vendored source.
+The retained CVBench annotation source is documented in
+[metadata/README.md](agent_eval/metadata/README.md). Media paths in generated
+`QAs.json` are resolved relative to each benchmark directory.
 
-### CrossVid
+Use the existing
+[frozen split manifest](../configs/skill_evolution/splits/crossvid_lite2500_eval_seed20260919.json)
+with `--split-manifest` to select CrossVid Lite2500. Do not resample it for a score
+comparison. Raw answers are saved before scoring; Judge failures remain errors.
+CrossVid's primary score is the ten-task macro average, with CCQA weighted by
+scoring-point count within its task. Final deferred-score summaries are in
+`summary_scored.json` and `benchmark_results.md`.
 
-Each task owns its official inference and scoring behavior. Example:
-
-```bash
-python eval/BU.py \
-  --model your-model-name \
-  --port 8000 \
-  --threads 20 \
-  --frames 128 \
-  --length 360 \
-  --video_root /absolute/path/to/CrossVid/videos \
-  --QA_path /absolute/path/to/CrossVid/QA/BU.json \
-  --save_path /absolute/path/to/outputs/crossvid/BU_result.json
-```
-
-For CCQA, first generate answers with `eval/CCQA.py`. The upstream
-`eval/score_CCQA.py` contains hard-coded API placeholders, so run a secured
-experiment-local configuration copy as described above. Change only credentials and
-service settings; retain the official prompt, per-question scoring, and aggregation.
-
-## Updating an upstream pin
-
-1. Clone the official repository into a temporary directory and inspect the new commit,
-   README, inference entry, scorer, dependencies, and metric changes.
-2. Copy only the required evaluation files into `eval/e2e_eval/<benchmark>/`.
-3. Update the source commit and retained/omitted scope in `eval/e2e_eval/README.md`.
-4. Run the vendored-source tests and record any protocol change in the experiment
-   manifest and result report.
-
-Do not silently follow a moving branch for reported experiments. The MVAgent commit and
-the three recorded upstream source commits together identify the protocol.
-
-## Deferred OpenQA scoring
-
-Use `--defer-open-qa-judge` with `eval/agent_eval/run.py` to generate CrossVid
-CCQA answers without a Judge; it cannot be combined with `--judge-model`.
-This option participates in the resume identity. Deferred rows retain the prediction,
-reference answer, scoring points and trajectory with `score=null`, `correct=null`
-and `scoring_status=deferred`. References remain offline and never enter Actor prompts.
-Closed tasks retain their existing scorers. Summary fields distinguish inference
-completion, scored completion and deferred scoring; CrossVid `accuracy` is null until
-its CCQA scores exist, while `scored_subset_accuracy` covers scored questions only.
-
-Current deferred CCQA judging and finalization use the fixed local Judge described in
-[the Agent evaluation guide](agent_eval/README.md). Historical runs and score comparisons
-are recorded in [the experiment history](../docs/experiments.md); do not reuse their output
-directories for a new run.
+Historical E2E and other-method implementations remain in Git history, and their
+published result attachments remain in Releases. They are not required to run
+MVAgent. Historical findings and protocol differences remain in
+[the experiment record](../docs/experiments.md).
