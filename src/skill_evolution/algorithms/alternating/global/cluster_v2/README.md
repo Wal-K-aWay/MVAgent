@@ -89,4 +89,5 @@ cluster_v2/
 ## 验证
 
 原 CPU mock 单测（`tests/`）没有随项目迁移过来。2026-10-06 已在 Modal 上完成首次真实端到端运行（CrossVid 9 类闭式题，Train 72 / Cal 36 / Gate 36，10 轮），
-结果与发现的问题见 `.claude/status.md`。
+运行时协议与历史结论见 [实验记录](../../../../../../docs/experiments.md)；
+每次进化的结果与问题应记录在该次运行报告中。

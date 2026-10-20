@@ -22,10 +22,11 @@ git rev-parse HEAD
 ```
 
 当前实验数据、权重和凭据不随代码分发，正式结果使用 GitHub Release；来源见实验记录。
-仓库已有的 `outputs/portable/` 是旧版本历史快照，不是当前源码或成绩入口；本次保持原样。
+公开目录只保留源码、配置、评测入口、必要工具、功能回归检查和文档。
+结果下载与目录说明见 [项目结构与结果](docs/repository.md)；旧结果快照和一次性实验脚本已移出当前代码树，
+历史提交和现有 Release 保留。
 配置中的模型、数据、输出路径和 GPU 分配须按目标机器映射。
-Modal 访问必须经 `modal-gpu`，读取该机 `~/.agents/skills/modal/SKILL.md`；本地环境 skill、
-`.claude/status.md` 和 `.claude/benchmarks.md` 需单独保留，不随仓库分发。
+本地服务访问配置、会话笔记和凭据需单独保留，不随仓库分发。
 既有任务继续用各自冻结源码，新实验必须新建输出目录。
 
 ## Installation
@@ -84,12 +85,14 @@ python scripts/run_skill_evolution.py --help
 - [MVAgent batch evaluation](eval/agent_eval/README.md)
 - [Skill evolution and independent Skill evaluation](src/skill_evolution/README.md)
 - [E2E benchmark setup and data preparation](eval/README.md)
-- [Architecture and repository rules](AGENTS.md)
+- [Repository layout, tools and released results](docs/repository.md)
+- [Preprocessing, visualization and skill tools](scripts/README.md)
 - [Accepted baseline, historical experiments and next refinements](docs/experiments.md)
 
 Record the Git commit, model/Judge versions, inference settings, dataset split and
 Skill hashes for each run. Keep frozen run sources and scored outputs together.
-New generated results, caches, datasets and model weights must not be committed to Git; tracked Markdown documents may describe them. Existing historical portable snapshots are retained separately from the current runtime.
+Generated results, caches, datasets and model weights must not be committed to Git.
+Markdown reports retain experiment conclusions and protocol differences; result files are distributed through Releases.
 
 ## Basic validation
 
@@ -98,12 +101,13 @@ Run these checks in the remote project environment.
 ```bash
 python -m pip check
 python demo.py --help
-PYTHONPATH=src python scripts/test_direct_answer.py
+PYTHONPATH=src python tests/test_direct_answer.py
 ```
 
 Tests that compile local structured-output grammars require the full environment,
 including xgrammar. Actual GPU inference and benchmark scores require separately
 configured models and datasets; passing import checks alone does not validate them.
+See [regression checks](tests/README.md) for the retained checks and their requirements.
 
 The shared runtime/API dependencies were checked in a clean Python 3.12 virtual environment with
 `pip check`, all three CLI help entry points, and the historical action-contract tests.
