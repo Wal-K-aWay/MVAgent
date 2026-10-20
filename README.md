@@ -1,123 +1,330 @@
 # MVAgent
 
-A two-level multi-agent system for multi-video question answering, with offline
-Global/Video planning-skill evolution. GlobalAgent coordinates question answering;
-one VideoAgent gathers evidence from each video. Skills modify planning policy,
-while the runtime owns action contracts, media processing, and execution.
+MVAgent answers questions about multiple videos with a two-level agent system:
+a **GlobalAgent** coordinates the task, and one **VideoAgent** gathers evidence
+from each video. Optional skill libraries change planning instructions without
+training the model weights.
 
-## 固定框架与恢复
+This guide runs the fixed **no-skill MVAgent baseline on CrossVid Lite2500** on a
+Linux GPU server, from raw data preparation through inference and final scoring.
+It uses the supported repository entry points, without private session files,
+Modal-specific launchers, or historical experiment controllers.
 
-当前唯一无 Skill 基础为 **简洁 Global System + 原 VideoAgent + 直接回答/同接口强制终答**。
-采用 FFmpeg 裁剪及已验收的极短视频修复，三模型统一 BF16、seed=0、temperature=0。
-详细配置见 [固定评测方案](configs/inference/README.md#固定评测方案)，所有历史实验与负结果集中在
-[实验记录](docs/experiments.md)。不要从历史实验脚本另选一套 Prompt 或推理配置。
-
-默认分支 `main` 提供当前固定框架，包含短视频与不可读裁剪末帧修复。运行源码与已验收的 `f8a6a62` 一致。
-在其他服务器获取：
-
-```bash
-git clone https://github.com/Wal-K-aWay/MVAgent.git
-cd MVAgent
-git rev-parse HEAD
-```
-
-当前实验数据、权重和凭据不随代码分发，正式结果使用 GitHub Release；来源见实验记录。
-仓库已有的 `outputs/portable/` 是旧版本历史快照，不是当前源码或成绩入口；本次保持原样。
-配置中的模型、数据、输出路径和 GPU 分配须按目标机器映射。
-Modal 访问必须经 `modal-gpu`，读取该机 `~/.agents/skills/modal/SKILL.md`；本地环境 skill、
-`.claude/status.md` 和 `.claude/benchmarks.md` 需单独保留，不随仓库分发。
-既有任务继续用各自冻结源码，新实验必须新建输出目录。
+- [Installation](#installation)
+- [Data and model preparation](#data-and-model-preparation)
+- [CrossVid preprocessing](#crossvid-preprocessing)
+- [MVAgent evaluation](#mvagent-evaluation)
+- [CCQA judging and final scores](#ccqa-judging-and-final-scores)
+- [Results and reproducibility](#results-and-reproducibility)
+- [Other workflows](#other-workflows)
 
 ## Installation
 
-The reference environment is **Linux x86_64 with Python 3.12**. For local inference,
-an NVIDIA GPU and a driver compatible with the selected PyTorch/vLLM wheels are
-required. Install on the GPU server, not on the Lightsail session host. Use an isolated environment.
+Use **Linux x86_64 and Python 3.12**, with an NVIDIA driver compatible with the
+pinned PyTorch/vLLM environment. The reference evaluation uses **8 H100 GPUs**, each
+holding a complete BF16 model, TP=1 and one in-flight request per GPU. Inference and
+model services must run on the same host/container; endpoints are loopback-only.
+Data preprocessing needs CPU, storage and video codecs, but does not run a model.
+
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) first. Then,
+on the compute server:
 
 ```bash
+git clone --depth 1 https://github.com/Wal-K-aWay/MVAgent.git
+cd MVAgent
+git rev-parse HEAD
+
 uv venv --python 3.12 .venv
 source .venv/bin/activate
-uv pip install -r requirements.txt
+uv pip install -r requirements.txt 'flashinfer-python==0.6.6' 'triton==3.6.0'
 export PYTHONPATH="$PWD/src${PYTHONPATH:+:$PYTHONPATH}"
-```
 
-`requirements.txt` covers MVAgent, offline skill evolution, local vLLM inference,
-and the project's E2E media/scoring runners. All dependencies are declared directly
-in this single file; no additional project requirements file is needed.
-
-Do not install upstream SkillOpt: the current algorithm uses the in-repository
-implementation and its authored/upstream-derived Prompt files. Tests use Python's
-standard-library `unittest`. Vendored third-party training stacks (such as Video-R1
-training and the complete lmms-eval model registry) have their own installation
-instructions; they are not required to run MVAgent or skill evolution.
-
-The pins document the baseline's direct dependencies, not a full transitive lock
-or a guarantee of bitwise reproducibility. Dataset files and model weights are not
-included. Runtime clipping uses the FFmpeg executable supplied by `imageio-ffmpeg`.
-
-
-## Configuration and execution
-
-Configuration is grouped into [system inference](configs/inference/README.md) and
-[Skill evolution](configs/skill_evolution/README.md). Shared GPU pool settings live
-in `configs/inference/execution/`.
-
-Before running, copy an appropriate YAML from these directories and update local model
-paths, dataset paths, API endpoints and GPU assignments for your machine. Existing
-experiment YAMLs contain the original research machine's paths and GPU numbers.
-Do not assume those paths exist on a new installation. Keep API credentials outside
-Git; use environment variables or Modal Secrets.
-
-GLM-5.3-Flash is the text optimizer (`provider: bigmodel`, credential `BIGMODEL_API_KEY`) and
-DeepSeek is the CCQA Judge (`DEEPSEEK_API_KEY`); both are defined in
-`configs/skill_evolution/runtime/dynamic_35b_embedding.yaml`. Offline CCQA scoring of finished runs
-(E2E and MVAgent baselines) uses the local Qwen3-30B-A3B-Instruct-2507 Judge instead
-(`eval/agent_eval/serve_ccqa_judge.sh`, `eval/agent_eval/score_crossvid_ccqa.py`). The optimizer uses JSON mode with local
-Schema validation, thinking enabled, reasoning effort `high`, temperature 1, top_p 0.95 and 16384 output tokens.
-
-```bash
-python demo.py --help
+uv pip check
+python -c 'from models.vlm.local.sync_server import execution_profile; print(execution_profile())'
 python eval/agent_eval/run.py --help
-python scripts/run_skill_evolution.py --help
 ```
 
-- [MVAgent batch evaluation](eval/agent_eval/README.md)
-- [Skill evolution and independent Skill evaluation](src/skill_evolution/README.md)
-- [E2E benchmark setup and data preparation](eval/README.md)
-- [Architecture and repository rules](AGENTS.md)
-- [Accepted baseline, historical experiments and next refinements](docs/experiments.md)
+Keep the printed Git commit with your run. A shallow clone avoids downloading
+historical result blobs; use a normal clone if you need the complete Git history.
+Run all following commands from the repository root, with the environment active.
 
-Record the Git commit, model/Judge versions, inference settings, dataset split and
-Skill hashes for each run. Keep frozen run sources and scored outputs together.
-New generated results, caches, datasets and model weights must not be committed to Git; tracked Markdown documents may describe them. Existing historical portable snapshots are retained separately from the current runtime.
+The profile checks vLLM 0.19.1, torch 2.10.0, transformers 4.57.6, xgrammar 0.2.2,
+FlashInfer 0.6.6 and Triton 3.6.0. The two extra install constraints above make the
+profile's transitive kernel requirements explicit. Do not upgrade these packages
+independently when comparing with the reference results. The requirements are
+not a complete transitive lock or a prevalidated image for every GPU server.
 
-## Basic validation
+**Known E2E dependency issue:** the public decord 0.6.0 wheel has an internal
+Python tag that can cause a Python 3.12 compatibility complaint despite successful
+imports. This concerns the optional E2E decoder. Investigate dependency errors;
+do not suppress unrelated failures. See [E2E evaluation](eval/e2e_eval/README.md).
+Do not install upstream SkillOpt or the vendored training frameworks to run MVAgent.
 
-Run these checks in the remote project environment.
+## Data and model preparation
+
+Choose writable locations outside the code checkout. Replace `/srv/mvagent` with
+your storage location before running these examples:
 
 ```bash
-python -m pip check
-python demo.py --help
-PYTHONPATH=src python scripts/test_direct_answer.py
+export DATA_ROOT=/srv/mvagent/data
+export MODEL_ROOT=/srv/mvagent/models
+export RUN_ROOT=/srv/mvagent/runs
+mkdir -p "$DATA_ROOT/crossvid" "$MODEL_ROOT" "$RUN_ROOT"
 ```
 
-Tests that compile local structured-output grammars require the full environment,
-including xgrammar. Actual GPU inference and benchmark scores require separately
-configured models and datasets; passing import checks alone does not validate them.
+### CrossVid data
 
-The shared runtime/API dependencies were checked in a clean Python 3.12 virtual environment with
-`pip check`, all three CLI help entry points, and the historical action-contract tests.
-The full manifest was resolution-checked against the installed vLLM 0.19.1 environment;
-a fresh full GPU installation was not performed. The public Python-3 decord 0.6.0
-wheel was separately installed and imported in the disposable environment. Do not
-copy old environment directories or manually reuse interpreter-specific wheel files.
+Download the annotations and available media from
+[CrossVid on Hugging Face](https://huggingface.co/datasets/Chuntianli/CrossVid),
+following the [official preparation instructions](https://github.com/chuntianli666/CrossVid#1-preparation).
+Charades and Animal Kingdom videos must be obtained separately from their official
+sources and placed in `videos/behavior/`, as described upstream. Extract the data
+into this layout, retaining original names:
 
-**Known decord packaging issue:** the upstream 0.6.0 Python-3 wheel contains an
-internal `cp36-cp36m` tag. On Python 3.12, `pip check` reports
-`decord 0.6.0 is not supported on this platform`, even when importing the module
-succeeds. This occurs with a fresh public wheel as well as the reference environment.
-It affects the optional E2E decoder installation, not API-only MVAgent/skill evolution.
-Do not treat this as a fully clean dependency check or suppress unrelated dependency
-errors. A fresh-wheel check decoded the first and last frames of a real video successfully
-on the reference machine. Repeat an actual video-decoding check on the target
-machine before E2E evaluation.
+```text
+$DATA_ROOT/crossvid/
+├── QA/                 # BU.json, CC.json, CCQA.json, FSA.json, MOC.json,
+│                       # MSR.json, NC.json, PEA.json, PI.json, PSS.json
+├── videos/
+│   ├── assembly/
+│   ├── behavior/
+│   ├── cook/
+│   └── movie/
+└── uav/
+    ├── bbox/
+    └── frames/
+```
+
+The preprocessing scripts transform local media; they do not download missing
+source datasets. Only CrossVid is required for the main walkthrough below.
+Do not replace source videos with re-encoded copies when comparing input hashes.
+
+### Actor and Judge weights
+
+The example uses [Qwen3.5-35B-A3B](https://huggingface.co/Qwen/Qwen3.5-35B-A3B)
+as the Actor and
+[Qwen3-30B-A3B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-30B-A3B-Instruct-2507)
+as the offline CCQA Judge. Download complete, unquantized checkpoints, including
+tokenizer, processor and model configuration files.
+
+Use an immutable model-repository commit for each download. Set `ACTOR_REVISION`
+and `JUDGE_REVISION` to the full checkpoint revisions you intend to evaluate; for
+an exact historical comparison, these must match the original checkpoints rather
+than the current upstream `main`. With the
+[Hugging Face CLI](https://huggingface.co/docs/huggingface_hub/guides/cli):
+
+```bash
+# Set ACTOR_REVISION and JUDGE_REVISION before these commands.
+hf download Qwen/Qwen3.5-35B-A3B \
+  --revision "${ACTOR_REVISION:?Set the pinned Actor revision}" \
+  --local-dir "$MODEL_ROOT/Qwen3.5-35B-A3B"
+hf download Qwen/Qwen3-30B-A3B-Instruct-2507 \
+  --revision "${JUDGE_REVISION:?Set the pinned Judge revision}" \
+  --local-dir "$MODEL_ROOT/Qwen3-30B-A3B-Instruct-2507"
+export ACTOR_WEIGHTS="$MODEL_ROOT/Qwen3.5-35B-A3B"
+export JUDGE_WEIGHTS="$MODEL_ROOT/Qwen3-30B-A3B-Instruct-2507"
+```
+
+Model weights and their original full-file hash manifests are not bundled with
+this repository or the compact result packages. Record downloaded revisions and
+weight hashes; a matching model name alone does not prove matching checkpoint bytes.
+The fixed Actor profile rejects quantized checkpoints.
+
+## CrossVid preprocessing
+
+Prepare the original QA and media using the retained CrossVid-only entry point:
+
+```bash
+python scripts/run_crossvid_qa_preparation.py \
+  --root "$DATA_ROOT/crossvid" \
+  --pea-jobs 4 --uav-jobs 4
+```
+
+Adjust the preparation worker counts to available CPU/RAM; these control parallel
+preparation, not model inference. The command generates `qa.jsonl`, `qa.meta.json`
+and `.mvagent_media/` under the CrossVid directory. Its progress, logs and final
+`validation.json` are under `.mvagent_prepare/crossvid_qa/`. Require successful
+completion before evaluation; rerun the same command to continue interrupted
+preparation. Existing nonempty derived media can be reused, so start from a fresh
+derived-media directory if the source data or preprocessing protocol changes.
+
+The retained preprocessing uses 10 FPS, a maximum frame side of 960, and the
+`mvagent_question_boxes` protocol: referenced MOC/MSR objects are marked during
+their first visible second. These are media-preparation settings; Actor requests
+still use the fixed 512-frame/448-pixel limits. The question-box representation is
+MVAgent's evaluation input protocol, distinct from official CrossVid E2E inputs.
+Do not change these settings for a reproduction comparison.
+
+The lower-level entry is `scripts/prepare_multivideo_benchmarks.py crossvid`;
+`visualize_crossvid_question_boxes.py` and `frames_to_video.py` are its retained
+media helpers. See [supported tools](scripts/README.md).
+
+## MVAgent evaluation
+
+### Configure local paths
+
+Copy the checked-in configuration and change only the checkpoint path. Keep local
+copies under `.local/`, which is ignored by Git:
+
+```bash
+mkdir -p .local
+python - <<'PY'
+import os
+from pathlib import Path
+import yaml
+
+source = Path('configs/inference/modal_qwen35_35b_a3b_no_skill.yaml')
+config = yaml.safe_load(source.read_text())
+config['models']['qwen3_5_35b_a3b_local']['model_name'] = os.environ['ACTOR_WEIGHTS']
+Path('.local/mvagent-35b.yaml').write_text(yaml.safe_dump(config, sort_keys=False))
+PY
+cp configs/inference/execution/modal_h200x8.yaml .local/execution-35b.yaml
+```
+
+The execution file uses local GPU indexes 0–7 and ports 8100–8107. Change GPU indexes
+only to match your allocation, leaving one replica per GPU and `max_inflight: 1`.
+The `modal_`/`h200` filenames are historical names: the runtime can run on an ordinary
+GPU server, and the reference hardware is H100. Do not start generic `vllm serve`
+for the Actor: `run.py` starts or validates the fixed synchronous services itself.
+
+The fixed settings are BF16, `seed=0`, temperature 0, thinking disabled, 2048 output
+tokens, at most five Global/Video steps, and no skills. Prefix and multimodal
+processor caches are disabled. See the complete
+[fixed evaluation configuration](configs/inference/README.md#固定评测方案).
+
+### Run the frozen evaluation subset
+
+Choose a new output directory for each independent experiment:
+
+```bash
+export RUN_DIR="$RUN_ROOT/mvagent-35b-crossvid-lite2500"
+python eval/agent_eval/run.py \
+  --config .local/mvagent-35b.yaml \
+  --execution-config .local/execution-35b.yaml \
+  --dataset-root "$DATA_ROOT" \
+  --benchmarks crossvid \
+  --split-manifest configs/skill_evolution/splits/crossvid_lite2500_eval_seed20260919.json \
+  --defer-open-qa-judge \
+  --output "$RUN_DIR"
+```
+
+This selects the **same 2,500 CrossVid questions**, including 239 CCQA questions.
+Do not regenerate the split or combine it with `--limit`. The equivalent ID list
+is `eval/crossvid_2500.json`. Raw answers are written before scoring. Closed tasks
+are scored during evaluation; CCQA remains explicitly deferred until the next step.
+
+To resume an interrupted run, repeat the exact command with `--resume`. Keep the
+same inputs, model settings and output directory; resume uses the run's frozen
+source. Do not point a fresh experiment at another experiment's output directory.
+
+Other fixed Actor variants use the following configuration pairs. Copy and adjust
+the model path in the same way, using the model key present in that YAML:
+
+| Actor | Model config in `configs/inference/` | Execution config in `configs/inference/execution/` |
+|---|---|---|
+| 9B | `modal_qwen35_9b_no_skill.yaml` | `modal_h200x8_qwen35_9b.yaml` |
+| 27B | `modal_qwen35_27b_no_skill.yaml` | `modal_h200x8_qwen35_27b.yaml` |
+| 35B-A3B | `modal_qwen35_35b_a3b_no_skill.yaml` | `modal_h200x8.yaml` |
+
+## CCQA judging and final scores
+
+Actor services intentionally remain alive after `run.py` exits. **Before reusing
+the same GPUs for judging, stop only the Actor service processes belonging to your
+completed run and confirm their GPU memory is released with `nvidia-smi`.** Do not
+kill other users' processes or start a Judge alongside resident Actor models.
+Alternatively, run the Judge on a separate allocation with access to the run and data.
+
+On the host containing the run directory and available Judge GPUs:
+
+```bash
+export JUDGE_LOG_DIR="$RUN_DIR/judge-logs"
+bash eval/agent_eval/serve_ccqa_judge.sh 0-7 8100
+
+python eval/agent_eval/score_crossvid_ccqa.py \
+  --output "$RUN_DIR" \
+  --qa-path "$DATA_ROOT/crossvid/QA/CCQA.json" \
+  --endpoints 8100-8107
+python eval/agent_eval/finalize_results.py --output "$RUN_DIR"
+```
+
+`JUDGE_WEIGHTS` selects the checkpoint downloaded earlier. The Judge is local;
+no paid API key is required for this no-skill baseline. After scoring, release
+only your own Judge processes/allocation as well.
+
+Final outputs include:
+
+| Artifact under `RUN_DIR` | Meaning |
+|---|---|
+| `records/` | Original per-question inference records and trajectories |
+| `run_manifest.json` | Run identity and frozen input/configuration metadata |
+| `summary.json` | Original inference summary; CCQA may still be marked deferred |
+| `score/ccqa_scores_official_qwen3_30b_a3b.json` | Saved Judge results |
+| `summary_scored.json` | Final summary after deferred scoring is merged |
+| `benchmark_results.md` | Final benchmark report |
+
+Read the final report and `summary_scored.json`, not only the original deferred
+summary. CrossVid O.Avg is the macro average of its ten tasks; CCQA is weighted by
+scoring-point count within its task. Report missing records and infrastructure or
+Judge failures explicitly. A partial run is not a complete benchmark result.
+
+For optional trajectory/answer tables:
+
+```bash
+python eval/agent_eval/export_results.py "$RUN_DIR"
+```
+
+The exporter reads saved records without calling models or changing answers. Its
+`scores.json` copies the original `summary.json`, so after deferred judging use
+`summary_scored.json` and `benchmark_results.md` as the final score authority.
+See [Agent evaluation](eval/agent_eval/README.md) for detailed formats.
+
+## Results and reproducibility
+
+Download the published answers, text trajectories and CCQA scores from
+[MVAgent results](https://github.com/Wal-K-aWay/MVAgent/releases/tag/mvagent-results-20261019).
+The 9B, 27B and 35B-A3B packages are separate attachments; their `statistics.md`
+contains the reference metrics. Verify the published SHA256 values. GitHub's
+automatic source archives do not contain these result attachments.
+[E2E, AgentCVR, LensWalk and Video-RSI results](docs/repository.md#released-results)
+remain available in their existing Releases.
+
+For a reproduction comparison:
+
+1. Match the Git runtime, exact checkpoint bytes, source data, prepared media,
+   frozen sample IDs, Actor settings and Judge protocol. Preserve configuration
+   copies, dependency versions and hardware information with the run.
+2. Check that all selected questions and CCQA scores are present. Compare answers
+   by question ID and the same official aggregation; retain failures and negative results.
+3. Investigate differences through saved input hashes, token audits and trajectories.
+   The compact public packages do not include every original media byte or token ID,
+   so a full byte-level audit also requires the original run artifacts.
+
+The published fixed runtime and retained preprocessing code are unchanged by the
+repository cleanup. That is not a fresh-server end-to-end validation: installation,
+media regeneration and inference have not been rerun on every target environment.
+Different codecs, dependencies, weights or GPU types may change inputs or outputs;
+`seed=0` alone does not guarantee identical answers. The fixed panel has been reused
+for development; reproducing its scores is not an independent held-out generalization test.
+Historical protocol changes and negative findings remain in
+[the experiment record](docs/experiments.md).
+
+## Other workflows
+
+- **All three benchmarks:** obtain CVBench/MVU-Eval media and upstream annotations,
+  build their `QAs.json` files with `scripts/prepare_cvbench_mvu_qas.py`, and place
+  them under `DATA_ROOT/cvbench` and `DATA_ROOT/mvu-eval`. Then use
+  `--benchmarks cvbench mvu_eval crossvid` with the same split manifest; the split
+  filters CrossVid while leaving the other two complete. See
+  [benchmark setup](eval/README.md) and [Agent evaluation](eval/agent_eval/README.md).
+- **Direct E2E evaluation:** use [the E2E runner](eval/e2e_eval/README.md).
+  Its prompts and media protocol differ from MVAgent's agent workflow.
+- **Skill evolution:** use `scripts/run_skill_evolution.py --mode train|evaluate`
+  and [the evolution recipes](configs/skill_evolution/README.md). These require
+  separate Train/Cal/Gate data and optimizer/embedding services; they are not needed
+  for the no-skill baseline above.
+- **Runtime regression checks:** see [`tests/`](tests/README.md). For example, run
+  `PYTHONPATH=src python tests/test_direct_answer.py` in the configured compute
+  environment. Passing a unit check is not a benchmark result.
+- **Repository layout and supported tools:** see [the directory guide](docs/repository.md)
+  and [`scripts/README.md`](scripts/README.md). Data, weights, results, credentials,
+  local agent instructions and session notes are not part of the public code tree.

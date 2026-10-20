@@ -10,12 +10,10 @@ This entry evaluates MVAgent on CVBench, MVU-Eval and CrossVid. It uses
 Dataset/scoring adapters live in `skill_evolution/infra/benchmarks`; workers receive
 only the question and ordered videos, never reference answers.
 
-The frozen full-run continuation is `scripts/run_full_mvagent.py`: `prepare` runs on Modal CPU,
-then `launch` runs on the `modal-gpu` dev box using the same immutable staged checkout. It owns
-two disjoint eight-H100 shards, reuses the validated 4,500 records, and infers only the remaining
-11,463. The controller scores new CCQA answers, releases its own GPUs, and aggregates full and
-new-only results. Do not launch a second owner while its lock is held. Exact paths and completion
-state are recorded in [the experiment log](../../docs/experiments.md).
+Use `eval/agent_eval/run.py` for new evaluations. Historical matrix controllers are
+preserved in their frozen runs and Git history; they are not general-purpose entry points.
+Existing jobs resume with their own frozen sources. Historical completion and reuse
+details are recorded in [the experiment log](../../docs/experiments.md).
 
 Subsequent Qwen3.5 evaluations use the [fixed evaluation configuration](../../configs/inference/README.md#固定评测方案):
 8 H100 GPUs with independent full-model replicas and `seed=0`. The `h200` execution-file
@@ -72,14 +70,15 @@ without an additional copy of the original question. The exact System and accept
 [the experiment record](../../docs/experiments.md). Do not interpret historical standalone-answer or
 Video-context experiments as supported runtime switches.
 
-Contract checks use `scripts/test_direct_answer.py`, `scripts/test_e2e_sync.py`,
-`scripts/test_model_token_audit.py`, `scripts/test_prefix_cache_usage.py` and
-`scripts/test_agent_finalize.py`. The short-video regression is `scripts/test_short_video.py`.
-`scripts/verify_direct_answer.py` remains available for a deliberately requested isolated GPU check;
-normal evaluations reuse the accepted repeatability evidence instead of rerunning it every time.
+Contract checks live in [`tests/`](../../tests/README.md): direct answers, E2E serving,
+token audits, cache accounting, score finalization and the short-video regression.
+Their contents are unchanged by the repository cleanup.
+Normal evaluations reuse the accepted repeatability evidence instead of rerunning it every time.
 
-The dataset root is the Modal asset Volume mounted at `/assets`, with `crossvid/`, `cvbench/` and
-`mvu-eval/` subdirectories (names defined in `skill_evolution/infra/benchmarks/catalog.py`).
+Pass the parent dataset directory with `--dataset-root`. The original Modal environment
+uses `/assets`; an ordinary GPU server can use another local path. It contains `crossvid/`,
+`cvbench/` and `mvu-eval/` subdirectories for the requested benchmarks
+(names defined in `skill_evolution/infra/benchmarks/catalog.py`).
 CVBench/MVU-Eval `QAs.json` are built by `scripts/prepare_cvbench_mvu_qas.py`; their video paths
 are relative to each benchmark directory. CrossVid needs a one-time preparation that writes
 `qa.jsonl`, `qa.meta.json` and `.mvagent_media` under `crossvid/`:
@@ -185,4 +184,7 @@ local copy of the records). It reads `records/` and `summary.json`, never modifi
 - `scores.json`: official score per benchmark (copied from `summary.json`) and per-task counts, mean
   score, outcome counts and answer-validity rate.
 
-Deferred CCQA answers have `score: null` until judged; rerun the export after `score_crossvid_ccqa.py`.
+For runs using deferred CCQA judging, the original records and `summary.json` remain
+deferred even after judging. The exporter does not merge the separate Judge file.
+Use `summary_scored.json` and `benchmark_results.md` for final metrics; join the saved
+CCQA scores by question ID when analyzing per-question judged results.
