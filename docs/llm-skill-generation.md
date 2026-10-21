@@ -100,3 +100,27 @@ Video Selector 只看本次 instruction，不看 Memory 或完整问题；每请
 阅读产物发现 Global第3/4张、Video第6–9张的部分 when_to_use 依赖 History/Memory，
 而当前 Selector 看不到这些信息，可能无法正确触发；Video策略还将每范围的帧上限写成跨范围共享上限。
 这些是生成基线的局限，产物保留原样，没有据此改写或重新生成；不能据格式通过宣称策略有效。
+
+## 清理与分层后的验证（2026-10-21 UTC）
+
+源码 `39217ef`：旧算法和训练入口移除；生成器分层，共享评测迁至 `src/evaluation/`。
+角色 Prompt、Schema 与有效模型配置逐项对比首次运行保存的请求，全部相同。
+评分模块移动前后逐字节一致。26 个 CPU 回归用例通过（首轮25个通过，
+一个新测试因排序GT误用整数失败；仅修为契约要求的字符串后补测通过），
+另有 token 自检、完整 compileall 和5个CLI入口检查通过。
+没有重装依赖、运行媒体测试、启动GPU、Selector、Actor或Judge。
+
+真实 GLM 冒烟 app `ap-QQOhYUejHNczs0ya93OoF4` 已停止，tasks=0。
+仅一次 Global 请求；返回 `glm-5.3-flash`、finish_reason=stop、1892输入/1339输出token，
+返回5张卡，但第一张包含未允许的 `prerequisites` 字段：
+
+```text
+$.skills.0: Additional properties are not allowed ('prerequisites' was unexpected)
+```
+
+原始字段值为 `No cross-video evidence in History yet, or existing reports are insufficient for the question.`。
+生成器先保存响应，再按现有 Schema 拒绝；没有发布角色库或合库，没有继续 Video 调用，
+没有删除字段、自动修复或重新抽样。因此本次测到的是一次真实的格式失败及正确的失败留存，
+不是新的有效skill库或准确率结果。此前首次运行的9张有效卡及原始材料保持不变。
+记录仅在 runs volume 的 `devbox/skill_generation_cleanup_20261021/checks2/smoke1/`；
+测试日志在同父目录及 `devbox/skill_generation_cleanup_20261021/step0.log`。
