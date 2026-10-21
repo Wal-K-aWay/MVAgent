@@ -21,6 +21,9 @@ Improve answer correctness within the existing action and observation limits. Do
 introduce a separate objective of reducing calls, and do not require using all steps.
 Each card must be a self-contained method for an entire question (Global) or active
 instruction (Video), with a recognizable evidence need and a completion condition.
+Target questions require combining visual content from multiple videos. IDs, counts
+of supplied videos, durations, option wording and other metadata alone cannot solve
+these tasks. Do not create metadata-only or question-only answering methods.
 Choose scopes from differences in evidence requirements and decision procedures.
 Do not split one workflow into cards that must be activated successively for initial
 collection, refinement and completion. Those are conditional branches within a method.
@@ -50,8 +53,17 @@ context in the question/instruction are visible selection inputs. Do not invent
 tools, shared memory, output fields,
 observations, time anchors or additional information visible to either role.
 Preserve the question/instruction and all runtime action and answer contracts.
+If a selected method's prerequisites are not met, continue the baseline evidence
+workflow using allowed actions. Do not force its preferred action or an unsupported
+answer just because this card was selected; this does not require selecting another card.
+Video requests can begin with usable observations retained from earlier requests.
+Check retained Memory against the current instruction before deciding to observe or
+finish. Never assume empty Memory or mandate a new observation on every request.
 Keep sampling choices tied to evidence needs and supplied limits. Do not present
 invented FPS ranges, partition counts or retry quotas as universal requirements.
+Do not add an unconditional cap such as one refinement or two observations for every
+task covered by a card. Continue when a permitted check can change the judgment;
+stop when the requested evidence is sufficient or further checks cannot help.
 Keep cards concise; word limits are ceilings, not writing targets.
 
 ## Check before returning
@@ -168,6 +180,8 @@ def build_prompt(runtime: dict, role: str, max_cards: int) -> str:
     )
     return f"""## Task description
 Answer a question whose evidence is distributed across multiple input videos.
+The answer requires visual content from multiple videos; video metadata alone is
+insufficient. Metadata may guide evidence collection, not replace it.
 A global coordinator combines returned evidence; one evidence agent per video
 answers local instructions. Their private observations are not shared automatically.
 
