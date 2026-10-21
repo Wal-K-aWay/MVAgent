@@ -32,8 +32,8 @@ references remain a separate existing mode, unrelated to dynamic JSON authoring.
 | `bank.py` | Immutable card/bank data, validation, hashes, path resolution and static/dynamic loading. Card/body limits are enforced here. |
 | `prompts.py` | Selector System templates and User input, plus pure Markdown heading rendering for injected Skill text. No file I/O or model calls. |
 | `selection.py` | Metadata retrieval, LLM selection, output validation, task-scoped reuse and telemetry. |
-| `authored/` | Editable individual Skill JSON cards, grouped by library. |
-| `skill_sets/` | Hash-addressed frozen bank snapshots referenced by configuration. |
+| `authored/` | Historical individual cards for offline reference; not loaded by default. |
+| `skill_sets/` | Frozen, hash-addressed banks explicitly selected for distribution and reproducible evaluation; see the [catalog](skill_sets/README.md). |
 | `PROVENANCE.json` | Historical selector provenance, not runtime configuration. |
 
 Dependencies: `selection → bank/prompts`; `bank → prompts` for pure text rendering.
@@ -117,11 +117,13 @@ validate the whole bank. Freeze publishes a new `<sha256>.json`, never overwriti
 old snapshots. Configure enabled/mode/path/sha256, task scope and embedding on each
 role's Skill reference. Neither this code nor these commands deploy model services.
 
-Current cards live under `authored/*/*.json`; generated banks live in their run
-directories and are loaded by path and SHA256. Original Common Pitfalls were moved into strategy
-as constraints; existing guidance was retained. The current 11-card Global acquisition
-bank exercises hybrid retrieval; the7-card Video bank bypasses it. No new accuracy
-claim follows from the format change. Frozen experimental artifacts are unchanged.
+Generation artifacts remain in their run directories. Selected frozen libraries can
+be copied byte-for-byte into `skill_sets/`, with provenance and their existing SHA256.
+The shipped DeepSeek-Flash bank contains 6 Global and 8 Video cards, so each role's
+eligible catalog bypasses embedding retrieval. It is an explicitly enabled comparison
+baseline; default inference configurations keep skills disabled. Historical cards in
+`authored/` do not define the current library. Running experiments retain their own
+frozen files and configurations.
 
 Role backgrounds describe available information, action inputs/results and the required
 deliverable directly, without relying on MVAgent/GlobalAgent/VideoAgent names.

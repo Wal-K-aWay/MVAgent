@@ -74,7 +74,8 @@ Global 分母是题数；Video 分母是 VideoAgent 请求中的选卡次数，�
 这应称为**格式规范化后的 LLM 一次生成库**，不能称原始响应直接通过 Schema，也不是自进化后的库。
 
 - 完整库 SHA256：`7da609f63fda7c4fb1c446b477fc5663b15c9d77487784a12fcbd27b8d52b049`。
-- AWS 保存位置：`outputs/skills/deepseek_flash_20261021/`，含完整库、两个角色库、两份原始响应、规范化记录及逐文件大小/SHA256 传输核验；不进入 Git。
+- AWS 原始备份：`outputs/skills/deepseek_flash_20261021/`，含完整库、两个角色库、两份原始响应、规范化记录及逐文件大小/SHA256 传输核验；此备份目录不进入 Git。
+- 用于代码分发的同字节冻结库已收录到 [`src/mvagent/skills/skill_sets/`](../src/mvagent/skills/skill_sets/README.md)，库 SHA256 不变；原始响应和评测数据不进入源码目录。
 - Modal 原件：runs volume `wxu-evolve-agent-runs-20261006` 下 `devbox/deepseek_skill_eval_20261021/skills/`。
 - 冻结运行源码：`0894a470b322ac0ed74744a6d3131fbdd778ca14`；六组运行使用同一源码。
 - Actor 与 Selector：各自的 Qwen3.5-9B、35B-A3B、27B；BF16、每卡独立 TP1/DP1/C1、seed=0、temperature=0、thinking 关闭、prefix/MM cache 关闭。

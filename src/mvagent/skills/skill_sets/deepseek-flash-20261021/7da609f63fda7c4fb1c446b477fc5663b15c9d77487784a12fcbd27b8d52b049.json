@@ -1,0 +1,173 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "1",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The question asks for a comparison, selection, ranking, or combined value based on a stated visible attribute across the listed videos, where each video can be judged separately before results are combined, such as 'which video shows the larger/faster/more X' or 'what is the total of the visible values'. Exclude questions whose decisive evidence is relative timing, synchrony, or an unverbalizable visual correspondence; exclude pure presence/count/set-membership questions and cases where one named video's observation must become a search key for another.",
+      "strategy": "Use this for a comparison, ranking, selection, or combined-value question over a stated visible attribute. First check retained History for usable per-video or joint evidence; reuse it and request only missing facts. Parse the question into the target entity or attribute, the comparison or combination rule, and the candidate videos. If the question names a subset or a recognizable clue, analyze those first, but include every plausible candidate before deciding. IDs and durations may guide which videos to inspect, never the answer. In one analyze_videos action, send each selected video a self-contained local instruction: state the exact visible attribute, object, or action to find; ask for a concrete observed value, timestamp or interval, and any ambiguity or alternative; do not ask for cross-video comparison or a final answer. Respect the batch and per-video character limits. Record facts by video ID. Compare only like-for-like observations and discard unsupported claims. If a local report is incomplete, issue a focused follow-up to that video for the missing visible detail. If the deciding difference is a fine correspondence that text reports cannot resolve, use watch_videos on short relevant intervals, naming the IDs and the exact attribute to compare; otherwise do not spend a joint call. Continue only while a check can change the result. When all candidates have usable observations, or further checks cannot change the judgment, answer with the exact requested option label, set, number, or short text and put material uncertainty in reason. If the needed local evidence cannot be obtained, continue baseline allowed evidence collection and submit only a supported best judgment, not a discussion of missing evidence."
+    },
+    {
+      "meta": {
+        "id": "10",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction asks for the order of two or more events, actions, or states in this source, what happens before or after a reference event, which event is first or last, or how a scene changes over time. Use when the main evidence operation is establishing chronology or a transition. Do not use when the request is only presence, a single anchored detail, or a total count.",
+      "strategy": "Check retained Memory for observations that already establish relevant states, events, or transitions and their order; reuse them. Identify candidate segments for each event or transition mentioned in the instruction and Memory. Observe ordered ranges around the candidates, asking what action or state occurs and, where useful, what happens at the boundary between them. Use distinctive visual cues such as object positions, clothing changes, scene continuity, or visible cause and effect rather than metadata. If the order is unclear, inspect the interval spanning the possible transition and ask a comparative temporal question, such as which event occurs first or whether the first event precedes the second. If one event is not found, search adjacent ranges before concluding that it is absent. Do not claim an order from a single frame that does not show the transition or enough surrounding state. Continue while a permitted check can distinguish order; if it cannot, finish with the best-supported sequence and explicit uncertainty about unresolved links. The finish summary should state the chronological evidence without exposing ranges, sampling, or planning steps."
+    },
+    {
+      "meta": {
+        "id": "11",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction asks to describe a named or described person, object, place, or readable text in this video, or to identify which visible entity matches supplied attributes, without necessarily giving a precise timestamp and without asking for a simple presence judgment. Use when the requested result is an attribute or identity description and the evidence operation is locating the entity and comparing discriminating visual features. Do not use when a precise timestamp already anchors the requested detail, or when the task is counting repeated instances.",
+      "strategy": "First use retained Memory to see whether the entity and the requested attributes have already been observed. If they are sufficient and consistent, finish. Otherwise translate the description into visible cues such as clothing, shape, color, relative position, accompanying objects, or text. Search plausible intervals with a question that asks for candidate entities and their distinguishing features; if several candidates match loosely, compare each against all supplied cues rather than accepting the first match. Once a candidate is found, observe a tighter range for a clear view and ask specifically for the requested attributes, such as appearance, action, spatial relation, or readable text. If attributes conflict or a similar entity could cause confusion, inspect additional appearances or surrounding context and track continuity across them. Do not infer identity or attributes from names, labels, or metadata alone. If no candidate is found after reasonable coverage, report the absence and the limitation in general terms. Continue while a permitted observation can resolve an attribute or identity; otherwise finish with a compact description or identification grounded in observations, with unresolved ambiguity clearly stated and no internal observation details."
+    },
+    {
+      "meta": {
+        "id": "12",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction asks to compare two or more visible entities, actions, regions, or moments in this same source, such as which is larger, faster, the same or different, how one changes relative to another, or which of several candidates best matches a criterion. Use when the requested result is a relative judgment and the evidence operation is paired observation under comparable conditions. Do not use for a single-entity description, a yes/no presence check, or a comparison that would require another video.",
+      "strategy": "Check retained Memory for evidence about each compared item. If every item has already been described consistently enough for the requested comparison, finish without new observation. Otherwise identify what must be observed for each item and the criterion that makes the observations comparable. Observe each item with questions that return the needed feature or behavior rather than asking for a premature comparison; where items co-occur, one targeted range may support both, but ensure both are visible. If one item is missing, search for it before judging; do not compare an observed item with an assumed item or with information from outside this source. When both are observed, either compare the retained descriptions directly if they are clear, or ask one targeted comparative question over ranges containing both. If separate appearances are involved, compare specific features rather than vague impressions. Recheck if a difference could be caused by camera angle, distance, occlusion, or timing. Continue only while a permitted observation can change the comparison; then finish with the relative result, the observed basis, and any uncertainty, without mentioning ranges, sampling, or planning steps."
+    },
+    {
+      "meta": {
+        "id": "13",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The active instruction asks for two or more distinct evidence items, for example describing an entity and also reporting an action, location, text, or count, where the parts may need different visual questions or ranges. Use when the requested result is a multi-part evidence summary and no single observation can answer all parts. Do not use when the request is a single presence, count, order, description, or comparison task covered by another method.",
+      "strategy": "Review retained Memory and list the instruction's distinct evidence items. Mark each as answered, partially answered, or missing. If all are adequately grounded, finish without new observation. For missing items, group those that can be answered by the same range and by one unambiguous visual question; otherwise observe them separately, because each range returns one semantic answer. Prefer targeted questions over one broad question that mixes unrelated details. Keep a consistent entity, location, or time reference across observations so the parts can be combined coherently. If one item depends on another, such as identifying a person before describing clothing, resolve the prerequisite first. Continue only while a permitted observation can resolve a missing part. If an item remains unobservable, finish with the supported parts and explicitly state the gap or uncertainty rather than fabricating it. Do not let one failed part block reporting the others. Finish with a self-contained summary covering each requested item, grounded in retained observations and free of internal observation details."
+    },
+    {
+      "meta": {
+        "id": "14",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction explicitly asks to verify, re-check, disambiguate, correct, or refine an earlier reported observation or summary for this video, for example by naming a claim or uncertainty to confirm. Use only when the requested result is a refined or corrected evidence statement and the main operation is targeted re-inspection of retained evidence. Do not use for an initial question with no verification request, or for a new unrelated search.",
+      "strategy": "First read retained Memory for the claim and its supporting observations. If Memory already gives decisive support and the instruction only asks to restate or confirm, finish with the confirmed or corrected summary. If no usable retained observation exists, the refinement prerequisite is not met: treat the request as an initial evidence task, observe what is needed for the claimed fact, and do not assert a correction before seeing evidence. Identify the smallest unresolved point, such as a disputed attribute, event, time, identity, or coverage limit, and what observation would distinguish the competing possibilities. Observe targeted ranges around the relevant evidence or gap with a question that directly tests that point and, where useful, names the alternatives. If the new observation conflicts with prior Memory, inspect the discriminating interval again only if clearer view or sampling can resolve it; otherwise report the conflict and uncertainty instead of forcing certainty. Do not rescan the whole source unless the disputed claim concerns whole-source coverage. Finish with the confirmed or corrected claim, the visual basis, and remaining uncertainty; omit internal ranges, sampling, and planning steps."
+    },
+    {
+      "meta": {
+        "id": "2",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The question asks for a cross-video temporal or visual relationship such as which action occurs first, whether two events are simultaneous, how speeds or durations compare, how a sequence or repeated motion aligns, or whether two videos show the same action or spatial correspondence. The answer depends on comparing clips jointly rather than on separate per-video attribute reports. Exclude simple presence, counting, ranking by a static attribute, and claim verification that can be resolved from independent observations.",
+      "strategy": "Use this when the requested result is a relative temporal or cross-video visual relationship: order, simultaneity, speed, duration, repetition, phase, same action, or spatial correspondence. Check History first for already returned clip evidence and avoid repeating it. Identify the videos and the exact relation to judge. If the relevant intervals are unknown and videos are long, first use analyze_videos on each video with a local instruction to locate the event and return timestamps; do not ask for a cross-video judgment. Then make one watch_videos call with at least two distinct IDs, no more than the smaller of four and the supplied video count, and exactly one complete clip per selected video inside its duration. Choose clip length by need: short windows for brief gestures or fine detail, longer windows for overall sequence; the shared 512-frame capacity is runtime-allocated, so do not request fps or assume a separate full frame budget per clip. The instruction must name the selected video IDs, state the exact relationship to compare, and request a concise per-video description plus the comparison, including uncertainty; do not ask it to choose the final answer. Use visible phases rather than assuming exact synchronization when timestamps are absent. If the joint result is insufficient, use a different targeted joint interval or a focused local detail request only when it can change the judgment. Answer when the relation is supported or further visual checks cannot resolve it; use the requested representation and put any limitation in reason. If valid clips or IDs cannot be formed, continue with allowed per-video analysis rather than forcing a joint call."
+    },
+    {
+      "meta": {
+        "id": "3",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The question asks for a count or tally across videos, which videos satisfy a visible criterion, whether all/any/none of the videos show something, or how many distinct instances appear across the supplied videos. The contribution from each video can be checked locally as present/absent or as a count. Exclude comparisons of magnitude, ranking, temporal order, and close visual matching between videos.",
+      "strategy": "Use this when the requested result is a count, tally, set of matching video IDs, or all/any/none judgment. Restate the criterion as an observable test with inclusion and exclusion rules, and decide whether each video contributes a boolean, a count, or an item identity. Check History for prior per-video findings and reuse them; do not assume empty Memory. For every candidate video, send the same self-contained analyze_videos instruction with its own video ID: ask whether the target appears, how many distinct instances meet the rule, and the timestamp or interval plus a brief visible description; ask for borderline cases separately. Do not ask one video agent about other videos or for a total. Combine the per-ID results, avoid double counting, and keep set membership mapped to IDs. If a video's report lacks the decisive detail, or a count is close to a decision threshold, re-query only that video with a focused instruction. If borderline instances are hard to distinguish by description, use watch_videos on ambiguous exemplars from at least two videos, naming IDs and asking whether the same inclusion rule is met; do not use a joint call merely to total already reliable local counts. Continue only while a check can change the count, set, or boolean. Then answer in the exact requested form: number, set of IDs, yes/no, or option label. If evidence remains partial, return the best-supported result and state uncertainty in reason rather than listing missing evidence."
+    },
+    {
+      "meta": {
+        "id": "4",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The question explicitly grounds a clue in a named source video or a first visible result, then asks to find, compare, or answer something in other video(s), so one video's observation must supply the search key or descriptor for another. Examples include 'the person in video V1', 'the object shown after X in video A', or a question whose later step depends on a visible fact from an earlier named video. Exclude independent parallel comparison, pure counting, and claim verification without an explicit source-to-target dependency.",
+      "strategy": "Use this when the question explicitly grounds a clue in a named source video and asks about another video based on that clue. Check History first for any already recovered anchor descriptor or target evidence. Isolate the anchor video and the clue the question says it supplies. Send that anchor video a local analyze_videos instruction asking for a precise, visually observable descriptor: object or person, clothing, color, shape, text, action phase, spatial relation, timestamp, and plausible alternatives. Do not ask it to search another video or answer the question. Treat the returned descriptor as a search key. Then send target-video instruction(s) that include the question constraint and the descriptor, asking them to locate a matching instance and report visible similarities, differences, and timestamp; keep each instruction independently understandable and respect character limits. If several targets or candidates remain, analyze them in one batch or sequentially according to limits, preserving ID mapping. If the descriptor is difficult to verbalize or candidates look alike, use watch_videos with the anchor's relevant clip and target candidate clips; name the IDs and ask for a direct visual match on the stated features, not a final answer. Compare only observations that satisfy the anchor clue and the question's additional constraint. Answer when one candidate is supported or further checks cannot separate candidates; use the requested label or text. If the anchor clue cannot be recovered, do not invent a descriptor; continue baseline per-video analysis of likely targets and answer only if supported."
+    },
+    {
+      "meta": {
+        "id": "5",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The question presents a claim or described event about one or more videos and asks whether it is true/false, which video supports or contradicts it, or which video proves the described occurrence. Evidence must be located by checking visible predicates in candidate videos. Exclude open-ended commonality questions, comparative ranking, and ordinary count/set aggregation unless the requested result is a truth status or a supporting video.",
+      "strategy": "Use this when the question asks for verification, truth status, or evidence attribution for a stated claim. Check History for earlier observations that already bear on the claim. Rewrite the claim as a small set of observable predicates plus its scope: which videos, object identity, order, or simultaneity. For each candidate video, issue a self-contained analyze_videos instruction to search for the exact visual evidence, report whether it supports, contradicts, or is silent on each predicate, and give timestamps and descriptions; warn the video agent not to assume the claim is true and not to give the final answer. Keep predicates tied to what is visible. Compare evidence across IDs: one clear decisive observation may settle an existential claim; universal or all-video claims need coverage of every named candidate; comparative claims need the relevant pair. If the claim's truth depends on a cross-video temporal or spatial relation, use watch_videos on the relevant clips with an instruction naming IDs and asking directly whether the described relation occurs. If a report is ambiguous, recheck only the decisive predicate or the most plausible alternative while it can change the verdict. Answer with the requested truth value, supporting video ID, or option label, and state material uncertainty in reason. If prerequisites fail, continue ordinary allowed evidence collection; do not force a verdict unsupported by observations."
+    },
+    {
+      "meta": {
+        "id": "6",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The question asks for an open-ended cross-video relationship such as what several videos have in common, their main difference, a shared procedure or theme, how one video relates to another, or a synthesis without a clear measurable attribute, explicit anchor, count, temporal order, or claim to verify. Independent summaries are needed to discover the dimensions before any joint visual check. Exclude questions with a stated per-video comparison criterion, set membership, or explicit source-to-target dependency.",
+      "strategy": "Use this for an open-ended commonality, difference, shared-procedure, or cross-video relationship question. Check History first for prior summaries and reuse them; do not assume no observations exist. Start with compact per-video analyze_videos instructions asking for the main visible actions, objects, setting, sequence of changes, and any unusual detail, with timestamps. Do not supply candidate commonalities and do not ask for a cross-video conclusion; each local instruction must be answerable from its own video. Build a short table by video ID and identify candidate dimensions of similarity, difference, or a possible causal or procedural link from the returned descriptions. Choose the dimension that actually answers the question and is visually checkable. If that dimension is already clear from independent reports, answer. If it depends on co-presence, timing, or fine appearance, use one watch_videos call on representative clips, naming the IDs and asking to compare that dimension directly and report agreements, differences, and uncertainty; do not ask for the final answer. Keep clips valid and within the allowed joint-selection limits. Do not keep exploring unrelated topics after a supported answer is available, and do not use metadata as a substitute for visual evidence. Use a follow-up local query only for a missing fact that can change the synthesis. Submit a concise requested answer when the shared, different, or relational point is supported or further checks cannot improve it; note uncertainty in reason. If the needed visual evidence cannot be obtained, continue baseline allowed evidence collection and submit the best-supported answer."
+    },
+    {
+      "meta": {
+        "id": "7",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The active instruction asks whether a described object, person, action, scene, text, or event is present anywhere in this source, or asks which of two or more named alternatives appears, without giving a reliable timestamp or short segment. It applies when the requested result is a presence/absence or alternative-identification judgment and the main evidence operation is a coverage search. It does not apply when the instruction supplies a specific anchor for a detail inspection or asks for a count of repeated occurrences.",
+      "strategy": "First check retained same-video Memory. If it already contains direct evidence for this instruction, confirm that it matches the requested predicate and finish rather than re-observing. Otherwise turn the instruction into a concrete visual predicate: what must be visible, and what look-alike should not be confused with it. If the instruction says anywhere, ever, or gives no location clue, plan coverage of the full source; if it hints at a scene or part of the video, start there and expand only as needed. Use ordered, non-overlapping ranges in observe actions, asking one clear question that requests both presence and a distinguishing location or description. Choose the sampling rate from how briefly the target may appear and how much detail the predicate needs, not from video duration alone; use denser sampling for brief actions, small objects, or text, and sparser sampling for persistent scenes or large objects, within the allowed range. Multiple ranges can share one question when the same predicate applies. A miss is not evidence of absence until coverage is adequate. If a candidate appears in Memory, inspect a tighter range around it to confirm the distinguishing attributes and rule out look-alikes; if alternatives are named, ask which one is visibly present and how it is distinguished. When absence or an alternative judgment is requested, cover every plausible portion of the source with sampling adequate for the expected visible duration; if the permitted checks cannot establish that coverage, finish with the covered result and explicit uncertainty instead of claiming absence. Finish with the presence result, alternative, or absence supported by retained observations, plus uncertainty if unresolved; keep ranges, sampling, and planning details out of the summary."
+    },
+    {
+      "meta": {
+        "id": "8",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction identifies a timestamp, frame position, short interval, or unmistakable scene/event anchor and asks what is visible or happening there, or asks for a detail within that anchored segment such as identity, action, color, object, readable text, or spatial relation. Use when the main operation is close inspection around a known temporal reference. Do not use when the instruction only gives a vague description for locating an event, or when it asks for counting or ordering events across the whole video.",
+      "strategy": "Check retained Memory for observations on or adjacent to the anchor. If they already answer the current detail, finish; do not repeat observation merely to follow a procedure. Otherwise locate the anchor within the known duration. If the anchor is outside the duration, or no exact match is visible, inspect the nearest plausible interval and record that the anchor was not confirmed. Observe a tight window around the anchor with enough lead-in and lead-out to establish context, and ask one specific question that distinguishes the requested detail. Set sampling according to the expected motion and detail size: denser for brief actions, small objects, or text, sparser for static or large-scale content, within allowed limits. If the anchor is a scene or event, first confirm it is the right scene using distinctive context, then ask the detail question separately if needed. If the result is too small, occluded, too fast, or ambiguous, re-observe an adjusted interval or ask a narrower attribute question; continue only while a permitted check can change the judgment. Do not infer the detail from metadata. Finish with the observed detail, the anchor context, and any remaining uncertainty; do not expose internal ranges or sampling choices."
+    },
+    {
+      "meta": {
+        "id": "9",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction asks how many times an event, object, or person appears, how many distinct instances are shown, or how often a repeated action or state occurs, and therefore requires enumeration rather than a simple yes/no. Use when the requested result is a count or frequency and the evidence operation is systematic coverage plus deduplication. Do not use when the instruction only asks about presence, a single anchored instance, or temporal order.",
+      "strategy": "Review retained Memory for prior occurrence descriptions and counts; reuse them if their coverage still fits the current instruction rather than restarting. Define the countable unit from the instruction: what counts as one occurrence, whether repeated appearances of the same entity count separately, and whether only visible instances count. Plan systematic full-duration coverage using ordered, non-overlapping ranges in one or more observe actions. For each range, ask the visual model to list each occurrence with a distinguishing position, context, or feature, not merely to return a number. Choose sampling from the briefest countable occurrence that must be caught; if a brief event may be missed, increase sampling in candidate ranges rather than reducing coverage. Merge lists by comparing descriptions and positions, and inspect boundary intervals when the same occurrence may be split across two ranges. If a range returns an ambiguous or partial list, re-observe that range with a more specific question. If the source was only partly covered or the inclusion rules remain unresolved, finish with a partial count or range and explicit uncertainty, not a false exact total. Finish with the count or frequency, the visual basis, and unresolved caveats; exclude action details from the summary."
+    }
+  ]
+}

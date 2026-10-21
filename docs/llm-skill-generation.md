@@ -41,7 +41,12 @@ summary 记录每角色实际卡数、每角色上限与目标selection_scope；
 响应在解析之前保存；失败目录保留，不能覆盖后假称首次成功。
 events 包含实际请求体、响应正文、模型身份、finish_reason、usage 和耗时；不含认证请求头。
 使用现有 provider 日志，不声称保存了供应商完整 HTTP 响应或 reasoning_content。
-生成数据只留实验 runs volume，不进入 Git；可共享的代码和本说明独立备份。
+原始生成数据保留在实验 runs volume，不进入 Git。明确选定的冻结 JSON 库可作为运行时资源
+原样收录到 [`src/mvagent/skills/skill_sets/`](../src/mvagent/skills/skill_sets/README.md)，
+同时记录来源、规范化步骤和 SHA256；生成器本身不自动向源码目录发布库。
+当前已收录 DeepSeek-Flash 的 14 张规范化卡，完整 SHA256 为
+`7da609f63fda7c4fb1c446b477fc5663b15c9d77487784a12fcbd27b8d52b049`。
+原始响应、失败记录、AWS 备份及正在运行实验的冻结副本继续保留。
 
 ## 代码与配置
 
@@ -148,7 +153,8 @@ Global强制answer-only终答保留策略；Video强制总结只读Memory/instru
 原始请求、响应、事件、校验记录、summary和冻结源码保留；下面的库哈希与加载结果属于历史记录，
 对应库文件现在已经删除。清理回执位于同一runs volume的
 `devbox/one_shot_skill_library_cleanup_20261021/receipt.json`。
-DeepSeek首次生成的原始响应与失败记录保留，当前没有通过校验的DeepSeek库。
+该清理发生时，DeepSeek首次生成的原始响应与失败记录保留，尚无通过校验的DeepSeek库。
+随后仅删除额外 null 字段得到当前规范化库，来源和限制见[库目录说明](../src/mvagent/skills/skill_sets/README.md)。
 后续成功生成时，库仍写入`--output-dir`指定目录下的`bank.json`，配套配置为`runtime_with_skills.json`。
 
 ## 首次真实生成（2026-10-21 UTC）

@@ -18,6 +18,11 @@ skill_evolution/
 默认从现有无 skill 推理配置读取动作容量与步数；不加载其模型、题目或卡库。
 输入边界、输出文件、完整中文 Prompt 镜像见 [生成说明](../../docs/llm-skill-generation.md)。
 
+生成产物先保存到实验目录；明确选定的冻结库可原样收录到
+[`src/mvagent/skills/skill_sets/`](../mvagent/skills/skill_sets/README.md)，供代码分发与复现。
+当前收录 DeepSeek-Flash 的 6 张 Global / 8 张 Video 规范化库；不包含原始响应、轨迹或评分，
+不自动发布新候选，也不改写已有运行的冻结引用。
+
 复用关系：
 
 - `models.llm.api.ApiLLMClient` / `ApiLLMConfig`：当前DeepSeek纯文本生成。
