@@ -45,7 +45,7 @@ class EvaluationSnapshotTest(unittest.TestCase):
                 assert not (output / "src/evaluation").exists()
                 assert Path(sys.modules["eval.benchmarks"].__file__).is_relative_to(output)
                 from eval.benchmarks import build_official_scorer
-                scorer, _ = build_official_scorer(result[3])
+                scorer, _ = build_official_scorer(result[3], {})
                 assert scorer.score_prediction("cvbench:1", "A").score == 1.0
 
                 (workspace / "eval/benchmarks/scoring.py").write_text("raise RuntimeError('live workspace used')")
