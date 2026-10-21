@@ -17,6 +17,10 @@ runner 负责共享模型、数据、评分和角色算法组装；algorithms/ �
 新运行冻结源码；恢复通过原入口 --resume 使用所属冻结版本，不用当前源码接续旧算法。
 英文 Skill 规范见 [global_skill_specification.md](infra/global_skill_specification.md)。
 
+无反馈生成基线：`scripts/generate_skills.py` 使用 `glm-5.3-flash`，仅根据任务与运行契约
+一次生成 Global/Video 卡库，复用 Runtime 的格式、字数、哈希加载检查；不读取题目或轨迹。
+协议、运行命令和中文 Prompt 镜像见 [说明](../../docs/llm-skill-generation.md)。
+
 Cluster v1：`global-cluster-v1`；配置 `configs/skill_evolution/global_cluster_35b.yaml`；流程见 `src/skill_evolution/algorithms/alternating/global/cluster/README.md`；CPU 测试 `tests/test_global_cluster.py`。
 
 当前 Skill 长度规则：四个文本字段合计最多 **1200 words**，when_to_use无独立硬上限；渲染正文（含标题）最多1200 words。统一由 `count_words` 统计字母/数字/下划线组成的词，词内撇号和连字符不拆分，独立标点不计数；cat、analyze_videos、segment_1 各计1 word，1->2 计2 words。这是英文词计数，不是 tokenizer 或中文分词。Prompt 要求简洁英文，通常900–1100 words或更少，上限不是写作目标。配置改为 max_card_words/max_skill_words；旧字符配置不再支持。JSON Schema 仅保留非空和结构检查，单词上限由程序统一校验。冻结实验仍保留原字符口径，不能混用新源码恢复。

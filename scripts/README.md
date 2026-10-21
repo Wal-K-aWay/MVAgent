@@ -17,6 +17,7 @@ The scripts retain their existing interfaces and file contents.
 | Build CrossVid Train/Cal/Gate splits | `prepare_crossvid_train_cal_gate_split.py` |
 | Build choice-only or multibenchmark evolution splits | `prepare_crossvid_choice_evolution_split.py`, `prepare_multibench_skill_evolution_split.py` |
 | Train or evaluate skill libraries | `run_skill_evolution.py` |
+| Generate a one-shot GLM skill bank without task examples | `generate_skills.py` |
 | Validate, edit, search and freeze skill libraries | `manage_skills.py` |
 
 `__init__.py` supports imports shared by preprocessing and visualization.
@@ -39,4 +40,6 @@ and historical report builders are removed from the current tree. Their findings
 including negative results and protocol differences, remain in
 [the experiment history](../docs/experiments.md) and the algorithm documents.
 The [repository guide](../docs/repository.md) identifies the historical source commit.
-The six retained runtime regression checks are in [`tests/`](../tests/README.md).
+Regression checks are in [`tests/`](../tests/README.md).
+The [one-shot generation protocol](../docs/llm-skill-generation.md) documents its
+data boundary, frozen outputs, and Chinese prompt mirror.
