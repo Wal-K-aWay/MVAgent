@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Freeze and run the role-wise skill evolution development experiment."""
 from pathlib import Path
+from contextlib import contextmanager
+from urllib.parse import urlparse
 import argparse,json,os,shutil,subprocess,sys
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -78,6 +80,46 @@ def _prepare(args):
     return output, manifest
 
 
+@contextmanager
+def _optimizer_client(path, *, runtime, execution_path, output):
+    from skill_evolution.configs.models import load_client, validate_model_settings
+    from models.utils import is_loopback_host
+
+    config, _ = validate_model_settings(yaml.safe_load(Path(path).read_text()))
+    local = (config.model_type == 'api_vlm' and str(config.provider or '').strip() == 'openai_compatible'
+             and is_loopback_host(urlparse(config.api_base or '').hostname))
+    if not local:
+        yield load_client(path)
+        return
+
+    from models.pool import canonical_endpoint, install_pools
+    from mvagent.batch import ExecutionConfig, prepare_model_pools
+
+    name = config.model_name
+    execution = ExecutionConfig.from_yaml(execution_path)
+    if runtime.get('models', {}).get(name, {}).get('type') != 'local_vllm':
+        raise ValueError('Local optimizer model_name must name a local_vllm runtime model')
+    endpoint = canonical_endpoint(config.api_base)
+    replicas = execution.model_pools.get(name, {}).get('replicas', [])
+    if endpoint not in {replica['endpoint'] for replica in replicas}:
+        raise ValueError('Local optimizer api_base must belong to its configured model pool')
+    try:
+        # Register before constructing the API client so it uses the local grammar transport.
+        pools, failures = prepare_model_pools(runtime, execution)
+        pool = pools[name]
+        if not pool.cards:
+            raise ValueError('Local optimizer requires a verified fixed-profile model pool')
+        if endpoint not in {replica.endpoint for replica in pool.replicas}:
+            raise ValueError('Local optimizer api_base did not pass service verification')
+        write_json(Path(output) / 'optimizer_pools.json', {'model': name,
+            'unavailable': failures, 'pools': {
+                key: {'replicas': [replica.to_dict() for replica in value.replicas], 'cards': value.cards}
+                for key, value in pools.items()}})
+        yield load_client(path)
+    finally:
+        install_pools({})
+
+
 def main():
     args = _parser().parse_args()
     output, manifest = _prepare(args)
@@ -89,22 +131,22 @@ def main():
             env['MVAGENT_SOURCE_COMMIT'] = manifest['source_commit']
         os.execve(sys.executable, [sys.executable,str(entry),'--output',str(output),'--resume'],env)
     from skill_evolution.configs.evolution import EvolutionConfig
-    from skill_evolution.configs.models import load_client
     from skill_evolution.algorithms.rolewise.optimizer import evolve
     from eval.skill_eval.evaluator import LibraryEvaluator
     config_dir = output/'configs'
     config = EvolutionConfig.from_dict(json.loads((config_dir/'search.json').read_text()))
     runtime = json.loads((config_dir/'runtime.json').read_text())
-    client = load_client(config_dir/'optimizer.json')
-    evaluator = LibraryEvaluator(output=output, runtime=runtime, execution=config_dir/'execution.json',
-        split_path=config_dir/'split.json', dataset_root=manifest['dataset_root'],
-        endpoints=manifest['judge_endpoints'], identity=hash_json(manifest))
-    try:
-        summary = evolve(client=client,runtime=runtime,config=config,evaluator=evaluator,output=output)
-        print(json.dumps(summary), flush=True)
-    except BaseException as exc:
-        write_json(output/'failure.json', {'error':str(exc)}, redact=client.api_key)
-        raise
+    with _optimizer_client(config_dir/'optimizer.json', runtime=runtime,
+                           execution_path=config_dir/'execution.json', output=output) as client:
+        evaluator = LibraryEvaluator(output=output, runtime=runtime, execution=config_dir/'execution.json',
+            split_path=config_dir/'split.json', dataset_root=manifest['dataset_root'],
+            endpoints=manifest['judge_endpoints'], identity=hash_json(manifest))
+        try:
+            summary = evolve(client=client,runtime=runtime,config=config,evaluator=evaluator,output=output)
+            print(json.dumps(summary), flush=True)
+        except BaseException as exc:
+            write_json(output/'failure.json', {'error':str(exc)}, redact=client.api_key)
+            raise
 
 
 if __name__ == '__main__':

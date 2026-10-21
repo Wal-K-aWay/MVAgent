@@ -17,7 +17,7 @@ def validate_model_settings(settings):
     if not looks_like_env_var_name(config.api_key):
         raise ValueError('api_key must name an environment variable')
     if config.max_retries != 1:
-        raise ValueError('Skill proposals require max_retries: 1 (one attempt)')
+        raise ValueError('Skill proposals require max_retries: 1 (at most one transient retry)')
     return config, client_class
 
 

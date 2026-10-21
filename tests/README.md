@@ -16,6 +16,7 @@ PYTHONPATH=src python tests/test_one_shot_skills.py
 PYTHONPATH=src:. python tests/test_skill_evolution.py
 PYTHONPATH=src:. python tests/test_skill_evaluation.py
 PYTHONPATH=src:. python tests/test_evolution_snapshot.py
+PYTHONPATH=src:. python tests/test_local_optimizer.py
 PYTHONPATH=src python tests/test_evaluation_utilities.py
 PYTHONPATH=src python tests/test_evaluation_snapshot.py
 ```
@@ -54,3 +55,5 @@ authentication headers. It makes no network calls.
 Evolution checks cover role-private information isolation, matched local contexts,
 immutable single-role edits, saved-call resume, Cal gain rejected by Gate, official
 macro/CCQA point weighting and Judge failure without overwriting raw rollouts.
+The local optimizer check mocks pool preparation and HTTP transport, checking model/endpoint
+binding, sync-server grammar/seed/token-audit fields, pool cleanup and unchanged commercial API routing.

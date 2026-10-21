@@ -1,0 +1,13 @@
+# For evolve_skills.py with a matching runtime model and verified execution pool.
+model_type: api_vlm
+provider: openai_compatible
+model_name: qwen3_5_9b_local
+api_base: http://127.0.0.1:8100/v1
+api_key: LOCAL_OPTIMIZER_API_KEY
+temperature: 0.0
+top_p: 1.0
+max_tokens: 4096
+timeout_sec: 1860
+# ApiVLM currently interprets this as one retry after a transient error.
+max_retries: 1
+# Thinking is disabled by the verified qwen35-bf16-flashinfer-sync server.

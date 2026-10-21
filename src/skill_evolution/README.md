@@ -45,7 +45,7 @@ python scripts/evolve_skills.py \
   --output /runs/my-run/evolution
 ```
 
-密钥仅由`DEEPSEEK_API_KEY`环境变量/Modal Secret提供。入口不会分配GPU或启动模型服务。
+默认优化器密钥仅由`DEEPSEEK_API_KEY`环境变量/Modal Secret提供。入口不分配GPU；本地服务沿用已有模型池管理。
 清单沿用`eval.data.DataSplitManifest` v2：train=Train、cal=Cal、eval=Gate；每组覆盖CrossVid十任务、题目和声明源组互斥。
 CVBench/MVU不进入优化。入口先冻结源码/评测代码/配置，再从冻结入口运行；原始rollout先保存，再按官方评分。
 两库初始为空；每轮只改一个角色的一张卡，最多8张/角色。候选在完整Train、Cal上自然选卡运行，Cal严格增益最高者进入Gate，Gate严格正增益才接受。
@@ -62,6 +62,30 @@ resume只接受输出目录，使用原冻结配置，拒绝被改写的源码�
 [角色轮换Prompt](../../docs/skill-evolution-prompts.md)。
 
 首轮完整接入实验和采样修复的证据见[实测报告](../../docs/skill-evolution-probe.md)。该轮0次接受。手工设计卡片与路由/指导诊断已实现，方案与实际测量状态见[机制检验](../../docs/manual-skill-diagnostics.md)。
+
+### 本地优化器
+
+角色轮换入口支持将上面的 `--optimizer-config` 换成
+[`configs/skill_evolution/local_optimizer.yaml`](../../configs/skill_evolution/local_optimizer.yaml)，
+配合 `configs/inference/modal_qwen35_9b_no_skill.yaml` 和对应 execution 配置。
+配置使用 `api_vlm/openai_compatible` 发送纯文本，模型名为 `qwen3_5_9b_local`，
+temperature=0、top_p=1、最多4096输出token；固定 `qwen35-bf16-flashinfer-sync` 服务关闭thinking。
+`LOCAL_OPTIMIZER_API_KEY` 必须在运行环境中设置为非空值，不在YAML或日志中保存实际值。
+
+`runtime.models` 必须含同名 `local_vllm` 模型；`execution.model_pools` 中该模型必须包含
+优化器 `api_base` 对应的端口。可以复用Actor已有池；若优化器与Actor不同，须在runtime和execution
+同时声明优化器模型，Actor引用保持原值。入口先复用 `prepare_model_pools` 验证并注册已有配置的全部池，
+再构造优化器客户端，避免向固定服务发送不支持的 `response_format`。模型池负责既有服务检查和必要的服务启动，
+因此只在已分配GPU的远端环境运行。端口不匹配、没有健康副本或缺少固定profile身份会直接报错。
+
+本地调用复用已有grammar、seed=0、实际token和输入哈希记录；服务身份留在 `optimizer_pools.json`，
+逐次请求仍在 `rounds/*/proposal-*/events.jsonl`。退出仅清理父进程的池注册，不停止服务。
+商业API路径不准备本地池。本接入仅覆盖角色轮换入口，不扩展一次生成入口。
+
+配置仍遵循现有 `max_retries: 1` 校验；现有API VLM和API LLM客户端都将它解释为首次请求后最多一次瞬时错误重试，
+因此不能称为严格单次HTTP尝试。本次不改变其语义；正常成功请求只调用一次，缺响应的中断提案仍不自动重放。
+远端无模型契约测试为 `PYTHONPATH=src:. python tests/test_local_optimizer.py`；真实提案还需独立验证，
+这些接入检查不代表skill收益。
 
 ## 手工设计的对照卡片
 
