@@ -4,8 +4,11 @@ from pathlib import Path
 import tempfile
 import unittest
 
+from evaluation.store import file_fingerprint
+from models.execution import emit_event
 from mvagent.configs.model_config import ApiVLMConfig
-from skill_evolution.one_shot import generate, make_bank
+from mvagent.skills.bank import SkillBank
+from skill_evolution.generation.generator import generate, make_bank
 
 
 class FakeClient:
@@ -17,6 +20,10 @@ class FakeClient:
 
 
 class OneShotTests(unittest.TestCase):
+    def setUp(self):
+        import yaml
+        self.runtime = yaml.safe_load(Path("configs/inference/modal_qwen35_35b_a3b_no_skill.yaml").read_text())
+
     def test_limits_and_role(self):
         value = json.loads(FakeClient().chat([]))
         bank = make_bank(value, "video", 8, offset=3)
@@ -29,8 +36,6 @@ class OneShotTests(unittest.TestCase):
             make_bank(value, "video", 8)
 
     def test_invalid_output_is_saved_and_not_retried(self):
-        import yaml
-        runtime = yaml.safe_load(Path("configs/skill_evolution/runtime/dynamic_35b_embedding.yaml").read_text())
         client = FakeClient()
         calls = []
 
@@ -42,12 +47,42 @@ class OneShotTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "run"
             with self.assertRaises(RuntimeError):
-                generate(client, runtime, ["global"], output, 8)
+                generate(client, self.runtime, ["global"], output, 8)
             self.assertEqual(len(calls), 1)
             self.assertEqual(json.loads((output / "global/response.json").read_text())["raw_response"], "invalid JSON")
             self.assertFalse((output / "bank.json").exists())
             with self.assertRaises(FileExistsError):
-                generate(client, runtime, ["global"], output, 8)
+                generate(client, self.runtime, ["global"], output, 8)
+
+    def test_both_roles_produce_a_loadable_bank_and_frozen_source(self):
+        client = FakeClient()
+        client.cfg.api_key = client.api_key
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "run"
+            summary = generate(client, self.runtime, ["global", "video"], output, 8)
+            bank = SkillBank.load(path=str(output / "bank.json"), sha256=summary["bank_sha256"])
+            self.assertEqual([(c.id, c.role) for c in bank.cards], [("1", "global"), ("2", "video")])
+            self.assertFalse(summary["quality_evaluated"])
+            manifest = json.loads((output / "source_manifest.json").read_text())
+            for name, digest in manifest["files"].items():
+                self.assertEqual(file_fingerprint(output / "source" / name), digest)
+            self.assertNotIn(client.api_key, (output / "generation_config.json").read_text())
+
+    def test_truncated_response_is_preserved_but_never_published(self):
+        client = FakeClient()
+        raw = client.chat([])
+
+        def truncated(*args, **kwargs):
+            emit_event("model_response", finish_reason="length")
+            return raw
+
+        client.chat = truncated
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "run"
+            with self.assertRaises(RuntimeError):
+                generate(client, self.runtime, ["global"], output, 8)
+            self.assertEqual(json.loads((output / "global/response.json").read_text())["raw_response"], raw)
+            self.assertFalse((output / "bank.json").exists())
 
 
 if __name__ == "__main__":

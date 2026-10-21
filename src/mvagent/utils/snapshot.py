@@ -174,7 +174,7 @@ def activate_snapshot_imports(snapshot_dir: Path) -> None:
 def _forget_runtime_modules(*, packaged: bool) -> None:
     """Prevent a previously imported workspace Runtime from shadowing a snapshot."""
     if packaged:
-        prefixes = ("mvagent", "models", "skill_evolution")
+        prefixes = ("mvagent", "models", "skill_evolution", "evaluation")
     else:
         prefixes = ("agents", "configs", "engine", "models", "runtime", "skills", "utils")
     for module_name in tuple(sys.modules):

@@ -28,7 +28,7 @@ from scripts.prepare_multivideo_benchmarks import (
 
 
 # Dataset root layout, matching the Modal asset Volume (mounted at /assets);
-# mirrors skill_evolution.infra.benchmarks.catalog. Benchmark videos live directly in each directory.
+# mirrors evaluation.benchmarks.catalog. Benchmark videos live directly in each directory.
 CROSSVID_DIR = "crossvid"
 CVBENCH_DIR = "cvbench"
 MVU_EVAL_DIR = "mvu-eval"

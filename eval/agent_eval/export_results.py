@@ -4,7 +4,7 @@
 Reads <run>/records/*/*/result.json and <run>/summary.json; never changes them. Writes <run>/tables/:
   answers.jsonl      one row per question: identity, prediction, reference, score, outcome, answer validity,
                      evidence actions, stop status, time, token usage and the Global skill selection
-  cases.jsonl.gz     public trajectories in the skill-evolution case format (scope/views.py): question without
+  cases.jsonl.gz     public trajectories in the exporter case format: question without
                      the generic benchmark wrapper, options, video durations, evidence steps with instructions
                      and VideoAgent summaries, final and correct answer, outcome
   scores.json        official score per benchmark (from summary.json) and per-task counts, mean score,
@@ -20,7 +20,7 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
-# Outcome thresholds mirror skill_evolution.infra.benchmarks.scoring.OUTCOME_THRESHOLDS (pass_at, fail_below).
+# Outcome thresholds mirror evaluation.benchmarks.scoring.OUTCOME_THRESHOLDS (pass_at, fail_below).
 # Records name the FSA family "temporal"; SampleTask names it "temporal_localization".
 THRESHOLDS = {"temporal_localization": (0.5, 0.1), "temporal": (0.5, 0.1), "open_qa": (2 / 3, 1 / 3)}
 INTERVAL = r"\d+(\.\d+)?\s*,\s*\d+(\.\d+)?"

@@ -2,11 +2,11 @@
 
 | Path | Purpose |
 |---|---|
-| `src/` | MVAgent, model adapters, skill runtime and evolution infrastructure |
-| `configs/` | Inference settings, evolution recipes and frozen split manifests |
+| `src/` | MVAgent, model adapters, shared evaluation and skill generation |
+| `configs/` | Inference/generation settings and frozen split manifests |
 | `eval/` | MVAgent evaluation, scoring, trajectory export and required annotation metadata |
 | `scripts/` | Supported preprocessing, visualization and skill-management tools |
-| `tests/` | Six existing runtime regression checks |
+| `tests/` | Runtime, evaluation and generation regression checks |
 | `docs/` | Shared documentation, historical findings and protocol differences |
 | `demo.py`, `requirements.txt` | Demo entry point and environment dependencies |
 
@@ -58,3 +58,9 @@ An old shared development checkout may contain local modifications that differ f
 the accepted public runtime. Cleaning its auxiliary files does not authorize
 resetting those modifications. Keep a local snapshot before retiring worktrees,
 and use a separate clean checkout for public-repository maintenance.
+
+The skill cleanup removes previous evolution algorithms, prompts, training recipes
+and optimizer-only infrastructure from the current tree. Shared benchmark code
+moves unchanged to `src/evaluation/`; one-shot generation is organized under
+`src/skill_evolution/generation/`. The pre-cleanup source is `de28149`; its algorithms
+and negative findings remain in Git history and frozen experiment artifacts.

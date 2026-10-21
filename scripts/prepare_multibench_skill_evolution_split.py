@@ -16,15 +16,15 @@ SOURCE_ROOT = PROJECT_ROOT / "src"
 if str(SOURCE_ROOT) not in sys.path:
     sys.path.insert(0, str(SOURCE_ROOT))
 
-from skill_evolution.infra.benchmarks.catalog import CROSSVID_DIR, CVBENCH_DIR, MVU_EVAL_DIR
-from skill_evolution.infra.benchmarks import (
+from evaluation.benchmarks.catalog import CROSSVID_DIR, CVBENCH_DIR, MVU_EVAL_DIR
+from evaluation.benchmarks import (
     EvaluationSample,
     crossvid_sample,
     cvbench_sample,
     mvu_eval_sample,
 )
-from skill_evolution.infra.data import DataSplitManifest, SplitSample, group_by_media
-from skill_evolution.infra.store import file_fingerprint
+from evaluation.data import DataSplitManifest, SplitSample, group_by_media
+from evaluation.store import file_fingerprint
 
 
 CROSSVID_CHOICE_TASKS = ("BU", "CC", "MOC", "MSR", "NC", "PEA", "PI")

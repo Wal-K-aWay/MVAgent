@@ -13,6 +13,7 @@ PYTHONPATH=src python tests/test_prefix_cache_usage.py
 PYTHONPATH=src python tests/test_agent_finalize.py
 PYTHONPATH=src python tests/test_short_video.py
 PYTHONPATH=src python tests/test_one_shot_skills.py
+PYTHONPATH=src python tests/test_evaluation_utilities.py
 ```
 
 The checks cover direct and forced answers, model-pool configuration and question-level leasing, complete token
@@ -27,6 +28,8 @@ project dependencies, including structured-output libraries.
 Passing these checks is not a new benchmark measurement or a guarantee of
 byte-identical outputs for arbitrary model inputs.
 
-The one-shot generation check covers role/word limits, persistence of malformed
-model output, absence of automatic retries, and refusal to overwrite prior runs.
+The one-shot generation check covers role/word limits, persistence of malformed or
+truncated output, refusal to overwrite prior runs, merged banks, source snapshots and redaction.
 It uses a model double and does not call an API.
+The evaluation utility checks cover transitive source isolation, atomic-write failure
+preservation, and closed-form official scores after the module relocation.

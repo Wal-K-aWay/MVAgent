@@ -20,8 +20,8 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from mvagent.utils.media import probe_video_info
-from skill_evolution.infra.data import DataSplitManifest, SplitSample, group_by_media
-from skill_evolution.infra.store import file_fingerprint, write_json
+from evaluation.data import DataSplitManifest, SplitSample, group_by_media
+from evaluation.store import file_fingerprint, write_json
 
 QUOTAS = dict(BU=232, CC=218, CCQA=239, FSA=616, MOC=155,
               MSR=163, NC=334, PEA=261, PI=100, PSS=182)

@@ -310,10 +310,10 @@ Historical protocol changes and negative findings remain in
   `--benchmarks cvbench mvu_eval crossvid` with the same split manifest; the split
   filters CrossVid while leaving the other two complete. See
   [benchmark setup](eval/README.md) and [Agent evaluation](eval/agent_eval/README.md).
-- **Skill evolution:** use `scripts/run_skill_evolution.py --mode train|evaluate`
-  and [the evolution recipes](configs/skill_evolution/README.md). These require
-  separate Train/Cal/Gate data and optimizer/embedding services; they are not needed
-  for the no-skill baseline above.
+- **Skill generation:** use `scripts/generate_skills.py --role both --output-dir <new-run>`
+  with `BIGMODEL_API_KEY` in the environment. The [one-shot baseline](docs/llm-skill-generation.md)
+  uses task and runtime descriptions without examples or feedback. Previous evolution
+  attempts are removed; no self-evolution training loop is currently provided.
 - **Runtime regression checks:** see [`tests/`](tests/README.md). For example, run
   `PYTHONPATH=src python tests/test_direct_answer.py` in the configured compute
   environment. Passing a unit check is not a benchmark result.

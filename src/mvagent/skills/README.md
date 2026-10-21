@@ -1,7 +1,7 @@
 # Runtime Skills
 
 For Global card scope, field-writing rules, multi-video action guidance, and complete
-examples, see the [GlobalAgent Skill Specification](../../skill_evolution/infra/global_skill_specification.md).
+examples, see the [GlobalAgent Skill Specification](../../skill_evolution/skill_specification.md).
 This authoring reference does not change the runtime contract.
 
 A dynamic bank is an immutable, hash-pinned JSON snapshot with `schema_version: 3`
@@ -84,7 +84,7 @@ sibling private traces or complete Skill strategy enter the selector input.
 By default it uses the role Planner model; `skill.selector` can name another model.
 Structured generation, bounded repair, pool admission and usage telemetry are shared.
 
-Current `dynamic_35b_embedding.yaml` uses `selection_scope: task`: Global selects
+With `selection_scope: task`, Global selects
 once per QA; Video once per invocation, retaining that selection through its observe
 steps and selecting again on a new invocation. Empty selections persist too. Invalid
 selections do not. Generic `decision` scope is retained for explicit experiments.
@@ -117,8 +117,8 @@ validate the whole bank. Freeze publishes a new `<sha256>.json`, never overwriti
 old snapshots. Configure enabled/mode/path/sha256, task scope and embedding on each
 role's Skill reference. Neither this code nor these commands deploy model services.
 
-Current cards live under `authored/*/*.json`; experiment bank exports are in
-`configs/skill_evolution/skills/`. Original Common Pitfalls were moved into strategy
+Current cards live under `authored/*/*.json`; generated banks live in their run
+directories and are loaded by path and SHA256. Original Common Pitfalls were moved into strategy
 as constraints; existing guidance was retained. The current 11-card Global acquisition
 bank exercises hybrid retrieval; the7-card Video bank bypasses it. No new accuracy
 claim follows from the format change. Frozen experimental artifacts are unchanged.

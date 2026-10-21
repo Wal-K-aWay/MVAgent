@@ -1,1 +1,0 @@
-"""Global SkillAdaptor-inspired optimization."""

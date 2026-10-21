@@ -21,7 +21,7 @@ from typing import Any, Mapping
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_DATASET_ROOT = Path("/assets")  # Modal asset Volume mount
-# Mirrors CROSSVID_DIR/CVBENCH_DIR/MVU_EVAL_DIR in skill_evolution.infra.benchmarks.catalog.
+# Mirrors CROSSVID_DIR/CVBENCH_DIR/MVU_EVAL_DIR in evaluation.benchmarks.catalog.
 CROSSVID_DIR = "crossvid"
 CVBENCH_DIR = "cvbench"
 MVU_EVAL_DIR = "mvu-eval"
@@ -216,8 +216,8 @@ def _build_scorer(
 ) -> tuple[Any, Mapping[str, Any]]:
     """Official per-benchmark scorer shared with skill evolution (see benchmarks.catalog)."""
 
-    benchmark_module = importlib.import_module("skill_evolution.infra.benchmarks")
-    contracts_module = importlib.import_module("skill_evolution.infra.benchmarks.contracts")
+    benchmark_module = importlib.import_module("evaluation.benchmarks")
+    contracts_module = importlib.import_module("evaluation.benchmarks.contracts")
     open_ids = [
         sample_id
         for sample_id, record in records.items()
@@ -249,7 +249,7 @@ def _summarize(
     records: Mapping[str, Any],
 ) -> dict[str, Any]:
     from models.execution import output_metrics
-    from skill_evolution.infra.benchmarks import OFFICIAL_DATASET_POLICY
+    from evaluation.benchmarks import OFFICIAL_DATASET_POLICY
 
     output_counts = Counter()
     by_dataset: dict[str, Counter[str]] = defaultdict(Counter)
@@ -404,8 +404,8 @@ def _prepare_output(
         shutil.copy2(Path(__file__), frozen_runner)
 
     configs_module, engine_module, _utils_module = bootstrap.load_runtime_modules(snapshot_dir)
-    benchmark_module = importlib.import_module("skill_evolution.infra.benchmarks")
-    operator_module = importlib.import_module("skill_evolution.infra.store")
+    benchmark_module = importlib.import_module("evaluation.benchmarks")
+    operator_module = importlib.import_module("evaluation.store")
     records = benchmark_module.load_multibench_records(dataset_root, sample_ids)
 
     crossvid_ids = [sid for sid in sample_ids if sid.startswith("crossvid:")]

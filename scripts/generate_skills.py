@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from skill_evolution.one_shot import main
+from skill_evolution.generation.cli import main
 
 if __name__ == "__main__":
     main()

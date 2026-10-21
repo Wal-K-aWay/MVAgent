@@ -1,20 +1,16 @@
-# Skill 自进化配置
+# Skill 生成配置与冻结划分
 
-| 文件 | 用途 |
-|---|---|
-| `global_skilladaptor_35b.yaml` | `global-skilladaptor-v1`，需要 Train/Gate split |
-| `global_cluster_35b.yaml` | `global-cluster-v1`，需要 Train/Gate split |
-| `global_cluster_v2_35b.yaml` | `global-cluster-v2`，需要 version=2 的 Train/Cal/Gate split |
-| `runtime/dynamic_35b_embedding.yaml` | 三个 recipe 共用的 MVAgent 运行时：35B Actor/Selector（与无 Skill 基线参数一致）、GLM-5.3-Flash optimizer（`BIGMODEL_API_KEY`）、DeepSeek CCQA Judge（`DEEPSEEK_API_KEY`）、Embedding 端点 `127.0.0.1:8110` |
-| `splits/crossvid_lite2500_eval_seed20260919.json` | 冻结的 2500 题 CrossVid 评估面板（全部为 eval），附 `.audit.json`；新建 Train/Gate 必须排除其源媒体 |
+- `llm_generation.yaml`：一次生成使用的 `ApiVLMConfig` 参数；凭据为环境变量名。
+  `max_retries: 1` 表示一次尝试，入口拒绝改为自动重试。
+- `splits/`：保留已有冻结划分与 CrossVid 干净池；一次生成不读取这些数据。
 
 ```bash
-PYTHONPATH=src python scripts/run_skill_evolution.py --mode train \
-  --config configs/skill_evolution/global_cluster_v2_35b.yaml \
-  --execution-config configs/inference/execution/modal_h200x8.yaml \
-  --split-manifest <冻结的 split> --output-dir <新的输出目录>
+python scripts/generate_skills.py \
+  --config configs/skill_evolution/llm_generation.yaml \
+  --runtime-config configs/inference/modal_qwen35_35b_a3b_no_skill.yaml \
+  --role both --output-dir /path/to/new-run
 ```
 
-不传 `--skills` 时从空库开始；`--mode evaluate` 独立评估，不加载 optimizer。各算法的参数与流程见
-`src/skill_evolution/algorithms/alternating/global/{adaptor,cluster,cluster_v2}/README.md`。
-Modal 上的 Embedding 服务尚未部署：Skill 库超过 8 张卡时检索需要 8110 端点。
+`--runtime-config` 仅提供角色动作预算，不启动 Actor、Selector、Embedding 或 Judge。
+旧训练配方及训练入口已移除；没有可用的自进化循环。
+详细协议见 [LLM 生成说明](../../docs/llm-skill-generation.md)。

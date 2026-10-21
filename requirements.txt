@@ -1,14 +1,9 @@
-# Reference environment: MVAgent + skill evolution + local vLLM.
+# Reference environment: MVAgent + skill generation + local vLLM.
 # Reference platform: Linux x86_64, Python 3.12, NVIDIA GPU for local inference.
-# Shared runtime, optimizer, model API and scoring dependencies.
+# Shared runtime, generation, model API and scoring dependencies.
 PyYAML==6.0.3
 jsonschema==4.26.0
 numpy==2.2.6
-scipy>=1.13,<2
-# Offline question-graph clustering diagnostics; already installed in the baseline environment.
-networkx==3.6.1
-# No-fixed-K offline clustering; diagnostics install this into an isolated environment.
-scikit-learn==1.7.2
 Pillow==12.2.0
 opencv-python-headless==4.13.0.92
 imageio-ffmpeg==0.6.0

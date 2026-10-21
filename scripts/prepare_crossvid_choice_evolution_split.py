@@ -16,8 +16,8 @@ SOURCE_ROOT = PROJECT_ROOT / "src"
 if str(SOURCE_ROOT) not in sys.path:
     sys.path.insert(0, str(SOURCE_ROOT))
 
-from skill_evolution.infra.data import DataSplitManifest, SplitSample, group_by_media
-from skill_evolution.infra.store import file_fingerprint
+from evaluation.data import DataSplitManifest, SplitSample, group_by_media
+from evaluation.store import file_fingerprint
 
 
 def _manifest_paths(root: Path) -> tuple[Path, ...]:

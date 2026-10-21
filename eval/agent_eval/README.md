@@ -7,7 +7,7 @@ from the repository root; see [installation instructions](../../README.md).
 
 This entry evaluates MVAgent on CVBench, MVU-Eval and CrossVid. It uses
 `mvagent.batch.BatchExecutor`, the same question execution API used by Skill rollout.
-Dataset/scoring adapters live in `skill_evolution/infra/benchmarks`; workers receive
+Dataset/scoring adapters live in `evaluation/benchmarks`; workers receive
 only the question and ordered videos, never reference answers.
 
 Use `eval/agent_eval/run.py` for new evaluations. Historical matrix controllers are
@@ -78,7 +78,7 @@ Normal evaluations reuse the accepted repeatability evidence instead of rerunnin
 Pass the parent dataset directory with `--dataset-root`. The original Modal environment
 uses `/assets`; an ordinary GPU server can use another local path. It contains `crossvid/`,
 `cvbench/` and `mvu-eval/` subdirectories for the requested benchmarks
-(names defined in `skill_evolution/infra/benchmarks/catalog.py`).
+(names defined in `evaluation/benchmarks/catalog.py`).
 CVBench/MVU-Eval `QAs.json` are built by `scripts/prepare_cvbench_mvu_qas.py`, using
 `eval/agent_eval/metadata/CVBench.json` and user-supplied MVU annotations; their video paths
 are relative to each benchmark directory. CrossVid needs a one-time preparation that writes
@@ -173,12 +173,11 @@ For analysis, run `python eval/agent_eval/export_results.py <run>` (standard lib
 local copy of the records). It reads `records/` and `summary.json`, never modifies them, and writes `<run>/tables/`:
 
 - `answers.jsonl`: one row per question with `sample_id`, `dataset`, `task`, `family`, `status`, `error`,
-  `prediction`, `ground_truth`, `score`, `correct`, `outcome` (pass/partial/fail by the skill-evolution
+  `prediction`, `ground_truth`, `score`, `correct`, `outcome` (pass/partial/fail by the diagnostic
   thresholds), `answer_valid` (prediction matches the task's answer form), `evidence_actions`,
   `n_evidence_actions`, `first_action`, `stop` (`answered` or `forced_with_gaps`), `time_sec`,
   `prompt_tokens`, `completion_tokens`, `global_skill` (selected card IDs, or null without a dynamic bank).
-- `cases.jsonl.gz`: public trajectories in the skill-evolution case format
-  (`src/skill_evolution/algorithms/alternating/global/scope/views.py`): question without the generic
+- `cases.jsonl.gz`: public trajectories exported by `export_results.py`: question without the generic
   benchmark wrapper, options, video durations, evidence steps with instructions and VideoAgent summaries,
   final and correct answer, outcome.
 - `scores.json`: official score per benchmark (copied from `summary.json`) and per-task counts, mean

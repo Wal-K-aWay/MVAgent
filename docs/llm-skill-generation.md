@@ -14,7 +14,7 @@ python scripts/generate_skills.py --role both \
 输出目录必须不存在。默认 `--role global`，可选 `video` 或 `both`。
 每个角色单独一次请求，默认 1–8 张卡；`--max-cards` 可预先限定为 1–8。
 两种角色使用独立上下文，不读取另一角色刚生成的卡。
-模型固定 `glm-5.3-flash`，reasoning_effort=high、temperature=1、top_p=.95、
+默认配置 `configs/skill_evolution/llm_generation.yaml` 使用 `glm-5.3-flash`，reasoning_effort=high、temperature=1、top_p=.95、
 输出预算16384、HTTP超时600秒；使用现有 BigModel provider 的 JSON mode。
 没有任务反馈、自动重试、生成修复、人工润色或按分数挑选。
 该生成配置不改变 Actor 固定的 seed=0 等评测设置。
@@ -30,6 +30,21 @@ Selector 的 task scope 保持原样；Global 每题、Video 每次请求首次�
 events 包含实际请求体、响应正文、模型身份、finish_reason、usage 和耗时；不含认证请求头。
 使用现有 provider 日志，不声称保存了供应商完整 HTTP 响应或 reasoning_content。
 生成数据只留实验 runs volume，不进入 Git；可共享的代码和本说明独立备份。
+
+## 代码与配置
+
+核心代码位于 [`src/skill_evolution/generation/`](../src/skill_evolution/README.md)：
+`prompts.py` 管 Prompt/Schema，`generator.py` 管调用与产物，`cli.py` 管命令行。
+`scripts/generate_skills.py` 仅启动 CLI。模型参数使用已有 `ApiVLMConfig`，
+默认文件为 `configs/skill_evolution/llm_generation.yaml`，可通过 `--config` 指定。
+`api_key` 只能填写环境变量名，入口固定一次尝试，不创建新模型客户端或重试框架。
+
+默认 `--runtime-config` 为 `configs/inference/modal_qwen35_35b_a3b_no_skill.yaml`。
+仅读取该配置中的动作预算；不是启动模型服务，也不会把完整配置发给生成模型。
+角色描述、生成 Prompt、输出 Schema 和解码参数保持首次运行的协议。
+角色/阶段常量与结构校验复用 `SkillBank`，动作说明复用两个 Agent 的 Prompt builder，
+源码保存复用 `ensure_source_snapshot`，JSON 原子保存和哈希复用 `evaluation.store`。
+旧算法、轨迹分析器、训练配置与默认旧卡库引用已经移除。
 
 ## 生成 System Prompt 中文镜像
 
@@ -51,7 +66,7 @@ Selector 最多选一张或不选，只读 `when_to_use`；Actor 只接收 `stra
 
 任务：回答证据分散在多个视频中的问题。系统包含一个全局协调者及每视频一个证据 Agent；
 后者接收局部 instruction、返回报告，内部观察私有；协调者也可获取联合视觉观察。
-目标 role 为 `{role}`，实际动作说明由 `build_role_architectures` 从冻结 Runtime 拼接，
+目标 role 为 `{role}`，实际动作说明由 `generation/prompts.py` 中的 `build_role_architectures` 从冻结 Runtime 拼接，
 包括参数占位示例，不包含已编写的 Skill 示例。
 
 Global Selector 看完整问题、视频 ID 和时长，每题开始时选择一次（包括不选）；

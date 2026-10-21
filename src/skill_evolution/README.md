@@ -1,36 +1,30 @@
-# Skill 离线进化
+# Skill 方法
 
-当前有三个 Global 训练入口。`global-cluster-v1` 使用固定聚类组织 batch、完整库自然选卡、编辑类型反思、独立正文/选择字段作者和完整库 Gate；见 [cluster README](algorithms/alternating/global/cluster/README.md)。
+当前仅保留无反馈的 LLM 一次生成基线；尚无自进化训练循环。
 
-`global-skilladaptor-v1` 实现：Train原始输入embedding＋Louvain、跨batch成功/失败素材、故障定位及Linker的
-revise/generate分流、候选生成、完整 Gate 验证、严格总体增益接受。Video Skill 冻结。
-实现及命令见 [Global README](algorithms/alternating/global/README.md)，流程见
-[flow.md](algorithms/alternating/global/adaptor/flow.md)。Video 阶段和交替调度尚未实现。
+```text
+skill_evolution/
+├── generation/
+│   ├── cli.py          # 读取配置、选择角色、启动生成
+│   ├── prompts.py      # System/User Prompt、角色契约、输出 Schema
+│   └── generator.py    # 每角色一次调用，原始响应落盘、校验、合库
+└── skill_specification.md  # 卡片编写规范；不作为生成模型的输入
+```
 
-runner 负责共享模型、数据、评分和角色算法组装；algorithms/ 管理优化流程；infra/ 管理
-数据划分、完整 rollout、评分、角色证据、不可变 Skill 库和持久化。Runtime 不依赖优化器。
-历史 build_candidate/paired_gate 为保留审计合同，新流程使用自己的单来源候选与总体增益规则。
+入口为 `python scripts/generate_skills.py --role both --output-dir <new-directory>`。
+模型参数在 [`configs/skill_evolution/llm_generation.yaml`](../../configs/skill_evolution/llm_generation.yaml)，
+默认从现有无 skill 推理配置读取动作容量与步数；不加载其模型、题目或卡库。
+输入边界、输出文件、完整中文 Prompt 镜像见 [生成说明](../../docs/llm-skill-generation.md)。
 
-`scripts/run_skill_evolution.py --mode train` 使用
-`configs/skill_evolution/global_skilladaptor_35b.yaml`，必须给出 Train/Gate split。
-默认 `--mode evaluate` 独立评估，不创建 optimizer。`--split test` 仅在独立评估时读取 Test。
-新运行冻结源码；恢复通过原入口 --resume 使用所属冻结版本，不用当前源码接续旧算法。
-英文 Skill 规范见 [global_skill_specification.md](infra/global_skill_specification.md)。
+复用关系：
 
-无反馈生成基线：`scripts/generate_skills.py` 使用 `glm-5.3-flash`，仅根据任务与运行契约
-一次生成 Global/Video 卡库，复用 Runtime 的格式、字数、哈希加载检查；不读取题目或轨迹。
-协议、运行命令和中文 Prompt 镜像见 [说明](../../docs/llm-skill-generation.md)。
+- `models.vlm.api.ApiVLMClient` / `ApiVLMConfig`：模型接入与参数。
+- Global/Video 的动作 Prompt builder：动作名、参数和预算。
+- `mvagent.skills.bank`：角色/阶段常量、schema v3、字数、渲染和哈希加载。
+- `mvagent.utils.snapshot`：源码快照。
+- `evaluation.store`：原子 JSON 保存与指纹；生成器不读取评测样本或评分反馈。
 
-Cluster v1：`global-cluster-v1`；配置 `configs/skill_evolution/global_cluster_35b.yaml`；流程见 `src/skill_evolution/algorithms/alternating/global/cluster/README.md`；CPU 测试 `tests/test_global_cluster.py`。
-
-当前 Skill 长度规则：四个文本字段合计最多 **1200 words**，when_to_use无独立硬上限；渲染正文（含标题）最多1200 words。统一由 `count_words` 统计字母/数字/下划线组成的词，词内撇号和连字符不拆分，独立标点不计数；cat、analyze_videos、segment_1 各计1 word，1->2 计2 words。这是英文词计数，不是 tokenizer 或中文分词。Prompt 要求简洁英文，通常900–1100 words或更少，上限不是写作目标。配置改为 max_card_words/max_skill_words；旧字符配置不再支持。JSON Schema 仅保留非空和结构检查，单词上限由程序统一校验。冻结实验仍保留原字符口径，不能混用新源码恢复。
-
-Evaluation mode also saves `routing_audit.json`: per-decision selection, actual Actor
-body injection, actions/parameters and outcome. Missing Actor requests remain unknown;
-selection or injection does not itself establish semantic applicability or usefulness.
-
-Cluster v2：`global-cluster-v2`；见 [cluster_v2 README](algorithms/alternating/global/cluster_v2/README.md)。使用显式 Train/Cal/Gate 分区，四阶段 optimizer、完整 Cal 搜索池及隔离的正式 Gate。配置 `configs/skill_evolution/global_cluster_v2_35b.yaml`，训练不加载 Test；独立评估可选 `--split cal` 或 `--split test`。
-
-## 数据
-
-- [CrossVid 干净训练池](crossvid_clean_pool.json)：1734 个 CrossVid 题目 ID（`crossvid:<task>:<original_id>`），其视频来源与 [Lite2500 评估集](../../eval/crossvid_2500.json) 完全不重叠，用作 Skill 进化中 optimizer 可读数据（Train）的来源。来源按录像计：Assembly101 同一次录像的不同相机视角、同一部电影的不同片段（`<TITLE>-<n>.mp4`）、MOC/MSR 的同一 UAV 序列都算同一来源。各 task 题数：BU 492、CC 36、CCQA 96、FSA 202、MOC 338、MSR 344、NC 6、PEA 45、PI 15、PSS 160。由 `python3 scripts/prepare_crossvid_clean_pool.py --qa-dir <CrossVid>/QA --output src/skill_evolution/crossvid_clean_pool.json` 生成。池内题目之间仍可能共享视频，切分 Train/Cal/Gate 时还需按来源隔离。
+评测和数据划分位于 [`src/evaluation/`](../evaluation/README.md)，运行时选卡仍在
+[`src/mvagent/skills/`](../mvagent/skills/README.md)。没有旧模块转发层，也不预建未来算法接口。
+旧进化实现和负结果可从清理前提交 `de28149` 的 Git 历史及原始实验记录查阅，
+不作为后续新方案的默认设计或 Prompt 输入。
