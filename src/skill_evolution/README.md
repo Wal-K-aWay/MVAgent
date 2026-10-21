@@ -60,3 +60,5 @@ resume只接受输出目录，使用原冻结配置，拒绝被改写的源码�
 产物包含`manifest.json`、`frozen/`、`banks/`、`evaluations/`、`rounds/`、`judge_cache/`和`summary.json`。
 接受的库可能仍为空库；运行成功与准确率提高分别报告。Prompt中文镜像见
 [角色轮换Prompt](../../docs/skill-evolution-prompts.md)。
+
+首轮完整接入实验和采样修复的证据见[实测报告](../../docs/skill-evolution-probe.md)。该轮0次接受；后续路由/指导诊断与字段消融属于设计中的研究路线，尚未实现。
