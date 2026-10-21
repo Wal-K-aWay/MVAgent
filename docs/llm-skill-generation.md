@@ -225,3 +225,37 @@ Global 51.86秒、2483输入/2040输出token；Video 57.96秒、1963输入/2507�
 例如第4张以 `Compare the active instruction with all retained same-video Memory lines` 开始。
 这不是语义合格的自动证明：Global第1/3张范围存在重叠，第3张正文有偏向恰好一个匹配视频的假设，
 局部取证与采样策略也仍需验证。保留原样，尚未运行真实Selector、Actor、视频问答或Judge，不能声称精度提升。
+
+
+## DeepSeek-Flash首次生成记录（2026-10-21 UTC）
+
+按用户要求，默认生成模型改为`deepseek-flash`，复用已有纯文本客户端；
+源码`84cd9f9`的生成System/User Prompt与上一版GLM相同，每角色上限仍为8。
+Provider注入的Schema说明不同；DeepSeek thinking/high沿用现有客户端行为，
+不发送temperature/top_p，不将其与GLM的采样参数称为完全一致。
+9个针对性测试、完整compileall和CLI检查通过。密钥只从环境变量/Modal Secret读取。
+
+Global首次请求正常返回6张候选，finish_reason=stop，2819输入/11210输出token
+（其中reasoning8734），请求至响应约63.65秒。每张均含额外的`strategy_note: null`，
+严格校验拒绝，错误为`$.skills.0: Additional properties are not allowed ('strategy_note' was unexpected)`。
+原始响应和事件保存在runs `devbox/one_shot_deepseek_flash_20261021/run1/global/`；
+没有删除多余字段、修改卡片、修复或重抽，也未发布Global库。
+原both流程在Global失败后中止，随后单独完成Video的首次请求；两个角色仍各仅一次生成，
+不能把这次记录称为一次成功的双角色库生成。
+
+Video首次请求返回8张候选，finish_reason=stop，2287输入/8911输出token
+（其中reasoning6219），请求至响应约52.26秒。每张均含额外的`strategy_placeholder: null`，
+同样被严格校验拒绝；原始记录在runs
+`devbox/one_shot_deepseek_flash_20261021/video_first_attempt/run1/video/`。
+两个角色均未发布bank或runtime_with_skills.json；本次没有可运行的新skill库。
+
+新SDK读取确认每角色各一个model_request/model_response，实际请求为deepseek-flash、
+thinking/high、JSON mode且不带temperature/top_p；两个角色的生成器request.json分别与
+上一版GLM的对应文件内容相同（provider附加的Schema包装除外）。两份response.json的SHA256：
+
+- Global：`a1f7b237076dbbb676b582d289deb302279316f74a987ef3c0392e84dfaff11b`
+- Video：`85e3531c31a572fced9c4149d358399e6e55ab4738b485b3400b85db34257fd9`
+
+CPU apps `ap-RW9miB9iKB3x0QsdB4LfZg` 与 `ap-09goeiMARMSgnmEOdYWi94` 均已stopped/tasks0。
+无GPU、Actor、Selector或Judge调用，0道问答/0项准确率评分。结果说明当前Prompt配合JSON mode
+未能保证该模型一次遵循Schema，不证明策略内容的效果，也不证明DeepSeek普遍无法生成合格库。
