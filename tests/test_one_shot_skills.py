@@ -121,6 +121,18 @@ class OneShotTests(unittest.TestCase):
             self.assertEqual(deployment, before)
             self.assertEqual(self.runtime, before)
 
+    def test_activation_preserves_the_supplied_mount_path(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "volume").mkdir()
+            mount = root / "runs"
+            mount.symlink_to(root / "volume", target_is_directory=True)
+            output = mount / "run"
+            summary = generate(FakeClient(), self.runtime, ["global"], output, 1)
+            self.assertEqual(summary["runtime_config"], str(output / "runtime_with_skills.json"))
+            deployment = json.loads(Path(summary["runtime_config"]).read_text())
+            self.assertEqual(deployment["agents"]["global_agent"]["skill"]["path"], str(output / "bank.json"))
+
     def test_truncated_response_is_preserved_but_never_published(self):
         client = FakeClient()
         raw = client.chat([])

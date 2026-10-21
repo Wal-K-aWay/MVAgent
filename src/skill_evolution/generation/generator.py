@@ -33,7 +33,8 @@ def generate(client, runtime: dict, roles: list[str], output: Path, max_cards: i
     if not roles or len(set(roles)) != len(roles):
         raise ValueError("Supply distinct roles")
     prompts = {role: build_prompt(runtime, role, max_cards) for role in roles}
-    output = output.expanduser().resolve()
+    # Keep public mount paths (such as /runs), not container-specific symlink targets.
+    output = output.expanduser().absolute()
     output.mkdir(parents=True, exist_ok=False)
     secret = client.api_key
 
