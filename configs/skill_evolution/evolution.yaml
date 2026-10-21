@@ -1,0 +1,8 @@
+# Search budgets only. Actor/Judge/deployment configuration is supplied separately.
+rounds: 2
+candidates_per_round: 2
+max_cards_per_role: 8
+examples_per_proposal: 8
+max_example_chars: 12000
+roles: [global, video]
+seed: 0

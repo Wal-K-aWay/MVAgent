@@ -13,6 +13,8 @@ PYTHONPATH=src python tests/test_prefix_cache_usage.py
 PYTHONPATH=src python tests/test_agent_finalize.py
 PYTHONPATH=src python tests/test_short_video.py
 PYTHONPATH=src python tests/test_one_shot_skills.py
+PYTHONPATH=src:. python tests/test_skill_evolution.py
+PYTHONPATH=src:. python tests/test_skill_evaluation.py
 PYTHONPATH=src python tests/test_evaluation_utilities.py
 PYTHONPATH=src python tests/test_evaluation_snapshot.py
 ```
@@ -47,3 +49,7 @@ the input configuration or Actor settings. No model API is used by these checks.
 The generation CLI check uses the current DeepSeek configuration with a mocked HTTP
 response, verifying JSON mode, thinking/high and one logged request per role without
 authentication headers. It makes no network calls.
+
+Evolution checks cover role-private information isolation, matched local contexts,
+immutable single-role edits, saved-call resume, Cal gain rejected by Gate, official
+macro/CCQA point weighting and Judge failure without overwriting raw rollouts.

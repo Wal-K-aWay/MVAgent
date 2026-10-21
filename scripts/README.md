@@ -16,7 +16,8 @@ Data preparation retains its existing interfaces and frozen manifests.
 | Freeze the metadata-stratified CrossVid evaluation panel | `prepare_crossvid_representative_subset.py` |
 | Build CrossVid Train/Cal/Gate splits | `prepare_crossvid_train_cal_gate_split.py` |
 | Build choice-only or multibenchmark evolution splits | `prepare_crossvid_choice_evolution_split.py`, `prepare_multibench_skill_evolution_split.py` |
-| Generate a one-shot GLM skill bank without task examples | `generate_skills.py` |
+| Generate a one-shot LLM skill bank without task examples | `generate_skills.py` |
+| Evolve role-specific skill libraries through Train/Cal/Gate | `evolve_skills.py` |
 | Validate, edit, search and freeze skill libraries | `manage_skills.py` |
 
 `__init__.py` supports imports shared by preprocessing and visualization.

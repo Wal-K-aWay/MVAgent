@@ -311,9 +311,9 @@ Historical protocol changes and negative findings remain in
   filters CrossVid while leaving the other two complete. See
   [benchmark setup](eval/README.md) and [Agent evaluation](eval/agent_eval/README.md).
 - **Skill generation:** use `scripts/generate_skills.py --role both --output-dir <new-run>`
-  with `BIGMODEL_API_KEY` in the environment. The [one-shot baseline](docs/llm-skill-generation.md)
-  uses task and runtime descriptions without examples or feedback. Previous evolution
-  attempts are removed; no self-evolution training loop is currently provided.
+  with `DEEPSEEK_API_KEY` in the environment. The [one-shot baseline](docs/llm-skill-generation.md)
+  uses task and runtime descriptions without examples or feedback. The new [role-wise evolution loop](docs/skill-evolution-design.md) starts from empty
+  libraries and uses Train feedback plus complete Cal/Gate evaluation; it does not restore old algorithms.
 - **Runtime regression checks:** see [`tests/`](tests/README.md). For example, run
   `PYTHONPATH=src python tests/test_direct_answer.py` in the configured compute
   environment. Passing a unit check is not a benchmark result.

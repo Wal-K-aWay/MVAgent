@@ -1,1 +1,1 @@
-"""Training-free skill methods; currently only one-shot LLM generation."""
+"""Training-free skill generation and role-wise library evolution."""

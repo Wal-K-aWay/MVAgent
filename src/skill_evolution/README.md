@@ -1,38 +1,61 @@
 # Skill 方法
 
-当前仅保留无反馈的 LLM 一次生成基线；尚无自进化训练循环。
+固定MVAgent和模型权重，分别提供无反馈的一次生成基线与角色轮换的反馈优化闭环。
+方法依据、数据边界、实验取舍见[设计文档](../../docs/skill-evolution-design.md)。
 
 ```text
 skill_evolution/
-├── generation/
-│   ├── cli.py          # 读取配置、选择角色、启动生成
-│   ├── prompts.py      # System/User Prompt、角色契约、输出 Schema
-│   └── generator.py    # 每角色一次调用，原始响应落盘、校验、合库
-└── skill_specification.md  # 卡片编写规范；不作为生成模型的输入
+├── configs/                 # EvolutionConfig；复用已有API模型配置/客户端
+├── infra/                   # 卡库编辑/冻结、公开轨迹投影、调用留存、角色契约、评估结果接口
+├── algorithms/
+│   ├── one_shot/             # 每角色一次生成，原Prompt与公开入口保留
+│   └── rolewise/             # 一次改单角色一张卡，Train反馈，整库Cal/Gate
+└── skill_specification.md    # 写卡规范，不自动加载进模型上下文
 ```
 
-入口为 `python scripts/generate_skills.py --role both --output-dir <new-directory>`。
-默认每角色由LLM自主生成1–8张，`--max-cards N`设上限而非固定数量；两角色各生成一次。
-完整成功后输出`runtime_with_skills.json`，只启用本次生成角色并明确task选卡，评测可直接使用。
-模型参数在 [`configs/skill_evolution/llm_generation.yaml`](../../configs/skill_evolution/llm_generation.yaml)，
-默认从现有无 skill 推理配置读取动作容量与步数；不加载其模型、题目或卡库。
-输入边界、输出文件、完整中文 Prompt 镜像见 [生成说明](../../docs/llm-skill-generation.md)。
+Python配置解析在`configs/`，实验YAML在仓库根`configs/skill_evolution/`。
+`infra`不选择算法、不包含benchmark/数据加载/评分；这些能力复用`eval/`。
+原子保存/哈希直接复用`mvagent.utils.io`，没有恢复旧store或另写一套Judge/批处理器。
+公开轨迹投影参考`de28149`的算法无关思路，改为复用当前Global/Video Memory渲染器。
+旧adaptor/cluster/scope训练器未恢复，不作为本方法前提。
 
-生成产物先保存到实验目录；明确选定的冻结库可原样收录到
-[`src/mvagent/skills/skill_sets/`](../mvagent/skills/skill_sets/README.md)，供代码分发与复现。
-当前收录 DeepSeek-Flash 的 6 张 Global / 8 张 Video 规范化库；不包含原始响应、轨迹或评分，
-不自动发布新候选，也不改写已有运行的冻结引用。
+## 一次生成
 
-复用关系：
+```bash
+python scripts/generate_skills.py --role both --output-dir /runs/one-shot/new-run
+```
 
-- `models.llm.api.ApiLLMClient` / `ApiLLMConfig`：当前DeepSeek纯文本生成。
-- `models.vlm.api.ApiVLMClient` / `ApiVLMConfig`：已有GLM等provider，按model_type选择。
-- Global/Video 的动作 Prompt builder：动作名、参数和预算。
-- `mvagent.skills.bank`：角色/阶段常量、schema v3、字数、渲染和哈希加载。
-- `mvagent.utils.snapshot`：源码快照。
-- `mvagent.utils.io`：原子 JSON 保存与指纹；生成器不读取评测样本或评分反馈。
+默认DeepSeek-Flash，每角色由LLM自主生成1–8张；`--max-cards N`是上限而非配额。
+只读任务/角色/基础System/动作契约，不读题目、轨迹或反馈。输出和中文Prompt镜像见
+[生成说明](../../docs/llm-skill-generation.md)。现有DeepSeek冻结对比库见
+[`skill_sets/`](../mvagent/skills/skill_sets/README.md)，不是进化初始化。
 
-评测和数据划分位于 [`eval/`](../../eval/README.md)，运行时选卡仍在
-[`src/mvagent/skills/`](../mvagent/skills/README.md)。没有旧模块转发层，也不预建未来算法接口。
-旧进化实现和负结果可从清理前提交 `de28149` 的 Git 历史及原始实验记录查阅，
-不作为后续新方案的默认设计或 Prompt 输入。
+## 角色轮换优化
+
+先准备独立的Actor服务与固定本地CCQA Judge，再运行：
+
+```bash
+python scripts/evolve_skills.py \
+  --config configs/skill_evolution/evolution.yaml \
+  --optimizer-config configs/skill_evolution/llm_generation.yaml \
+  --runtime-config configs/inference/modal_qwen35_35b_a3b_no_skill.yaml \
+  --execution-config /runs/my-run/execution.json \
+  --split-manifest /runs/my-run/split.json \
+  --dataset-root /assets --judge-endpoints http://127.0.0.1:8207/v1 \
+  --output /runs/my-run/evolution
+```
+
+密钥仅由`DEEPSEEK_API_KEY`环境变量/Modal Secret提供。入口不会分配GPU或启动模型服务。
+清单沿用`eval.data.DataSplitManifest` v2：train=Train、cal=Cal、eval=Gate；每组覆盖CrossVid十任务、题目和声明源组互斥。
+CVBench/MVU不进入优化。入口先冻结源码/评测代码/配置，再从冻结入口运行；原始rollout先保存，再按官方评分。
+两库初始为空；每轮只改一个角色的一张卡，最多8张/角色。候选在完整Train、Cal上自然选卡运行，Cal严格增益最高者进入Gate，Gate严格正增益才接受。
+Cal/Gate只向算法返回总分及身份，不向优化器提供逐题数据；视频局部反馈不冒充局部正确性标签。
+
+```bash
+python scripts/evolve_skills.py --output /runs/my-run/evolution --resume
+```
+
+resume只接受输出目录，使用原冻结配置，拒绝被改写的源码或配置。完成的API响应和整库评估可复用；缺响应的中断API尝试不自动重复。所有拒绝、格式失败及候选保留。
+产物包含`manifest.json`、`frozen/`、`banks/`、`evaluations/`、`rounds/`、`judge_cache/`和`summary.json`。
+接受的库可能仍为空库；运行成功与准确率提高分别报告。Prompt中文镜像见
+[角色轮换Prompt](../../docs/skill-evolution-prompts.md)。

@@ -61,7 +61,7 @@ and use a separate clean checkout for public-repository maintenance.
 
 The skill cleanup removes previous evolution algorithms, prompts, training recipes
 and optimizer-only infrastructure from the current tree. One-shot generation is
-organized under `src/skill_evolution/generation/`. The pre-cleanup source is `de28149`;
+organized under `src/skill_evolution/algorithms/one_shot/`; the new role-wise loop uses shared `configs/` and `infra/`. The pre-cleanup source is `de28149`;
 its algorithms and negative findings remain in Git history and frozen experiments.
 
 Evaluation lives entirely under `eval/`: `benchmarks/`, `data.py` and `agent_eval/`.

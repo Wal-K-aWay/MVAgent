@@ -8,11 +8,12 @@ from pathlib import Path
 import time
 
 from mvagent.utils.io import file_fingerprint, write_json
-from models.execution import execution_scope
 from models.utils import validate_json_schema
 from mvagent.configs.agent_config import Skill_Config
 from mvagent.skills.bank import ROLES, STAGES, SkillBank
 from mvagent.utils.snapshot import ensure_source_snapshot
+
+from ...infra.llm import call_json
 
 from .prompts import SELECTION_SCOPE, SYSTEM, build_prompt, schema
 
@@ -57,40 +58,26 @@ def generate(client, runtime: dict, roles: list[str], output: Path, max_cards: i
         directory.mkdir()
         messages = [{"role": "system", "content": SYSTEM},
                     {"role": "user", "content": prompt}]
-        write(directory / "request.json", {"messages": messages, "schema": schema(max_cards)})
         started = time.monotonic()
-        events = []
-        with (directory / "events.jsonl").open("w", encoding="utf-8") as log:
-            def emit(event):
-                events.append(event)
-                log.write((json.dumps(event, ensure_ascii=False) + "\n").replace(secret, "[REDACTED]"))
-                log.flush()
-
-            try:
-                with execution_scope(emit=emit):
-                    raw = client.chat(messages, json_schema=schema(max_cards),
-                                      schema_name=f"one_shot_{role}_skills")
-                # Persist before parsing or deciding whether the output is usable.
-                write(directory / "response.json", {"raw_response": raw})
-                responses = [event for event in events if event["kind"] == "model_response"]
-                if any(event.get("finish_reason") == "length" for event in responses):
-                    raise ValueError("Generation was truncated")
-                bank = make_bank(json.loads(raw), role, max_cards, offset=len(cards))
-                bank_path = directory / "bank.json"
-                write(bank_path, bank.to_dict())
-                digest = file_fingerprint(bank_path)
-                loaded = SkillBank.load(path=str(bank_path), sha256=digest)
-                summary = {"role": role, "cards": len(loaded.cards), "sha256": digest,
-                           "seconds": time.monotonic() - started,
-                           "requests": sum(e["kind"] == "model_request" for e in events),
-                           "responses": [{k: e.get(k) for k in
-                                          ("model", "request_id", "finish_reason", "usage")}
-                                         for e in responses],
-                           "card_words": [card.text_words for card in loaded.cards]}
-                write(directory / "validation.json", {"valid": True, **summary})
-            except Exception as exc:
-                write(directory / "validation.json", {"valid": False, "error": str(exc)})
-                raise RuntimeError(f"{role} generation failed; inspect {directory}") from None
+        try:
+            value = call_json(client, messages, schema(max_cards), directory, f"one_shot_{role}_skills")
+            events = [json.loads(line) for line in (directory / 'events.jsonl').read_text().splitlines()]
+            bank = make_bank(value, role, max_cards, offset=len(cards))
+            bank_path = directory / "bank.json"
+            write(bank_path, bank.to_dict())
+            digest = file_fingerprint(bank_path)
+            loaded = SkillBank.load(path=str(bank_path), sha256=digest)
+            summary = {"role": role, "cards": len(loaded.cards), "sha256": digest,
+                       "seconds": time.monotonic() - started,
+                       "requests": sum(e["kind"] == "model_request" for e in events),
+                       "responses": [{k: e.get(k) for k in
+                                      ("model", "request_id", "finish_reason", "usage")}
+                                     for e in events if e["kind"] == "model_response"],
+                       "card_words": [card.text_words for card in loaded.cards]}
+            write(directory / "validation.json", {"valid": True, **summary})
+        except Exception as exc:
+            write(directory / "validation.json", {"valid": False, "error": str(exc)})
+            raise RuntimeError(f"{role} generation failed; inspect {directory}") from None
         cards.extend(bank.to_dict()["skills"])
         summaries.append(summary)
         print(json.dumps({"completed_role": role, "cards": len(bank.cards), "sha256": digest}), flush=True)
