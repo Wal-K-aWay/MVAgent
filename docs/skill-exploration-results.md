@@ -1,6 +1,6 @@
 # 第二轮 skill 机制探索：阶段结果
 
-截至2026-10-21约19:58 UTC，本轮从16:59 UTC开始，仍在运行，总资源上限为64张H100。本文只把完整评分的实验列为完成；已完成结果的Actor为冻结Qwen3.5-9B，权重、基础Prompt、动作预算、seed=0、固定推理profile和官方评分不变。当前完成24个实验单元、2482次问答评估：15×80次Train、5×40次Cal、2×176次Gate及2×365次补充确认，合计661道不同开发题。重复评估不增加独立样本数，来源隔离也不代表这些数据从未用于历史开发。
+截至2026-10-21约20:14 UTC，本轮从16:59 UTC开始，仍在运行，总资源上限为64张H100。本文只把完整评分的实验列为完成；已完成结果的Actor为冻结Qwen3.5-9B，权重、基础Prompt、动作预算、seed=0、固定推理profile和官方评分不变。当前完成26个实验单元、2738次问答评估：16×80次Train、5×40次Cal、3×176次Gate及2×365次补充确认，合计661道不同开发题。重复评估不增加独立样本数，来源隔离也不代表这些数据从未用于历史开发。
 
 ## 首轮：80题、四个完整干预
 
@@ -83,11 +83,15 @@ Global与Video单独正差分别为+11.1865、+2.5536pp，组合为+6.0945pp；�
 
 Video scope的Cal40为35.1186%，对空库+2.5pp；Gate176为33.253493%，对空库+0.845694pp，4改善/2退化/170同分。10000次、seed0配对bootstrap的逐题95%区间为[−0.35958,+2.36861]pp，90个声明来源组的敏感区间为[−0.60569,+2.29964]pp，存在小簇提示。该手工候选满足预定严格正增益接受规则，但两个区间均跨0，不能称稳定收益已被证明。20对CCQA的答案、完整Judge请求和身份均相同且全部同分，canonical不改变此次Gate差值。
 
-GLM-5.3首个对照使用与第二本地提案相同的4例逻辑messages/schema，模型、thinking、采样与输出预算不同，不称只换权重。生成的单Global卡自然Train80为26.8890%，Cal40为37.5000%，已进入Gate但截至本次统计尚未完成。80份Train raw核验显示29题选中、51题弃选，无invalid/error；选中题4改善/3退化/22同分，51弃选题的答案hash和得分均与空库一致。选中分布为FSA8、PSS8、CCQA7、PEA6；其余六task均0。该卡入口列明定位、排序与步骤比较，但正文也不同，不能与上面的泛化入口单卡构成仅入口消融。
+GLM-5.3首个对照使用与第二本地提案相同的4例逻辑messages/schema，模型、thinking、采样与输出预算不同，不称只换权重。生成的单Global卡自然Train80为26.8890%，Cal40为37.5000%；Gate176已完成33.908500%，对空库+1.500701pp，11改善/11退化/154同分。逐题95%区间[−1.65844,+4.88562]pp，90来源组敏感区间[−1.73775,+4.75481]pp，canonical不变；20对CCQA仅1对请求完全相同且同分。它满足预定严格正增益规则，稳定提升仍未获证明；保持正文不变进入365题补充确认。80份Train raw核验显示29题选中、51题弃选，无invalid/error；选中题4改善/3退化/22同分，51弃选题的答案hash和得分均与空库一致。选中分布为FSA8、PSS8、CCQA7、PEA6；其余六task均0。该卡入口列明定位、排序与步骤比较，但正文也不同，不能与上面的泛化入口单卡构成仅入口消融。
 
-同一GLM卡的强制注入Train80刚完成，为29.3890%，比自然选择高2.5pp；逐题路由与Judge差异分析正在进行，不能仅凭总分把该差值全部归于漏选。另已使用首版自然Train配对反馈生成第二候选，8例、每例12000字符，原样进入自然Train/Cal；它同时增加反馈与证据量，不称单变量消融。
+同一GLM卡强制注入Train80为29.3890%，比自然选择26.8890%高2.5pp，10改善/8退化/62同分；10000次配对bootstrap的95%区间为[−7.5,+12.5]pp，57来源组敏感区间为[−6.2083,+11.2083]pp，两者均跨0。原分与同请求Judge canonical完全相同。
 
-完整4轮GLM角色轮换闭环及27B/35B迁移正在排队、加载或推理，35B终答一句臂已有实际新回答，但尚无完整准确率结果；准备或启动成功不计为完成实验。
+自然与强选全部160份raw逐SHA核验后，29个自然选中题的答案、answer/reason及全部非Selector实际输入SHA和完整输出token序列哈希多重集均与强选相同，无缺失审计字段，得分也全部相同；51个弃选题的答案hash全部等于已审计空库。强选改变其中33个答案，10改善/8退化/33同分，贡献全部+2.5pp；29个选中题相对空库的+1.6005pp在两臂相同。贡献使用完整80的十task/CCQA权重分母。这支持本次差值来自弃选组合，但正文也损害了8题，不能据强选较高的点估计认定普遍有益或稳定收益。
+
+另已使用首版自然Train配对反馈生成第二候选，8例、每例12000字符，自然Train已完成、Cal进行中；它同时增加反馈与证据量，不称单变量消融。
+
+完整4轮GLM角色轮换从空库启动，第一张候选已产生47条原始回答；27B/35B迁移正在排队或推理，35B终答一句臂也已有实际新回答。两部分尚无完整准确率结果；准备、启动和部分原始回答不计为完成实验。
 
 首版8对Global公开案例还显示，两个FSA正差来自终答给出整片区间，PSS反例则在reason说需要joint watch的同一次决策里直接answer。Video scope的四个FSA改善不是同一种整片终答：有后续局部观察定位、也有Global改用joint watch；但后续请求和memory已经变化，不能当作固定局部上下文的直接效果。另有答案猜中却仍承认证据缺口的案例。分数与执行机制须分开报告。
 
@@ -99,17 +103,27 @@ Video scope唯一退步的CCQA案例，最终answer、reason及完整Judge请求
 
 统一分数仅作analysis-only补充：先用既有空库评分，其后固定来源顺序；只有同题、同Judge identity与完整prompt相同才复用。不新调用Judge、不覆写原主表，也不悄悄改写历史接受决定。已核scope Gate和365两新臂的canonical结论均不变；未覆盖的比较不能宣称评审噪声已排除。
 
-## 后台一次生成库：9B既定全集完成
+## 后台一次生成库：三模型既定全集评分完成
 
-这是独立的DeepSeek一次生成库测试，非本轮手工或反馈候选；三benchmark既定目标共5321题，9B均有效评分。
+这是独立的DeepSeek一次生成库测试，非本轮手工或反馈候选。三模型各5321题均完成有效评分和同题历史配对，汇总中的`complete=true`、`errors=[]`；合计15963次问答评估，含复用的3×360次先导结果与14883次新增运行。没有重跑空库。Actor冻结于`0894a470b322ac0ed74744a6d3131fbdd778ca14`，14张卡的库SHA为`7da609f63fda7c4fb1c446b477fc5663b15c9d77487784a12fcbd27b8d52b049`，全量评测期间未按成绩改卡。
 
-| 数据 | N | 一次生成库 | 同题历史空库 | 差值pp |
-|---|---:|---:|---:|---:|
-| CVBench | 997 | 62.8887% | 64.4935% | −1.6048 |
-| MVU-Eval | 1824 | 48.3004% | 50.5482% | −2.2478 |
-| CrossVid Lite2500 | 2500 | 36.1005% | 35.2815% | +0.8190 |
+| 模型 | 数据 | N | 一次生成库 | 同题历史空库 | 差值pp | 配对95%区间pp |
+|---|---|---:|---:|---:|---:|---|
+| 9B | CVBench | 997 | 62.8887% | 64.4935% | −1.6048 | [−3.9117,+0.7021] |
+| 9B | MVU-Eval | 1824 | 48.3004% | 50.5482% | −2.2478 | [−4.1667,−0.4372] |
+| 9B | CrossVid Lite2500 | 2500 | 36.1005% | 35.2815% | +0.8190 | [−1.0248,+2.7134] |
+| 35B-A3B | CVBench | 997 | 68.3049% | 67.5025% | +0.8024 | [−1.6048,+3.0090] |
+| 35B-A3B | MVU-Eval | 1824 | 52.5219% | 54.2763% | −1.7544 | [−3.5088,0.0000] |
+| 35B-A3B | CrossVid Lite2500 | 2500 | 41.5146% | 41.2655% | +0.2491 | [−1.2858,+1.9529] |
+| 27B | CVBench | 997 | 69.1073% | 70.5115% | −1.4042 | [−3.7111,+0.9027] |
+| 27B | MVU-Eval | 1824 | 58.4978% | 58.0044% | +0.4934 | [−1.3706,+2.5768] |
+| 27B | CrossVid Lite2500 | 2500 | 47.0821% | 48.1007% | −1.0186 | [−3.0095,+0.9664] |
 
-源为`devbox/deepseek_skill_full_20261021/interim.json`在18:46 UTC的已完成9B部分。35B与27B仍在收尾，不把前缀当最终分数。表为历史配对，旧空库的媒体短片处理差异仍须保留；不把全部差值纯归因于skill。它支持“直接生成库没有普遍、稳定正差”的有限描述，不能证明某种自进化方法有效。CVBench/MVU逐题内容没有进入本轮优化器。
+区间来自冻结`summarize.py`的最终模式：2000次、seed0，在benchmark×native task内逐题配对重采样；CrossVid十任务等权macro、CCQA任务内按评分点加权，CVBench/MVU按完整可测集合的任务人口加权。没有校正多重比较、反复查看、可选停止或共享视频相关性，不是来源组敏感区间。九个点估计4正5负，四个正差的区间均跨0；这份一次生成库没有呈现跨模型/benchmark一致正收益，不能据此证明自进化必需或任何具体自进化算法有效。
+
+表的读取快照为`devbox/deepseek_skill_full_20261021/final_summary.json`，2026-10-21 20:08:51 UTC经Volume SDK读取，9666 bytes，SHA256 `969e975bf5070635c9d07b4b8df30ad32546f763b2dc80028e5fa55ac4f6c7e5`；文件内更新时间为20:04:45.533 UTC，`final_requested=true`，与20:08:49读取的`interim.json`逐字同SHA。已核远端`private_ops/summarize.py` SHA为`8ea11f0e31154d41670fe4cdc893d375824bbc436bd261a5d3167cf19cbc03ae`，与冻结manifest记录一致。20:10 UTC最后Judge节点35B-A3B-shard0已记录`completed`、exit0及`released=true`，但主控制器的最终汇总收尾尚未取得完成回执；同名final文件仍可能被控制器重新写入，本处固定的是读取时的内容指纹，不宣称不可变归档。
+
+表为历史配对，旧空库的媒体短片处理差异仍须保留，不把全部差值纯归因于skill；历史数据也有开发复用。CVBench/MVU逐题内容没有进入本轮优化器。本次核验只读取汇总与运行/源码元数据，没有重读逐题raw、复算全部官方评分或新调用Judge。[原全量协议](deepseek-skill-full.md)保留来源和先导复用边界。
 
 ## 365题补充确认：完整程序正文未胜过终答一句
 
@@ -135,6 +149,8 @@ Video scope唯一退步的CCQA案例，最终answer、reason及完整Judge请求
 - 两本地提案在`optimizer_proposals/local9b_global_first`及`local9b_global_second_paired`，库SHA分别`d78f3210124b65aa6f4720dd61d753f79a655fe67cef11d902974cda72cc88eb`、`52a3cd772c6c78687a045e649a99e90c4bb5ede4cfe54246dc5cb39dcc0c4527`。优化器源码`ff81a36`；Actor评估仍为原冻结`2d3085f`。
 - 本地首版Gate的`node3/evaluations/d78f3210124b65aa6f4720dd61d753f79a655fe67cef11d902974cda72cc88eb/gate/evaluation.json` SHA为`617c4aa8d5a8018d33142af70eeed627341f6e4d83c07c61e0762f1f6c67241d`。scope Gate分析为`scope-gate-audit-20261021-191557/summary.json`，CPU任务`ap-riPDL8fhonz3GZmkvLcSEa`；读取40份Judge及对应cache，没有重核352份Actor raw。
 - 单卡自然分析`single-temporal-audit-20261021-193824/summary.json`，CPU任务`ap-tr1kp8JYUMeeSBKXxiMDEL`；GLM自然Train轻量审计`glm-selection-audit-20261021-194205/summary.json`。GLM首卡SHA`9e7d40d11f196d20eab61311929fdf79c999d19e7e56bd2b5cae74ebee6f2eaa`，其自然Train evaluation SHA`14e5747c508ac63b4aeadfd66bfeb2cbd766453bd1527021daf05dbd8816d9be`。
+- GLM自然/强选完整配对审计`glm-forced-routing-audit-20261021-200209/summary.json`，CPU任务`ap-gW4G7lloEMKl7tyNQwyPJs`；强选evaluation SHA`00ee5cbe183f5ec77532633cba808b856ec99fbc272634831923b96642f1aa94`。核验160份raw与24份Judge及对应cache，空库compact复用；没有新Actor/Judge，也未读取Cal/Gate。
+- GLM首版Gate审计`candidate-gate-audit-glm_first-20261021-201310/summary.json`，CPU任务`ap-dt9aYwmW5VjrZM7OxfS7xY`；原evaluation SHA`f1d2b34815f3cb0e5835575c26b8dda11a2c828532a1f18687570d62148c5ec4`。只核40份Judge及配套metadata/cache，无新Judge或352份Actor raw重核。
 - 补充确认清单`prepared/confirm365/manifest.json` SHA`7a8a83c1f5a3d205131b3a537d4e9c1ac7758f4df18de1bc66e1c5120d9e8b69`；事前两臂计划`confirmation_controls_plan.json` SHA`0257b9bb092a67d5f9510480d385a1bcaf4ac4fec519958bd5d37a7330c83452`。
 - 完整365配对报告`confirm365-paired-full_temporal_forced365-20261021-194033/summary.json`，SHA`001797bdce0aa89916bd07c155c784566d7b533d481565fbfaa83c82352869d0`，CPU任务`ap-nvnvB4yJMSj2nPkefRtXt3`。该分析核完整面板与既存评分/Judge，但没有重新读取730份Actor raw或重新判分。
 - 新Video候选首次私有启动因缺少子进程`PYTHONPATH`在导入阶段失败，尚未调用模型；保留失败目录，修复环境后使用新目录重试，不计为完成问答或零分样本。
