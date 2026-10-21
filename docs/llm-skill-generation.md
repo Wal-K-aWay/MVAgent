@@ -216,7 +216,7 @@ Global 51.86秒、2483输入/2040输出token；Video 57.96秒、1963输入/2507�
 
 完整库SHA256：`45c4ac01fe78c374b073ada108d81819d02b361a0c20a6ee0a3dfe2d2a1d7adc`。
 记录位于runs `devbox/one_shot_contract_20261021/revision2/run1/`，配置为同目录的
-`runtime_with_skills.json`。新的SDK读取已核对银行文件SHA和两个角色的task选卡引用、SHA及`/runs/`路径。
+`runtime_with_skills.json`。新的SDK读取已核对库文件SHA和两个角色的task选卡引用、SHA及`/runs/`路径。
 产物文字观察：Global不再有仅凭元数据作答的卡，四张Video卡都先检查并复用Memory；
 例如第4张以 `Compare the active instruction with all retained same-video Memory lines` 开始。
 这不是语义合格的自动证明：Global第1/3张范围存在重叠，第3张正文有偏向恰好一个匹配视频的假设，
