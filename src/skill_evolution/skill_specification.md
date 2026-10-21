@@ -29,7 +29,8 @@ Each VideoAgent receives its own instruction and retains its own previous trajec
 | Actor | `strategy` only |
 | LLM selector | Candidate `id` and `when_to_use`, plus the selection input |
 | VideoAgent and visual Observer | No automatic inheritance of the Global skill; necessary instructions must be passed through action parameters |
-| Terminal finalizer | No injected skill; it follows its existing finalization contract |
+| Global answer-only terminal decision | Retains the selected strategy and public History |
+| Video forced summary | Uses retained Memory/instruction without the planning strategy |
 
 Eligible catalogs of eight or fewer skills are shown in full. Larger catalogs use BM25 and embedding recall, fused into eight candidates. The selector chooses at most one skill or none. A skill MUST NOT depend on an unselected companion skill.
 
@@ -187,7 +188,7 @@ Review each candidate against the following criteria:
 
 | Check | Required review |
 |---|---|
-| Structure | Exactly five fields; valid meta; nonblank strings; applicable size limits; valid rendering |
+| Structure | Exactly meta, when_to_use and strategy; valid meta; nonblank strings; applicable size limits; valid rendering |
 | Scope | One identifiable workflow; capability rather than dataset identity; no unsupported expansion of the task |
 | Discovery | Description and applicability distinguish likely neighbors using information available at activation |
 | Consistency | Routing promises, execution prerequisites, procedure, and example agree |
@@ -200,7 +201,7 @@ Behavioral evaluation SHOULD cover a clear positive case, a close negative case,
 
 Observe whether the correct body was injected and whether its applicable instructions changed behavior as intended. Compare final answers under matching model, runtime, question, budget, and scoring conditions. A syntactically valid skill, high selection frequency, or better adherence alone does not establish accuracy improvement. Evaluate the whole bank under ordinary selection before accepting a claimed system improvement. This specification does not replace the experiment's acceptance protocol or make token/call counts an optimization objective.
 
-In the current Global evolution workflow, routing revisions preserve strategy, and procedural revisions preserve when_to_use. Record provenance and results outside the card. Update only what the evidence supports rather than accumulating a new universal rule for every failure.
+No evolution loop is currently provided. Record provenance and results outside the card; future revision methods must state which fields they change and validate the complete resulting library.
 
 **10. Maintenance**
 

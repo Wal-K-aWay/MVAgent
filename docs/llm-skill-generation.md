@@ -1,7 +1,7 @@
 # LLM 一次生成 Skill 库
 
 这是借鉴 SkillOpt 一次生成基线的 MVAgent 适配，不是其未公开生成 Prompt 的严格复现。
-仅提供通用多视频问答任务、角色信息边界、实际动作说明和 Skill 格式；不读取题目、媒体、
+仅提供通用多视频问答任务、角色信息边界、目标 Actor 的基础 System、实际动作说明和 Skill 格式；不读取题目、媒体、
 答案、轨迹、成绩或已有卡片。不按 benchmark 单独生成，不根据评测结果修订。
 
 在远端项目环境中，凭据通过 `BIGMODEL_API_KEY` 环境变量注入：
@@ -12,7 +12,10 @@ python scripts/generate_skills.py --role both \
 ```
 
 输出目录必须不存在。默认 `--role global`，可选 `video` 或 `both`。
-每个角色单独一次请求，默认 1–8 张卡；`--max-cards` 可预先限定为 1–8。
+每个角色单独一次请求，默认 1–8 张卡；`--max-cards N` 设每角色上限（N 在 1–8 内），不是固定生成数量。
+LLM 根据方法差异选择实际数量，不补齐名额、不按动作或执行阶段凑卡；程序只校验范围，
+没有按题目分布或分数估计最优卡数。`--role both` 最多16张，但每个角色最多8张，
+各角色候选都可完整展示给 Selector，无需触发大库的 embedding 检索。这不证明8张最优。
 两种角色使用独立上下文，不读取另一角色刚生成的卡。
 默认配置 `configs/skill_evolution/llm_generation.yaml` 使用 `glm-5.3-flash`，reasoning_effort=high、temperature=1、top_p=.95、
 输出预算16384、HTTP超时600秒；使用现有 BigModel provider 的 JSON mode。
@@ -22,10 +25,16 @@ python scripts/generate_skills.py --role both \
 程序分配顺序数字 ID，role 由调用方设置，所有卡的 stages 为 initial/evidence。
 Selector 的 task scope 保持原样；Global 每题、Video 每次请求首次选择后沿用。
 现有 Runtime 校验字段、字数及渲染，之后重新按 SHA256 加载 role bank 和完整 bank。
+完整库成功后生成 `runtime_with_skills.json`：复制输入模型/Agent/推理配置，只替换两个角色的 skill 引用；
+本次生成的角色启用同一完整库，显式 `selection_scope: task`，绑定绝对路径和SHA256，
+未生成的角色关闭skill，不沿用输入配置中的旧库。现有 YAML 配置加载器也可读取此JSON，
+评测时直接将它传给 `eval/agent_eval/run.py --config`；该文件不会启动服务或运行评测。
+移动产物时必须更新库路径；现有实验沿用自己的冻结配置。
 这些检查不证明选卡适用性、真实行为或准确率收益；本入口不运行 Actor 或 Judge。
 
 结果包含每角色 request.json、response.json、events.jsonl、validation.json、bank.json，
-以及合并 bank.json、summary.json、生成配置、运行配置、源码快照和逐文件 SHA。
+以及合并 bank.json、summary.json、runtime_with_skills.json、生成配置、输入运行配置、源码快照和逐文件 SHA。
+summary 记录每角色实际卡数、每角色上限与目标selection_scope；失败时不发布配套运行配置。
 响应在解析之前保存；失败目录保留，不能覆盖后假称首次成功。
 events 包含实际请求体、响应正文、模型身份、finish_reason、usage 和耗时；不含认证请求头。
 使用现有 provider 日志，不声称保存了供应商完整 HTTP 响应或 reasoning_content。
@@ -41,42 +50,79 @@ events 包含实际请求体、响应正文、模型身份、finish_reason、usa
 
 默认 `--runtime-config` 为 `configs/inference/modal_qwen35_35b_a3b_no_skill.yaml`。
 仅读取该配置中的动作预算；不是启动模型服务，也不会把完整配置发给生成模型。
-角色描述、生成 Prompt、输出 Schema 和解码参数保持首次运行的协议。
+本轮完善了生成 Prompt：明确完整方法、可见输入、逐范围/联合观察预算、准确性目标和输出前检查；
+输出 Schema 与解码参数保持不变。此为新的生成协议，不能与文末首次生成的旧Prompt混称同一版本。
 角色/阶段常量与结构校验复用 `SkillBank`，动作说明复用两个 Agent 的 Prompt builder，
 源码保存复用 `ensure_source_snapshot`，JSON 原子保存和哈希复用 `mvagent.utils.io`。
 旧算法、轨迹分析器、训练配置与默认旧卡库引用已经移除。
 
 ## 生成 System Prompt 中文镜像
 
-你为冻结的多视频问答系统编写可复用 Skill。只使用给定任务描述、运行契约和 Skill 格式；
-不会提供题目实例、媒体、答案、执行轨迹、成绩或已有 Skill。
-为指定角色创建互补方法，自行确定范围；不预设 benchmark 分类，不用重复方法凑满数量。
-每张卡恰有两个非空英文文本字段：
+为冻结的多视频问答系统中的一个角色编写可复用skill库。只使用给出的任务、角色、运行和输出契约；
+不提供题目实例、媒体、答案、轨迹、分数或已有skill。
 
-- `when_to_use`：根据 Selector 可见输入判断的适用条件。
-- `strategy`：仅使用该角色动作和可见证据、自包含的执行方法。
+目标是在现有动作和观察预算内提高回答正确性，不增加减少调用次数的独立目标，也不要求用满步数。
+每张卡必须是覆盖完整问题（Global）或本次instruction（Video）的自包含方法，包含可识别的证据需求和完成条件。
+按证据需求和决策过程的差异决定范围。不能把同一方法拆成需要依次激活的初步收集、细化和完成卡；
+这些应是方法内部的条件分支。如果问题或instruction本身要求复查，可以写复查方法，但隐藏的执行状态不能作为选卡前提。
+不能依赖另一张卡、要求所有任务执行全部动作，或仅复述已有Planner指令；只保留该方法所需步骤。
 
-Selector 最多选一张或不选，只读 `when_to_use`；Actor 只接收 `strategy`，因此执行前提和
-排除条件写进 `strategy`。不能依赖另一张卡；依赖未来观察的分支放在 `strategy`。
-遵守动作、记忆、回答契约，不虚构工具、额外输出字段或隐藏信息。不编码数据集名、task 代号、
-样本身份或答案。Skill 指导可复用方法，而非当前一道题。
-每卡简洁；两字段合计和含标题的渲染正文分别遵守给定字数上限。仅返回要求的 JSON。
+在上限内选择有实质差异的方法数量。上限不是配额：合并重叠方法；场景主题、换一种说法或执行阶段差异本身不构成新卡。
+不预设或命名benchmark分类、数据集名、task代号、样本身份或答案。每张卡恰有两个非空英文字符串：
 
-## 生成 User Prompt 中文镜像
+- `when_to_use`：说明所需结果、有区别的取证方法，以及能从Selector输入识别的必要条件或相邻排除条件。
+  内容相关或一个有用的辅助步骤不足以构成匹配。尚待观察的视觉事实是取证目标，不应要求在选卡时已经知道。
+- `strategy`：给出该角色独立可用的过程，包含执行前提、排除条件、证据获取与使用、相关分支和完成时机。
+  Actor看不到when_to_use，所以执行必需条件必须在strategy内。
 
-任务：回答证据分散在多个视频中的问题。系统包含一个全局协调者及每视频一个证据 Agent；
-后者接收局部 instruction、返回报告，内部观察私有；协调者也可获取联合视觉观察。
-目标 role 为 `{role}`，实际动作说明由 `generation/prompts.py` 中的 `build_role_architectures` 从冻结 Runtime 拼接，
-包括参数占位示例，不包含已编写的 Skill 示例。
+Selector看不到History或Memory。依赖未提供的先前观察、冲突、证据充分性或失败尝试的条件放在strategy内，由Actor检查自己的证据。
+问题/instruction明确给出的要求或上下文属于选卡时可见的输入。
+不虚构工具、共享记忆、输出字段、观察事实、时间锚点或角色可见的额外信息。保持问题/instruction及所有动作与回答契约。
+采样选择必须联系证据需求和给定限制，不能把自行设定的FPS范围、分段数或重试次数当成普遍硬要求。
+卡片保持简洁，字数上限不是写作目标。
 
-Global Selector 看完整问题、视频 ID 和时长，每题开始时选择一次（包括不选）；
-Video Selector 只看本次 instruction，不看 Memory 或完整问题；每请求选一次，跨请求保留本视频观察记忆。
-所有卡在 initial/evidence 阶段 eligible，stage 不调度未来切卡。
-策略指导普通决策；Global answer-only 终答保留策略，Video 强制总结只读 Memory/instruction。
+返回前逐卡检查：适用性可从Selector输入判断；方法能在整个选卡范围内使用而不换卡；动作、预算单位与完成条件符合角色契约。
+检查卡片差异来自方法而非仅主题、措辞或执行阶段。只返回一个JSON对象，唯一顶层键是skills。
+每项只能有when_to_use和strategy；不能额外添加prerequisites、exclusions、checks或解释字段；执行前提与排除条件写在strategy字符串内。
+这些是同一次生成内的检查要求，不是额外LLM调用或程序化语义验证。
 
-生成 1 至 `{max_cards}` 张，不必凑满。每卡文本及渲染正文上限 `{MAX_SKILL_WORDS}` words。
-仅返回 `{"skills": [{"when_to_use": "...", "strategy": "..."}]}`。
-调用方设置 ID、role、stages；不返回 metadata 或额外说明。
+## 生成 User Prompt 与动态角色契约中文镜像
+
+任务：回答证据分布在多个视频中的问题。全局协调者综合返回证据，每个视频的证据Agent响应局部instruction；
+内部观察不会自动共享。目标角色为`{role}`，拼接的角色契约如下：
+
+- Global Planner仅处理文本，看完整问题、视频ID/时长和公开History；看不到VideoAgent内部Observe或中间观察。
+  analyze_videos发送互相独立、各自完整的局部指令；后续动作可把已返回事实写入新指令。
+  watch_videos对至少两个不同视频做联合视觉调用并返回文本证据；answer提交parameters.answer。
+  Global策略不会自动传给VideoAgent或视觉模型，必要任务上下文必须通过动作instruction传递。
+  普通轮次重复决策，但不提供剩余步数计数。
+- Video Planner仅处理文本，负责一个视频，看本次局部instruction、源视频时长和按时间排列的同视频Memory；
+  看不到完整Global问题、其他视频、Global History或视频像素。observe提供一个视觉问题、有序源区间和一个计划FPS；
+  有可用观察后可以finish总结。观察在同视频跨请求保留，但当前instruction定义本次任务。普通轮次重复决策，不提供剩余步数计数。
+
+Global普通决策上限为`{global_max_steps}`。一次watch_videos的全部所选片段共享`{max_video_frames_per_request}`帧上限；
+Runtime分配容量并决定采样，不能给每个片段各算一份完整预算。
+Video每次instruction的普通决策上限为`{video_max_steps}`。一次observe内每个range单独调用视觉模型，
+每个range各有`{max_video_frames_per_request}`帧上限；整个observe或instruction没有这一总帧数预算。
+同一动作提供一个计划FPS，Runtime根据每个range的容量调整实际FPS；不能把一个帧上限除以全部range时长之和。
+
+随后按角色原样拼入本次源码中的Planner System及动作说明：Global的GLOBAL_AGENT_SYSTEM_PROMPT与动作builder，
+Video的VIDEO_PLANNER_SYSTEM_PROMPT与动作builder。数值来自输入运行配置；这不是新增示例skill或数据集样例。
+
+选卡与注入契约为`selection_scope={SELECTION_SCOPE}`，固定为task：
+
+- Global Selector只看完整问题、视频ID与时长；看不到History、观察或报告。取证前选一次，整题沿用，包括不选。
+- Video Selector只看当前instruction；看不到Memory、源时长或Global问题。每次instruction开始选一次并沿用，包括不选。
+  后续请求重新选，Actor的同视频观察Memory仍保留。
+
+Selector只读候选when_to_use，最多选一张或不选；必须直接匹配所需结果和主要取证操作，仅内容相关或辅助步骤不够。
+最近似或唯一候选仍可能被拒选。Actor只接收strategy，范围内不会激活其他卡；后续依赖证据的决策必须在策略内部条件分支中完成。
+Global强制answer-only终答保留策略；Video强制总结只读Memory/instruction，不读取规划策略。
+
+输出1至`{max_cards}`张不同方法卡，模型自行决定数量；继续生成会重复方法时就少生成，不为达到上限而额外添卡。
+每卡两字段合计与包含标题的strategy渲染正文分别不超过`{MAX_SKILL_WORDS}`words，优先简洁可执行的指令。
+只返回`{"skills": [{"when_to_use": "...", "strategy": "..."}]}`；调用方分配ID、role和stages。
+不返回metadata、额外键、Markdown围栏或说明，输出前检查字段名与全部契约。
 
 ## 首次真实生成（2026-10-21 UTC）
 

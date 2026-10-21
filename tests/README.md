@@ -38,3 +38,8 @@ preservation, and closed-form official scores after the module relocation.
 The evaluation snapshot check loads a synthetic closed-form sample, scores it,
 changes the live workspace, verifies resume still uses the frozen evaluation code,
 and rejects an altered snapshot. It performs no model calls or video decoding.
+
+Generation checks also cover per-role cardinality bounds, forbidden extra fields,
+role-specific Actor prompt/capacity inputs, and task-scoped hash-pinned runtime
+configuration. Global-only generation disables an old Video bank without changing
+the input configuration or Actor settings. No model API is used by these checks.

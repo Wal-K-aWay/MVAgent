@@ -1,5 +1,6 @@
 """One call per role: persist raw output, validate, and freeze the complete bank."""
 from dataclasses import asdict
+from copy import deepcopy
 from datetime import datetime, timezone
 import json
 import os
@@ -9,10 +10,11 @@ import time
 from mvagent.utils.io import file_fingerprint, write_json
 from models.execution import execution_scope
 from models.utils import validate_json_schema
+from mvagent.configs.agent_config import Skill_Config
 from mvagent.skills.bank import ROLES, STAGES, SkillBank
 from mvagent.utils.snapshot import ensure_source_snapshot
 
-from .prompts import SYSTEM, build_prompt, schema
+from .prompts import SELECTION_SCOPE, SYSTEM, build_prompt, schema
 
 
 def make_bank(value: dict, role: str, max_cards: int, *, offset: int = 0) -> SkillBank:
@@ -31,6 +33,7 @@ def generate(client, runtime: dict, roles: list[str], output: Path, max_cards: i
     if not roles or len(set(roles)) != len(roles):
         raise ValueError("Supply distinct roles")
     prompts = {role: build_prompt(runtime, role, max_cards) for role in roles}
+    output = output.expanduser().resolve()
     output.mkdir(parents=True, exist_ok=False)
     secret = client.api_key
 
@@ -76,8 +79,6 @@ def generate(client, runtime: dict, roles: list[str], output: Path, max_cards: i
                 write(bank_path, bank.to_dict())
                 digest = file_fingerprint(bank_path)
                 loaded = SkillBank.load(path=str(bank_path), sha256=digest)
-                for card in loaded.cards:
-                    loaded.render([card.id])
                 summary = {"role": role, "cards": len(loaded.cards), "sha256": digest,
                            "seconds": time.monotonic() - started,
                            "requests": sum(e["kind"] == "model_request" for e in events),
@@ -97,8 +98,18 @@ def generate(client, runtime: dict, roles: list[str], output: Path, max_cards: i
     write(path, combined.to_dict())
     digest = file_fingerprint(path)
     SkillBank.load(path=str(path), sha256=digest)
+    deployment = deepcopy(runtime)
+    for role in ROLES:
+        reference = (dict(enabled=True, mode="dynamic", selection_scope=SELECTION_SCOPE,
+                          path=str(path), sha256=digest) if role in roles else dict(enabled=False))
+        Skill_Config.from_dict(reference, field_name=f"agents.{role}_agent.skill")
+        deployment["agents"][f"{role}_agent"]["skill"] = reference
+    runtime_path = output / "runtime_with_skills.json"
+    write(runtime_path, deployment)
     summary = {"status": "completed", "created_at": datetime.now(timezone.utc).isoformat(),
                "bank_sha256": digest, "roles": summaries, "task_examples": 0,
+               "max_cards_per_role": max_cards, "selection_scope": SELECTION_SCOPE,
+               "runtime_config": str(runtime_path),
                "trajectory_examples": 0, "score_feedback": False, "quality_evaluated": False}
     write(output / "summary.json", summary)
     return summary

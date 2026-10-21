@@ -18,7 +18,8 @@ def main():
     parser.add_argument("--config", default="configs/skill_evolution/llm_generation.yaml")
     parser.add_argument("--runtime-config", default="configs/inference/modal_qwen35_35b_a3b_no_skill.yaml")
     parser.add_argument("--role", choices=(*ROLES, "both"), default="global")
-    parser.add_argument("--max-cards", type=int, default=8)
+    parser.add_argument("--max-cards", type=int, choices=range(1, 9), default=8,
+                        help="Per-role upper bound; the LLM chooses 1..N cards, without filling a quota")
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
     runtime = yaml.safe_load(Path(args.runtime_config).read_text())

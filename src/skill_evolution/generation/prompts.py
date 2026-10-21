@@ -1,50 +1,85 @@
 """Generator instructions, role/action contracts and response schema."""
-from mvagent.agents.global_agent.prompts import build_global_action_prompt_blocks
-from mvagent.agents.video_agent.prompts import build_planner_action_blocks
+from mvagent.agents.global_agent.prompts import (
+    GLOBAL_AGENT_SYSTEM_PROMPT, build_global_action_prompt_blocks,
+)
+from mvagent.agents.video_agent.prompts import (
+    VIDEO_PLANNER_SYSTEM_PROMPT, build_planner_action_blocks,
+)
 from mvagent.skills.bank import MAX_SKILL_WORDS, ROLES
 
 
-SYSTEM = """You write reusable skills for a frozen multi-video question-answering system.
-Use only the supplied task description, runtime contract, and skill format. No task
-instances, media, answers, execution traces, scores, or existing skills are supplied.
-Create complementary procedures for the requested role. Choose their scopes yourself;
-do not invent a benchmark taxonomy or fill the card quota with redundant procedures.
-Each card has exactly two nonempty English text fields:
-- when_to_use: applicability recognizable from the selector's available input.
-- strategy: a self-contained procedure using only the role's actions and visible evidence.
-The selector chooses at most one card, or none. It reads only when_to_use; the Actor
-receives only strategy. Include execution prerequisites and exclusions in strategy.
-Do not rely on another skill. Put conditions depending on future observations inside
-strategy. Preserve all action, memory, and answer contracts; do not invent tools,
-extra output fields, or hidden information. Do not encode dataset names, task codes,
-sample identities, or answer keys. A skill guides a reusable method, not one question.
-Keep each card concise. Its two fields together, and the rendered strategy with its
-heading, must each fit within the supplied word limit. Return only the requested JSON.
+SELECTION_SCOPE = "task"
+
+SYSTEM = """Write a reusable skill library for one role in a frozen multi-video QA system.
+Use only the supplied task, role, runtime and output contracts. No task instances,
+media, answers, execution traces, scores or existing skills are supplied.
+
+## Objective and unit of a skill
+Improve answer correctness within the existing action and observation limits. Do not
+introduce a separate objective of reducing calls, and do not require using all steps.
+Each card must be a self-contained method for an entire question (Global) or active
+instruction (Video), with a recognizable evidence need and a completion condition.
+Choose scopes from differences in evidence requirements and decision procedures.
+Do not split one workflow into cards that must be activated successively for initial
+collection, refinement and completion. Those are conditional branches within a method.
+A refinement method is allowed when the supplied question or instruction itself asks
+for refinement; hidden prior execution state cannot be its selection prerequisite.
+Do not depend on another card, prescribe every action for every task, or merely repeat
+the existing planner instructions. Include only the steps needed by the method.
+
+## Library and field requirements
+Choose the number of meaningfully different methods up to the supplied maximum.
+The maximum is not a quota: merge overlapping methods; scene topics, paraphrases and
+execution phases alone do not justify separate cards. Do not impose or name benchmark
+taxonomies, dataset names, task codes, sample identities or answer keys.
+Each card contains exactly two nonempty English strings:
+- when_to_use: describe the requested result, distinctive evidence method, and any
+  essential applicability conditions or nearby exclusions recognizable from the
+  Selector's supplied input. Related content or a useful substep alone is insufficient.
+  Unknown visual facts to acquire are observation goals, not facts required at selection.
+- strategy: give a standalone procedure for that role, including operational
+  prerequisites and exclusions, how to obtain and use evidence, relevant branches,
+  and when to submit the requested result. The Actor does not receive when_to_use.
+
+The Selector sees no History or Memory. Conditions depending on unprovided prior
+observations, conflicts, evidence sufficiency or failed attempts belong inside
+strategy, where the Actor can check its own evidence. Explicit requirements or
+context in the question/instruction are visible selection inputs. Do not invent
+tools, shared memory, output fields,
+observations, time anchors or additional information visible to either role.
+Preserve the question/instruction and all runtime action and answer contracts.
+Keep sampling choices tied to evidence needs and supplied limits. Do not present
+invented FPS ranges, partition counts or retry quotas as universal requirements.
+Keep cards concise; word limits are ceilings, not writing targets.
+
+## Check before returning
+For each card, check that its applicability can be decided from the Selector input,
+that its method remains usable throughout its selection scope without switching cards,
+and that its actions, budget units and completion conditions match the role contract.
+Check that cards differ in method rather than only topic, wording or execution stage.
+Return only one JSON object whose sole key is skills. Each item must have exactly
+when_to_use and strategy; prerequisites, exclusions, checks and explanations must not
+be additional fields. Put execution prerequisites and exclusions inside strategy.
 """.strip()
 
 
 ROLE_CONTRACTS = {
     "global": """The Global Planner is text-only. It sees the complete question,
 exact video IDs and durations, and public History. It never sees a VideoAgent's private
-Observe calls or intermediate observations. It may choose `analyze_videos`,
-`watch_videos` when available, or `answer`. `analyze_videos` sends independent
-self-contained instructions to selected single-video agents. `watch_videos` selects at
-least two distinct video clips for one joint visual comparison. `answer` directly submits
-the final response in `parameters.answer`. Its strategy can improve action choice, video/clip selection,
-single-video instructions, use of returned evidence, and answer timing. Available
-actions and their parameter schemas are fixed by Runtime. Decisions repeat across
-ordinary rounds and each completed action result enters public History, so a later
-decision may refine an earlier call; no remaining-step count is visible.""",
-    "video": """The Video Planner is text-only and owns one video. It sees one local
-instruction, source duration, and chronological same-video Memory. It does not see the
-complete question, sibling videos, Global History, or the visual clip directly. It may
-choose `observe` with one focused visual question, ordered source ranges, and one FPS,
-then may choose `finish` with a grounded summary after usable evidence exists. Available
-actions, parameter validation, Observer execution, and summary publication are fixed by
-Runtime. Its strategy can improve WHAT/range/FPS selection, broad-to-focused search,
-use of retained Memory, re-observation after weak evidence, and Finish timing. Decisions
-repeat across ordinary rounds and each usable Observe enters Memory, so a later decision
-may refine an earlier call; no remaining-step count is visible.""",
+Observe calls or intermediate observations. analyze_videos sends independent,
+self-contained instructions to single-video agents; a later action may pass returned
+facts into new instructions. watch_videos makes a joint visual-model call on at least
+two distinct videos and returns text evidence. answer submits parameters.answer.
+The Global strategy is not automatically passed to VideoAgents or the visual model;
+necessary task context must be conveyed through the action's instruction.
+Decisions repeat across ordinary rounds; no remaining-step count is supplied.""",
+    "video": """The Video Planner is text-only and owns one video. It sees the active
+local instruction, source duration and chronological same-video Memory. It does not
+see the complete Global question, sibling videos, Global History or video pixels.
+It can observe with one visual question, ordered source ranges and one planned FPS,
+and finish with a summary after usable observations exist. Same-video observations
+persist across requests, but the current instruction defines the task to solve.
+Decisions repeat across ordinary rounds; no remaining-step count is supplied.""",
 }
 
 
@@ -57,12 +92,13 @@ def build_role_architectures(
     global_max_steps: int = 5,
     video_max_steps: int = 5,
 ) -> dict[str, str]:
-    """Render each target Planner's fixed contract for skill generation."""
-
+    """Reuse the target planners' real system instructions and action descriptions."""
     return {
         "global": (
             ROLE_CONTRACTS["global"]
-            + f"\nConfigured maximum decision steps: {global_max_steps}."
+            + f"\nConfigured maximum ordinary decision steps: {global_max_steps}."
+            + f"\nEach watch_videos action makes one joint visual call: its selected clips share a total limit of {max_video_frames_per_request} frames. Runtime allocates that capacity and chooses sampling; do not assign a separate full frame budget to each selected clip."
+            + "\n\n### Existing planner system instructions\n" + GLOBAL_AGENT_SYSTEM_PROMPT
             + "\n\n### Available actions\n"
             + build_global_action_prompt_blocks(
                 ("answer", "analyze_videos", "watch_videos"),
@@ -72,11 +108,13 @@ def build_role_architectures(
         ),
         "video": (
             ROLE_CONTRACTS["video"]
-            + f"\nConfigured maximum decision steps: {video_max_steps}; visual frame limit per request: {max_video_frames_per_request}."
+            + f"\nConfigured maximum ordinary decision steps per instruction: {video_max_steps}."
+            + f"\nAn observe action executes each requested range in a separate visual-model call. Each range has its own limit of {max_video_frames_per_request} frames; ranges do not share that limit. There is no {max_video_frames_per_request}-frame total budget for the whole observe action or instruction."
+            + " One planned FPS is supplied for all ranges in an action; Runtime adjusts the effective FPS for each range to fit its own capacity. Use ranges and FPS to preserve the evidence needed, rather than dividing one frame budget by the sum of all requested durations."
+            + "\n\n### Existing planner system instructions\n" + VIDEO_PLANNER_SYSTEM_PROMPT
             + "\n\n### Available actions\n"
             + build_planner_action_blocks(
-                ("observe", "finish"),
-                duration_sec=1.0,
+                ("observe", "finish"), duration_sec=1.0,
                 max_video_frames_per_request=max_video_frames_per_request,
                 max_ranges_per_action=max_ranges_per_action,
             )
@@ -117,32 +155,40 @@ def build_prompt(runtime: dict, role: str, max_cards: int) -> str:
         video_max_steps=video_config["max_steps"],
     )[role]
     selection = (
-        "The selector sees the complete question, video IDs and durations. Selection "
-        "occurs once at the beginning of the question and persists, including none."
+        "Selector input: the complete question, video IDs and durations. No History, "
+        "observations or reports. Selection happens before evidence collection and "
+        "persists for the whole question, including a selection of none."
         if role == "global" else
-        "The selector sees the active instruction, not retained Memory or the global "
-        "question. Selection occurs once per request and persists during that request. "
-        "A new request selects again; same-video observation Memory persists."
+        "Selector input: only the active instruction, without Memory, source duration "
+        "or the Global question. Select once at the start of each instruction; retain "
+        "the choice, including none, throughout that request. A later request selects "
+        "again, while the Actor's same-video observation Memory persists."
     )
     return f"""## Task description
 Answer a question whose evidence is distributed across multiple input videos.
-The system has a global coordinator and one evidence agent per video. Each evidence
-agent receives a local instruction and returns a report; its internal observations
-remain private. The coordinator may also obtain joint visual observations.
+A global coordinator combines returned evidence; one evidence agent per video
+answers local instructions. Their private observations are not shared automatically.
 
 ## Target role: {role}
 {architecture}
 
-## Skill selection
+## Selection and injection contract: selection_scope={SELECTION_SCOPE}
 {selection}
-All generated cards will be eligible at initial and evidence stages. Stage eligibility
-does not schedule future selection. The selected strategy guides ordinary decisions.
-The Global answer-only terminal decision retains its strategy. The Video forced
-summary receives retained Memory and the instruction, without the planning strategy.
+The Selector reads candidate when_to_use fields and chooses at most one card, or none.
+It requires a direct match to the requested result and main evidence operation, not
+merely related content or an auxiliary substep. It may reject the closest or only card.
+The Actor receives only the chosen strategy. No other card becomes active during
+this selection scope. Later evidence-dependent decisions must be branches within it.
+Global's answer-only terminal decision keeps its strategy. Video's forced summary
+uses retained Memory and the instruction without the planning strategy.
 
 ## Output
-Generate 1 to {max_cards} cards for this role, without forcing the maximum count.
-Maximum per-card text and rendered-body length: {MAX_SKILL_WORDS} words.
+Generate 1 to {max_cards} distinct cards for this role. Choose the count yourself;
+use fewer when further cards would duplicate a method. Do not add cards merely to
+reach the maximum.
+Each card's two fields together and its rendered strategy (including its heading)
+must each fit within {MAX_SKILL_WORDS} words. Prefer concise operational instructions.
 Return {{"skills": [{{"when_to_use": "...", "strategy": "..."}}]}}.
-The caller assigns IDs, role, and stages; do not return metadata or commentary.
+The caller assigns IDs, role and stages. Do not return metadata, additional keys,
+Markdown fences or commentary. Check field names and all contracts before returning.
 """

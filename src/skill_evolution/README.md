@@ -12,6 +12,8 @@ skill_evolution/
 ```
 
 入口为 `python scripts/generate_skills.py --role both --output-dir <new-directory>`。
+默认每角色由LLM自主生成1–8张，`--max-cards N`设上限而非固定数量；两角色各生成一次。
+完整成功后输出`runtime_with_skills.json`，只启用本次生成角色并明确task选卡，评测可直接使用。
 模型参数在 [`configs/skill_evolution/llm_generation.yaml`](../../configs/skill_evolution/llm_generation.yaml)，
 默认从现有无 skill 推理配置读取动作容量与步数；不加载其模型、题目或卡库。
 输入边界、输出文件、完整中文 Prompt 镜像见 [生成说明](../../docs/llm-skill-generation.md)。
