@@ -50,6 +50,26 @@
 
 这些是受限适配，而非复现论文效果。特别要检查：skill不会自动进入Observer，也不会自动进入Video强制总结；想改变感知问题或报告证据，必须通过已有instruction、observe.what和返回证据传递。只统计选中率会漏掉这个问题。
 
+## 第二轮证据要求重新区分的目标
+
+补齐同题固定正文后，三张常量卡在Train80均高于自然三卡路由；但这还没有证明初始题面能预测哪张正文更有用。令`X`为首次Selector可见输入，`R_s`为固定正文`s`下的整题得分，应区分三个值：最佳常量`max_s E[R_s]`、可实现的初始路由`E_X[max_s E[R_s|X]]`、事后最优`E[max_s R_s]`。中间值未知，不能把事后最优与常量的差全当作可学习路由空间。实际统计仍按官方十任务macro及CCQA权重，不能用该简写替换评分。
+
+[Dynamic LLM Routers are Often Misguided](https://arxiv.org/html/2610.02762v1)提供了语义名单选择可能低于随机组合的实证，但其成本目标不移植到这里。[Learning to Defer](https://proceedings.mlr.press/v119/mozannar20b.html)比较两个都会出错的系统；这更接近我们的skill与none：none仍完整执行Actor，不是从评估分母里拒答。因此高弃选率不是安全目标，必须估计相对空库收益。[RouteLLM](https://arxiv.org/html/2406.18665v4)借助成对偏好学习相对胜率，也不能被解释为只凭技能主题即可知道实际效用；本项目只借这个优化对象，不训练新的路由模型。
+
+[COBRA-Skills](https://arxiv.org/html/2609.11682v1)的context是候选skill的表示，reward是优化集均值，最后选一张高均值卡；它解决优化期评估预算分配，并未解决部署时的query→skill选择。当前候选少且完整反事实表已有，不先添加surrogate或bandit模块。先比较单个高均值正文经自然选择部署与多卡库，检验个性化路由的额外价值。
+
+[SPARO](https://arxiv.org/html/2609.32492v1)用实际干预区分激活和正文问题，可借鉴固定正文只改入口、固定入口只改正文的诊断。[AgentGrad](https://arxiv.org/html/2609.08572v1)先干预一个Agent并测下游是否修复，但其GT-derived hint违反本项目优化信息边界，不能照搬。[MIPRO](https://arxiv.org/html/2406.11695v2)提示模块组合有交互；本轮只在已有单角色结果之后测试一个G×V组合，不把可能交互扩成无限矩阵。
+
+据此有三条互斥的下一步假说，不预先认定都需要实现：
+
+1. **可见相对收益。** 保持正文不变，以Train同题收益与损失约束一次入口修订；先查表诊断，再真实完整自然运行。若只改变选择却未胜过常量或未跨来源保留优势，停止同义入口搜索。
+2. **观察后条件程序。** 一次选卡不禁止已选正文根据后来报告决定动作。对末句控制只增加一个有证据支持的条件操作，条件写在strategy而非要求Selector提前知道历史；若对应action参数没变化，不能把分数变化归于程序被执行。
+3. **单个消息边界保真。** 根据该角色可见Train，定位题目→instruction、instruction→what或观察→正常finish的一处丢失，只改该角色一张卡。若判据已完整传递仍错，转向感知或综合能力解释，不继续堆报告格式。
+
+上面是适配与反证设计，不是这些论文已在MVAgent复现。卡片的真实价值属于Actor、正文、搭档库和诱发的观察链条共同组成的系统；reason复述了策略，也不足以证明该策略造成得分提升。最终接受仍只看自然完整库的官方总分。
+
+本地两次提案完成后，可用[GLM优化器配置](../configs/skill_evolution/glm_optimizer.yaml)对相同Train-only messages/schema做强优化模型对照。该配置使用现有BigModel客户端和环境变量凭据，不改变Actor；GLM-5.3按[官方协议](https://docs.bigmodel.cn/cn/guide/models/text/glm-5.3)开启thinking/high、16384输出token。与9B相比，模型、思考预算和JSON约束编码均不同：BigModel客户端会增加schema系统消息，不能声称只有权重变化。准备配置不等于已调用或已测得收益。
+
 ## 时间安排与转向规则
 
 - 前约1.5小时：先完成首波主指标，继续补反事实表与入口对照；文献和轨迹分析并行。

@@ -1,0 +1,12 @@
+# Optional text-only optimizer; Actor configuration stays unchanged.
+model_type: api_vlm
+provider: bigmodel
+model_name: glm-5.3
+api_key: BIGMODEL_API_KEY
+# BigModelProvider always sends thinking.type=enabled.
+reasoning_effort: high
+temperature: 1.0
+top_p: 0.95
+max_tokens: 16384
+timeout_sec: 600
+max_retries: 1
