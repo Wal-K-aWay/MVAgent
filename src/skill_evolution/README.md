@@ -107,3 +107,5 @@ python eval/skill_eval/selector_probe.py \
 输入数组每项为 `id/role/task/state/has_evidence`；Global 的 `task` 是问题，`state` 仅含空 `history` 与 `videos={video_id:{duration_sec:...}}`；Video 的 `task` 是本次 instruction，`state` 只能含空 `history`。不得向 Video Selector 加入 Global 问题、其他视频或私有记忆。输出保留原始请求和选择事件；选中率不能代替最终准确率。
 
 补充的 `configs/manual_watch_first_bank.json` 已是 schema3 单卡库，不属于上面的因子定义格式；它用于单独验证明确 watch-first 行动策略，中文镜像见[联合观看优先](../../docs/manual-watch-first-skills-zh.md)。原矩阵不随它改变。
+
+保留原指令范围的单Video实验卡见[卡片与完整中文镜像](../../docs/manual-video-scope-skill.md)；它是手工控制条件，默认配置不启用，不能作为进化算法的收益证据。
