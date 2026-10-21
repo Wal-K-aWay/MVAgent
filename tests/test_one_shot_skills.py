@@ -1,9 +1,11 @@
 """Generation boundary checks; no model calls or benchmark data."""
 from copy import deepcopy
+from io import BytesIO
 import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from mvagent.utils.io import file_fingerprint
 from models.execution import emit_event
@@ -14,6 +16,7 @@ from mvagent.agents.video_agent.prompts import VIDEO_PLANNER_SYSTEM_PROMPT
 from mvagent.skills.bank import SkillBank
 from skill_evolution.generation.generator import generate, make_bank
 from skill_evolution.generation.prompts import build_prompt
+from skill_evolution.generation.cli import main
 
 
 class FakeClient:
@@ -30,6 +33,36 @@ class OneShotTests(unittest.TestCase):
     def setUp(self):
         import yaml
         self.runtime = yaml.safe_load(Path("configs/inference/modal_qwen35_35b_a3b_no_skill.yaml").read_text())
+
+    def test_deepseek_cli_records_one_json_request_per_role(self):
+        payloads = []
+        response = {"model": "deepseek-flash", "id": "test-request", "usage": {},
+                    "choices": [{"message": {"content": FakeClient().chat([])},
+                                 "finish_reason": "stop"}]}
+
+        def respond(request, **kwargs):
+            payloads.append(json.loads(request.data))
+            return BytesIO(json.dumps(response).encode())
+
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "run"
+            with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-deepseek-secret"}), \
+                 patch("sys.argv", ["generate_skills.py", "--role", "both", "--output-dir", str(output)]), \
+                 patch("urllib.request.urlopen", side_effect=respond):
+                main()
+            summary = json.loads((output / "summary.json").read_text())
+            self.assertEqual(len(payloads), 2)
+            for role, payload in zip(summary["roles"], payloads):
+                self.assertEqual(role["requests"], 1)
+                self.assertEqual(payload["model"], "deepseek-flash")
+                self.assertEqual(payload["thinking"], {"type": "enabled"})
+                self.assertEqual(payload["reasoning_effort"], "high")
+                self.assertEqual(payload["response_format"], {"type": "json_object"})
+                self.assertNotIn("temperature", payload)
+                self.assertNotIn("top_p", payload)
+                events = (output / role["role"] / "events.jsonl").read_text()
+                self.assertNotIn("test-deepseek-secret", events)
+                self.assertNotIn("Authorization", events)
 
     def test_limits_and_role(self):
         value = json.loads(FakeClient().chat([]))

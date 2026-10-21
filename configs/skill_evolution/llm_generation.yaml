@@ -1,9 +1,9 @@
-provider: bigmodel
-model_name: glm-5.3-flash
-api_key: BIGMODEL_API_KEY
+model_type: api_llm
+provider: deepseek
+model_name: deepseek-flash
+api_key: DEEPSEEK_API_KEY
+enable_thinking: true
 reasoning_effort: high
-temperature: 1.0
-top_p: 0.95
 max_tokens: 16384
 timeout_sec: 600
 max_retries: 1

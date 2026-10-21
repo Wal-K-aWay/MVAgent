@@ -54,6 +54,7 @@ class DeepSeekProvider:
 
     def chat(self, request: ApiLLMRequest) -> str:
         payload = self.build_payload(request)
+        emit_event("model_request", payload=payload)
         api_base = str(self.cfg.api_base or _DEFAULT_API_BASE).rstrip("/")
         endpoint = f"{api_base}/chat/completions"
         http_request = urllib.request.Request(

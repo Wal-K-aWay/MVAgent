@@ -4,7 +4,7 @@
 仅提供通用多视频问答任务、角色信息边界、目标 Actor 的基础 System、实际动作说明和 Skill 格式；不读取题目、媒体、
 答案、轨迹、成绩或已有卡片。不按 benchmark 单独生成，不根据评测结果修订。
 
-在远端项目环境中，凭据通过 `BIGMODEL_API_KEY` 环境变量注入：
+在远端项目环境中，凭据通过 `DEEPSEEK_API_KEY` 环境变量注入：
 
 ```bash
 python scripts/generate_skills.py --role both \
@@ -17,8 +17,11 @@ LLM 根据方法差异选择实际数量，不补齐名额、不按动作或执�
 没有按题目分布或分数估计最优卡数。`--role both` 最多16张，但每个角色最多8张，
 各角色候选都可完整展示给 Selector，无需触发大库的 embedding 检索。这不证明8张最优。
 两种角色使用独立上下文，不读取另一角色刚生成的卡。
-默认配置 `configs/skill_evolution/llm_generation.yaml` 使用 `glm-5.3-flash`，reasoning_effort=high、temperature=1、top_p=.95、
-输出预算16384、HTTP超时600秒；使用现有 BigModel provider 的 JSON mode。
+默认配置 `configs/skill_evolution/llm_generation.yaml` 使用 `deepseek-flash`，thinking启用、reasoning_effort=high、
+输出预算16384、HTTP超时600秒；复用现有 DeepSeek provider 的 JSON mode。该客户端在thinking模式不发送temperature/top_p，
+DeepSeek当前服务默认top_p=1；不是此前GLM的top_p=.95。参数依据[官方Thinking文档](https://api-docs.deepseek.com/guides/thinking_mode/)
+及[Chat API文档](https://api-docs.deepseek.com/api/create-chat-completion/)。本次不修改生成System/User Prompt、预算或数量上限；
+JSON Schema的附加说明由各自现有provider注入，包装措辞可能不同，不声称两个模型的完整HTTP请求逐字一致。
 没有任务反馈、自动重试、生成修复、人工润色或按分数挑选。
 该生成配置不改变 Actor 固定的 seed=0 等评测设置。
 
@@ -44,8 +47,9 @@ events 包含实际请求体、响应正文、模型身份、finish_reason、usa
 
 核心代码位于 [`src/skill_evolution/generation/`](../src/skill_evolution/README.md)：
 `prompts.py` 管 Prompt/Schema，`generator.py` 管调用与产物，`cli.py` 管命令行。
-`scripts/generate_skills.py` 仅启动 CLI。模型参数使用已有 `ApiVLMConfig`，
+`scripts/generate_skills.py` 仅启动 CLI。模型参数使用已有 `ApiLLMConfig` 或 `ApiVLMConfig`，
 默认文件为 `configs/skill_evolution/llm_generation.yaml`，可通过 `--config` 指定。
+`model_type: api_llm` 使用现有纯文本客户端（当前DeepSeek）；`api_vlm` 使用原有多模态客户端（如GLM）。
 `api_key` 只能填写环境变量名，入口固定一次尝试，不创建新模型客户端或重试框架。
 
 默认 `--runtime-config` 为 `configs/inference/modal_qwen35_35b_a3b_no_skill.yaml`。

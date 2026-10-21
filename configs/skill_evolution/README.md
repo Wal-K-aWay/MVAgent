@@ -1,6 +1,7 @@
 # Skill 生成配置与冻结划分
 
-- `llm_generation.yaml`：一次生成使用的 `ApiVLMConfig` 参数；凭据为环境变量名。
+- `llm_generation.yaml`：一次生成的模型参数；当前为DeepSeek-Flash、`model_type: api_llm`、thinking/high，
+  凭据为`DEEPSEEK_API_KEY`环境变量。也支持原有`api_vlm`配置；不新增客户端。
   `max_retries: 1` 表示一次尝试，入口拒绝改为自动重试。
 - `splits/`：保留已有冻结划分与 CrossVid 干净池；一次生成不读取这些数据。
 

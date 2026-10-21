@@ -20,7 +20,8 @@ skill_evolution/
 
 复用关系：
 
-- `models.vlm.api.ApiVLMClient` / `ApiVLMConfig`：模型接入与参数。
+- `models.llm.api.ApiLLMClient` / `ApiLLMConfig`：当前DeepSeek纯文本生成。
+- `models.vlm.api.ApiVLMClient` / `ApiVLMConfig`：已有GLM等provider，按model_type选择。
 - Global/Video 的动作 Prompt builder：动作名、参数和预算。
 - `mvagent.skills.bank`：角色/阶段常量、schema v3、字数、渲染和哈希加载。
 - `mvagent.utils.snapshot`：源码快照。

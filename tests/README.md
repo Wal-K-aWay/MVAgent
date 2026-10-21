@@ -43,3 +43,7 @@ Generation checks also cover per-role cardinality bounds, forbidden extra fields
 role-specific Actor prompt/capacity inputs, and task-scoped hash-pinned runtime
 configuration. Global-only generation disables an old Video bank without changing
 the input configuration or Actor settings. No model API is used by these checks.
+
+The generation CLI check uses the current DeepSeek configuration with a mocked HTTP
+response, verifying JSON mode, thinking/high and one logged request per role without
+authentication headers. It makes no network calls.
