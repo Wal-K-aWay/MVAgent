@@ -6,7 +6,7 @@ from eval.benchmarks.catalog import load_multibench_records
 from eval.benchmarks.aggregation import HierarchicalScoreAggregator
 from eval.agent_eval.score_crossvid_ccqa import LocalJudge, _score_one, SCORE_PROMPT
 from mvagent.utils.io import file_fingerprint, hash_json, write_json
-from skill_evolution.infra.banks import runtime_with_bank
+from skill_evolution.infra.banks import runtime_with_bank, runtime_with_forced_card
 from skill_evolution.infra.evaluation import Evaluation
 
 CROSSVID_TASKS = {'BU', 'NC', 'CC', 'PEA', 'PI', 'FSA', 'PSS', 'MSR', 'MOC', 'CCQA'}
@@ -38,14 +38,19 @@ class LibraryEvaluator:
                                    'dataset_sha256': file_fingerprint(self.dataset_root / 'crossvid/qa.jsonl')})
         self.runner = Path(__file__).resolve().parents[1] / 'agent_eval/run.py'
 
-    def __call__(self, bank, partition):
+    def __call__(self, bank, partition, *, forced_card=None):
         bank.load()
         ids = self.ids[partition]
-        directory = self.output / 'evaluations' / bank.sha256 / partition
+        if forced_card is not None:
+            if (not isinstance(forced_card, dict) or set(forced_card) != {'role', 'card_id'}
+                    or not any(c.role == forced_card['role'] and c.id == forced_card['card_id'] for c in bank.load().cards)):
+                raise ValueError('Forced diagnostic must identify a card and its role')
+        variant = bank.sha256 if forced_card is None else hash_json({'bank': bank.sha256, 'forced_card': forced_card})
+        directory = self.output / 'evaluations' / variant / partition
         directory.mkdir(parents=True, exist_ok=True)
         artifact_path = directory / 'evaluation.json'
         evaluation_identity = hash_json({'protocol': self.identity, 'bank': bank.sha256,
-                                         'partition': partition, 'ids': ids})
+                                         'partition': partition, 'ids': ids, 'forced_card': forced_card})
         if artifact_path.exists():
             artifact = json.loads(artifact_path.read_text())
             if artifact['identity'] != evaluation_identity:
@@ -55,7 +60,11 @@ class LibraryEvaluator:
                 row['score'] = artifact['scores'][row['sample_id']]
             return Evaluation(partition, bank.sha256, artifact['score'], len(ids), evaluation_identity, tuple(rows))
         runtime_path, ids_path = directory / 'runtime.json', directory / 'sample_ids.json'
-        write_json(runtime_path, runtime_with_bank(self.runtime, bank))
+        effective = runtime_with_bank(self.runtime, bank)
+        if forced_card is not None:
+            effective = runtime_with_forced_card(effective, bank, **forced_card,
+                                                directory=self.output / 'forced_strategies')
+        write_json(runtime_path, effective)
         write_json(ids_path, ids)
         native = directory / 'rollouts'
         cmd = [sys.executable, str(self.runner), '--config', str(runtime_path),
@@ -93,6 +102,8 @@ class LibraryEvaluator:
         score = aggregate.bucket_scores['dataset:crossvid']
         raw_sha = {sid:file_fingerprint(native / 'records/crossvid' / sid / 'result.json') for sid in ids}
         artifact = {'identity': evaluation_identity, 'bank_sha256':bank.sha256, 'partition':partition,
+                    'selection_mode':'natural' if forced_card is None else 'forced_diagnostic',
+                    'forced_card':forced_card,
                     'samples':len(ids), 'score':score, 'scores':scores, 'raw_sha256':raw_sha,
                     'judge':self.judge.identity, 'metric':'CrossVid ten-task macro; CCQA point-weighted'}
         write_json(artifact_path, artifact)

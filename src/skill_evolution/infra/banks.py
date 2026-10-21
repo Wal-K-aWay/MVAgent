@@ -78,3 +78,26 @@ def runtime_with_bank(runtime, snapshot):
             {'enabled': True, 'mode': 'dynamic', 'selection_scope': 'task',
              'path': str(snapshot.path), 'sha256': snapshot.sha256} if enabled else {'enabled': False})
     return result
+
+
+def runtime_with_forced_card(runtime, snapshot, *, role, card_id, directory):
+    """Diagnostic intervention using the existing static mode and identical rendered text."""
+    bank = snapshot.load()
+    matches = [card for card in bank.cards if card.role == role and card.id == card_id]
+    if role not in ('global', 'video') or len(matches) != 1:
+        raise ValueError('Forced card must belong to the requested role')
+    text = bank.render([card_id])
+    digest = hashlib.sha256(text.encode()).hexdigest()
+    path = Path(directory).absolute() / (digest + '.md')
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists() and path.read_text() != text:
+        raise ValueError('Immutable forced strategy changed')
+    if not path.exists():
+        path.write_text(text)
+    from mvagent.skills.bank import load_skill
+    if load_skill(path=str(path), sha256=digest) != text:
+        raise ValueError('Static and dynamic rendering differ')
+    result = deepcopy(runtime)
+    result['agents'][f'{role}_agent']['skill'] = {
+        'enabled': True, 'mode': 'static', 'path': str(path), 'sha256': digest}
+    return result
