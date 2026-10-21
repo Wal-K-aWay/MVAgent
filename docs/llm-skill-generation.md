@@ -62,3 +62,26 @@ Video Selector 只看本次 instruction，不看 Memory 或完整问题；每请
 生成 1 至 `{max_cards}` 张，不必凑满。每卡文本及渲染正文上限 `{MAX_SKILL_WORDS}` words。
 仅返回 `{"skills": [{"when_to_use": "...", "strategy": "..."}]}`。
 调用方设置 ID、role、stages；不返回 metadata 或额外说明。
+
+## 首次真实生成（2026-10-21 UTC）
+
+运行源码 `98ad0c4`；Modal CPU app `ap-KtgWYywyIdxH6SrYeqKfzK` 已正常结束，GPU使用为0。
+两个针对性测试和完整 `compileall src scripts eval/agent_eval demo.py` 通过。
+每角色一次请求，无自动重试/格式修复；两次返回模型均为 `glm-5.3-flash`，finish_reason=stop。
+
+| 角色 | 卡数 | 耗时/秒 | 输入token | 输出token（含reasoning） | 每卡字数 |
+|---|---:|---:|---:|---:|---|
+| Global | 5 | 23.94 | 1892 | 1064 | 173/179/140/133/129 |
+| Video | 4 | 31.62 | 1338 | 1501 | 293/246/248/210 |
+
+全部通过结构、字数、渲染与哈希加载。结束后通过新的 Volume SDK 读取核实完整库及两个角色库 SHA。
+原始输入、响应、日志及库位于 runs volume 的 `devbox/one_shot_glm53_20261020/run1/`。
+完整 `bank.json` SHA256：`1b9d4d10ceee49924b1a473c31a639a1d39de7f9ab5ac206866b9a0f5ccd5ee3`。
+
+输出示例（Global第5张）：
+“If phase-1 reports already resolve the question completely, skip phase 2 and answer directly”。
+
+本次只验证生成流程，没有运行真实 Selector、Actor、视频问答或 Judge。
+阅读产物发现 Global第3/4张、Video第6–9张的部分 when_to_use 依赖 History/Memory，
+而当前 Selector 看不到这些信息，可能无法正确触发；Video策略还将每范围的帧上限写成跨范围共享上限。
+这些是生成基线的局限，产物保留原样，没有据此改写或重新生成；不能据格式通过宣称策略有效。
