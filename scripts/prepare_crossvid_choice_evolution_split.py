@@ -16,8 +16,10 @@ SOURCE_ROOT = PROJECT_ROOT / "src"
 if str(SOURCE_ROOT) not in sys.path:
     sys.path.insert(0, str(SOURCE_ROOT))
 
-from evaluation.data import DataSplitManifest, SplitSample, group_by_media
-from evaluation.store import file_fingerprint
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from eval.data import DataSplitManifest, SplitSample, group_by_media
+from mvagent.utils.io import file_fingerprint
 
 
 def _manifest_paths(root: Path) -> tuple[Path, ...]:

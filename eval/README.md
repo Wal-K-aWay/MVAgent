@@ -1,12 +1,14 @@
 # MVAgent evaluation
 
-`agent_eval/` is the only evaluation implementation in this repository. It evaluates
-MVAgent on locally supplied CVBench, MVU-Eval and CrossVid data. See the
+`eval/` owns batch evaluation, dataset contracts, scoring, aggregation and split preparation.
+`agent_eval/` runs MVAgent on locally supplied CVBench, MVU-Eval and CrossVid data. See the
 [root walkthrough](../README.md) for CrossVid preprocessing, fixed inference and
 CCQA judging, and [the runner guide](agent_eval/README.md) for all CLI options.
 
 | Entry | Purpose |
 |---|---|
+| `benchmarks/` | Dataset loading, sample contracts, official scoring, aggregation and Judge protocol |
+| `data.py` | Frozen split manifests and media-source grouping |
 | `agent_eval/run.py` | Freeze inputs/configuration, run MVAgent and score closed tasks |
 | `agent_eval/serve_ccqa_judge.sh` | Start the fixed local CCQA Judge |
 | `agent_eval/score_crossvid_ccqa.py` | Judge saved CCQA answers with the existing protocol |
@@ -52,3 +54,20 @@ Historical E2E and other-method implementations remain in Git history, and their
 published result attachments remain in Releases. They are not required to run
 MVAgent. Historical findings and protocol differences remain in
 [the experiment record](../docs/experiments.md).
+
+## Code boundary and reproducibility
+
+`src/` implements MVAgent, model adapters and skill methods. It has no dependency
+on `eval/`. The batch runner calls MVAgent's existing execution API and imports
+`eval.benchmarks`; data preparation scripts use `eval.data`. Generic JSON and hash
+utilities live in `src/mvagent/utils/io.py`, shared with skill generation.
+
+New runs freeze both `src/` and the supported `eval/` code into their output directory.
+The saved runner is `eval/agent_eval/run.py`; the run identity records separate hashes
+for runtime and evaluation source. Resume imports the frozen evaluation package and
+rejects changed snapshots. Historical runs continue using their own frozen source;
+the new entry does not adapt old snapshot layouts.
+
+This directory relocation preserves the scoring formulas, Judge prompts and model
+settings. Existing inline and deferred Judge workflows remain distinct; their
+protocol implementation is not rewritten by this move.

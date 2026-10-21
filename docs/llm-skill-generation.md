@@ -43,7 +43,7 @@ events 包含实际请求体、响应正文、模型身份、finish_reason、usa
 仅读取该配置中的动作预算；不是启动模型服务，也不会把完整配置发给生成模型。
 角色描述、生成 Prompt、输出 Schema 和解码参数保持首次运行的协议。
 角色/阶段常量与结构校验复用 `SkillBank`，动作说明复用两个 Agent 的 Prompt builder，
-源码保存复用 `ensure_source_snapshot`，JSON 原子保存和哈希复用 `evaluation.store`。
+源码保存复用 `ensure_source_snapshot`，JSON 原子保存和哈希复用 `mvagent.utils.io`。
 旧算法、轨迹分析器、训练配置与默认旧卡库引用已经移除。
 
 ## 生成 System Prompt 中文镜像
@@ -124,3 +124,7 @@ $.skills.0: Additional properties are not allowed ('prerequisites' was unexpecte
 不是新的有效skill库或准确率结果。此前首次运行的9张有效卡及原始材料保持不变。
 记录仅在 runs volume 的 `devbox/skill_generation_cleanup_20261021/checks2/smoke1/`；
 测试日志在同父目录及 `devbox/skill_generation_cleanup_20261021/step0.log`。
+
+
+评测目录随后统一迁至 `eval/`，通用保存工具改为 `mvagent.utils.io`。
+生成器及其源码快照不依赖评测包；本次目录调整不改变上面的 Prompt、模型参数或历史产物。

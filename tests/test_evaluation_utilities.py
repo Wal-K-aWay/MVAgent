@@ -3,10 +3,13 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+import sys
 
-from evaluation.benchmarks import EvaluationSample, OrderingScorer, TemporalLocalizationScorer
-from evaluation.data import DataSplitManifest, SplitSample, group_by_media
-from evaluation.store import write_json
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from eval.benchmarks import EvaluationSample, OrderingScorer, TemporalLocalizationScorer
+from eval.data import DataSplitManifest, SplitSample, group_by_media
+from mvagent.utils.io import write_json
 
 
 class EvaluationUtilitiesTests(unittest.TestCase):

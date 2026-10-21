@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from evaluation.store import file_fingerprint
+from mvagent.utils.io import file_fingerprint
 from models.execution import emit_event
 from mvagent.configs.model_config import ApiVLMConfig
 from mvagent.skills.bank import SkillBank

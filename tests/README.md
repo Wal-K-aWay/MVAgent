@@ -14,6 +14,7 @@ PYTHONPATH=src python tests/test_agent_finalize.py
 PYTHONPATH=src python tests/test_short_video.py
 PYTHONPATH=src python tests/test_one_shot_skills.py
 PYTHONPATH=src python tests/test_evaluation_utilities.py
+PYTHONPATH=src python tests/test_evaluation_snapshot.py
 ```
 
 The checks cover direct and forced answers, model-pool configuration and question-level leasing, complete token
@@ -33,3 +34,7 @@ truncated output, refusal to overwrite prior runs, merged banks, source snapshot
 It uses a model double and does not call an API.
 The evaluation utility checks cover transitive source isolation, atomic-write failure
 preservation, and closed-form official scores after the module relocation.
+
+The evaluation snapshot check loads a synthetic closed-form sample, scores it,
+changes the live workspace, verifies resume still uses the frozen evaluation code,
+and rejects an altered snapshot. It performs no model calls or video decoding.

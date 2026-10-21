@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
-from .store import hash_json
+from mvagent.utils.io import hash_json
 
 SPLIT_NAMES = ("train", "eval")
 ALL_SPLIT_NAMES = (*SPLIT_NAMES, "cal", "test")

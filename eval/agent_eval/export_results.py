@@ -20,7 +20,7 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
-# Outcome thresholds mirror evaluation.benchmarks.scoring.OUTCOME_THRESHOLDS (pass_at, fail_below).
+# Outcome thresholds mirror eval.benchmarks.scoring.OUTCOME_THRESHOLDS (pass_at, fail_below).
 # Records name the FSA family "temporal"; SampleTask names it "temporal_localization".
 THRESHOLDS = {"temporal_localization": (0.5, 0.1), "temporal": (0.5, 0.1), "open_qa": (2 / 3, 1 / 3)}
 INTERVAL = r"\d+(\.\d+)?\s*,\s*\d+(\.\d+)?"

@@ -2,9 +2,9 @@
 
 | Path | Purpose |
 |---|---|
-| `src/` | MVAgent, model adapters, shared evaluation and skill generation |
+| `src/` | MVAgent, model adapters, runtime utilities and skill generation |
 | `configs/` | Inference/generation settings and frozen split manifests |
-| `eval/` | MVAgent evaluation, scoring, trajectory export and required annotation metadata |
+| `eval/` | Batch evaluation, benchmark loading/scoring, splits, reports and annotation metadata |
 | `scripts/` | Supported preprocessing, visualization and skill-management tools |
 | `tests/` | Runtime, evaluation and generation regression checks |
 | `docs/` | Shared documentation, historical findings and protocol differences |
@@ -64,3 +64,9 @@ and optimizer-only infrastructure from the current tree. Shared benchmark code
 moves unchanged to `src/evaluation/`; one-shot generation is organized under
 `src/skill_evolution/generation/`. The pre-cleanup source is `de28149`; its algorithms
 and negative findings remain in Git history and frozen experiment artifacts.
+
+
+Evaluation now lives entirely under `eval/`: `benchmarks/`, `data.py` and
+`agent_eval/`. `src/evaluation/` is removed without forwarding imports. Source code
+under `src/` does not import the evaluation package. New evaluation runs snapshot
+both trees and verify the evaluation-source hash when resuming.

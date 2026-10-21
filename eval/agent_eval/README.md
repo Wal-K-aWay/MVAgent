@@ -7,7 +7,7 @@ from the repository root; see [installation instructions](../../README.md).
 
 This entry evaluates MVAgent on CVBench, MVU-Eval and CrossVid. It uses
 `mvagent.batch.BatchExecutor`, the same question execution API used by Skill rollout.
-Dataset/scoring adapters live in `evaluation/benchmarks`; workers receive
+Dataset/scoring adapters live in `eval/benchmarks`; workers receive
 only the question and ordered videos, never reference answers.
 
 Use `eval/agent_eval/run.py` for new evaluations. Historical matrix controllers are
@@ -78,7 +78,7 @@ Normal evaluations reuse the accepted repeatability evidence instead of rerunnin
 Pass the parent dataset directory with `--dataset-root`. The original Modal environment
 uses `/assets`; an ordinary GPU server can use another local path. It contains `crossvid/`,
 `cvbench/` and `mvu-eval/` subdirectories for the requested benchmarks
-(names defined in `evaluation/benchmarks/catalog.py`).
+(names defined in `eval/benchmarks/catalog.py`).
 CVBench/MVU-Eval `QAs.json` are built by `scripts/prepare_cvbench_mvu_qas.py`, using
 `eval/agent_eval/metadata/CVBench.json` and user-supplied MVU annotations; their video paths
 are relative to each benchmark directory. CrossVid needs a one-time preparation that writes
@@ -187,3 +187,10 @@ For runs using deferred CCQA judging, the original records and `summary.json` re
 deferred even after judging. The exporter does not merge the separate Judge file.
 Use `summary_scored.json` and `benchmark_results.md` for final metrics; join the saved
 CCQA scores by question ID when analyzing per-question judged results.
+
+
+The runner freezes `src/` plus the supported `eval/` modules. Its frozen entry is
+`<output>/eval/agent_eval/run.py`; `run_manifest.json` records both runtime and
+evaluation source hashes. Scoring imports are pinned to `<output>/eval/` on first
+execution and resume, even if live evaluation modules were imported beforehand.
+Older runs must use their original frozen source and layout.

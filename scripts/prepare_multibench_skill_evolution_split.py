@@ -16,15 +16,17 @@ SOURCE_ROOT = PROJECT_ROOT / "src"
 if str(SOURCE_ROOT) not in sys.path:
     sys.path.insert(0, str(SOURCE_ROOT))
 
-from evaluation.benchmarks.catalog import CROSSVID_DIR, CVBENCH_DIR, MVU_EVAL_DIR
-from evaluation.benchmarks import (
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from eval.benchmarks.catalog import CROSSVID_DIR, CVBENCH_DIR, MVU_EVAL_DIR
+from eval.benchmarks import (
     EvaluationSample,
     crossvid_sample,
     cvbench_sample,
     mvu_eval_sample,
 )
-from evaluation.data import DataSplitManifest, SplitSample, group_by_media
-from evaluation.store import file_fingerprint
+from eval.data import DataSplitManifest, SplitSample, group_by_media
+from mvagent.utils.io import file_fingerprint
 
 
 CROSSVID_CHOICE_TASKS = ("BU", "CC", "MOC", "MSR", "NC", "PEA", "PI")

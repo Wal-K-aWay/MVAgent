@@ -22,9 +22,9 @@ skill_evolution/
 - Global/Video 的动作 Prompt builder：动作名、参数和预算。
 - `mvagent.skills.bank`：角色/阶段常量、schema v3、字数、渲染和哈希加载。
 - `mvagent.utils.snapshot`：源码快照。
-- `evaluation.store`：原子 JSON 保存与指纹；生成器不读取评测样本或评分反馈。
+- `mvagent.utils.io`：原子 JSON 保存与指纹；生成器不读取评测样本或评分反馈。
 
-评测和数据划分位于 [`src/evaluation/`](../evaluation/README.md)，运行时选卡仍在
+评测和数据划分位于 [`eval/`](../../eval/README.md)，运行时选卡仍在
 [`src/mvagent/skills/`](../mvagent/skills/README.md)。没有旧模块转发层，也不预建未来算法接口。
 旧进化实现和负结果可从清理前提交 `de28149` 的 Git 历史及原始实验记录查阅，
 不作为后续新方案的默认设计或 Prompt 输入。
