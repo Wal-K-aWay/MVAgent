@@ -1,0 +1,9 @@
+model_type: api_llm
+provider: deepseek
+model_name: deepseek-flash
+api_key: DEEPSEEK_API_KEY
+enable_thinking: true
+reasoning_effort: high
+max_tokens: 16384
+timeout_sec: 600
+max_retries: 1

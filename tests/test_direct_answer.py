@@ -51,13 +51,6 @@ def engine(max_steps=1):
 
 
 class DirectAnswerTests(unittest.TestCase):
-    def test_public_steps_show_submitted_answer_without_private_reason(self):
-        from skill_evolution.infra.trajectory import render_global_steps
-        text = render_global_steps([dict(step=1,editable=True,
-            decision=answer('B','Private reasoning'),execution=dict(answer='B'))])
-        self.assertIn('action=answer {"answer": "B"}',text)
-        self.assertIn('output=B',text)
-        self.assertNotIn('Private reasoning',text)
 
     def test_decoder_compiles_both_action_contracts(self):
         import json
@@ -87,19 +80,6 @@ class DirectAnswerTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_json_schema(analyze(), schema)
 
-    def test_localizer_accepts_answer_parameter_fault_only_for_editable_step(self):
-        from importlib import import_module
-        module = import_module('skill_evolution.algorithms.alternating.global.adaptor.prompts.localizer.schema')
-        schema = module.build_schema(dict(steps=[
-            dict(step=1, editable=True, decision=dict(action='answer')),
-            dict(step=2, editable=False, decision=dict(action='answer'))]))
-        value = dict(status='located', reason='The submitted label contradicts retained evidence.',
-            fault_chain=[dict(step=1, fault_type='action_parameter_error', evidence_reason='Prior evidence supports B.',
-                             improvement_principle='Preserve the evidence-to-option mapping.')])
-        validate_json_schema(value, schema)
-        value['fault_chain'][0]['step'] = 2
-        with self.assertRaises(ValueError):
-            validate_json_schema(value, schema)
 
     def test_prompt_and_schema_match_each_action_budget(self):
         prompt = build_global_decision_prompt(question='Question', videos=['video_1'],

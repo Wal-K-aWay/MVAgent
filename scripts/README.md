@@ -1,7 +1,7 @@
 # Supported tools
 
 Run data preparation and model-dependent commands on the configured compute host.
-The scripts retain their existing interfaces and file contents.
+Data preparation retains its existing interfaces and frozen manifests.
 
 | Purpose | Entry point |
 |---|---|
@@ -16,7 +16,7 @@ The scripts retain their existing interfaces and file contents.
 | Freeze the metadata-stratified CrossVid evaluation panel | `prepare_crossvid_representative_subset.py` |
 | Build CrossVid Train/Cal/Gate splits | `prepare_crossvid_train_cal_gate_split.py` |
 | Build choice-only or multibenchmark evolution splits | `prepare_crossvid_choice_evolution_split.py`, `prepare_multibench_skill_evolution_split.py` |
-| Train or evaluate skill libraries | `run_skill_evolution.py` |
+| Generate a one-shot GLM skill bank without task examples | `generate_skills.py` |
 | Validate, edit, search and freeze skill libraries | `manage_skills.py` |
 
 `__init__.py` supports imports shared by preprocessing and visualization.
@@ -31,12 +31,14 @@ python eval/agent_eval/export_results.py /path/to/completed/run
 
 This existing exporter reads saved records and writes tables; it does not call
 models or rewrite source results. See [Agent evaluation](../eval/agent_eval/README.md)
-for scoring/finalization and [skill evolution](../src/skill_evolution/README.md)
-for role-specific trajectory projection.
+for scoring/finalization. Skill generation is documented in
+[`src/skill_evolution/`](../src/skill_evolution/README.md).
 
 One-off ablations, selector experiments, timing probes, dated batch controllers
 and historical report builders are removed from the current tree. Their findings,
 including negative results and protocol differences, remain in
-[the experiment history](../docs/experiments.md) and the algorithm documents.
+[the experiment history](../docs/experiments.md) and Git history.
 The [repository guide](../docs/repository.md) identifies the historical source commit.
-The six retained runtime regression checks are in [`tests/`](../tests/README.md).
+Regression checks are in [`tests/`](../tests/README.md).
+The [one-shot generation protocol](../docs/llm-skill-generation.md) documents its
+data boundary, frozen outputs, and Chinese prompt mirror.

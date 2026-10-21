@@ -10,6 +10,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import threading
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
@@ -21,7 +22,7 @@ from typing import Any, Mapping
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_DATASET_ROOT = Path("/assets")  # Modal asset Volume mount
-# Mirrors CROSSVID_DIR/CVBENCH_DIR/MVU_EVAL_DIR in skill_evolution.infra.benchmarks.catalog.
+# Mirrors CROSSVID_DIR/CVBENCH_DIR/MVU_EVAL_DIR in eval.benchmarks.catalog.
 CROSSVID_DIR = "crossvid"
 CVBENCH_DIR = "cvbench"
 MVU_EVAL_DIR = "mvu-eval"
@@ -216,8 +217,8 @@ def _build_scorer(
 ) -> tuple[Any, Mapping[str, Any]]:
     """Official per-benchmark scorer shared with skill evolution (see benchmarks.catalog)."""
 
-    benchmark_module = importlib.import_module("skill_evolution.infra.benchmarks")
-    contracts_module = importlib.import_module("skill_evolution.infra.benchmarks.contracts")
+    benchmark_module = importlib.import_module("eval.benchmarks")
+    contracts_module = importlib.import_module("eval.benchmarks.contracts")
     open_ids = [
         sample_id
         for sample_id, record in records.items()
@@ -249,7 +250,7 @@ def _summarize(
     records: Mapping[str, Any],
 ) -> dict[str, Any]:
     from models.execution import output_metrics
-    from skill_evolution.infra.benchmarks import OFFICIAL_DATASET_POLICY
+    from eval.benchmarks import OFFICIAL_DATASET_POLICY
 
     output_counts = Counter()
     by_dataset: dict[str, Counter[str]] = defaultdict(Counter)
@@ -386,7 +387,8 @@ def _prepare_output(
     bootstrap.configure_workspace_runtime_env()
     output_dir.mkdir(parents=True, exist_ok=True)
     frozen_config = output_dir / "input_config.yaml"
-    frozen_runner = output_dir / "protocol_source/run.py"
+    frozen_eval = output_dir / "eval"
+    frozen_runner = frozen_eval / "agent_eval/run.py"
     snapshot_dir = output_dir / "src/mvagent"
     if resume:
         if not snapshot_dir.is_dir() or not frozen_config.is_file() or not frozen_runner.is_file():
@@ -394,18 +396,31 @@ def _prepare_output(
         if frozen_runner.read_bytes() != Path(__file__).read_bytes():
             raise RuntimeError("The current runner differs from the frozen run.py; do not mix protocols.")
     else:
-        if snapshot_dir.exists() or frozen_config.exists() or frozen_runner.exists():
+        if snapshot_dir.exists() or frozen_config.exists() or frozen_eval.exists():
             raise FileExistsError("Output already contains a run; use --resume.")
         bootstrap.ensure_source_snapshot(output_dir)
         import yaml
         frozen_config.write_text(yaml.safe_dump(bootstrap.mask_sensitive_data(
             yaml.safe_load(config_path.read_text())), sort_keys=False))
-        frozen_runner.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(Path(__file__), frozen_runner)
+        frozen_eval.mkdir()
+        # Freeze the supported evaluation code, excluding historical local tools.
+        for name in ("__init__.py", "data.py", "benchmarks", "agent_eval"):
+            source = PROJECT_ROOT / "eval" / name
+            if source.is_dir():
+                shutil.copytree(source, frozen_eval / name,
+                                ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+            else:
+                shutil.copy2(source, frozen_eval / name)
 
     configs_module, engine_module, _utils_module = bootstrap.load_runtime_modules(snapshot_dir)
-    benchmark_module = importlib.import_module("skill_evolution.infra.benchmarks")
-    operator_module = importlib.import_module("skill_evolution.infra.store")
+    # Scoring imports must resolve to this run even if workspace modules were loaded.
+    sys.path.insert(0, str(output_dir))
+    for name in tuple(sys.modules):
+        if name == "eval" or name.startswith("eval."):
+            sys.modules.pop(name)
+    importlib.invalidate_caches()
+    benchmark_module = importlib.import_module("eval.benchmarks")
+    operator_module = importlib.import_module("mvagent.utils.io")
     records = benchmark_module.load_multibench_records(dataset_root, sample_ids)
 
     crossvid_ids = [sid for sid in sample_ids if sid.startswith("crossvid:")]
@@ -416,6 +431,7 @@ def _prepare_output(
         "runner_sha256": _sha256(frozen_runner),
         "config_sha256": _sha256(frozen_config),
         "runtime_snapshot_sha256": operator_module.tree_hash(snapshot_dir.parent),
+        "evaluation_snapshot_sha256": operator_module.tree_hash(frozen_eval),
         "dataset_root": str(dataset_root),
         "dataset_sha256": {
             "cvbench": (

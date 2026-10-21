@@ -1,11 +1,11 @@
 # Runtime Skills
 
 For Global card scope, field-writing rules, multi-video action guidance, and complete
-examples, see the [GlobalAgent Skill Specification](../../skill_evolution/infra/global_skill_specification.md).
+examples, see the [GlobalAgent Skill Specification](../../skill_evolution/skill_specification.md).
 This authoring reference does not change the runtime contract.
 
 A dynamic bank is an immutable, hash-pinned JSON snapshot with `schema_version: 3`
-and a `skills` array. Each authored Skill is one JSON file with exactly five fields:
+and a `skills` array. Each authored Skill is one JSON file with exactly three top-level fields:
 
 ```json
 {
@@ -15,9 +15,9 @@ and a `skills` array. Each authored Skill is one JSON file with exactly five fie
 }
 ```
 
-`meta.id` is unique, lowercase-hyphenated, at most64 characters. `role` is global
+`meta.id` is unique and contains only letters, digits, underscores or hyphens; new generated cards use sequential numeric strings. `role` is global
 or video; `stages` is a nonempty unique subset of initial/evidence. Text fields must
-be nonempty. when_to_use have no independent hard length limits. All three text
+be nonempty. when_to_use have no independent hard length limits. The two text
 fields combined and the rendered execution body each fit1200 words. Evolution
 defaults to the same1200-word `max_card_words` budget for the sum of the two text fields.
 Old dynamic-bank formats are rejected. Historical snapshots retain their frozen
@@ -32,8 +32,8 @@ references remain a separate existing mode, unrelated to dynamic JSON authoring.
 | `bank.py` | Immutable card/bank data, validation, hashes, path resolution and static/dynamic loading. Card/body limits are enforced here. |
 | `prompts.py` | Selector System templates and User input, plus pure Markdown heading rendering for injected Skill text. No file I/O or model calls. |
 | `selection.py` | Metadata retrieval, LLM selection, output validation, task-scoped reuse and telemetry. |
-| `authored/` | Editable individual Skill JSON cards, grouped by library. |
-| `skill_sets/` | Hash-addressed frozen bank snapshots referenced by configuration. |
+| `authored/` | Historical individual cards for offline reference; not loaded by default. |
+| `skill_sets/` | Frozen, hash-addressed banks explicitly selected for distribution and reproducible evaluation; see the [catalog](skill_sets/README.md). |
 | `PROVENANCE.json` | Historical selector provenance, not runtime configuration. |
 
 Dependencies: `selection → bank/prompts`; `bank → prompts` for pure text rendering.
@@ -56,7 +56,7 @@ Import rendering helpers from `mvagent.skills.prompts`, and data/loading helpers
    `## Decision strategy`; headings within each field are rebased to H4 or deeper.
    Metadata and when_to_use are not injected. Put any operational
    prerequisites, exclusions and pitfalls needed for execution into strategy.
-   Unclosed code fences are rejected. Observer and finalizers receive no Skill.
+   Unclosed code fences are rejected. Observer calls and the Video forced summary receive no Skill automatically; the Global answer-only terminal decision retains its selected strategy.
 
 `retrieval_top_k` is fixed at8; other values and removed `max_selected` are rejected.
 Large eligible banks require `skill.embedding`; failures never silently fall back
@@ -84,7 +84,7 @@ sibling private traces or complete Skill strategy enter the selector input.
 By default it uses the role Planner model; `skill.selector` can name another model.
 Structured generation, bounded repair, pool admission and usage telemetry are shared.
 
-Current `dynamic_35b_embedding.yaml` uses `selection_scope: task`: Global selects
+With `selection_scope: task`, Global selects
 once per QA; Video once per invocation, retaining that selection through its observe
 steps and selecting again on a new invocation. Empty selections persist too. Invalid
 selections do not. Generic `decision` scope is retained for explicit experiments.
@@ -117,11 +117,13 @@ validate the whole bank. Freeze publishes a new `<sha256>.json`, never overwriti
 old snapshots. Configure enabled/mode/path/sha256, task scope and embedding on each
 role's Skill reference. Neither this code nor these commands deploy model services.
 
-Current cards live under `authored/*/*.json`; experiment bank exports are in
-`configs/skill_evolution/skills/`. Original Common Pitfalls were moved into strategy
-as constraints; existing guidance was retained. The current 11-card Global acquisition
-bank exercises hybrid retrieval; the7-card Video bank bypasses it. No new accuracy
-claim follows from the format change. Frozen experimental artifacts are unchanged.
+Generation artifacts remain in their run directories. Selected frozen libraries can
+be copied byte-for-byte into `skill_sets/`, with provenance and their existing SHA256.
+The shipped DeepSeek-Flash bank contains 6 Global and 8 Video cards, so each role's
+eligible catalog bypasses embedding retrieval. It is an explicitly enabled comparison
+baseline; default inference configurations keep skills disabled. Historical cards in
+`authored/` do not define the current library. Running experiments retain their own
+frozen files and configurations.
 
 Role backgrounds describe available information, action inputs/results and the required
 deliverable directly, without relying on MVAgent/GlobalAgent/VideoAgent names.
@@ -142,4 +144,4 @@ prerequisites require explicit support, while visual facts to acquire are method
 
 当前 Skill 长度规则：两个文本字段合计最多 **1200 words**，when_to_use无独立硬上限；渲染正文（含标题）最多1200 words。统一由 `count_words` 统计字母/数字/下划线组成的词，词内撇号和连字符不拆分，独立标点不计数；cat、analyze_videos、segment_1 各计1 word，1->2 计2 words。这是英文词计数，不是 tokenizer 或中文分词。Prompt 要求简洁英文，通常900–1100 words或更少，上限不是写作目标。配置改为 max_card_words/max_skill_words；旧字符配置不再支持。JSON Schema 仅保留非空和结构检查，单词上限由程序统一校验。冻结实验仍保留原字符口径，不能混用新源码恢复。
 
-2026-10-05 当前规范：新卡引用编号由程序分配顺序数字字符串，Generator只返回四个内容字段，不生成命名ID；修订保持已有引用。引用字段仍用于选卡、归因和版本关联，不承载语义。CARD_CONTRACT使用客观字段规范，Design requirements说明各字段作用、内容细节和样例；无独立字段上限提示。整卡及渲染正文总预算保留。历史冻结源与卡库不改写。
+2026-10-05 当前规范：新卡引用编号由程序分配顺序数字字符串，Generator只返回when_to_use和strategy两个内容字段，不生成命名ID；修订保持已有引用。引用字段仍用于选卡、归因和版本关联，不承载语义。CARD_CONTRACT使用客观字段规范，Design requirements说明各字段作用、内容细节和样例；无独立字段上限提示。整卡及渲染正文总预算保留。历史冻结源与卡库不改写。

@@ -2,11 +2,11 @@
 
 | Path | Purpose |
 |---|---|
-| `src/` | MVAgent, model adapters, skill runtime and evolution infrastructure |
-| `configs/` | Inference settings, evolution recipes and frozen split manifests |
-| `eval/` | MVAgent evaluation, scoring, trajectory export and required annotation metadata |
+| `src/` | MVAgent, model adapters, runtime utilities and skill generation |
+| `configs/` | Inference/generation settings and frozen split manifests |
+| `eval/` | Batch evaluation, benchmark loading/scoring, splits, reports and annotation metadata |
 | `scripts/` | Supported preprocessing, visualization and skill-management tools |
-| `tests/` | Six existing runtime regression checks |
+| `tests/` | Runtime, evaluation and generation regression checks |
 | `docs/` | Shared documentation, historical findings and protocol differences |
 | `demo.py`, `requirements.txt` | Demo entry point and environment dependencies |
 
@@ -58,3 +58,14 @@ An old shared development checkout may contain local modifications that differ f
 the accepted public runtime. Cleaning its auxiliary files does not authorize
 resetting those modifications. Keep a local snapshot before retiring worktrees,
 and use a separate clean checkout for public-repository maintenance.
+
+The skill cleanup removes previous evolution algorithms, prompts, training recipes
+and optimizer-only infrastructure from the current tree. One-shot generation is
+organized under `src/skill_evolution/generation/`. The pre-cleanup source is `de28149`;
+its algorithms and negative findings remain in Git history and frozen experiments.
+
+Evaluation lives entirely under `eval/`: `benchmarks/`, `data.py` and `agent_eval/`.
+`src/evaluation/` is removed without forwarding imports. Generic JSON/hash helpers
+live in `src/mvagent/utils/io.py`; source under `src/` does not import the evaluation
+package. New evaluation runs snapshot both trees and verify the evaluation-source
+hash when resuming. Existing runs keep their own frozen source and layout.

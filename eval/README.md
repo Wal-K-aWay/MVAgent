@@ -1,12 +1,14 @@
 # MVAgent evaluation
 
-`agent_eval/` is the only evaluation implementation in this repository. It evaluates
-MVAgent on locally supplied CVBench, MVU-Eval and CrossVid data. See the
+`eval/` owns batch evaluation, dataset contracts, scoring, aggregation and split preparation.
+`agent_eval/` runs MVAgent on locally supplied CVBench, MVU-Eval and CrossVid data. See the
 [root walkthrough](../README.md) for CrossVid preprocessing, fixed inference and
 CCQA judging, and [the runner guide](agent_eval/README.md) for all CLI options.
 
 | Entry | Purpose |
 |---|---|
+| `benchmarks/` | Dataset loading, sample contracts, official scoring, aggregation and Judge protocol |
+| `data.py` | Frozen split manifests and media-source grouping |
 | `agent_eval/run.py` | Freeze inputs/configuration, run MVAgent and score closed tasks |
 | `agent_eval/serve_ccqa_judge.sh` | Start the fixed local CCQA Judge |
 | `agent_eval/score_crossvid_ccqa.py` | Judge saved CCQA answers with the existing protocol |
@@ -52,3 +54,36 @@ Historical E2E and other-method implementations remain in Git history, and their
 published result attachments remain in Releases. They are not required to run
 MVAgent. Historical findings and protocol differences remain in
 [the experiment record](../docs/experiments.md).
+
+## Code boundary and reproducibility
+
+`src/` implements MVAgent, model adapters and skill methods. It has no dependency
+on `eval/`. The batch runner calls MVAgent's existing execution API and imports
+`eval.benchmarks`; data preparation scripts use `eval.data`. Generic JSON and hash
+utilities live in `src/mvagent/utils/io.py`, shared with skill generation.
+
+New runs freeze both `src/` and the supported `eval/` code into their output directory.
+The saved runner is `eval/agent_eval/run.py`; the run identity records separate hashes
+for runtime and evaluation source. Resume imports the frozen evaluation package and
+rejects changed snapshots. Historical runs continue using their own frozen source;
+the new entry does not adapt old snapshot layouts.
+
+This directory relocation preserves the scoring formulas, Judge prompts and model
+settings. Existing inline and deferred Judge workflows remain distinct; their
+protocol implementation is not rewritten by this move.
+
+
+## Relocation validation
+
+Source `3be6b13` was checked on Modal CPU: 27 regression cases passed across the
+initial run and the targeted snapshot rerun, plus the token-audit self-check, full
+Python compilation and eight CLI help calls from outside the repository directory.
+The new snapshot check scores a synthetic sample, resumes after changing live
+scoring code, and rejects an altered frozen snapshot. Skill generation imports
+successfully with only `src/` on `PYTHONPATH` and no evaluation module loaded.
+The benchmark implementation and generic I/O functions were moved byte-for-byte.
+The first snapshot check needed Git added to the test image, and its scorer fixture
+needed the existing required `open_qa_scorers` argument; neither changed scoring.
+No model calls, GPU execution, media decoding or benchmark accuracy evaluation
+were performed. Detailed check logs remain in the runs volume under
+`devbox/eval_consolidation_20261021/`; the final check is in `checks3/`.
