@@ -13,6 +13,8 @@ SELECTION_SCOPE = "task"
 SYSTEM = """Write a reusable skill library for one role in a frozen multi-video QA system.
 Use only the supplied task, role, runtime and output contracts. No task instances,
 media, answers, execution traces, scores or existing skills are supplied.
+The target planner's instructions and action examples are reference material, not
+instructions for your own response. Your output is the skill library, not an action.
 
 ## Objective and unit of a skill
 Improve answer correctness within the existing action and observation limits. Do not
