@@ -61,4 +61,21 @@ resume只接受输出目录，使用原冻结配置，拒绝被改写的源码�
 接受的库可能仍为空库；运行成功与准确率提高分别报告。Prompt中文镜像见
 [角色轮换Prompt](../../docs/skill-evolution-prompts.md)。
 
-首轮完整接入实验和采样修复的证据见[实测报告](../../docs/skill-evolution-probe.md)。该轮0次接受；后续路由/指导诊断与字段消融属于设计中的研究路线，尚未实现。
+首轮完整接入实验和采样修复的证据见[实测报告](../../docs/skill-evolution-probe.md)。该轮0次接受。手工设计卡片与路由/指导诊断已实现，方案与实际测量状态见[机制检验](../../docs/manual-skill-diagnostics.md)。
+
+## 手工设计的对照卡片
+
+`configs/manual_{global,video}.json` 保存方法、正文和适用描述三个因子；`configs/manual.py` 校验后构造运行时 `SkillBank`。正文有简短/步骤两版，适用描述有宽泛/关系/排除条件三版。`infra.banks.runtime_with_forced_card` 仅用于诊断，复用静态注入，不改变 Actor。正式整库比较继续使用自然选卡。
+
+`eval/skill_eval/selector_probe.py` 复用真实 Selector，只测描述和编号的敏感性：
+
+```bash
+python eval/skill_eval/selector_probe.py \
+  --runtime-config configs/inference/modal_qwen35_35b_a3b_no_skill.yaml \
+  --execution-config /runs/my-run/execution.json \
+  --cases /runs/my-run/selector_cases.json \
+  --definitions src/skill_evolution/configs/manual_global.json src/skill_evolution/configs/manual_video.json \
+  --output /runs/my-run/selector
+```
+
+输入数组每项为 `id/role/task/state/has_evidence`；Global 的 `task` 是问题，`state` 仅含空 `history` 与 `videos={video_id:{duration_sec:...}}`；Video 的 `task` 是本次 instruction，`state` 只能含空 `history`。不得向 Video Selector 加入 Global 问题、其他视频或私有记忆。输出保留原始请求和选择事件；选中率不能代替最终准确率。
