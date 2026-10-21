@@ -28,7 +28,7 @@ class EvaluationUtilitiesTests(unittest.TestCase):
             self.assertEqual(list(Path(directory).iterdir()), [path])
 
     def test_official_closed_form_scores(self):
-        ordering = EvaluationSample(task="ordering", question="Order clips", videos={"v": "v.mp4"}, ground_truth=[1, 2, 3])
+        ordering = EvaluationSample(task="ordering", question="Order clips", videos={"v": "v.mp4"}, ground_truth=["1", "2", "3"])
         temporal = EvaluationSample(task="temporal_localization", question="Locate event", videos={"v": "v.mp4"}, ground_truth=[2, 6])
         self.assertEqual(OrderingScorer().score(sample=ordering, prediction="1->2->3").score, 1.0)
         self.assertEqual(TemporalLocalizationScorer().score(sample=temporal, prediction="4,8").score, 1 / 3)
