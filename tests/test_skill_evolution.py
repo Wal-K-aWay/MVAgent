@@ -90,12 +90,21 @@ class SkillsTest(unittest.TestCase):
         before=row(); after=deepcopy(before); after['score']=1.0
         after['result']['trajectory'][0]['input']['instruction']='A different request'
         evidence=examples(train([before]),'video',EvolutionConfig(seed=1),candidate=train([after]))
-        value=json.loads(evidence[0]['trace'])
-        self.assertEqual(value['parent']['instruction'],'Which tool?')
+        value=evidence[0]
+        self.assertEqual(json.loads(value['parent']['trace'])['instruction'],'Which tool?')
         self.assertTrue(value['candidate_context_changed'])
         self.assertNotIn('candidate_same_local_context',value)
         for part in ('cal','gate'):
             with self.assertRaises(ValueError): examples(train([before]),'global',EvolutionConfig(),candidate=Evaluation(part,'a'*64,0.5,1,'x'))
+
+    def test_long_traces_keep_both_arms_and_feedback(self):
+        before=row(); before['result']['input']['question']='Long question ' * 1000
+        after=deepcopy(before); after['score']=1.0
+        evidence=examples(train([before]),'global',EvolutionConfig(max_example_chars=800),candidate=train([after]))[0]
+        self.assertEqual(evidence['feedback'],{'parent_question_score':0.0,'candidate_question_score':1.0})
+        self.assertTrue(evidence['parent']['truncated']); self.assertTrue(evidence['candidate']['truncated'])
+        self.assertIn('selected_cards',evidence['parent']['trace'])
+        self.assertIn('selected_cards',evidence['candidate']['trace'])
 
     def test_saved_api_attempt_is_not_repeated_and_invalid_output_is_retained(self):
         class Client:

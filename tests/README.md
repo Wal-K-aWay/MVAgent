@@ -15,6 +15,7 @@ PYTHONPATH=src python tests/test_short_video.py
 PYTHONPATH=src python tests/test_one_shot_skills.py
 PYTHONPATH=src:. python tests/test_skill_evolution.py
 PYTHONPATH=src:. python tests/test_skill_evaluation.py
+PYTHONPATH=src:. python tests/test_evolution_snapshot.py
 PYTHONPATH=src python tests/test_evaluation_utilities.py
 PYTHONPATH=src python tests/test_evaluation_snapshot.py
 ```

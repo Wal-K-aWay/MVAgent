@@ -101,9 +101,17 @@ def examples(parent, role, config, *, candidate=None, attempt=0):
                     value['candidate_same_local_context'] = matched
                 else:
                     value['candidate_context_changed'] = True
-        encoded = json.dumps(value, ensure_ascii=False)
-        truncated = len(encoded) > config.max_example_chars
-        records.append({'trace': encoded[:config.max_example_chars], 'truncated': truncated})
+        previews = {key: view for key, view in value.items() if isinstance(view, dict) and key != 'feedback'}
+        budget = config.max_example_chars // len(previews)
+        example = {key: val for key, val in value.items() if key not in previews}
+        for key, view in previews.items():
+            encoded = json.dumps(view, ensure_ascii=False)
+            truncated = len(encoded) > budget
+            if truncated:
+                half = max(1, budget // 2)
+                encoded = encoded[:half] + '\n[... omitted evidence ...]\n' + encoded[-half:]
+            example[key] = {'trace': encoded, 'truncated': truncated}
+        records.append(example)
     if not records:
         raise ValueError('No role-visible Train examples available')
     return records

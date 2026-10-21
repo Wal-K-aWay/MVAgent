@@ -34,7 +34,8 @@ class LibraryEvaluator:
             sample_weights={s:r.sample_weight for s,r in self.records.items()})
         self.judge = LocalJudge(endpoints, timeout_sec=600)
         self.identity = hash_json({'run': identity, 'judge': self.judge.identity,
-                                   'score_prompt': SCORE_PROMPT, 'split': split.manifest_hash})
+                                   'score_prompt': SCORE_PROMPT, 'split': split.manifest_hash,
+                                   'dataset_sha256': file_fingerprint(self.dataset_root / 'crossvid/qa.jsonl')})
         self.runner = Path(__file__).resolve().parents[1] / 'agent_eval/run.py'
 
     def __call__(self, bank, partition):

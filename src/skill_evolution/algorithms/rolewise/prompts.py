@@ -24,6 +24,8 @@ from that selector input. Hidden-state checks belong in strategy. The actor rece
 strategy only; include its prerequisites, exclusions and fallback to the ordinary
 allowed evidence workflow. Global skills are not automatically sent to Video agents.
 Reuse retained same-video observations when applicable; do not assume empty memory.
+Global answer-only finalization retains its strategy; the Video forced summary uses
+Memory/instruction without receiving the planning strategy.
 
 Prefer one distinct, self-contained method over generic advice or a collection of
 microsteps needing other cards. Use visual evidence, not metadata-only answers.

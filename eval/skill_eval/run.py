@@ -62,7 +62,7 @@ def _prepare(args):
             else:
                 shutil.copy2(source, target/name)
         commit = os.environ.get('MVAGENT_SOURCE_COMMIT')
-        if not commit:
+        if not commit and shutil.which('git'):
             result = subprocess.run(['git','-C',str(PROJECT_ROOT),'rev-parse','HEAD'],capture_output=True,text=True)
             commit = result.stdout.strip() if result.returncode == 0 else None
         manifest = {'source_commit':commit, 'source_sha256':tree_hash(frozen/'src'),

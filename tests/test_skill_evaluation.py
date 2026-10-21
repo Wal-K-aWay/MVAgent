@@ -12,6 +12,8 @@ from skill_evolution.infra.banks import freeze_bank
 class EvaluatorTest(unittest.TestCase):
     def setup_fixture(self, folder):
         root=Path(folder); records={}; members=[]
+        (root/'crossvid').mkdir()
+        (root/'crossvid/qa.jsonl').write_text('synthetic metadata')
         for task in sorted(CROSSVID_TASKS):
             for i,split in enumerate(('train','train','cal','eval')):
                 sid=f'crossvid:{task}:{i}'
@@ -54,6 +56,10 @@ class EvaluatorTest(unittest.TestCase):
                 self.assertIsNone(json.loads(native.read_text())['score'])
                 self.assertEqual(evaluator(bank,'train').score,result.score)
                 self.assertEqual(run.call_count,1); self.assertEqual(score.call_count,2)
+                original_identity=evaluator.identity
+                evaluator.identity='different metadata identity'
+                with self.assertRaises(ValueError): evaluator(bank,'train')
+                evaluator.identity=original_identity
                 native.write_text('{}')
                 with self.assertRaises(ValueError): evaluator(bank,'train')
 
