@@ -74,6 +74,17 @@ class EvaluatorTest(unittest.TestCase):
             self.assertTrue((directory/'rollouts/records/crossvid/crossvid:CCQA:2/result.json').exists())
             self.assertFalse((directory/'evaluation.json').exists())
 
+    def test_native_resume_invokes_frozen_runner(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root,evaluator,_=self.setup_fixture(folder)
+            directory=root/'group'
+            with patch('eval.skill_eval.evaluator.subprocess.run',side_effect=self.native_run) as run:
+                evaluator._run_native(directory,evaluator.runtime,evaluator.ids['train'])
+                evaluator._run_native(directory,evaluator.runtime,evaluator.ids['train'])
+            command=run.call_args.args[0]
+            self.assertEqual(command[1],str(directory/'rollouts/eval/agent_eval/run.py'))
+            self.assertIn('--resume',command)
+
     @staticmethod
     def routing_bank(root):
         cards=[{'meta':{'id':sid,'role':role,'stages':['initial','evidence']},

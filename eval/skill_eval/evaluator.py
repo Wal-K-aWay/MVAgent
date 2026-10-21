@@ -186,11 +186,13 @@ class LibraryEvaluator:
         _pin_json(runtime_path, runtime)
         _pin_json(ids_path, list(ids))
         native = directory / 'rollouts'
-        cmd = [sys.executable, str(self.runner), '--config', str(runtime_path),
+        resume = (native / 'run_manifest.json').exists()
+        runner = native / 'eval/agent_eval/run.py' if resume else self.runner
+        cmd = [sys.executable, str(runner), '--config', str(runtime_path),
                '--execution-config', str(self.execution), '--dataset-root', str(self.dataset_root),
                '--benchmarks', 'crossvid', '--sample-ids-file', str(ids_path),
                '--output', str(native), '--defer-open-qa-judge']
-        if (native / 'run_manifest.json').exists():
+        if resume:
             cmd.append('--resume')
         with (directory / 'console.log').open('a') as log:
             subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT, check=True)

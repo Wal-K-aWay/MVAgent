@@ -4,9 +4,23 @@ import subprocess
 import sys
 import textwrap
 import unittest
+from unittest.mock import patch
 
 
 class EvaluationSnapshotTest(unittest.TestCase):
+    def test_all_open_qa_deferred_requires_no_dataset_scorer(self):
+        from eval.agent_eval.run import _build_scorer, _score_saved_row
+        with patch('eval.benchmarks.build_official_scorer') as build:
+            scorer, identity = _build_scorer({}, judge_model=None, cache_dir=Path('unused'))
+        build.assert_not_called()
+        self.assertIsNone(scorer)
+        self.assertEqual(identity, {})
+        row = {'sample_id': 'crossvid:CCQA:1', 'prediction': 'Saved answer'}
+        _score_saved_row(row, None, scorer, defer_open_qa_judge=True)
+        self.assertEqual(row['prediction'], 'Saved answer')
+        self.assertEqual(row['scoring_status'], 'deferred')
+        self.assertIsNone(row['score'])
+
     def test_resume_uses_frozen_evaluation_and_rejects_snapshot_changes(self):
         # Isolate module-cache changes made by the real snapshot loader.
         code = textwrap.dedent('''
