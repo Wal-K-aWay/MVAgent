@@ -73,8 +73,9 @@ temperature=0、top_p=1、最多4096输出token；固定 `qwen35-bf16-flashinfer
 `LOCAL_OPTIMIZER_API_KEY` 必须在运行环境中设置为非空值，不在YAML或日志中保存实际值。
 
 `runtime.models` 必须含同名 `local_vllm` 模型；`execution.model_pools` 中该模型必须包含
-优化器 `api_base` 对应的端口。可以复用Actor已有池；若优化器与Actor不同，须在runtime和execution
-同时声明优化器模型，Actor引用保持原值。入口先复用 `prepare_model_pools` 验证并注册已有配置的全部池，
+优化器 `api_base` 对应的端口，且该模型必须已被运行时角色引用。本接入只支持复用已有角色的模型池，
+不支持添加独立的optimizer专用池：原批量执行器会为每道题占用execution中的全部池，额外的小池会限制并发。
+入口先复用 `prepare_model_pools` 验证并注册已有配置的全部池，
 再构造优化器客户端，避免向固定服务发送不支持的 `response_format`。模型池负责既有服务检查和必要的服务启动，
 因此只在已分配GPU的远端环境运行。端口不匹配、没有健康副本或缺少固定profile身份会直接报错。
 

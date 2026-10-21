@@ -94,11 +94,15 @@ def _optimizer_client(path, *, runtime, execution_path, output):
 
     from models.pool import canonical_endpoint, install_pools
     from mvagent.batch import ExecutionConfig, prepare_model_pools
+    from mvagent.configs import MVAgentConfig
 
     name = config.model_name
     execution = ExecutionConfig.from_yaml(execution_path)
     if runtime.get('models', {}).get(name, {}).get('type') != 'local_vllm':
         raise ValueError('Local optimizer model_name must name a local_vllm runtime model')
+    referenced = {ref.model_type for _, _, ref in MVAgentConfig.from_dict(runtime).model_roles()}
+    if name not in referenced:
+        raise ValueError('Local optimizer must reuse a model pool referenced by the runtime roles')
     endpoint = canonical_endpoint(config.api_base)
     replicas = execution.model_pools.get(name, {}).get('replicas', [])
     if endpoint not in {replica['endpoint'] for replica in replicas}:

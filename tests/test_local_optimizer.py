@@ -91,6 +91,17 @@ class LocalOptimizerTest(unittest.TestCase):
                     pass
                 self.assertIsNone(get_pool(MODEL))
 
+    def test_reject_additional_optimizer_only_pool(self):
+        name = 'optimizer_only'
+        self.runtime['models'][name] = dict(self.runtime['models'][MODEL])
+        self.path.write_text(json.dumps({**self.settings, 'model_name': name}))
+        self.execution.write_text(json.dumps({'model_pools': {name: {'replicas': [
+            {'endpoint': ENDPOINT, 'gpus': [0], 'max_inflight': 1}]}}}))
+        with patch('mvagent.batch.prepare_model_pools') as prepare, \
+             self.assertRaisesRegex(ValueError, 'runtime roles'), self.client():
+            pass
+        prepare.assert_not_called()
+
     def test_commercial_clients_do_not_prepare_or_clear_pools(self):
         for settings in [yaml.safe_load((ROOT / 'configs/skill_evolution/llm_generation.yaml').read_text()),
                          {**self.settings, 'api_base': 'https://api.example.com/v1'},
