@@ -71,3 +71,19 @@ the new entry does not adapt old snapshot layouts.
 This directory relocation preserves the scoring formulas, Judge prompts and model
 settings. Existing inline and deferred Judge workflows remain distinct; their
 protocol implementation is not rewritten by this move.
+
+
+## Relocation validation
+
+Source `3be6b13` was checked on Modal CPU: 27 regression cases passed across the
+initial run and the targeted snapshot rerun, plus the token-audit self-check, full
+Python compilation and eight CLI help calls from outside the repository directory.
+The new snapshot check scores a synthetic sample, resumes after changing live
+scoring code, and rejects an altered frozen snapshot. Skill generation imports
+successfully with only `src/` on `PYTHONPATH` and no evaluation module loaded.
+The benchmark implementation and generic I/O functions were moved byte-for-byte.
+The first snapshot check needed Git added to the test image, and its scorer fixture
+needed the existing required `open_qa_scorers` argument; neither changed scoring.
+No model calls, GPU execution, media decoding or benchmark accuracy evaluation
+were performed. Detailed check logs remain in the runs volume under
+`devbox/eval_consolidation_20261021/`; the final check is in `checks3/`.
