@@ -71,6 +71,7 @@ resume只接受输出目录，使用原冻结配置，拒绝被改写的源码�
 配置使用 `api_vlm/openai_compatible` 发送纯文本，模型名为 `qwen3_5_9b_local`，
 temperature=0、top_p=1、最多4096输出token；固定 `qwen35-bf16-flashinfer-sync` 服务关闭thinking。
 `LOCAL_OPTIMIZER_API_KEY` 必须在运行环境中设置为非空值，不在YAML或日志中保存实际值。
+无需鉴权的本地服务也应使用唯一的长随机占位值；不要使用`local`等普通词，以免通用日志脱敏替换Prompt中的同名文字。
 
 `runtime.models` 必须含同名 `local_vllm` 模型；`execution.model_pools` 中该模型必须包含
 优化器 `api_base` 对应的端口，且该模型必须已被运行时角色引用。本接入只支持复用已有角色的模型池，
