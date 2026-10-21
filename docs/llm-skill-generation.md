@@ -136,6 +136,21 @@ Global强制answer-only终答保留策略；Video强制总结只读Memory/instru
 只返回`{"skills": [{"when_to_use": "...", "strategy": "..."}]}`；调用方分配ID、role和stages。
 不返回metadata、额外键、Markdown围栏或说明，输出前检查字段名与全部契约。
 
+## 历史测试库清理（2026-10-21 UTC）
+
+按用户要求，已删除以下三轮GLM测试的完整`bank.json`、`global/bank.json`、`video/bank.json`，
+以及后两轮的`runtime_with_skills.json`（共11个文件）：
+
+- `devbox/one_shot_glm53_20261020/run1/`
+- `devbox/one_shot_contract_20261021/run1/`
+- `devbox/one_shot_contract_20261021/revision2/run1/`
+
+原始请求、响应、事件、校验记录、summary和冻结源码保留；下面的库哈希与加载结果属于历史记录，
+对应库文件现在已经删除。清理回执位于同一runs volume的
+`devbox/one_shot_skill_library_cleanup_20261021/receipt.json`。
+DeepSeek首次生成的原始响应与失败记录保留，当前没有通过校验的DeepSeek库。
+后续成功生成时，库仍写入`--output-dir`指定目录下的`bank.json`，配套配置为`runtime_with_skills.json`。
+
 ## 首次真实生成（2026-10-21 UTC）
 
 运行源码 `98ad0c4`；Modal CPU app `ap-KtgWYywyIdxH6SrYeqKfzK` 已正常结束，GPU使用为0。
