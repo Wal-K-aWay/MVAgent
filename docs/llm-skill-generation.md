@@ -182,3 +182,42 @@ $.skills.0: Additional properties are not allowed ('prerequisites' was unexpecte
 
 评测目录随后统一迁至 `eval/`，通用保存工具改为 `mvagent.utils.io`。
 生成器及其源码快照不依赖评测包；本次目录调整不改变上面的 Prompt、模型参数或历史产物。
+
+
+## 契约完善过程中的实测记录（2026-10-21 UTC）
+
+源码`22d563b`首次加入完整流程、可见性、Actor基础System和预算单位说明后，
+GLM每角色一次返回Global 3张、Video 4张，均stop，完整库SHA256为
+`0b6a368c589467870e30f8619033978387a56d03bf79d4756b569fc6cd1d1f87`。
+Global 51.86秒、2483输入/2040输出token；Video 57.96秒、1963输入/2507输出token。
+这说明卡数由模型决定，并非固定生成8张。原始记录在runs
+`devbox/one_shot_contract_20261021/run1/`。
+
+该次输出仍有明确缺陷：Global第1张尝试仅凭元数据回答，且误选后仍禁止取证；
+部分Video策略假定没有既有观察，并要求固定的观察/细化次数。它们与本任务的
+多视频视觉内容要求及跨请求Memory契约不符；没有将这些卡手工改写为合格产物。
+源码`160165a`进一步明确了这些任务/运行契约，单独在`revision2/run1/`生成；
+没有加入题目、答案、轨迹、分数或把第一版卡片提供给生成模型。
+两次是不同Prompt版本的工程冒烟，不应合称同一次生成，也不是按问答分数挑库。
+
+源码`f92bf6c`另修复输出目录解析：保留`/runs/`等公开挂载路径，避免将符号链接
+解析为容器内部路径。8个针对性测试与完整compileall通过；第一版库仅修正配套
+运行配置和summary中的路径，原文件备份在`path_fix/`，10个受保护原始文件SHA不变，
+修复没有调用模型。生成卡片、请求、响应、事件和冻结源码均未改写。
+
+
+最终源码`160165a`的独立生成已完成，app `ap-YdY81lar9DTML1VW7BoWI5` exit0、stopped/tasks0。
+8个针对性测试、完整compileall和CLI检查通过。每角色一次GLM请求，无修复、重试或重抽，均finish_reason=stop。
+
+| 角色 | 卡数 | 耗时/秒 | 输入token | 输出token（含reasoning） | 每卡字数 |
+|---|---:|---:|---:|---:|---|
+| Global | 3 | 58.13 | 2684 | 2588 | 276/275/247 |
+| Video | 4 | 75.94 | 2164 | 3320 | 383/317/314/318 |
+
+完整库SHA256：`45c4ac01fe78c374b073ada108d81819d02b361a0c20a6ee0a3dfe2d2a1d7adc`。
+记录位于runs `devbox/one_shot_contract_20261021/revision2/run1/`，配置为同目录的
+`runtime_with_skills.json`。新的SDK读取已核对银行文件SHA和两个角色的task选卡引用、SHA及`/runs/`路径。
+产物文字观察：Global不再有仅凭元数据作答的卡，四张Video卡都先检查并复用Memory；
+例如第4张以 `Compare the active instruction with all retained same-video Memory lines` 开始。
+这不是语义合格的自动证明：Global第1/3张范围存在重叠，第3张正文有偏向恰好一个匹配视频的假设，
+局部取证与采样策略也仍需验证。保留原样，尚未运行真实Selector、Actor、视频问答或Judge，不能声称精度提升。
