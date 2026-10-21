@@ -49,6 +49,7 @@ python scripts/evolve_skills.py \
 清单沿用`eval.data.DataSplitManifest` v2：train=Train、cal=Cal、eval=Gate；每组覆盖CrossVid十任务、题目和声明源组互斥。
 CVBench/MVU不进入优化。入口先冻结源码/评测代码/配置，再从冻结入口运行；原始rollout先保存，再按官方评分。
 两库初始为空；每轮只改一个角色的一张卡，最多8张/角色。候选在完整Train、Cal上自然选卡运行，Cal严格增益最高者进入Gate，Gate严格正增益才接受。
+取Train例子前先筛出含目标角色轨迹的题；完全没有该角色经验时记录跳过并继续其他角色。
 Cal/Gate只向算法返回总分及身份，不向优化器提供逐题数据；视频局部反馈不冒充局部正确性标签。
 
 ```bash

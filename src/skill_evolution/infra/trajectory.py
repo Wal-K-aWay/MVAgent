@@ -66,7 +66,9 @@ def examples(parent, role, config, *, candidate=None, attempt=0):
         raise ValueError('Paired Train evaluations must contain exactly the same questions')
     # Prefer changed/unsolved examples but retain successful references, without task buckets.
     rng = random.Random(config.seed + attempt)
-    ids = sorted(previous); rng.shuffle(ids)
+    local_views = {sid: list(video_views(row)) for sid, row in previous.items()} if role == 'video' else {}
+    ids = sorted(sid for sid in previous if role != 'video' or local_views[sid])
+    rng.shuffle(ids)
     ids.sort(key=lambda sid: (later.get(sid, previous[sid])['score'] == previous[sid]['score'], previous[sid]['score']))
     failures = [sid for sid in ids if previous[sid]['score'] < 1]
     successes = [sid for sid in ids if previous[sid]['score'] == 1]
@@ -90,9 +92,7 @@ def examples(parent, role, config, *, candidate=None, attempt=0):
             if after:
                 value['candidate'] = global_view(after)
         else:
-            views = list(video_views(before))
-            if not views:
-                continue
+            views = local_views[sid]
             context, view = views[rng.randrange(len(views))]
             value = {'parent': view, 'feedback': {**feedback, 'scope': 'whole question; NOT local correctness'}}
             if after:
@@ -112,6 +112,4 @@ def examples(parent, role, config, *, candidate=None, attempt=0):
                 encoded = encoded[:half] + '\n[... omitted evidence ...]\n' + encoded[-half:]
             example[key] = {'trace': encoded, 'truncated': truncated}
         records.append(example)
-    if not records:
-        raise ValueError('No role-visible Train examples available')
     return records

@@ -35,9 +35,15 @@ def evolve(*, client, runtime, config, evaluator, output):
         parent_gate = evaluator(parent, 'gate')
         trials, last_train, last_edit = [], None, None
         seen = {parent.sha256}
+        no_evidence = False
         for attempt in range(config.candidates_per_round):
             trial_dir = directory / f'proposal-{attempt:02d}'
             evidence = examples(parent_train, role, config, candidate=last_train, attempt=attempt)
+            if not evidence:
+                no_evidence = True
+                write_json(trial_dir / 'validation.json', {'valid': False, 'evaluated': False,
+                           'reason': 'no_role_visible_train_examples'})
+                break
             prompt = messages(runtime, role, parent.load(), evidence, config.max_cards_per_role, last_edit)
             try:
                 edit = call_json(client, prompt, SCHEMA, trial_dir, 'role_skill_edit')
@@ -61,7 +67,7 @@ def evolve(*, client, runtime, config, evaluator, output):
         decision = {'round': index, 'role': role, 'parent_sha256': parent.sha256,
                     'parent_cal': parent_cal.summary(), 'parent_gate': parent_gate.summary(),
                     'accepted': False, 'result_sha256': parent.sha256,
-                    'reason': 'no_cal_improvement'}
+                    'reason': 'no_role_visible_train_examples' if no_evidence else 'no_cal_improvement'}
         if eligible:
             candidate, cal = max(eligible, key=lambda item: item[1].score)
             gate = evaluator(candidate, 'gate')

@@ -106,6 +106,44 @@ class SkillsTest(unittest.TestCase):
         self.assertIn('selected_cards',evidence['parent']['trace'])
         self.assertIn('selected_cards',evidence['candidate']['trace'])
 
+    def test_video_sampling_filters_eligible_questions_before_applying_budget(self):
+        rows=[]
+        for index in range(4):
+            item=row(); item['sample_id']=f'private-{index}'
+            if index<2:
+                item['result']['trajectory']=[]
+            else:
+                item['score']=1.0
+            rows.append(item)
+        evidence=examples(train(rows),'video',EvolutionConfig(examples_per_proposal=2))
+        self.assertEqual(len(evidence),2)
+        self.assertTrue(all(e['feedback']['parent_question_score']==1 for e in evidence))
+        self.assertEqual(examples(train(rows[:2]),'video',EvolutionConfig()),[])
+
+    def test_unused_role_is_recorded_and_does_not_stop_other_role(self):
+        import yaml
+        runtime=yaml.safe_load((Path(__file__).resolve().parents[1]/'configs/inference/modal_qwen35_35b_a3b_no_skill.yaml').read_text())
+        class Client:
+            api_key='test-secret'
+            calls=0
+            def chat(self,*args,**kwargs):
+                self.calls+=1; emit_event('model_response',finish_reason='stop')
+                return json.dumps(edit())
+        def evaluate(bank,partition):
+            score=0.6 if bank.load().cards else 0.4
+            sample=row(); sample['result']['trajectory']=[]; sample['score']=score
+            return Evaluation(partition,bank.sha256,score,1,'identity',(sample,) if partition=='train' else ())
+        client=Client()
+        with tempfile.TemporaryDirectory() as folder:
+            result=evolve(client=client,runtime=runtime,
+                config=EvolutionConfig(roles=('video','global'),candidates_per_round=1),evaluator=evaluate,output=folder)
+            skipped=json.loads((Path(folder)/'rounds/000-video/decision.json').read_text())
+            self.assertEqual(skipped['reason'],'no_role_visible_train_examples')
+            self.assertFalse(skipped['accepted'])
+            self.assertEqual(client.calls,1)
+            self.assertEqual(result['accepted_rounds'],1)
+            self.assertFalse((Path(folder)/'rounds/000-video/proposal-00/request.json').exists())
+
     def test_saved_api_attempt_is_not_repeated_and_invalid_output_is_retained(self):
         class Client:
             api_key='test-secret'
