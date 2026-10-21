@@ -35,3 +35,15 @@ Modal原件保留于runs volume的`devbox/deepseek_skill_eval_20261021/skills/`�
 这3题共调用VideoAgent 8次，8次Selector均合法弃选。因此最初要求两角色都出现非空选择的smoke断言失败，原记录保留；这不代表VideoAgent没有运行或接口故障。随后在CC715的第一个视频上增加明确的开头两秒局部instruction探针，未修改卡片、Actor或Selector：Video自然选择卡8，策略原文被注入，成功observe并finish，耗时12.48秒。返回报告描述开头厨房中的人物挥手动作。
 
 合计46次实际模型响应的token数量、H100身份和prefix cache=0通过检查。`smoke_gate.json`记录完整问题与补充Video探针的组合证据、自然弃选情况及限制。此结果证明接口可用，不证明14张卡都适用，也不代表准确率提升。单卡探针释放后才申请正式8组×8H100；不会与64卡面板叠加占用。
+
+## 正式运行早期检查（04:58 UTC快照）
+
+8组均已进入推理。按已落盘记录核验375个arm-rollout，375个status=ok、0基础设施错误，4909次模型响应的token数量及prefix cache=0通过检查。所有非空选择的完整strategy均可在对应题目的Actor请求中找到，三模型都已覆盖自然的Global和Video选卡/注入。
+
+| 模型 | 已核正常题次（两臂合计） | skill臂Global选卡 | skill臂Video选卡 |
+|---|---:|---:|---:|
+| 9B | 159 | 60/85 | 40/250 |
+| 27B | 110 | 64/75 | 197/206 |
+| 35B-A3B | 106 | 25/52 | 65/131 |
+
+这是早期运行与注入证据，各臂当时完成的ID集合不同；不能据此做准确率对比或把选卡率解释为Selector能力差异。原始检查分别保存在每个shard的early_audit.json。完整360题配对结果与CCQA评分仍在运行。
