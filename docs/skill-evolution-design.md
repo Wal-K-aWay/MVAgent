@@ -1,10 +1,10 @@
 # MVAgent：免训练 Skill 自进化的当前设计
 
-2026-10-21。固定模型权重、MVAgent架构、基础Prompt、工具、推理配置与评分，只修改Global/Video的skill库。
+2026-10-22，本轮探索已完成。接续研究请先读[统一交接文档](skill-research-handoff-20261022.md)。固定模型权重、MVAgent架构、基础Prompt、工具、推理配置与评分，只修改Global/Video的skill库。
 目标是提高完整多视频问答的官方总分；选中率、文字质量、动作变化和调用成本均不能替代这个目标。
 
 当前最基础的问题是：**能否找到跨题目和来源仍有净效用的文本程序，以及选择时可见的信息能否预测它相对不用skill的收益？**
-已测365尚无稳定超过terminal这一主动控制的增量，不等于正文相对none没有价值；当前语义Selector也未获得Train反事实效用反馈，不能据其失败判定入口不可学。
+已测365尚无稳定超过terminal这一主动控制的增量，不等于正文相对none没有价值。早期更强Selector诊断没有获得Train效用反馈；后续已完成固定正文、通过GLM将Train反馈写入when的干预，未保留Cal收益。两者均不能证明入口在理论上不可学。
 本文给出已实现的基线、实测约束和一个待验证的最小方法假设，不声称新方法已经有效。
 
 最新分数与冻结来源见[机制探索结果](skill-exploration-results.md)；早期记录保留在[首测](skill-evolution-probe.md)、[手工诊断](manual-skill-results.md)、[探索方案](skill-exploration-study.md)及Git历史中。

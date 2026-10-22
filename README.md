@@ -314,6 +314,9 @@ Historical protocol changes and negative findings remain in
   with `DEEPSEEK_API_KEY` in the environment. The [one-shot baseline](docs/llm-skill-generation.md)
   uses task and runtime descriptions without examples or feedback. The new [role-wise evolution loop](docs/skill-evolution-design.md) starts from empty
   libraries and uses Train feedback plus complete Cal/Gate evaluation; it does not restore old algorithms.
+- **Continue the skill research:** start with the [research handoff](docs/skill-research-handoff-20261022.md).
+  It records the completed experiment ledger, evidence limits, frozen artifacts,
+  and the next study's runnable entry points and remaining data-preparation work.
 - **Runtime regression checks:** see [`tests/`](tests/README.md). For example, run
   `PYTHONPATH=src python tests/test_direct_answer.py` in the configured compute
   environment. Passing a unit check is not a benchmark result.
