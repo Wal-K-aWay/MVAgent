@@ -41,18 +41,28 @@ def video_views(row):
         request = memory.begin_request(instruction)
         prior = memory.render_planner_view(request_id=request)
         context = hash_json({'video_id': video_id, 'instruction': instruction, 'prior_memory': prior})
-        actions = []
-        for step in output.get('steps', []):
-            if step.get('action') == 'observe' and 'result' in step:
+        actions, request_feedback = [], []
+        for index, step in enumerate(output.get('steps', []), start=1):
+            if 'result' not in step:
+                continue
+            step_result = step['result']
+            # Structured invalid attempts are request-local feedback, not persistent Memory.
+            if step.get('action') == 'observe' and step_result.get('status') != 'invalid':
                 entry = {key: deepcopy(step[key]) for key in ('action', 'parameters', 'result')}
                 memory.add_action(entry, request_id=request)
                 actions.append({'action': 'observe',
                                 'parameters': {k: step['parameters'][k] for k in ('what', 'where', 'fps') if k in step['parameters']},
                                 'result': memory._render_action(entry)})
+            else:
+                request_feedback.append({'step': index, 'action': step.get('action'),
+                                         **{key: deepcopy(step_result[key]) for key in ('status', 'error', 'terminal')
+                                            if key in step_result}})
         yield context, {'instruction': instruction,
                         'duration_sec': result['video_metadata'][video_id]['duration_sec'],
                         'prior_memory': prior, 'actions': actions,
+                        'request_feedback': request_feedback,
                         'report': output.get('report', ''), 'status': output.get('status'),
+                        'error': output.get('error', ''),
                         'selected_cards': _selections(row, 'video', video_id=video_id,
                                                      request_id=output.get('request_id'))}
 

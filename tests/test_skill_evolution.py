@@ -4,6 +4,7 @@ from pathlib import Path
 import json,tempfile,unittest
 
 from models.execution import emit_event
+from mvagent.agents.video_agent.memory import VideoAgentMemory
 from mvagent.skills.bank import SkillBank
 from mvagent.utils.io import hash_json
 from skill_evolution.configs.evolution import EvolutionConfig
@@ -85,6 +86,61 @@ class SkillsTest(unittest.TestCase):
         text=json.dumps(examples(train([row()]),'global',EvolutionConfig()))
         for secret in ('PRIVATE_SAMPLE_ID','PRIVATE_TASK_CODE','PRIVATE_GT','PRIVATE_VIDEO_OBSERVATION'):
             self.assertNotIn(secret,text)
+
+    def test_video_invalid_attempts_are_request_local_not_persistent_memory(self):
+        source=row(); first=source['result']['trajectory'][0]
+        first['output'].update(status='error', report='', error='No supported summary.')
+        first['output']['steps']=[
+            {'action':'observe','parameters':{'what':'Which tool?', 'fps':'invalid'},
+             'result':{'status':'invalid','error':'FPS must be numeric.', 'raw_response':'PRIVATE_RAW_RESPONSE'}},
+            {'action':'finish','parameters':{'summary':'unsupported'},
+             'result':{'status':'invalid','error':'Observe evidence is required.'}},
+            {'action':'finish','parameters':{},
+             'result':{'status':'error','error':'No supported summary.','terminal':True}}]
+        source['result']['trajectory'].append({'agent':'VideoAgent','video_id':'video_1',
+            'input':{'instruction':'Check the handle'},
+            'output':{'request_id':'req_2','status':'ok','report':'It is wooden.','steps':[]}})
+        original=deepcopy(source); views=list(video_views(source)); first_view=views[0][1]
+        self.assertEqual(first_view['actions'],[])
+        self.assertEqual([item['action'] for item in first_view['request_feedback']],['observe','finish','finish'])
+        self.assertEqual(first_view['request_feedback'][0]['error'],'FPS must be numeric.')
+        self.assertTrue(first_view['request_feedback'][-1]['terminal'])
+        self.assertEqual(first_view['error'],'No supported summary.')
+        memory=VideoAgentMemory(); memory.begin_request('Which tool?')
+        request=memory.begin_request('Check the handle')
+        prior=memory.render_planner_view(request_id=request)
+        self.assertEqual(views[-1][1]['prior_memory'],prior)
+        self.assertEqual(views[-1][0],hash_json({'video_id':'video_1','instruction':'Check the handle','prior_memory':prior}))
+        for secret in ('FPS must be numeric.','Observe evidence is required.','No supported summary.'):
+            self.assertNotIn(secret,prior)
+        for secret in ('PRIVATE_RAW_RESPONSE','PRIVATE_GT','GLOBAL_ONLY_QUESTION','SIBLING_PRIVATE'):
+            self.assertNotIn(secret,json.dumps(first_view))
+        self.assertEqual(source,original)
+
+    def test_video_tool_errors_and_observations_remain_in_persistent_memory(self):
+        source=row(); first=source['result']['trajectory'][0]
+        failed={'action':'observe','parameters':{'what':'Find the handle','where':[[3,3]],'fps':1},
+                'result':{'status':'error','error':'Observe range must have positive duration.'}}
+        first['output']['steps'].append(failed)
+        first['output']['steps'].append({'action':'finish','parameters':{'summary':'The tool is a spoon.'},
+            'result':{'status':'ok','terminal':True,'report':'The tool is a spoon.'}})
+        source['result']['trajectory'].append({'agent':'VideoAgent','video_id':'video_1',
+            'input':{'instruction':'Check the handle'},
+            'output':{'request_id':'req_2','status':'ok','report':'It is wooden.','steps':[]}})
+        views=list(video_views(source)); first_view=views[0][1]
+        self.assertEqual(len(first_view['actions']),2)
+        self.assertIn('PRIVATE_VIDEO_OBSERVATION',first_view['actions'][0]['result'])
+        self.assertIn(failed['result']['error'],first_view['actions'][1]['result'])
+        self.assertTrue(first_view['request_feedback'][0]['terminal'])
+        memory=VideoAgentMemory(); request=memory.begin_request('Which tool?')
+        for step in first['output']['steps'][:2]:
+            memory.add_action(step,request_id=request)
+        request=memory.begin_request('Check the handle')
+        prior=memory.render_planner_view(request_id=request)
+        self.assertEqual(views[-1][1]['prior_memory'],prior)
+        self.assertIn(failed['result']['error'],prior)
+        self.assertIn('PRIVATE_VIDEO_OBSERVATION',prior)
+        self.assertNotIn('SIBLING_PRIVATE',prior)
 
     def test_video_counterfactual_requires_same_context(self):
         before=row(); after=deepcopy(before); after['score']=1.0
