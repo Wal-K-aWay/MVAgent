@@ -280,6 +280,8 @@ export PYTHONPATH=src:.
 export STUDY_ROOT=/runs/new-skill-confirmation
 ```
 
+将下面Python保存为计算环境中的`/tmp/prepare_skill_confirmation.py`，再执行`python /tmp/prepare_skill_confirmation.py`。它只准备配置，且因新目录保护只能对该目录执行一次；恢复已有评测时不要重新运行此准备步骤。
+
 ```python
 import json
 import os
@@ -313,7 +315,7 @@ execution['model_pools']['qwen3_5_9b_local']['replicas'] = replicas[:7]
 (study / 'execution.json').write_text(json.dumps(execution, indent=2))
 ```
 
-这样每节点Actor使用GPU0–6及端口8100–8106，GPU7留给Judge。文件名里的h200是历史命名，硬件必须以真实分配和启动manifest为准。`runtime_with_bank`关闭空Video库，不是强制选卡。将审定清单写到 `$STUDY_ROOT/sample_ids.json`，保留其来源审计文件；不要用`--limit`近似替代。
+这样每节点Actor使用GPU0–6及端口8100–8106，GPU7留给Judge。文件名里的h200是历史命名，硬件必须以真实分配和启动manifest为准。`runtime_with_bank`关闭空Video库，不是强制选卡。将审定清单原样复制到 `$STUDY_ROOT/sample_ids.json`，保留其来源审计文件和文件哈希；不要用`--limit`近似替代。
 
 ### 9.3 两臂完整自然运行、评分与收尾
 
@@ -351,7 +353,7 @@ done
 
 ### 9.4 生成与进化入口的正确用法
 
-重新生成只是新候选，不会复现保存的87c43278…卡：
+重新生成只是新候选，不会复现保存的87c43278…卡。以下配置读取`BIGMODEL_API_KEY`环境变量，应由Secret注入，不能将实际密钥写进命令或文档：
 
 ```bash
 python scripts/generate_skills.py \
