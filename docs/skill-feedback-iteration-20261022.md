@@ -130,17 +130,35 @@ CPU `ap-Iusg33aj5zWvNnXiYyYKPa`读取父4765与前一Video试验68cfb各80题的
 
 独立分支`codex/skill-feedback-20261022`，方法源码快照`1e1147eddff43807bac835f172d3dd3684c2dee5`，源码包SHA256 `e63837b3debdec2d0d07205c9ba03f436995da0b38066f8c43dfd9f37a10424b`。Modal CPU已通过compileall及17个测试文件，包含新反馈格式、Memory回归与Prompt契约；与旧Actor/模型/原生评测的142个文件逐字一致。
 
-输入准备位于`/runs/devbox/skill_feedback_20261022/preparation-full-events/`。首批真实GLM已产出事件库`b43734b7…`与文本库`2b2cd3bb…`。最新读取时，六个评测节点共使用48张H100，已完成320个新增评分题次；Gate已有运行进展，但尚无完整Gate分数。
+输入准备位于`/runs/devbox/skill_feedback_20261022/preparation-full-events/`。截至04:50 UTC，六个Global候选均完成Train80/Cal40，两个完成Gate176，共1072个新增评分题次；其余Gate继续。两个完成节点已释放，首批三个Video节点已提交，当前七个节点的占用与预约合计56张H100，仍受64张总上限约束。
 
-| 条件 | 已完整评分分区 | Train80官方macro | Cal40官方macro |
-|---|---|---:|---:|
-| 固定父库4765（复用，不计新增） | Train/Cal | 27.7885% | 35.0000% |
-| events / rep0 | Train80＋Cal40 | 29.7051% | 35.2365% |
-| legacy / rep0 | Train80＋Cal40 | 25.3543% | 32.5000% |
-| events / rep1 | Train80 | 26.0980% | 尚无完整结果 |
+| 条件 | Train80官方macro | Cal40官方macro | Gate176官方macro |
+|---|---:|---:|---:|
+| 固定父库4765（复用） | 27.7885% | 35.0000% | 35.0869% |
+| events / rep0 | 29.7051% | 35.2365% | 30.6734% |
+| events / rep1 | 26.0980% | 32.5000% | 运行中 |
+| legacy / rep0 | 25.3543% | 32.5000% | 35.4323% |
+| legacy / rep1 | 30.2885% | 35.0000% | 运行中 |
+| direct / rep0 | 33.4566% | 22.9167% | 运行中 |
+| direct / rep1 | 33.0769% | 31.6667% | 运行中 |
 
-320题次为两组完整80＋40及一组完整80，使用的仍是原开发题，不是320道新增独立样本。未完成单元不填零。事件rep0的Cal点值只略高父库，另一个事件提案的Train方向不同；两次提案与各分区尚未全部完成，**不能提前宣判某种格式有效或更好**。后续按预定完整分区和两个重复报告，不按中途成绩挑赢家。
+两种反馈格式的Cal描述均值为33.8682%与33.7500%，均低于父35%；两次生成不足以估计方法稳定性。事件rep0的Cal小增没有延续到Gate，文本rep0的Gate略涨但Cal更低，两者都不满足原接受条件。所有未完Gate仍按原计划评估，不因中途结果停止。1072是重复开发题上的评估次数，不是1072道独立新题。
 
-无反馈rep0返回noop但hypothesis为空，原响应留存，记格式失败、不免费补提案；失败后保留父库，不能记作问答零分。另一次有效noop同样保留并复用父库。Video输入准备通过不计新增问答；生成结果须另行核验后开始评测。
+首两臂配对分析`paired-20261022-044733/summary.json`，SHA `d359f3dff362101760868c83ef1c0cf57a036a4344ebd702a7cfaca5b1457e35`；592新raw全部SHA核验，原分与同请求canonical相同，未新调用Judge。
+
+| Gate对父库比较 | 差值pp | 逐题探索95%CI pp | 来源组探索95%CI pp | 改善/退步/持平 |
+|---|---:|---|---|---|
+| events / rep0 | −4.4136 | [−8.3904, −0.5475] | [−7.8667, −0.9108] | 7/14/155 |
+| legacy / rep0 | +0.3454 | [−4.2429, +4.9336] | [−3.7097, +4.4564] | 13/12/151 |
+
+这给事件rep0提供明确的开发集负信号，不能推广为事件格式整体无效；多重探索与已复用面板仍限制结论。首分析因缺少私有helper在CPU启动前失败，补齐后又因把已resolve的Modal资产卷路径误写为`/assets`而断言失败；核对父/新两套实际manifest后仅修分析器路径预期，完整校验通过。原始Actor/Judge结果均未改写或重跑。
+
+无反馈编辑rep0的noop因hypothesis为空记格式失败，rep1为有效noop；均保留父库，不免费补提案、不记问答零分。Video六个提案全部生成成功，每张新库保留Global逐字不变；生成成功本身不计新增评分。
+
+报告可靠性单候选的第一版CPU预览发现：将多次合法重复观察拼接后数四元词组，会误判单次观察退化。**任何API前**改为在每条保留观察内部判断重复，原预览保留；池中退化代理从19降为12，不确定性代理为3。最后选8题/8来源、6风险代理与2未触发代理的整题成功参考，每例1954–9716字符，无截断，总请求48384字符。这些代理仍可能假阳性，不是局部标签。
+
+实际使用`preparation-grounded-report-local-degeneration/`，request SHA `d334b83355281d7aeb8d06108d82cc667a2b6bfd92ddf2e2b5a9142b6dfd4347`。单次GLM调用`ap-isKNVmLyOZ9EskOneqgUUR`产出库`229e74fcb5580a669bf9574b3a39678b2654e4a2e8f9ab1426544fb265052361`。它实际提出“否定结论前有针对性复查、解决相互冲突的观察、保留未解决的不确定性”，同时约束退化文本不得扩写成叙事；**这同时改变取证与报告策略，不是纯报告措辞干预**。尚无该库端到端分数，不人工改卡后冒充模型提案。
 
 容量归档完成21对旧native源码，独立SDK回读校验后释放4347个目录项，raw/评分/库/配置保留。归档`/runs/devbox/skill_exploration_20261021/feedback-preparation-completed-sources-20261022.tar.gz`，SHA256 `5e3f758deb51dd9e9177543f42dfa90a8d879f0c81402e8fc7be4578cbfc62ba`；配套索引SHA `23468b12c144b673d76d74fa9e2c25f98e3b473c4df0d8db8cd46acd9637b53e`。初期按剩余约6900项先调度三臂；该数是历史容量快照，后续六节点的总体配额需统一记账，不能各自重复认领同一剩余量。
+
+随后旧probe归档释放2436项，旧Stage2–3 ablation释放621项；完成的DeepSeek先导16对native源码经独立SDK完整回读后释放4496项（不涉及先导raw、评分或full主批）。其包`/runs/devbox/deepseek_skill_eval_20261021/completed-deepseek-pilot-native-sources-20261022.tar.gz` SHA `3b1259d634d149f587b5e6d6fdf586aa83915edc9f3d838eebdb8572446610c3`，索引SHA `13bbdd24983dd60deb79d91a2eb308c5a90d4c279a37299d5f4070c5002987f6`。以上是累计释放量，不是当前可用余量。当前首两Global的6对native源码已打包并SDK回读，prune进行中；活跃分区不清理。
