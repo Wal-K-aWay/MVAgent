@@ -43,7 +43,7 @@ noop、重复库和返回空库均保留为提案结果，不免费补提案，�
 
 ## Video阶段预声明：固定Global，比较两种反馈表示与一次生成
 
-本阶段已通过实际输入prepare，六次独立生成均产出有效新库；六个Video评估节点均已提交，尚无完整296题臂的成绩。始终固定Global父库`4765323a…`及其原有文本，Video从空库出发，不依据本轮Global的中途成绩换伙伴。
+本阶段已通过实际输入prepare，六次独立生成均产出有效新库；截至05:33 UTC，六个Video评估节点均已提交，四臂完成Train/Cal，尚无完整296题臂的成绩。05:42 UTC起监控入口连接超时，更晚状态未确认，详见下文。始终固定Global父库`4765323a…`及其原有文本，Video从空库出发，不依据本轮Global的中途成绩换伙伴。
 
 两个反馈条件使用原正式`003-video/proposal-01`的八个Train题与同一批本地请求：父库4765与先前Video试验库`68cfb31b426d9d123d00df141d7d9185f0fa7ea6bc70336663f02f7f312d6819`。先按原采样`attempt=1`重建并核对旧请求，再在相同题目、相同本地请求位置使用修正后的角色公开投影。两组都保留`request_feedback/error`，不向优化器提供Global原题、伙伴卡片正文、其他Video私有轨迹或GT；局部配对仍要求instruction、视频与先前Memory匹配。
 
@@ -101,7 +101,7 @@ CPU `ap-Iusg33aj5zWvNnXiYyYKPa`读取父4765与前一Video试验68cfb各80题的
 | 选中Video skill的请求 | 0 | 80 |
 | 报告完整进入Global outcome及渲染History | 259/259 | 258/258 |
 
-237对同局部上下文中，183对除选卡记录外的局部行为相同，189对观察动作与结果相同，184对报告相同；其中6对观察相同而报告不同。父/候选另有25/24个请求无法按相同instruction、video与prior Memory配对。研究者跨角色关联仅供诊断，单独存放，不进入Video优化器。
+237对同局部上下文中，183对除选卡记录外的局部行为相同，189对观察动作与结果相同，184对报告相同；其中6对观察相同而报告不同。父/候选另有25/24个请求无法按相同instruction、video与prior Memory配对。这些汇总包含未选卡请求及选卡变化，局部配对也没有固定完整全局轨迹，不能把差异数量解释为skill的因果效应。研究者跨角色关联仅供诊断，单独存放，不进入Video优化器。
 
 词项代理发现89/90份报告没有逐字保留某些instruction与观察共有词，但人工抽查大量属于同义改写或无关词，**不能将这些数量称为语义遗漏率**。全部517份有效报告的文本传递完整，也不证明Global实际正确理解或使用了报告。完整报告`video_report_flow/summary.json`的SHA为`ba3dffad9c514fe79280dd0fa6cc3be6932a704c948f1790cba5de5c97122677`。
 
@@ -153,7 +153,9 @@ CPU `ap-Iusg33aj5zWvNnXiYyYKPa`读取父4765与前一Video试验68cfb各80题的
 
 独立分支`codex/skill-feedback-20261022`，方法源码快照`1e1147eddff43807bac835f172d3dd3684c2dee5`，源码包SHA256 `e63837b3debdec2d0d07205c9ba03f436995da0b38066f8c43dfd9f37a10424b`。Modal CPU已通过compileall及17个测试文件，包含新反馈格式、Memory回归与Prompt契约；与旧Actor/模型/原生评测的142个文件逐字一致。
 
-输入准备位于`/runs/devbox/skill_feedback_20261022/preparation-full-events/`。截至05:25 UTC，六个Global格式/direct候选全部完成80/40/176，共1776个新增评分题次；它们仍只覆盖同296道不同开发题。完整Global节点已释放，六个Video格式/direct节点均已提交，运行与预约合计48张H100，受64张总上限约束。新增Video可靠性库、Global委派库及固定两库400题确认均等待容量，尚无这些追加分支的端到端成绩。
+输入准备位于`/runs/devbox/skill_feedback_20261022/preparation-full-events/`。六个Global格式/direct候选全部完成80/40/176，共1776个新增评分题次；它们仍只覆盖同296道不同开发题。最近一次成功核验节点与分区状态为**2026-10-22 05:33 UTC**：完整Global节点已释放，六个Video格式/direct节点当时运行，共48张H100，未超过64张总上限。新增Video可靠性库、Global委派库及固定两库400题确认这四臂当时尚未启动。
+
+05:42 UTC起，`modal-gpu`目标在SSH banner阶段超时，05:50独立检查也未能连接。因此下列Video数值是05:33快照，不能确认更晚的完成量、GPU占用或后台是否仍在运行；连接失败本身也不证明实验失败。当前阻塞是监控与调度入口不可达，恢复后首先核对现有六节点和已落盘分区，再按实际容量继续已声明的追加四臂。
 
 | 条件 | Train80官方macro | Cal40官方macro | Gate176官方macro |
 |---|---:|---:|---:|
@@ -182,7 +184,38 @@ CPU `ap-Iusg33aj5zWvNnXiYyYKPa`读取父4765与前一Video试验68cfb各80题的
 
 这给事件rep0提供明确的开发集负信号，不能推广为事件格式整体无效；多重探索与已复用面板仍限制结论。首分析因缺少私有helper在CPU启动前失败，补齐后又因把已resolve的Modal资产卷路径误写为`/assets`而断言失败；核对父/新两套实际manifest后仅修分析器路径预期，完整校验通过。原始Actor/Judge结果均未改写或重跑。
 
+另外以旧空库为参照的CPU分析已经完成：`ap-0Of0WG4jzqbAKx9LyAcbx8`，产物`/runs/devbox/skill_feedback_20261022/empty-paired-20261022-052657-745793/summary.json`，SHA `0367a36b5c0a44738dc0cc992d6e698a293eca7d7cda4bc40280f7a014b0593b`。它复用上述1776份raw的SHA核验凭据及既有评分，没有重新读取Actor raw，也没有新增推理或Judge。空库优先的same-request canonical独立保存，不覆盖父库优先报告；两种口径的结果在本次均与各自原分一致。
+
+| Gate对旧空库32.4078%比较 | 差值pp | 逐题探索95%CI pp | 来源组探索95%CI pp |
+|---|---:|---|---|
+| events / rep0 | −1.7344 | [−5.7034, +2.1878] | [−5.1976, +1.6481] |
+| events / rep1 | +3.1159 | [−1.6598, +7.9902] | [−1.8137, +7.9879] |
+| legacy / rep0 | +3.0245 | [−0.6837, +6.8553] | [−0.6266, +6.5912] |
+| legacy / rep1 | +0.8807 | [−3.5702, +5.4419] | [−3.2280, +4.9181] |
+| direct / rep0 | +1.1023 | [−3.5001, +5.7621] | [−4.0492, +6.2227] |
+| direct / rep1 | −1.5284 | [−7.4994, +4.3586] | [−7.9851, +4.9583] |
+| 历史one-shot 87c432（复用） | +6.5862 | [+0.7359, +12.6467] | [+0.5417, +12.4449] |
+
+六个新Global候选对空库的两类区间均跨0。历史强一次生成87c432的Gate为38.9940%，保留了相对空库的正开发信号；但这是已被比较和选择过的历史库、复用的开发面板及未作多重校正的探索区间，不是新测量，也不能称独立Test或生成方法普遍优越的证据。对空库的比较不改变本轮六个候选均未通过对父库接受条件的结论。
+
 机制审计`train-mechanism-20261022-050224/summary.json`，SHA `a5a340de76fd201c917f124b46d728b786273bda3242a6ddcddcee45618d56a9`，核对了全六库的Train80实际选择、复用与Actor注入。六库选中题数分别为42、40、37、40、49、80；对应111、148、97、136、112、186次应注入的Global调用全部正确注入。此处每个none分组在本样本中的答案均与父库相同，不能外推为所有输入下的非退化保证。direct rep1全80题选卡，Train33.0769%却在Gate降为30.8794%，再次表明激活和实际使用不等于净效用。
+
+机制统计必须保留分母：Video选卡是请求级`selected/requests`，策略注入是planner决策级`injected/planner`，最终效果是题级官方十任务macro；强制终止总结也不能混作普通planner调用。不同层级的数字不能互相替代，更不能由“注入正确”推导“建议有效”。
+
+现有源码还限定了skill能依赖什么信息：Global首次Selector只收到问题、视频ID/时长及候选`when_to_use`，尚无观察证据；Video每次请求开始时Actor可能已有本视频Memory，检索与stage可利用该状态，但Selector LLM实际Prompt只包含instruction与候选，并不包含Memory。task范围的选择缓存包含`none`，Global整题、Video单次请求内都沿用首次结果，stage变化不会触发换卡。因此未来才出现的冲突或低可信观察不宜成为唯一`when_to_use`前提，执行时的检查与分支应写入`strategy`。这是[既有卡片规范](../src/skill_evolution/skill_specification.md)和当前运行时约束的再次应用，不是本轮发现的新bug，也尚未证明是本轮分数下降的原因。实现依据为[Global选卡入口](../src/mvagent/agents/global_agent/agent.py)、[Video选卡入口](../src/mvagent/agents/video_agent/agent.py)、[选择缓存](../src/mvagent/skills/selection.py)及[Selector输入](../src/mvagent/skills/prompts.py)。
+
+以下是05:33 UTC已经完整评分的Video分区；没有把未完成分区的partial raw计入成绩。
+
+| Video条件 | Train80官方macro | Cal40官方macro | 当时Gate176状态 |
+|---|---:|---:|---|
+| events / rep0 | 约27.1044% | 约32.9134% | 尚未完整 |
+| events / rep1 | 约43.3814% | 30.0000% | 尚未完整 |
+| legacy / rep0 | 约24.0385% | 32.5000% | 尚未完整 |
+| direct / rep0 | 约28.6351% | 约30.2143% | 尚未完整 |
+
+另外的legacy rep1、direct rep1当时尚无完整Train分区。四臂合计480个已完成分区评分题次，加Global1776共**2256题次**；这不是2256道独立题，也不代表十二个格式/direct臂已完成。events rep1的高Train、低Cal提示跨样本表现不稳定，但不能仅凭这一差距断定其原因是过拟合、样本分布或某种提示机制；需要完整Gate及已声明配对分析才能进一步描述。
+
+目前可以保留三条研究判断：提高可选中率不等于净收益；完整反馈的组织效果与“保留证据可靠性”“传递委派依赖”等操作性假设是不同问题，后两条不能混入格式对照解释；Train上的改善需要其他开发分区检查，单个高分不能代替正式接受。现有负结果不支持继续把措辞改写自动当作有效进化，也不足以否定所有skill机制。后续先完成已提交六个Video与已声明追加分支，不因中途数值增加未经声明的重复。
 
 无反馈编辑rep0的noop因hypothesis为空记格式失败，rep1为有效noop；均保留父库，不免费补提案、不记问答零分。Video六个提案全部生成成功，每张新库保留Global逐字不变；生成成功本身不计新增评分。
 
@@ -192,4 +225,4 @@ CPU `ap-Iusg33aj5zWvNnXiYyYKPa`读取父4765与前一Video试验68cfb各80题的
 
 容量归档完成21对旧native源码，独立SDK回读校验后释放4347个目录项，raw/评分/库/配置保留。归档`/runs/devbox/skill_exploration_20261021/feedback-preparation-completed-sources-20261022.tar.gz`，SHA256 `5e3f758deb51dd9e9177543f42dfa90a8d879f0c81402e8fc7be4578cbfc62ba`；配套索引SHA `23468b12c144b673d76d74fa9e2c25f98e3b473c4df0d8db8cd46acd9637b53e`。初期按剩余约6900项先调度三臂；该数是历史容量快照，后续六节点的总体配额需统一记账，不能各自重复认领同一剩余量。
 
-随后旧probe归档释放2436项，旧Stage2–3 ablation释放621项；完成的DeepSeek先导16对native源码经独立SDK完整回读后释放4496项（不涉及先导raw、评分或full主批）。其包`/runs/devbox/deepseek_skill_eval_20261021/completed-deepseek-pilot-native-sources-20261022.tar.gz` SHA `3b1259d634d149f587b5e6d6fdf586aa83915edc9f3d838eebdb8572446610c3`，索引SHA `13bbdd24983dd60deb79d91a2eb308c5a90d4c279a37299d5f4070c5002987f6`。以上是累计释放量，不是当前可用余量。首两Global的6对native源码也已打包并SDK回读；后续容量处理只针对已完成分区，不清理活跃分区。
+随后旧probe归档释放2436项，旧Stage2–3 ablation释放621项；完成的DeepSeek先导16对native源码经独立SDK完整回读后释放4496项（不涉及先导raw、评分或full主批）。其包`/runs/devbox/deepseek_skill_eval_20261021/completed-deepseek-pilot-native-sources-20261022.tar.gz` SHA `3b1259d634d149f587b5e6d6fdf586aa83915edc9f3d838eebdb8572446610c3`，索引SHA `13bbdd24983dd60deb79d91a2eb308c5a90d4c279a37299d5f4070c5002987f6`。全部六个已完成Global的native源码也已无损归档并SDK回读，按首两臂、随后三臂、末一臂三批分别释放1242、1863、621项，共3726项；原raw、评分、Judge缓存、库与配置不动。以上是累计释放量，不是当前可用余量；容量处理只针对已完成分区，不清理活跃分区。
