@@ -63,7 +63,7 @@ fixed CCQA Judge is Qwen3-30B-A3B-Instruct-2507. See
 
 ## Result packages
 
-The release target is
+Published results are available at
 [MVAgent skill results](https://github.com/Wal-K-aWay/MVAgent/releases/tag/mvagent-skill-results-20261021).
 The prior [no-skill results](https://github.com/Wal-K-aWay/MVAgent/releases/tag/mvagent-results-20261019)
 and other method Releases remain unchanged.
@@ -83,4 +83,22 @@ and frozen environments remain in Modal. Packages are Release attachments,
 not files in Git history. Release checksums and `release_manifest.json` identify
 the published artifacts and their provenance.
 
-Publication verification is recorded below after export and upload complete.
+## Publication verification
+
+Publication completed on 2026-10-22 UTC. CPU export app `ap-SkqFweRmi6UzBsRh459VBF` completed successfully:
+
+- All 15,963 source records were checked against exact answers, ground truth, saved time, model-call counts and skill-selection events; original file SHA256 values were rechecked.
+- All 717 CCQA coverage/correctness arrays and normalized scores match the saved Judge reports.
+- Each five-member archive passed size/SHA256 and exact question-ID coverage checks. Input manifests and source Judge files remained unchanged.
+- Modal → devbox → local staging transfers passed size/SHA256 checks. All six GitHub assets match the verified metadata and passed independent anonymous full HTTP 200 downloads with matching SHA256.
+- All five prior Releases and their 13 attachments retained their IDs, sizes and SHA256 digests. No Actor inference, Judge call or GPU allocation was performed for this publication.
+
+| Actor | Archive bytes | SHA256 |
+|---|---:|---|
+| 9B | 283,265,402 | `6ab842a6476046327d838440ede7af80d3421d82ba81d474d2af224d65e94846` |
+| 27B | 289,407,618 | `46de66bd103534192f2c9345252e12a7eaed07f3175b94be1d03febb5057a145` |
+| 35B-A3B | 266,257,023 | `c99c87eb27a8006e29701b11bbe368626919fa53fd011baacafb1830cd1496dd` |
+
+The Release additionally contains the exact `skill_bank.json`, `release_manifest.json` and `SHA256SUMS.txt`.
+Exported files and full private audits are retained at `devbox/deepseek_skill_release_20261021`; original results remain at their source paths.
+Private operation scripts and local transfer/publication receipts are not committed to the public source tree.
