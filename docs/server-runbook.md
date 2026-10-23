@@ -290,7 +290,28 @@ native `--split-manifest`读取清单的`eval`部分，即这里的Gate176；没
 最终分数读取`summary_scored.json`的`datasets.crossvid.official_task_macro`；检查十task覆盖和完成状态。
 `summary.json`可能仍是CCQA deferred，不能当最终成绩。
 
-### 生成一个新的对照库
+### 4.1 复现CrossVid Lite2500
+
+Gate176是研究开发面板，与历史全量比较使用的Lite2500不同。若要评测同一批2500题，保持前面的库配置和服务设置，改用以下明确清单：
+
+```bash
+python eval/agent_eval/run.py \
+  --config "$STUDY_ROOT/runtime-$BANK_SHA.json" \
+  --execution-config .local/execution-9b.yaml \
+  --dataset-root "$DATA_ROOT" --benchmarks crossvid \
+  --split-manifest configs/skill_evolution/splits/crossvid_lite2500_eval_seed20260919.json \
+  --defer-open-qa-judge --output "$STUDY_ROOT/lite2500-$BANK_SHA"
+python eval/agent_eval/score_crossvid_ccqa.py \
+  --output "$STUDY_ROOT/lite2500-$BANK_SHA" --qa-path "$DATA_ROOT/crossvid/QA/CCQA.json" \
+  --endpoints "$JUDGE_ENDPOINTS"
+python eval/agent_eval/finalize_results.py --output "$STUDY_ROOT/lite2500-$BANK_SHA"
+```
+
+这是可选的完整评测，不是首次安装验收。预期2500题全部成功且239题CCQA评分完整；主分仍读`summary_scored.json`的十任务macro。
+各任务题数和清单SHA见[split目录](../configs/skill_evolution/splits/README.md#crossvid-lite2500正式评测入口)。
+不传清单时会运行全部CrossVid；不要用`--limit 2500`替代，也不要重新抽样或修改历史manifest。
+
+### 4.2 生成一个新的对照库
 
 由研究员使用自己的API凭据，通过环境变量注入 `DEEPSEEK_API_KEY` 或 `BIGMODEL_API_KEY`，不写入YAML、命令历史或Git。
 默认DeepSeek-Flash配置是 `configs/skill_evolution/llm_generation.yaml`；GLM配置是 `glm_optimizer.yaml`，实际模型名为 `glm-5.3`。

@@ -11,6 +11,7 @@ provides official download sources, pinned revisions, directory layouts and know
 |---|---|
 | `benchmarks/` | Dataset loading, sample contracts, official scoring, aggregation and Judge protocol |
 | `data.py` | Frozen split manifests and media-source grouping |
+| `data_preparation/` | CrossVid media preparation, encoding, question boxes and completion validation |
 | `agent_eval/run.py` | Freeze inputs/configuration, run MVAgent and score closed tasks |
 | `agent_eval/serve_ccqa_judge.sh` | Start the fixed local CCQA Judge |
 | `agent_eval/score_crossvid_ccqa.py` | Judge saved CCQA answers with the existing protocol |
@@ -20,7 +21,7 @@ provides official download sources, pinned revisions, directory layouts and know
 | `skill_eval/run.py` | Freeze and resume rolewise experiments; reached through `scripts/evolve_skills.py` |
 | `skill_eval/evaluator.py` | Run complete libraries on Train/Cal/Gate through the native runner and official scoring |
 | `skill_eval/selector_probe.py` | Diagnose Selector choices without measuring answer accuracy |
-| `crossvid_2500.json` | Frozen list of 2,500 CrossVid evaluation IDs |
+| `crossvid_2500.json` | Legacy 2,500-ID array; same set as Lite2500 manifest, different ordering |
 
 For skill research, the call chain is:
 
@@ -67,7 +68,11 @@ The retained CVBench annotation source is documented in
 Use the existing
 [frozen split manifest](../configs/skill_evolution/splits/crossvid_lite2500_eval_seed20260919.json)
 with `--split-manifest` to select CrossVid Lite2500. Do not resample it for a score
-comparison. Raw answers are saved before scoring; Judge failures remain errors.
+comparison. It contains 2,500 unique IDs across ten tasks, including 239 CCQA.
+Without a selection argument the runner reads all CrossVid questions; `--limit 2500`
+is a per-task limit, not this panel. Quotas and SHA are in the
+[split inventory](../configs/skill_evolution/splits/README.md#crossvid-lite2500正式评测入口).
+Raw answers are saved before scoring; Judge failures remain errors.
 CrossVid's primary score is the ten-task macro average, with CCQA weighted by
 scoring-point count within its task. Final deferred-score summaries are in
 `summary_scored.json` and `benchmark_results.md`.

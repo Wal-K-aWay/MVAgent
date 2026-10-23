@@ -4,6 +4,31 @@
 固定库评测入口`eval/agent_eval/run.py --split-manifest`只读取`eval`分区；
 进化入口`scripts/evolve_skills.py`要求`train/cal/eval`三组各覆盖CrossVid十任务。
 
+## CrossVid Lite2500正式评测入口
+
+复现已有2500题成绩，统一使用
+[`crossvid_lite2500_eval_seed20260919.json`](crossvid_lite2500_eval_seed20260919.json)。
+它包含2500个唯一题号，仅有`eval`分区，抽样seed为`20260919`，SHA256为
+`5e1cf0e4a0967e365b85f3ad0f5eddb4871beaebd24f421a1b09daac62b8262f`。
+
+| Task | BU | CC | CCQA | FSA | MOC | MSR | NC | PEA | PI | PSS |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 题数 | 232 | 218 | 239 | 616 | 155 | 163 | 334 | 261 | 100 | 182 |
+
+向`eval/agent_eval/run.py`显式传入：
+
+```text
+--benchmarks crossvid --split-manifest configs/skill_evolution/splits/crossvid_lite2500_eval_seed20260919.json
+```
+
+未传筛选参数时运行的是`qa.jsonl`中的全部CrossVid；`--limit 2500`是每task的上限，不会选中此面板。
+评测按manifest的`eval`顺序运行，校验题号存在且唯一；续跑保留原始清单。
+`eval/crossvid_2500.json`是历史题号数组，集合相同但顺序不同，不作为另一个推荐入口。
+配套`.audit.json`保留构造时的来源与哈希；其中的构造脚本路径是历史记录，脚本已退役，不需重新生成。
+这是已经使用过的开发评测面板，不能作为新的盲Test。
+
+## Skill研究清单
+
 以下三份研究清单由原Modal文件迁移，与16份研究库合计222742 bytes，资源SHA均与远端一致。
 
 | 清单 | 样本与用途 | SHA256 |

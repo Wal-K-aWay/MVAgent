@@ -71,6 +71,16 @@ CVBench和MVU-Eval的准备也在该指南中。后续skill优化只使用CrossV
 原Train80/Cal40/Gate176、补充365和计划400清单已原字节保存到`configs/skill_evolution/splits/research_*.json`，
 **这些是已有开发数据，不能当作独立Test**；不要为了统一seed重新生成历史清单。
 
+## CrossVid 2500评测清单
+
+已有成绩使用的固定清单是
+[`configs/skill_evolution/splits/crossvid_lite2500_eval_seed20260919.json`](configs/skill_evolution/splits/crossvid_lite2500_eval_seed20260919.json)，
+共2500题、十任务（含239题CCQA）。评测时必须显式传
+`--benchmarks crossvid --split-manifest configs/skill_evolution/splits/crossvid_lite2500_eval_seed20260919.json`。
+不传筛选参数时会读取完整CrossVid；`--limit 2500`不代表此划分。
+各任务题数、SHA和旧题号数组的区别见[清单说明](configs/skill_evolution/splits/README.md#crossvid-lite2500正式评测入口)，
+完整运行与评分命令见[服务器手册](docs/server-runbook.md#41-复现crossvid-lite2500)。
+
 ## 实现与接口
 
 | 目录/入口 | 职责 |

@@ -89,7 +89,7 @@ python scripts/prepare_crossvid_data.py --root "$DATA_ROOT/crossvid" \
 ```
 
 With complete original CrossVid inputs already present, use
-`scripts/run_crossvid_qa_preparation.py` as described in that guide. Verify completion
+`eval/data_preparation/crossvid_batch.py` as described in that guide. Verify completion
 using the current run's status and exit code; the presence of an old manifest alone
 does not establish success.
 
@@ -107,10 +107,8 @@ python scripts/prepare_cvbench_mvu_qas.py \
 
 The converter uses frozen `eval/agent_eval/metadata/CVBench.json` and the downloaded
 MVU annotations. Video paths are relative to each benchmark directory. CrossVid-only
-work does not require this step. The older `prepare_all_multivideo.py` is not the
-newcomer download entry: it requires all three datasets, does not restore deleted BU
-media, and duplicates the CrossVid preparation wrapper. Its optional `--check-only`
-mode checks layout only.
+work does not require this step. Preprocessing internals live in `eval/data_preparation/`;
+the duplicate all-benchmark preparation wrapper has been removed.
 
 For a new H20 run, configure local replicas and paths using the
 [server runbook](../../docs/server-runbook.md). The following is the **historical

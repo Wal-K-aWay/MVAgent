@@ -5,7 +5,7 @@
 | `src/` | MVAgent, model adapters, runtime utilities and skill generation/evolution |
 | `configs/` | Inference/generation settings and frozen split manifests |
 | `eval/` | Batch evaluation, benchmark loading/scoring, splits, reports and annotation metadata |
-| `scripts/` | Supported preprocessing, visualization and skill-management tools |
+| `scripts/` | Five entry points: data download/conversion, new split, skill generation/evolution |
 | `tests/` | Runtime, evaluation and generation regression checks |
 | `docs/` | Shared documentation, historical findings and protocol differences |
 | `demo.py`, `requirements.txt` | Demo entry point and environment dependencies |
@@ -70,6 +70,8 @@ organized under `src/skill_evolution/algorithms/one_shot/`; the new role-wise lo
 its algorithms and negative findings remain in Git history and frozen experiments.
 
 Evaluation lives entirely under `eval/`: `benchmarks/`, `data.py` and `agent_eval/`.
+Media preparation internals live in `eval/data_preparation/`; they are called by the
+public data entry points rather than listed as separate tools to run in sequence.
 `src/evaluation/` is removed without forwarding imports. Generic JSON/hash helpers
 live in `src/mvagent/utils/io.py`; source under `src/` does not import the evaluation
 package. New evaluation runs snapshot both trees and verify the evaluation-source
