@@ -1,57 +1,23 @@
-# Supported tools
+# 必要入口
 
-Run data preparation and model-dependent commands on the configured compute host.
-Data preparation retains its existing interfaces and frozen manifests.
+从仓库根目录在计算服务器执行。`scripts/`只保留五个入口，`__init__.py`用于测试导入：
 
-| Purpose | Entry point |
+| 入口 | 用途 |
 |---|---|
-| Download CrossVid, restore deleted BU media from its pinned history, verify and prepare inputs | `prepare_crossvid_data.py` |
-| Prepare and validate all benchmark inputs | `prepare_all_multivideo.py` |
-| Build the CrossVid manifest and derived media | `prepare_multivideo_benchmarks.py` |
-| Resume CrossVid media preparation and validate completion | `run_crossvid_qa_preparation.py` |
-| Build CVBench/MVU-Eval question manifests | `prepare_cvbench_mvu_qas.py` |
-| Convert ordered frames to video | `frames_to_video.py` |
-| Visualize question-referenced CrossVid objects | `visualize_crossvid_question_boxes.py` |
-| Shared CrossVid question-format contract | `crossvid_protocol.py` |
-| Build a CrossVid pool excluding evaluation source recordings | `prepare_crossvid_clean_pool.py` |
-| Freeze the metadata-stratified CrossVid evaluation panel | `prepare_crossvid_representative_subset.py` |
-| Build CrossVid Train/Cal/Gate splits | `prepare_crossvid_train_cal_gate_split.py` |
-| Build choice-only or multibenchmark evolution splits | `prepare_crossvid_choice_evolution_split.py`, `prepare_multibench_skill_evolution_split.py` |
-| Generate a one-shot LLM skill bank without task examples | `generate_skills.py` |
-| Evolve role-specific skill libraries through Train/Cal/Gate | `evolve_skills.py` |
-| Validate, edit, search and freeze skill libraries | `manage_skills.py` |
+| `prepare_crossvid_data.py` | 下载固定CrossVid版本、从历史补齐BU视频、核验并完成预处理 |
+| `prepare_cvbench_mvu_qas.py` | 将已下载的CVBench/MVU标注转换为评测输入并检查媒体引用 |
+| `prepare_crossvid_train_cal_gate_split.py` | 必要时新建十任务CrossVid Train/Cal/Gate；不是重建Lite2500 |
+| `generate_skills.py` | 一次生成历史接口；已有结果只读复用，本轮不再调用 |
+| `evolve_skills.py` | 现有fresh从空库开始；补齐非空起点与禁止回补保护前，不能用于当前继续进化 |
 
-`__init__.py` supports imports shared by preprocessing and visualization.
-Reuse existing frozen split manifests for comparisons; do not regenerate them to
-change the seed or sampling composition.
+当前排程以[自进化推进方案](../docs/skill-experiment-plan.md)为准，不再生成或评测无skill/无反馈一次生成条件。
+[服务器手册](../docs/server-runbook.md)给出非空父子库测量命令，[数据指南](../docs/data-preparation.md)给出下载和成功判据。
+批量评测、评分和结果导出直接使用[`eval/agent_eval/`](../eval/agent_eval/README.md)。
 
-`prepare_crossvid_train_cal_gate_split.py` now includes **all ten tasks, including
-CCQA**, with default seed `0`, and refuses to overwrite its output. It creates a new
-development split, excluding Lite2500 question IDs while keeping connected source
-groups within one of Train/Cal/Gate. Source overlap with Lite2500 is reported, not
-excluded. A quota failure writes no manifest; this seeded greedy assignment does
-not prove that no other assignment exists. Before this handoff the script selected
-nine closed tasks with default seed `20261006`; those historical manifests remain
-unchanged and are not compatible with the current ten-task rolewise evaluator.
-The new default `8,4,4` produces 80/40/40, not the historical 80/40/176 panel. See the
-[server runbook](../docs/server-runbook.md) for the complete new-run command.
+CrossVid的续跑、媒体编码、对象标框和协议实现已收归[`eval/data_preparation/`](../eval/data_preparation/README.md)。
+一键入口会调用这些实现，不要同时在同一数据目录启动下层命令。
+重复的全数据集包装器、历史面板抽样、旧题号池及手动skill维护CLI已删除；历史代码可从Git恢复，不保留兼容入口。
 
-Trajectory processing stays with evaluation:
-
-```bash
-python eval/agent_eval/export_results.py /path/to/completed/run
-```
-
-This existing exporter reads saved records and writes tables; it does not call
-models or rewrite source results. See [Agent evaluation](../eval/agent_eval/README.md)
-for scoring/finalization. Skill generation is documented in
-[`src/skill_evolution/`](../src/skill_evolution/README.md).
-
-One-off ablations, selector experiments, timing probes, dated batch controllers
-and historical report builders are removed from the current tree. Their findings,
-including negative results and protocol differences, remain in
-[the experiment history](../docs/experiments.md) and Git history.
-The [repository guide](../docs/repository.md) identifies the historical source commit.
-Regression checks are in [`tests/`](../tests/README.md).
-The [one-shot generation protocol](../docs/llm-skill-generation.md) documents its
-data boundary, frozen outputs, and Chinese prompt mirror.
+**复现已有评测直接读取[Lite2500冻结清单](../configs/skill_evolution/splits/crossvid_lite2500_eval_seed20260919.json)，不要重新抽样。**
+研究面板及格式区别见[split目录](../configs/skill_evolution/splits/README.md)。新划分默认十任务各`8,4,4`、seed `0`，
+得到80/40/40；它只排除Lite2500题号、报告来源重叠，不是新的独立Test，也不替代已有80/40/176清单。

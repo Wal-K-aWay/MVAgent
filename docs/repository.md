@@ -5,7 +5,7 @@
 | `src/` | MVAgent, model adapters, runtime utilities and skill generation/evolution |
 | `configs/` | Inference/generation settings and frozen split manifests |
 | `eval/` | Batch evaluation, benchmark loading/scoring, splits, reports and annotation metadata |
-| `scripts/` | Supported preprocessing, visualization and skill-management tools |
+| `scripts/` | Five entry points: data download/conversion, new split, skill generation/evolution |
 | `tests/` | Runtime, evaluation and generation regression checks |
 | `docs/` | Shared documentation, historical findings and protocol differences |
 | `demo.py`, `requirements.txt` | Demo entry point and environment dependencies |
@@ -21,7 +21,35 @@ Chinese documentation to be updated.
 
 ## Current research handoff
 
-Start with [the research handoff](research-handoff.md), [data restoration](data-preparation.md) and [H20 server runbook](server-runbook.md). The handoff branch consolidates the rolewise research chain and feedback fixes, retaining the prior commits; it does not revive retired external/E2E implementations. Private launchers are not required for new runs. Historical raw research runs remain separate from the curated banks and split manifests now included in Git.
+Start with the [documentation index](README.md). For a first run, follow the [H20 server runbook](server-runbook.md); then read [data restoration](data-preparation.md) and [the research handoff](research-handoff.md) before benchmark experiments. Main includes the rolewise research chain and feedback fixes, retaining the prior commits; it does not revive retired external/E2E implementations. Private launchers are not required for new runs. Historical raw research runs remain separate from the curated banks and split manifests now included in Git.
+
+## 分支与保留策略（2026-10-22交接）
+
+`main`是唯一交接入口；PR [#5](https://github.com/Wal-K-aWay/MVAgent/pull/5)的脚本精简和
+[#6](https://github.com/Wal-K-aWay/MVAgent/pull/6)的研究方案通过普通merge commit整合，原提交与全部分支保留。
+后续从更新的`main`创建新`codex/`分支，不继续向历史分支追加开发，也不把“未合并”自动视为待办。
+
+| 分支或引用 | 状态与用途 |
+|---|---|
+| `main` | 当前源码、操作文档和研究方案，接手者的唯一入口 |
+| `codex/newcomer-onboarding-20261022`、`codex/skill-experiment-plan-20261022` | 本次整理与方案记录，保留追溯 |
+| `codex/skill-evolution-20261021`、`codex/skill-mechanism-tests-20261021`、`codex/skill-exploration-20261021`、`codex/skill-feedback-20261022`、`codex/research-handoff-20261022` | 历史提交已完整进入主线，不再作为活动开发入口 |
+| `codex/deepseek-skill-release-20261021` | 报告内容已吸收，不因分支未整体合并而再次合入 |
+| 其他旧协议、`agentcvr-*`、`lenswalk-*`、`rsi-*`、`external-*`及临时恢复分支 | 历史归档，按报告定位具体提交，不整体合回活动源码 |
+| `handoff-20261022` tag | 本次源码/文档交接里程碑；不是H20运行验收，不含全部历史实验原件 |
+
+当前研究排程只维护在[自进化方案](skill-experiment-plan.md)；[研究交接](research-handoff.md)维护事实，
+[服务器手册](server-runbook.md)维护工具用法，[数据准备](data-preparation.md)维护输入流程。
+旧设计与带日期报告保留，其“下一步”“运行中”不代表当前任务。
+
+以下材料保持原字节；保留不意味着重新运行：
+
+- [冻结split](../configs/skill_evolution/splits/README.md)：Lite2500 manifest是已有2500题评测的唯一推荐入口；旧九任务split、clean pool和旧题号数组仅供追溯。
+- [研究库](../src/mvagent/skills/skill_sets/research-20261022/README.md)：476532为当前非空父库，1275c1和229e74为待测候选；一次生成和失败库继续作为历史证据，不自动启用。
+- 全部结果Release、正负报告和原提交保留。退役脚本与旧算法从Git历史查阅，不恢复兼容入口。
+
+无skill和无反馈一次生成已有结果，本轮不新增生成或评测；缓存缺失、换硬件或恢复失败不能触发自动回补。
+本机旧共享工作目录的未提交材料单独保全，不用清理或合并操作覆盖。
 
 ## Released results
 
@@ -70,6 +98,8 @@ organized under `src/skill_evolution/algorithms/one_shot/`; the new role-wise lo
 its algorithms and negative findings remain in Git history and frozen experiments.
 
 Evaluation lives entirely under `eval/`: `benchmarks/`, `data.py` and `agent_eval/`.
+Media preparation internals live in `eval/data_preparation/`; they are called by the
+public data entry points rather than listed as separate tools to run in sequence.
 `src/evaluation/` is removed without forwarding imports. Generic JSON/hash helpers
 live in `src/mvagent/utils/io.py`; source under `src/` does not import the evaluation
 package. New evaluation runs snapshot both trees and verify the evaluation-source

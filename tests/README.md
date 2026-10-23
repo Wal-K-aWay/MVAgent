@@ -15,6 +15,7 @@ PYTHONPATH=src python tests/test_model_token_audit.py
 PYTHONPATH=src python tests/test_prefix_cache_usage.py
 PYTHONPATH=src python tests/test_agent_finalize.py
 python tests/test_crossvid_split.py
+python tests/test_crossvid_preparation.py
 PYTHONPATH=src python tests/test_short_video.py
 PYTHONPATH=src python tests/test_one_shot_skills.py
 PYTHONPATH=src:. python tests/test_skill_evolution.py
@@ -36,6 +37,9 @@ The short-video check requires the original CrossVid MOC/552 view-B asset under
 `/assets/crossvid/.mvagent_media/uav_question_boxes/`, FFmpeg and vLLM's decoder.
 Other checks use synthetic records or model doubles but some import the full
 project dependencies, including structured-output libraries.
+The CrossVid preparation check uses FFmpeg/OpenCV and a one-second synthetic video
+to exercise the relocated worker, finalizer, manifest metadata and media reuse;
+it requires no dataset, GPU or model calls.
 Passing these checks is not a new benchmark measurement or a guarantee of
 byte-identical outputs for arbitrary model inputs.
 

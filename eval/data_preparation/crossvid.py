@@ -16,12 +16,12 @@ from typing import Any, Iterable, Sequence
 import cv2
 
 
-ROOT_DIR = Path(__file__).resolve().parents[1]
+ROOT_DIR = Path(__file__).resolve().parents[2]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from scripts.frames_to_video import frames_to_video, list_image_frames
-from scripts.crossvid_protocol import (
+from eval.data_preparation.frames import frames_to_video, list_image_frames
+from eval.data_preparation.crossvid_protocol import (
     CROSSVID_MANIFEST_SCHEMA_VERSION,
     CROSSVID_PROMPT_PROFILE_VERSION,
     MOC_MSR_INPUT_PROTOCOLS,
@@ -30,7 +30,7 @@ from scripts.crossvid_protocol import (
     format_crossvid_question,
     normalize_crossvid_input_protocol,
 )
-from scripts.visualize_crossvid_question_boxes import (
+from eval.data_preparation.question_boxes import (
     render_crossvid_question_box_row,
 )
 

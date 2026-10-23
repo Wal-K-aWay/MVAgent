@@ -11,13 +11,34 @@ provides official download sources, pinned revisions, directory layouts and know
 |---|---|
 | `benchmarks/` | Dataset loading, sample contracts, official scoring, aggregation and Judge protocol |
 | `data.py` | Frozen split manifests and media-source grouping |
+| `data_preparation/` | CrossVid media preparation, encoding, question boxes and completion validation |
 | `agent_eval/run.py` | Freeze inputs/configuration, run MVAgent and score closed tasks |
 | `agent_eval/serve_ccqa_judge.sh` | Start the fixed local CCQA Judge |
 | `agent_eval/score_crossvid_ccqa.py` | Judge saved CCQA answers with the existing protocol |
 | `agent_eval/finalize_results.py` | Merge deferred scores and report final metrics |
 | `agent_eval/export_results.py` | Export saved answers and text trajectories |
 | `agent_eval/metadata/CVBench.json` | Annotation metadata for preparation and reporting |
-| `crossvid_2500.json` | Frozen list of 2,500 CrossVid evaluation IDs |
+| `skill_eval/run.py` | Freeze and resume rolewise experiments; reached through `scripts/evolve_skills.py` |
+| `skill_eval/evaluator.py` | Run complete libraries on Train/Cal/Gate through the native runner and official scoring |
+| `skill_eval/selector_probe.py` | Diagnose Selector choices without measuring answer accuracy |
+| `crossvid_2500.json` | Legacy 2,500-ID array; same set as Lite2500 manifest, different ordering |
+
+For skill research, the call chain is:
+
+```text
+scripts/evolve_skills.py
+  → eval/skill_eval/run.py                  # freeze inputs and construct the evaluator
+  → src/skill_evolution/algorithms/rolewise # propose edits and accept/reject libraries
+  → eval/skill_eval/evaluator.py           # complete partition evaluation
+  → eval/agent_eval/run.py                 # MVAgent rollouts and official scoring
+```
+
+The algorithm receives the evaluator as an interface; `src/` does not import `eval/`.
+To measure a fixed library, use `agent_eval/run.py`; to generate new libraries through
+feedback, use `scripts/evolve_skills.py`. Rolewise requires CrossVid-only
+`train/cal/eval` partitions, each covering all ten tasks; its `eval` partition is Gate.
+The native runner's `--split-manifest` selects only `eval`. See the
+[server runbook](../docs/server-runbook.md) for commands and final score locations.
 
 Dataset paths are relative to the `--dataset-root` parent directory:
 
@@ -47,7 +68,11 @@ The retained CVBench annotation source is documented in
 Use the existing
 [frozen split manifest](../configs/skill_evolution/splits/crossvid_lite2500_eval_seed20260919.json)
 with `--split-manifest` to select CrossVid Lite2500. Do not resample it for a score
-comparison. Raw answers are saved before scoring; Judge failures remain errors.
+comparison. It contains 2,500 unique IDs across ten tasks, including 239 CCQA.
+Without a selection argument the runner reads all CrossVid questions; `--limit 2500`
+is a per-task limit, not this panel. Quotas and SHA are in the
+[split inventory](../configs/skill_evolution/splits/README.md#crossvid-lite2500正式评测入口).
+Raw answers are saved before scoring; Judge failures remain errors.
 CrossVid's primary score is the ten-task macro average, with CCQA weighted by
 scoring-point count within its task. Final deferred-score summaries are in
 `summary_scored.json` and `benchmark_results.md`.
