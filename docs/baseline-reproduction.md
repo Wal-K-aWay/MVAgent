@@ -130,7 +130,7 @@ The fixed Actor profile rejects quantized checkpoints.
 Prepare the original QA and media using the retained CrossVid-only entry point:
 
 ```bash
-python scripts/run_crossvid_qa_preparation.py \
+python eval/data_preparation/crossvid_batch.py \
   --root "$DATA_ROOT/crossvid" \
   --pea-jobs 4 --uav-jobs 4
 ```
@@ -150,7 +150,7 @@ still use the fixed 512-frame/448-pixel limits. The question-box representation 
 MVAgent's fixed evaluation input protocol.
 Do not change these settings for a reproduction comparison.
 
-The lower-level entry is `scripts/prepare_multivideo_benchmarks.py crossvid`;
+The lower-level entry is `eval/data_preparation/crossvid.py crossvid`;
 `visualize_crossvid_question_boxes.py` and `frames_to_video.py` are its retained
 media helpers. See [supported tools](../scripts/README.md).
 
@@ -204,8 +204,9 @@ python eval/agent_eval/run.py \
 ```
 
 This selects the **same 2,500 CrossVid questions**, including 239 CCQA questions.
-Do not regenerate the split or combine it with `--limit`. The equivalent ID list
-is `eval/crossvid_2500.json`. Raw answers are written before scoring. Closed tasks
+Do not regenerate the split or combine it with `--limit`. The legacy ID list
+`eval/crossvid_2500.json` contains the same set in a different order; use the manifest
+above for new runs and preserve frozen inputs for resume. Raw answers are written before scoring. Closed tasks
 are scored during evaluation; CCQA remains explicitly deferred until the next step.
 
 To resume an interrupted run, repeat the exact command with `--resume`. Keep the

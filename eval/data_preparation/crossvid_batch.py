@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Resume CrossVid media preparation, finalize ``qa.jsonl``, and validate it.
 
-This is the durable batch wrapper around ``prepare_multivideo_benchmarks.py``.
+This is the durable batch wrapper around ``crossvid.py``.
 It parallelizes the two expensive media families, reuses every completed output,
 then runs the canonical full preparation command so the final manifest and its
 metadata are written by one process.
@@ -25,8 +25,8 @@ from pathlib import Path
 from typing import Any, Sequence
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-PREPARE_SCRIPT = PROJECT_ROOT / "scripts" / "prepare_multivideo_benchmarks.py"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PREPARE_SCRIPT = PROJECT_ROOT / "eval" / "data_preparation" / "crossvid.py"
 TASK_ORDER = ("BU", "CC", "CCQA", "FSA", "MOC", "MSR", "NC", "PEA", "PI", "PSS")
 BASE_ROW_KEYS = {"id", "task", "question", "videos", "options", "answer"}
 

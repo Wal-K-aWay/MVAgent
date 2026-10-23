@@ -5,7 +5,7 @@
 | `src/` | MVAgent, model adapters, runtime utilities and skill generation/evolution |
 | `configs/` | Inference/generation settings and frozen split manifests |
 | `eval/` | Batch evaluation, benchmark loading/scoring, splits, reports and annotation metadata |
-| `scripts/` | Supported preprocessing, visualization and skill-management tools |
+| `scripts/` | Five entry points: data download/conversion, new split, skill generation/evolution |
 | `tests/` | Runtime, evaluation and generation regression checks |
 | `docs/` | Shared documentation, historical findings and protocol differences |
 | `demo.py`, `requirements.txt` | Demo entry point and environment dependencies |
@@ -21,7 +21,7 @@ Chinese documentation to be updated.
 
 ## Current research handoff
 
-Start with [the research handoff](research-handoff.md), [data restoration](data-preparation.md) and [H20 server runbook](server-runbook.md). The handoff branch consolidates the rolewise research chain and feedback fixes, retaining the prior commits; it does not revive retired external/E2E implementations. Private launchers are not required for new runs. Historical raw research runs remain separate from the curated banks and split manifests now included in Git.
+Start with the [documentation index](README.md). For a first run, follow the [H20 server runbook](server-runbook.md); then read [data restoration](data-preparation.md) and [the research handoff](research-handoff.md) before benchmark experiments. Main includes the rolewise research chain and feedback fixes, retaining the prior commits; it does not revive retired external/E2E implementations. Private launchers are not required for new runs. Historical raw research runs remain separate from the curated banks and split manifests now included in Git.
 
 ## Released results
 
@@ -70,6 +70,8 @@ organized under `src/skill_evolution/algorithms/one_shot/`; the new role-wise lo
 its algorithms and negative findings remain in Git history and frozen experiments.
 
 Evaluation lives entirely under `eval/`: `benchmarks/`, `data.py` and `agent_eval/`.
+Media preparation internals live in `eval/data_preparation/`; they are called by the
+public data entry points rather than listed as separate tools to run in sequence.
 `src/evaluation/` is removed without forwarding imports. Generic JSON/hash helpers
 live in `src/mvagent/utils/io.py`; source under `src/` does not import the evaluation
 package. New evaluation runs snapshot both trees and verify the evaluation-source

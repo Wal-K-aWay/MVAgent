@@ -96,7 +96,7 @@ def main() -> None:
     temporary.replace(receipt)
     print(f"Verified {len(inventory)} restored BU media files; provenance: {receipt}", flush=True)
     subprocess.run([
-        sys.executable, str(PROJECT_ROOT / "scripts/run_crossvid_qa_preparation.py"),
+        sys.executable, str(PROJECT_ROOT / "eval/data_preparation/crossvid_batch.py"),
         "--root", str(root), "--pea-jobs", str(args.pea_jobs), "--uav-jobs", str(args.uav_jobs),
     ], check=True, cwd=PROJECT_ROOT)
 

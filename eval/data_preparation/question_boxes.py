@@ -30,12 +30,12 @@ import cv2
 import numpy as np
 
 
-ROOT_DIR = Path(__file__).resolve().parents[1]
+ROOT_DIR = Path(__file__).resolve().parents[2]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from scripts.frames_to_video import frames_to_video, list_image_frames
-from scripts.crossvid_protocol import (
+from eval.data_preparation.frames import frames_to_video, list_image_frames
+from eval.data_preparation.crossvid_protocol import (
     MOC_MSR_PROTOCOL_QUESTION_BOXES,
     crossvid_prompt_profile,
     format_crossvid_question,

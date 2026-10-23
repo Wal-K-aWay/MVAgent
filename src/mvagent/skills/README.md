@@ -95,27 +95,14 @@ Changing routing metadata changes card identity even when execution text is unch
 Actual Actor requests are audited against the rendered strategy body. Telemetry
 is never evidence. Runtime never edits Skills or imports the optimizer.
 
-## Offline management
+## Creating and using libraries
 
-Run with `PYTHONPATH=src python` in the project environment (Modal image; needs numpy):
-
-```bash
-python scripts/manage_skills.py add --bank outputs/my-skills/author.json --file my-skill.json
-python scripts/manage_skills.py update --bank outputs/my-skills/author.json --id event-boundary --file my-skill.json --expected-sha256 CURRENT_BANK_SHA256
-python scripts/manage_skills.py remove --bank outputs/my-skills/author.json --id event-boundary --expected-sha256 CURRENT_BANK_SHA256
-python scripts/manage_skills.py list --bank outputs/my-skills/author.json
-python scripts/manage_skills.py validate --bank outputs/my-skills/author.json
-python scripts/manage_skills.py freeze --bank outputs/my-skills/author.json --output outputs/my-skills/snapshots
-python scripts/manage_skills.py search --bank outputs/my-skills/author.json --role video --stage evidence --query 'uncertain event start' --embedding-config embedding.json
-```
-
-`embedding.json` contains `endpoint`, `model`, optional `timeout_sec`, for example
-`{"endpoint":"http://127.0.0.1:8110/v1","model":"qwen3_embedding_8b"}`.
-`search` previews the same candidate retrieval as Runtime; it calls embedding only
-for large catalogs and does not call the selector. Edits are locked, atomic and
-validate the whole bank. Freeze publishes a new `<sha256>.json`, never overwriting
-old snapshots. Configure enabled/mode/path/sha256, task scope and embedding on each
-role's Skill reference. Neither this code nor these commands deploy model services.
+Use [`scripts/generate_skills.py`](../../../scripts/generate_skills.py) for one-shot
+generation and [`scripts/evolve_skills.py`](../../../scripts/evolve_skills.py) for
+feedback-based evolution. These workflows validate and freeze their banks; Runtime
+checks schema and the configured file hash when loading. The standalone manual
+editing CLI has been retired. See the [server runbook](../../../docs/server-runbook.md)
+for attaching an existing immutable library to a new evaluation configuration.
 
 Generation artifacts remain in their run directories. Selected frozen libraries can
 be copied byte-for-byte into `skill_sets/`, with provenance and their existing SHA256.

@@ -71,7 +71,7 @@ python scripts/prepare_crossvid_data.py \
 2. 从上述历史 revision **只补** `videos/behavior/`。
 3. 对历史 2416 个文件逐一核对大小与 LFS SHA256，检查当前 BU 的视频引用全部被覆盖；失败立即停止。
 4. 保存 `.mvagent_download/sources.json`，其中包含两套 revision、2416 条完整路径/字节数/SHA256 清单和核验范围。
-5. 调用已有 `run_crossvid_qa_preparation.py`，生成完整 `qa.jsonl`、派生媒体与 `validation.json`。
+5. 调用 `eval/data_preparation/crossvid_batch.py`，生成完整 `qa.jsonl`、派生媒体与 `validation.json`。
 
 相同命令可以续跑；不会仅因旧文件存在就跳过历史媒体的 SHA 检查。其他原始媒体由固定 revision 的 Hub 下载流程负责下载完整性，再由既有预处理检查引用；该入口没有对全部约 312 GB 原始文件额外做一次本地 SHA 扫描，也不保证所有媒体解码无误。网络或校验失败不会继续到模型推理。
 
@@ -134,12 +134,37 @@ DATA_ROOT/crossvid/
 然后运行已有的可续跑包装器：
 
 ```bash
-python scripts/run_crossvid_qa_preparation.py \
+python eval/data_preparation/crossvid_batch.py \
   --root "$DATA_ROOT/crossvid" \
   --pea-jobs 4 --uav-jobs 4
 ```
 
-`4 + 4` 是两个媒体任务组的并行 worker 数，应按服务器 CPU/RAM 下调。它会先并行生成装配片段和 UAV 带框视频，再串行生成完整 manifest。需要观察进度时读取 `crossvid/.mvagent_prepare/crossvid_qa/status.json` 和 `logs/`；成功时留下 `validation.json`。中断后重复同一条命令，已完成的非空衍生媒体会被复用。
+`4 + 4` 是两个媒体任务组的并行 worker 数，应按服务器 CPU/RAM 下调。它会先并行生成装配片段和 UAV 带框视频，再串行生成完整 manifest。需要观察进度时读取 `crossvid/.mvagent_prepare/crossvid_qa/status.json` 和 `logs/`。中断后确认旧任务已经停止，再重复同一条命令，已完成的非空衍生媒体会被复用。
+
+**成功条件是本次准备命令退出码为 0，且本次状态为 `complete`。** 仅看到 `validation.json` 或 `qa.jsonl` 存在不够：复跑失败可能留下上一次成功的文件；下载阶段失败甚至还未更新预处理状态。命令成功返回后，在同一环境检查：
+
+```bash
+python - <<'PY'
+import json, os
+from pathlib import Path
+root = Path(os.environ['DATA_ROOT']) / 'crossvid'
+state_dir = root / '.mvagent_prepare' / 'crossvid_qa'
+status = json.loads((state_dir / 'status.json').read_text())
+assert status['state'] == status['phase'] == 'complete', status
+validation = json.loads((state_dir / 'validation.json').read_text())
+assert status['validation'] == validation
+assert validation['sample_count'] == 9015 and len(validation['task_counts']) == 10
+metadata = json.loads((root / 'qa.meta.json').read_text())
+assert metadata['scope'] == 'full'
+assert metadata['sample_count'] == validation['sample_count']
+assert metadata['manifest_sha256'] == validation['manifest_sha256']
+print('Completed:', status['completed_at'])
+print('Samples:', validation['sample_count'], 'Tasks:', validation['task_counts'])
+print('Manifest SHA256:', validation['manifest_sha256'])
+PY
+```
+
+确认打印的完成时间对应本次运行，并保存该时间、题数和哈希。若状态为 `failed`，先看 `status.json` 的 `error` 以及 `logs/` 中对应 worker 或 `finalize.log`；未完成时不要启动评测。以上只读取已有验收记录，不重新扫描媒体或计算 manifest 哈希。
 
 输出及其用途：
 
@@ -154,7 +179,7 @@ python scripts/run_crossvid_qa_preparation.py \
 
 预处理保留当前固定 `mvagent_question_boxes` 协议：UAV 按 **10 FPS**、最长边 **960** 生成视频，所指对象在**首次可见的一秒内**显示彩框与编号，视频 ID 为 `view_A`、`view_B`。首次可见不等于整段视频最开始的一秒。PEA/PI/PSS 根据各自标注截取，不将所有原视频统一重编码。模型每次调用的 **512 帧/448 最长边**属于另外一层推理限制，不要与这里的衍生媒体参数混淆。
 
-下层 CLI `scripts/prepare_multivideo_benchmarks.py crossvid` 可按 `--tasks`、`--ids` 准备局部输入；其输出带局部 scope，不能替代正式完整 manifest。复现旧分数时不要换成 `current_text_bbox` 或自行改帧率。更换上游数据或处理协议应使用新的数据派生目录，因为当前续跑逻辑主要复用“文件存在且非空”的结果，不会自动证明旧衍生文件适配新输入。
+下层 CLI `eval/data_preparation/crossvid.py crossvid` 可按 `--tasks`、`--ids` 准备局部输入；其输出带局部 scope，不能替代正式完整 manifest。它及帧编码、标框、协议实现在`eval/data_preparation/`，一键入口会调用，无需逐个执行。复现旧分数时不要换成 `current_text_bbox` 或自行改帧率。更换上游数据或处理协议应使用新的数据派生目录，因为当前续跑逻辑主要复用“文件存在且非空”的结果，不会自动证明旧衍生文件适配新输入。
 
 验收通过说明字段、文件引用和 manifest 一致；**不等于每个视频所有帧都已成功解码，也不等于与旧服务器媒体字节一致。** 目标服务器的实际模型小实验应按交接运行指南另行验收。
 
@@ -224,19 +249,13 @@ DATA_ROOT/
 
 CVBench/MVU 的 `QAs.json` 中视频路径均相对其 benchmark 根目录，**不是再拼一层 `videos/`**。运行时传 `--dataset-root "$DATA_ROOT"`，不要传某一套 benchmark 的子目录。
 
-全部三套齐全时，可额外运行已有布局检查：
-
-```bash
-python scripts/prepare_all_multivideo.py --root "$DATA_ROOT" --check-only
-```
-
-`--check-only` 仅检查顶层目录和标注文件是否存在；不下载数据、不解码视频，也不替代前面转换器的全引用检查。只下载 CrossVid 时不要运行此入口，因为它要求另外两套数据也存在。
+按需要准备各数据集：CrossVid使用前文的完整验收，CVBench/MVU使用转换器的引用检查。不再保留要求三套数据同时齐全的重复批量包装器。
 
 ## 4. 题目划分与后续实验的边界
 
-- 复现 Lite2500 使用仓库已有 `configs/skill_evolution/splits/crossvid_lite2500_eval_seed20260919.json`；它与 `eval/crossvid_2500.json` 对应，不重新抽样。Lite2500 已用于开发，不能包装成新的盲 Test。
+- 复现 Lite2500 使用[冻结manifest](../configs/skill_evolution/splits/crossvid_lite2500_eval_seed20260919.json)，十任务配额和SHA见[清单说明](../configs/skill_evolution/splits/README.md#crossvid-lite2500正式评测入口)。它与`eval/crossvid_2500.json`的题号集合一致、顺序不同；新评测统一用manifest，不重新抽样。Lite2500已用于开发，不能包装成新的盲Test。
 - 角色轮换研究以十任务 macro 为主指标。本次交接已将 `prepare_crossvid_train_cal_gate_split.py` 修正为抽取**全部十任务（含 CCQA）**、默认 seed 为 0，并拒绝覆盖现有输出；旧版本仅抽九类闭式任务。默认 `--per-task 8,4,4` 生成新的 80/40/40 开发划分，不是历史 80/40/176。它按原始文件或 UAV 序列建立连通组，隔离新 Train/Cal/Gate，排除 Lite2500 题号但只报告与 Lite2500 的来源重叠。具体命令见[新服务器运行指南](server-runbook.md)；不能把旧九任务 manifest 改名冒充十任务划分。
-- `prepare_crossvid_clean_pool.py` 产出排除已用来源的**题号数组**，不是可直接送入进化器的 Train/Cal/Gate manifest。它与来源连通分量的完整隔离也不是同一口径。
+- 旧题号池与九任务划分只保留为历史产物；它们不是当前进化器要求的十任务Train/Cal/Gate，不再提供重建这些旧条件的脚本。
 - 历史 Train80/Cal40/Gate176、补充365及最新400的实际题号、来源重叠与可获取状态，见[研究交接](skill-research-handoff-20261022.md)和[后续反馈实验](skill-feedback-iteration-20261022.md)。不能根据题数重新抽出另一批题后仍称历史面板。
 - 新划分默认抽样 seed 为 0，已有冻结划分保留原 seed。来源共享的题不能只靠题号去重就声称视频独立；用统一完整来源图检查，并分别披露 ID 重叠和来源重叠。
 
