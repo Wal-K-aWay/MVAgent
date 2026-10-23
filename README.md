@@ -17,15 +17,15 @@ MVAgent 接收一个问题和多个视频，由 **GlobalAgent** 管理全局取�
 
 ## 获取代码
 
-当前交接源码在下列分支。不要用旧共享工作区或尚未整合研究工作的旧`main`替代：
+从`main`获取整合后的交接版本；原`codex/research-handoff-20261022`分支和研究提交历史继续保留。不要使用未同步的旧共享工作区替代：
 
 ```bash
-git clone --depth 1 --branch codex/research-handoff-20261022 https://github.com/Wal-K-aWay/MVAgent.git
+git clone --depth 1 https://github.com/Wal-K-aWay/MVAgent.git
 cd MVAgent
 git rev-parse HEAD
 ```
 
-记录实际commit。该分支保留已有研究提交历史，另整合公开结果报告与移植修正；旧分支、Release和已完成实验不删除。
+记录实际commit。本次整合通过[PR #4](https://github.com/Wal-K-aWay/MVAgent/pull/4)采用普通Merge commit，保留已有研究提交、公开结果报告与移植修正；旧分支、Release和已完成实验不删除。
 源码压缩包不含Release中的结果附件，结果下载见下文。新运行使用新的输出目录。
 
 ## Installation

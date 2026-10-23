@@ -221,7 +221,7 @@ Global与Video继续分开编辑、固定伙伴，但使用不同的分析重点
 
 ## 8. 本次交付的核验与合并范围
 
-交接分支为`codex/research-handoff-20261022`，基于`origin/main@6598ef6`，纳入`skill-feedback@a4572a4`及其完整研究祖先链，另收录DeepSeek三模型最终发布报告。未把共享旧目录的未提交代码、外部方法/E2E实现或一次性私有控制器整树拷入；旧分支、历史commit和Release均保留。普通`main`克隆在合并前不含完整交接内容，当前按根README明确克隆此分支。合并建议使用普通merge commit保留研究提交，不重写历史；本交付不自动合并main或删除分支。
+交接分支为`codex/research-handoff-20261022`，基于`origin/main@6598ef6`，纳入`skill-feedback@a4572a4`及其完整研究祖先链，另收录DeepSeek三模型最终发布报告。未把共享旧目录的未提交代码、外部方法/E2E实现或一次性私有控制器整树拷入；旧分支、历史commit和Release均保留。用户已明确授权将[PR #4](https://github.com/Wal-K-aWay/MVAgent/pull/4)以普通merge commit合入main，保留历史和所有分支；接手者按根README克隆main。交接分支继续作为可追溯引用，不删除旧Release或改写研究提交。
 
 2026-10-22（UTC 10-23）使用纯CPU任务`ap-izWjyV9r0U29aXulQ6VPTm`完成：
 

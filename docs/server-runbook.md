@@ -12,7 +12,7 @@
 ## 1. 获取代码并准备环境
 
 ```bash
-git clone --depth 1 --branch codex/research-handoff-20261022 https://github.com/Wal-K-aWay/MVAgent.git
+git clone --depth 1 https://github.com/Wal-K-aWay/MVAgent.git
 cd MVAgent
 git rev-parse HEAD
 
