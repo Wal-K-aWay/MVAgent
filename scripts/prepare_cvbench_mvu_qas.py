@@ -3,7 +3,7 @@
 
 CVBench rows come from the Video-R1 `CVBench.json` shipped in this repository; MVU-Eval rows
 come from the upstream `MVU_Eval_QAs.json` (a dict keyed by id). Video paths stay relative to
-each benchmark's video root, which MVAgent resolves as `<dataset>/videos/`.
+the benchmark directory containing `QAs.json`, without adding a `videos/` level.
 """
 
 from __future__ import annotations

@@ -15,9 +15,8 @@ preserved in their frozen runs and Git history; they are not general-purpose ent
 Existing jobs resume with their own frozen sources. Historical completion and reuse
 details are recorded in [the experiment log](../../docs/experiments.md).
 
-Subsequent Qwen3.5 evaluations use the [fixed evaluation configuration](../../configs/inference/README.md#固定评测方案):
-8 H100 GPUs with independent full-model replicas and `seed=0`. The `h200` execution-file
-names are historical; request `H100!:8` explicitly for this evaluation protocol.
+The historical Qwen3.5 reference uses the [fixed evaluation configuration](../../configs/inference/README.md#固定评测方案):
+8 H100 GPUs with independent full-model replicas and `seed=0`. The new H20 server can use a different number of replicas; configure its available allocation using the [server runbook](../../docs/server-runbook.md). The `modal_`/`h200` filenames do not require Modal, and cross-hardware output equivalence has not been established.
 
 The three `configs/inference/modal_qwen35_*_no_skill.yaml` files and the skill-evolution
 35B Actor configuration select `execution_profile: qwen35-bf16-flashinfer-sync`.

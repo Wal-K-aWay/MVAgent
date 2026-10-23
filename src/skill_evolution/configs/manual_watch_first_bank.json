@@ -1,0 +1,17 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "1",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The question combines evidence from two to four input videos. Jointly viewing those videos with the original question can preserve cross-video relationships before separate summaries are produced. Exclude requests involving more than four input videos or whose answer-relevant question and options cannot fit one 1600-character visual-analysis instruction.",
+      "strategy": "Apply when there are two to four input videos and watch_videos is available. Make watch_videos the first evidence action, before analyze_videos, selecting every input video once with one valid source-time clip each. Use question-specified intervals when they delimit the required evidence; otherwise cover each video's full [0, duration_sec] interval. Keep each supplied interval attached to its own video; do not copy a reference interval to another video. Never supply fps.\nThe observer receives only your instruction: name every selected video ID and carry over the original question, all answer-relevant options, and its object-label, quantifier, synchronization, and temporal qualifications. Within the 1600-character instruction limit, remove only redundant task boilerplate. Ask for the visible evidence that resolves the question and distinguishes its alternatives, including uncertainty; do not ask the observer to select the final answer. If the essential meaning cannot fit, do not apply this workflow.\nUse the returned evidence to answer as soon as it resolves the question. If a specific missing detail could change the answer, request a focused joint watch or an independently answerable local analysis, then reassess. Broad sampling may miss brief details; a failed watch is not evidence. Use at most four evidence actions before the answer and respect existing finalization. Preserve source identities and the question's answer format; never invent unseen observations."
+    }
+  ]
+}

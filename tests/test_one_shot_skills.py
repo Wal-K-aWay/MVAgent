@@ -14,9 +14,9 @@ from mvagent.configs import MVAgentConfig
 from mvagent.agents.global_agent.prompts import GLOBAL_AGENT_SYSTEM_PROMPT
 from mvagent.agents.video_agent.prompts import VIDEO_PLANNER_SYSTEM_PROMPT
 from mvagent.skills.bank import SkillBank
-from skill_evolution.generation.generator import generate, make_bank
-from skill_evolution.generation.prompts import build_prompt
-from skill_evolution.generation.cli import main
+from skill_evolution.algorithms.one_shot.generator import generate, make_bank
+from skill_evolution.algorithms.one_shot.prompts import build_prompt
+from skill_evolution.algorithms.one_shot.cli import main
 
 
 class FakeClient:

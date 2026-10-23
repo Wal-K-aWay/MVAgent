@@ -5,6 +5,7 @@ Data preparation retains its existing interfaces and frozen manifests.
 
 | Purpose | Entry point |
 |---|---|
+| Download CrossVid, restore deleted BU media from its pinned history, verify and prepare inputs | `prepare_crossvid_data.py` |
 | Prepare and validate all benchmark inputs | `prepare_all_multivideo.py` |
 | Build the CrossVid manifest and derived media | `prepare_multivideo_benchmarks.py` |
 | Resume CrossVid media preparation and validate completion | `run_crossvid_qa_preparation.py` |
@@ -16,12 +17,24 @@ Data preparation retains its existing interfaces and frozen manifests.
 | Freeze the metadata-stratified CrossVid evaluation panel | `prepare_crossvid_representative_subset.py` |
 | Build CrossVid Train/Cal/Gate splits | `prepare_crossvid_train_cal_gate_split.py` |
 | Build choice-only or multibenchmark evolution splits | `prepare_crossvid_choice_evolution_split.py`, `prepare_multibench_skill_evolution_split.py` |
-| Generate a one-shot GLM skill bank without task examples | `generate_skills.py` |
+| Generate a one-shot LLM skill bank without task examples | `generate_skills.py` |
+| Evolve role-specific skill libraries through Train/Cal/Gate | `evolve_skills.py` |
 | Validate, edit, search and freeze skill libraries | `manage_skills.py` |
 
 `__init__.py` supports imports shared by preprocessing and visualization.
 Reuse existing frozen split manifests for comparisons; do not regenerate them to
 change the seed or sampling composition.
+
+`prepare_crossvid_train_cal_gate_split.py` now includes **all ten tasks, including
+CCQA**, with default seed `0`, and refuses to overwrite its output. It creates a new
+development split, excluding Lite2500 question IDs while keeping connected source
+groups within one of Train/Cal/Gate. Source overlap with Lite2500 is reported, not
+excluded. A quota failure writes no manifest; this seeded greedy assignment does
+not prove that no other assignment exists. Before this handoff the script selected
+nine closed tasks with default seed `20261006`; those historical manifests remain
+unchanged and are not compatible with the current ten-task rolewise evaluator.
+The new default `8,4,4` produces 80/40/40, not the historical 80/40/176 panel. See the
+[server runbook](../docs/server-runbook.md) for the complete new-run command.
 
 Trajectory processing stays with evaluation:
 

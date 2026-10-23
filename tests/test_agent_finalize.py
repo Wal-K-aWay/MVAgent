@@ -85,15 +85,26 @@ class DeferredJudgeTest(unittest.TestCase):
         summary["datasets"]["crossvid"].update(errors=0, pending=0)
         (self.root / "summary.json").write_text(json.dumps(summary))
         (self.root / "run_manifest.json").write_text("{}")
-        (self.root / "input_config.yaml").write_text(
-            "model_name: test\nmax_video_frames_per_request: 512\nenabled: false\n")
         script = Path(__file__).resolve().parents[1] / "eval/agent_eval/finalize_results.py"
-        subprocess.run([sys.executable, str(script), "--output", str(self.root)],
-                       check=True, capture_output=True, text=True)
-        scored = json.loads((self.root / "summary_scored.json").read_text())
-        self.assertEqual(scored["datasets"]["crossvid"]["official_score"], .925)
-        self.assertIn("92.50", (self.root / "benchmark_results.md").read_text())
-        self.assertEqual(before, [p.read_bytes() for p in self.rows])
+        for global_enabled in ('false', 'true'):
+            with self.subTest(global_enabled=global_enabled):
+                (self.root / "input_config.yaml").write_text(
+                    "model_name: test\nmax_video_frames_per_request: 512\nagents:\n"
+                    f"  global_agent:\n    skill:\n      enabled: {global_enabled}\n"
+                    "  video_agent:\n    skill:\n      enabled: false\n")
+                subprocess.run([sys.executable, str(script), "--output", str(self.root)],
+                               check=True, capture_output=True, text=True)
+                scored = json.loads((self.root / "summary_scored.json").read_text())
+                self.assertEqual(scored["datasets"]["crossvid"]["official_score"], .925)
+                report = (self.root / "benchmark_results.md").read_text()
+                self.assertIn("92.50", report)
+                self.assertNotIn('No-Skill', report.splitlines()[0])
+                if global_enabled == 'true':
+                    self.assertIn('global_agent: 启用；video_agent: 禁用', report)
+                    self.assertNotIn('均禁用', report)
+                else:
+                    self.assertIn('均禁用（no-skill）', report)
+                self.assertEqual(before, [p.read_bytes() for p in self.rows])
 
 
 if __name__ == '__main__':

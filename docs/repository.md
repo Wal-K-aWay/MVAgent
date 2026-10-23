@@ -2,7 +2,7 @@
 
 | Path | Purpose |
 |---|---|
-| `src/` | MVAgent, model adapters, runtime utilities and skill generation |
+| `src/` | MVAgent, model adapters, runtime utilities and skill generation/evolution |
 | `configs/` | Inference/generation settings and frozen split manifests |
 | `eval/` | Batch evaluation, benchmark loading/scoring, splits, reports and annotation metadata |
 | `scripts/` | Supported preprocessing, visualization and skill-management tools |
@@ -19,12 +19,17 @@ consistent, including action names, JSON fields and template variables. Changes 
 runtime selector prompts or authored skill text also require the corresponding
 Chinese documentation to be updated.
 
+## Current research handoff
+
+Start with [the research handoff](research-handoff.md), [data restoration](data-preparation.md) and [H20 server runbook](server-runbook.md). The handoff branch consolidates the rolewise research chain and feedback fixes, retaining the prior commits; it does not revive retired external/E2E implementations. Private launchers are not required for new runs. Historical raw research runs remain separate from the curated banks and split manifests now included in Git.
+
 ## Released results
 
 Existing Releases and their result attachments are retained:
 
 | Method | Release |
 |---|---|
+| MVAgent with DeepSeek skills | [Skill results](https://github.com/Wal-K-aWay/MVAgent/releases/tag/mvagent-skill-results-20261021) |
 | MVAgent 9B / 27B / 35B-A3B | [MVAgent results](https://github.com/Wal-K-aWay/MVAgent/releases/tag/mvagent-results-20261019) |
 | Qwen3.5 E2E | [E2E results](https://github.com/Wal-K-aWay/MVAgent/releases/tag/qwen35-e2e-results-20261017) |
 | AgentCVR | [AgentCVR results](https://github.com/Wal-K-aWay/MVAgent/releases/tag/agentcvr-results-20261018) |
@@ -61,7 +66,7 @@ and use a separate clean checkout for public-repository maintenance.
 
 The skill cleanup removes previous evolution algorithms, prompts, training recipes
 and optimizer-only infrastructure from the current tree. One-shot generation is
-organized under `src/skill_evolution/generation/`. The pre-cleanup source is `de28149`;
+organized under `src/skill_evolution/algorithms/one_shot/`; the new role-wise loop uses shared `configs/` and `infra/`. The pre-cleanup source is `de28149`;
 its algorithms and negative findings remain in Git history and frozen experiments.
 
 Evaluation lives entirely under `eval/`: `benchmarks/`, `data.py` and `agent_eval/`.

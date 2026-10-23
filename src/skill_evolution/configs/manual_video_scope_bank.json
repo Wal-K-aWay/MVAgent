@@ -1,0 +1,14 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "1",
+        "role": "video",
+        "stages": ["initial", "evidence"]
+      },
+      "when_to_use": "When the instruction requires several distinct findings, a complete sequence of steps, or both boundaries of a specified event, preserve those separate evidence requirements from observation to report. Use this for checking coverage and support within one video. Exclude general impressions and comparisons that require evidence from other videos.",
+      "strategy": "Preserve the instruction's entities, qualifiers, and scope. If it asks for every step, do not replace that with finding the first step; if it asks for one event, do not expand to the whole procedure.\n\nReuse same-video Memory for supported facts. For missing facts, put each required distinction into observe.what and ask for the visible action or state supporting it, with an explicit unknown when unresolved. For a requested sequence, ask for successive distinct steps across the requested extent. Request source-second starts and ends only when required, separately for each relevant event.\n\nChoose where and FPS from the required coverage and retained anchors. After observing, check whether each requested fact was actually returned. An unmentioned criterion remains unknown. A window edge is not an event boundary; an observed start does not supply an end.\n\nIf a necessary fact is missing and another observation can resolve it, target that gap with surrounding context; do not repeat an unchanged query over the same range. If retained observations already support the requested findings, finish without further observation.\n\nFinish with the supported findings and their distinguishing visible evidence. Preserve unknown criteria or endpoints explicitly, without turning uncertainty into absence, adding unsupported precision, or deciding a cross-video answer."
+    }
+  ]
+}

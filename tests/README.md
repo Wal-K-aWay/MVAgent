@@ -1,5 +1,8 @@
 # Runtime regression checks
 
+`python tests/test_crossvid_download.py` checks the offline CrossVid historical-media
+inventory and size/SHA validation with tiny fixtures; it does not download data or encode media.
+
 These checks protect supported MVAgent runtime behavior. Historical experiments
 and the removed E2E runner are not part of this directory.
 
@@ -11,8 +14,15 @@ PYTHONPATH=src python tests/test_model_pool.py
 PYTHONPATH=src python tests/test_model_token_audit.py
 PYTHONPATH=src python tests/test_prefix_cache_usage.py
 PYTHONPATH=src python tests/test_agent_finalize.py
+python tests/test_crossvid_split.py
 PYTHONPATH=src python tests/test_short_video.py
 PYTHONPATH=src python tests/test_one_shot_skills.py
+PYTHONPATH=src:. python tests/test_skill_evolution.py
+PYTHONPATH=src:. python tests/test_skill_feedback.py
+PYTHONPATH=src:. python tests/test_skill_optimizer_prompt.py
+PYTHONPATH=src:. python tests/test_skill_evaluation.py
+PYTHONPATH=src:. python tests/test_evolution_snapshot.py
+PYTHONPATH=src:. python tests/test_local_optimizer.py
 PYTHONPATH=src python tests/test_evaluation_utilities.py
 PYTHONPATH=src python tests/test_evaluation_snapshot.py
 ```
@@ -34,6 +44,8 @@ truncated output, refusal to overwrite prior runs, merged banks, source snapshot
 It uses a model double and does not call an API.
 The evaluation utility checks cover transitive source isolation, atomic-write failure
 preservation, and closed-form official scores after the module relocation.
+The standard-library split check covers all ten CrossVid tasks, deterministic selection,
+source-group isolation, excluded IDs, invalid quotas, insufficient candidates and overwrite refusal.
 
 The evaluation snapshot check loads a synthetic closed-form sample, scores it,
 changes the live workspace, verifies resume still uses the frozen evaluation code,
@@ -47,3 +59,9 @@ the input configuration or Actor settings. No model API is used by these checks.
 The generation CLI check uses the current DeepSeek configuration with a mocked HTTP
 response, verifying JSON mode, thinking/high and one logged request per role without
 authentication headers. It makes no network calls.
+
+Evolution checks cover role-private information isolation, matched local contexts,
+immutable single-role edits, saved-call resume, Cal gain rejected by Gate, official
+macro/CCQA point weighting and Judge failure without overwriting raw rollouts.
+The local optimizer check mocks pool preparation and HTTP transport, checking model/endpoint
+binding, sync-server grammar/seed/token-audit fields, pool cleanup and unchanged commercial API routing.

@@ -50,9 +50,9 @@ events 包含实际请求体、响应正文、模型身份、finish_reason、usa
 
 ## 代码与配置
 
-核心代码位于 [`src/skill_evolution/generation/`](../src/skill_evolution/README.md)：
+核心代码位于 [`src/skill_evolution/algorithms/one_shot/`](../src/skill_evolution/README.md)：
 `prompts.py` 管 Prompt/Schema，`generator.py` 管调用与产物，`cli.py` 管命令行。
-`scripts/generate_skills.py` 仅启动 CLI。模型参数使用已有 `ApiLLMConfig` 或 `ApiVLMConfig`，
+`scripts/generate_skills.py` 仅启动 CLI。共享API配置和留存能力位于`configs/`、`infra/`；角色架构在`infra/role_contracts.py`。本次目录调整不改变生成Prompt。模型参数使用已有 `ApiLLMConfig` 或 `ApiVLMConfig`，
 默认文件为 `configs/skill_evolution/llm_generation.yaml`，可通过 `--config` 指定。
 `model_type: api_llm` 使用现有纯文本客户端（当前DeepSeek）；`api_vlm` 使用原有多模态客户端（如GLM）。
 `api_key` 只能填写环境变量名，入口固定一次尝试，不创建新模型客户端或重试框架。

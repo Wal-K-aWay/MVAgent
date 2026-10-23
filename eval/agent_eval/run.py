@@ -217,6 +217,8 @@ def _build_scorer(
 ) -> tuple[Any, Mapping[str, Any]]:
     """Official per-benchmark scorer shared with skill evolution (see benchmarks.catalog)."""
 
+    if not records:  # All selected questions may have deferred OpenQA scoring.
+        return None, {}
     benchmark_module = importlib.import_module("eval.benchmarks")
     contracts_module = importlib.import_module("eval.benchmarks.contracts")
     open_ids = [

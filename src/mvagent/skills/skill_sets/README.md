@@ -11,6 +11,8 @@ SHA256；同一库可包含 Global 和 Video 卡，Runtime 按 role/stage 过滤
 
 ## 当前库
 
+另有[研究用16份独立快照](research-20261022/README.md)，供接续父库、强一次生成、格式对照及未测机制候选；它们不替换默认配置。
+
 [`deepseek-flash-20261021/7da609f63fda7c4fb1c446b477fc5663b15c9d77487784a12fcbd27b8d52b049.json`](deepseek-flash-20261021/7da609f63fda7c4fb1c446b477fc5663b15c9d77487784a12fcbd27b8d52b049.json)
 
 - DeepSeek-Flash，thinking/high；生成源码 `84cd9f9`，两个角色各一次生成，Global 6 张、Video 8 张。
@@ -25,7 +27,7 @@ SHA256；同一库可包含 Global 和 Video 卡，Runtime 按 role/stage 过滤
   [生成记录](../../../../docs/llm-skill-generation.md)及
   [三模型先导评测](../../../../docs/deepseek-skill-pilot.md)。
 
-此库已验证选卡、注入和完整问答流程，但先导评测没有稳定提升的证据。
+此库已完成三模型全量评测，详见[最终结果](../../../../docs/deepseek-skill-full-results.md)；没有稳定一致提升的证据。
 它是一份一次生成的对比基线，不是自进化产物，也不替换默认空库配置。
 
 ## 配置引用

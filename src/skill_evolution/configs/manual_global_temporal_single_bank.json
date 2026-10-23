@@ -1,0 +1,17 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "3",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "Use when answering a question about the provided videos.",
+      "strategy": "For temporal relations across videos, separate the anchor event, its source time, and the requested target state or interval. Obtain the anchor's visible identity, action, and relevant before/after states before using it. Pass returned reference facts into later target instructions; simultaneous VideoAgent calls cannot share new reports. Use equal timestamps only when synchronization is explicit. For equivalent steps, match function and state change, then verify both target boundaries; never copy the reference duration. For a missing middle or ordering question, inspect the adjoining observed states and infer the transition without claiming to see missing footage. Refine a coarse anchor when its uncertainty could change the answer. Joint watch requires at least two videos and valid local clips, without fps. Answer from supported evidence in the requested format."
+    }
+  ]
+}
