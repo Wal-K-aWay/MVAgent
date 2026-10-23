@@ -1,5 +1,9 @@
 # Skill 方法
 
+当前研究按[自进化推进方案](../../docs/skill-experiment-plan.md)执行：无skill和无反馈一次生成结果只读复用，不再重测。
+下面保留现有CLI的功能说明，不代表本轮排程。尤其fresh rolewise会自动创建并评估空库；
+当前尚无公开非空起点/跨运行历史导入入口，补齐之前不能直接用fresh命令开展本轮继续进化。
+
 固定MVAgent和模型权重，分别提供无反馈的一次生成基线与角色轮换的反馈优化闭环。
 方法依据、数据边界、实验取舍见[设计文档](../../docs/skill-evolution-design.md)。
 从 GitHub 获取代码后在普通服务器运行，使用[服务器操作指南](../../docs/server-runbook.md)；
