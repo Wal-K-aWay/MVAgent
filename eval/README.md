@@ -17,7 +17,27 @@ provides official download sources, pinned revisions, directory layouts and know
 | `agent_eval/finalize_results.py` | Merge deferred scores and report final metrics |
 | `agent_eval/export_results.py` | Export saved answers and text trajectories |
 | `agent_eval/metadata/CVBench.json` | Annotation metadata for preparation and reporting |
+| `skill_eval/run.py` | Freeze and resume rolewise experiments; reached through `scripts/evolve_skills.py` |
+| `skill_eval/evaluator.py` | Run complete libraries on Train/Cal/Gate through the native runner and official scoring |
+| `skill_eval/selector_probe.py` | Diagnose Selector choices without measuring answer accuracy |
 | `crossvid_2500.json` | Frozen list of 2,500 CrossVid evaluation IDs |
+
+For skill research, the call chain is:
+
+```text
+scripts/evolve_skills.py
+  → eval/skill_eval/run.py                  # freeze inputs and construct the evaluator
+  → src/skill_evolution/algorithms/rolewise # propose edits and accept/reject libraries
+  → eval/skill_eval/evaluator.py           # complete partition evaluation
+  → eval/agent_eval/run.py                 # MVAgent rollouts and official scoring
+```
+
+The algorithm receives the evaluator as an interface; `src/` does not import `eval/`.
+To measure a fixed library, use `agent_eval/run.py`; to generate new libraries through
+feedback, use `scripts/evolve_skills.py`. Rolewise requires CrossVid-only
+`train/cal/eval` partitions, each covering all ten tasks; its `eval` partition is Gate.
+The native runner's `--split-manifest` selects only `eval`. See the
+[server runbook](../docs/server-runbook.md) for commands and final score locations.
 
 Dataset paths are relative to the `--dataset-root` parent directory:
 

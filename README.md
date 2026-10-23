@@ -7,13 +7,18 @@ MVAgent 接收一个问题和多个视频，由 **GlobalAgent** 管理全局取�
 这是面向新研究员的普通服务器交接版本，不依赖原作者的Modal账号、私有会话说明或远端控制器。
 新环境使用H20，GPU数量和Actor/Judge资源分配由接手者按实际资源配置；历史H100结果仅作为参考。
 
-| 阅读顺序 | 内容 |
+先完成安装，再按运行手册做**自有视频单题演示 → 十任务小规模推理 → 已有库评估**。
+单题演示不要求下载完整CrossVid，也不需要Judge或optimizer；研究历史可以在第一次成功运行后阅读。
+
+| 从哪里开始 | 内容 |
 |---|---|
-| 1. [研究交接](docs/research-handoff.md) | 架构、真实实现状态、实验结果、限制、研究方向与未完成项 |
-| 2. [数据下载与预处理](docs/data-preparation.md) | 官方下载、CrossVid历史缺失文件恢复、一键预处理、CVBench/MVU-Eval布局 |
-| 3. [新服务器运行手册](docs/server-runbook.md) | H20可变资源配置、已有库评估、一次生成、rolewise、输出与resume边界 |
+| 1. [新服务器运行手册](docs/server-runbook.md) | 安装、模型与资源配置、首次运行及成功判据，再进入批量研究 |
+| 2. [数据下载与预处理](docs/data-preparation.md) | 做benchmark前阅读：CrossVid历史缺失文件恢复、一键预处理、CVBench/MVU-Eval布局 |
+| 3. [研究交接](docs/research-handoff.md) | 做研究前阅读：架构、真实实现状态、实验结果、限制与未完成项 |
 | 4. [研究资源目录](src/mvagent/skills/skill_sets/research-20261022/README.md) | 16份原字节skill快照、用途与SHA；不自动启用 |
 | 5. [历史固定基线复现](docs/baseline-reproduction.md) | 原H100基线的完整推理与离线评分流程 |
+
+全部文档按“当前操作、方法规范、历史证据”分类见[文档索引](docs/README.md)。
 
 ## 获取代码
 

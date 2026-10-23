@@ -74,27 +74,55 @@ token audits, cache accounting, score finalization and the short-video regressio
 The model-pool check covers the Actor profile and per-question replica binding.
 Normal evaluations reuse the accepted repeatability evidence instead of rerunning it every time.
 
-Pass the parent dataset directory with `--dataset-root`. The original Modal environment
-uses `/assets`; an ordinary GPU server can use another local path. It contains `crossvid/`,
+Pass the parent dataset directory with `--dataset-root`. It contains `crossvid/`,
 `cvbench/` and `mvu-eval/` subdirectories for the requested benchmarks
-(names defined in `eval/benchmarks/catalog.py`).
-CVBench/MVU-Eval `QAs.json` are built by `scripts/prepare_cvbench_mvu_qas.py`, using
-`eval/agent_eval/metadata/CVBench.json` and user-supplied MVU annotations; their video paths
-are relative to each benchmark directory. CrossVid needs a one-time preparation that writes
-`qa.jsonl`, `qa.meta.json` and `.mvagent_media` under `crossvid/`:
+(names defined in `eval/benchmarks/catalog.py`); only the requested datasets are needed.
+New researchers should follow the [data preparation guide](../../docs/data-preparation.md).
+For CrossVid, the current entry downloads pinned inputs, restores the 2416 missing BU
+videos from Hub history, verifies them, and writes `qa.jsonl`, `qa.meta.json` and
+`.mvagent_media` under `crossvid/`:
 
 ```bash
-PYTHONPATH=src python scripts/prepare_all_multivideo.py --root /assets
+export DATA_ROOT=/srv/mvagent/data  # Choose a writable directory with enough storage.
+python scripts/prepare_crossvid_data.py --root "$DATA_ROOT/crossvid" \
+  --download-workers 4 --pea-jobs 4 --uav-jobs 4
 ```
 
-Run inside a GPU node whose execution file lists that node's local replicas:
+With complete original CrossVid inputs already present, use
+`scripts/run_crossvid_qa_preparation.py` as described in that guide. Verify completion
+using the current run's status and exit code; the presence of an old manifest alone
+does not establish success.
+
+For final CVBench/MVU-Eval evaluation, download their media first using the same guide,
+then build both `QAs.json` files with the existing converter:
+
+```bash
+python scripts/prepare_cvbench_mvu_qas.py \
+  --mvu-source "$DATA_ROOT/mvu-eval/MVU_Eval_QAs.json" \
+  --cvbench-output "$DATA_ROOT/cvbench/QAs.json" \
+  --mvu-output "$DATA_ROOT/mvu-eval/QAs.json" \
+  --cvbench-media-root "$DATA_ROOT/cvbench" \
+  --mvu-media-root "$DATA_ROOT/mvu-eval"
+```
+
+The converter uses frozen `eval/agent_eval/metadata/CVBench.json` and the downloaded
+MVU annotations. Video paths are relative to each benchmark directory. CrossVid-only
+work does not require this step. The older `prepare_all_multivideo.py` is not the
+newcomer download entry: it requires all three datasets, does not restore deleted BU
+media, and duplicates the CrossVid preparation wrapper. Its optional `--check-only`
+mode checks layout only.
+
+For a new H20 run, configure local replicas and paths using the
+[server runbook](../../docs/server-runbook.md). The following is the **historical
+35B configuration example**; `/assets` is the original data mount and its execution
+file contains the historical GPU allocation:
 
 ```bash
 PYTHONPATH=src python eval/agent_eval/run.py \
   --config configs/inference/modal_qwen35_35b_a3b_no_skill.yaml \
   --execution-config configs/inference/execution/modal_h200x8.yaml \
   --dataset-root /assets --benchmarks cvbench mvu_eval \
-  --output <fresh output dir>
+  --output /path/to/new-run
 ```
 
 There is no implicit GPU selection. The execution YAML lists the allowed model

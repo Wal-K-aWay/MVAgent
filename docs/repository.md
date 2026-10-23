@@ -21,7 +21,7 @@ Chinese documentation to be updated.
 
 ## Current research handoff
 
-Start with [the research handoff](research-handoff.md), [data restoration](data-preparation.md) and [H20 server runbook](server-runbook.md). The handoff branch consolidates the rolewise research chain and feedback fixes, retaining the prior commits; it does not revive retired external/E2E implementations. Private launchers are not required for new runs. Historical raw research runs remain separate from the curated banks and split manifests now included in Git.
+Start with the [documentation index](README.md). For a first run, follow the [H20 server runbook](server-runbook.md); then read [data restoration](data-preparation.md) and [the research handoff](research-handoff.md) before benchmark experiments. Main includes the rolewise research chain and feedback fixes, retaining the prior commits; it does not revive retired external/E2E implementations. Private launchers are not required for new runs. Historical raw research runs remain separate from the curated banks and split manifests now included in Git.
 
 ## Released results
 

@@ -139,7 +139,32 @@ python scripts/run_crossvid_qa_preparation.py \
   --pea-jobs 4 --uav-jobs 4
 ```
 
-`4 + 4` 是两个媒体任务组的并行 worker 数，应按服务器 CPU/RAM 下调。它会先并行生成装配片段和 UAV 带框视频，再串行生成完整 manifest。需要观察进度时读取 `crossvid/.mvagent_prepare/crossvid_qa/status.json` 和 `logs/`；成功时留下 `validation.json`。中断后重复同一条命令，已完成的非空衍生媒体会被复用。
+`4 + 4` 是两个媒体任务组的并行 worker 数，应按服务器 CPU/RAM 下调。它会先并行生成装配片段和 UAV 带框视频，再串行生成完整 manifest。需要观察进度时读取 `crossvid/.mvagent_prepare/crossvid_qa/status.json` 和 `logs/`。中断后确认旧任务已经停止，再重复同一条命令，已完成的非空衍生媒体会被复用。
+
+**成功条件是本次准备命令退出码为 0，且本次状态为 `complete`。** 仅看到 `validation.json` 或 `qa.jsonl` 存在不够：复跑失败可能留下上一次成功的文件；下载阶段失败甚至还未更新预处理状态。命令成功返回后，在同一环境检查：
+
+```bash
+python - <<'PY'
+import json, os
+from pathlib import Path
+root = Path(os.environ['DATA_ROOT']) / 'crossvid'
+state_dir = root / '.mvagent_prepare' / 'crossvid_qa'
+status = json.loads((state_dir / 'status.json').read_text())
+assert status['state'] == status['phase'] == 'complete', status
+validation = json.loads((state_dir / 'validation.json').read_text())
+assert status['validation'] == validation
+assert validation['sample_count'] == 9015 and len(validation['task_counts']) == 10
+metadata = json.loads((root / 'qa.meta.json').read_text())
+assert metadata['scope'] == 'full'
+assert metadata['sample_count'] == validation['sample_count']
+assert metadata['manifest_sha256'] == validation['manifest_sha256']
+print('Completed:', status['completed_at'])
+print('Samples:', validation['sample_count'], 'Tasks:', validation['task_counts'])
+print('Manifest SHA256:', validation['manifest_sha256'])
+PY
+```
+
+确认打印的完成时间对应本次运行，并保存该时间、题数和哈希。若状态为 `failed`，先看 `status.json` 的 `error` 以及 `logs/` 中对应 worker 或 `finalize.log`；未完成时不要启动评测。以上只读取已有验收记录，不重新扫描媒体或计算 manifest 哈希。
 
 输出及其用途：
 

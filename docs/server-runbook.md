@@ -9,6 +9,18 @@
 当前没有稳定优于强一次生成的精度结论。方法、历史分数和未完成测量分别见
 [设计](skill-evolution-design.md)、[探索结果](skill-exploration-results.md)、[反馈实验](skill-feedback-iteration-20261022.md)。
 
+首次接手按以下顺序推进，不必先阅读全部历史报告：
+
+| 阶段 | 最少需要什么 | 结束时检查什么 |
+|---|---|---|
+| 单题功能演示（第2节） | Actor权重、一个可用副本、两段自有视频 | `result.json`有非空答案和行动轨迹 |
+| 十任务推理检查（第2节） | 处理好的CrossVid、Actor | 10题均成功、原始回答和调用事件完整；不评分 |
+| 已有库评估（第3–4节） | 冻结清单、指定库、Actor、CCQA Judge | 全部题完成及官方macro，不只看进程退出 |
+| 新的rolewise研究（第5节） | 明确实验计划、合法Train/Cal/Gate、optimizer | 候选、拒绝、Cal/Gate和最终库均留存 |
+
+Actor是执行决策的模型；Observer读取视频并返回观察，Selector决定是否选卡（本配置均复用Actor模型）。
+Judge只负责CCQA评分；optimizer负责写卡，不参与运行时回答。使用现成skill库不需要optimizer API密钥。
+
 ## 1. 获取代码并准备环境
 
 ```bash
@@ -40,7 +52,7 @@ export JUDGE_WEIGHTS="$MODEL_ROOT/Qwen3-30B-A3B-Instruct-2507"
 mkdir -p "$RUN_ROOT" .local
 ```
 
-按[数据下载与准备](data-preparation.md)获取数据，主线一键命令为：
+做benchmark前，按[数据下载与准备](data-preparation.md)获取数据；若先做自有视频演示，可暂时跳过此命令：
 
 ```bash
 python scripts/prepare_crossvid_data.py --root "$DATA_ROOT/crossvid" \
@@ -52,13 +64,11 @@ python scripts/prepare_crossvid_data.py --root "$DATA_ROOT/crossvid" \
 不要只下载问答JSON。模型目录需包含完整tokenizer、processor、config和safetensors。
 模型名相同不等于权重相同；固定下载revision并保留文件哈希。
 
-Actor可选择官方[9B](https://huggingface.co/Qwen/Qwen3.5-9B)、[27B](https://huggingface.co/Qwen/Qwen3.5-27B)或[35B-A3B](https://huggingface.co/Qwen/Qwen3.5-35B-A3B)，Judge为[Qwen3-30B-A3B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-30B-A3B-Instruct-2507)。下面以9B为例；先从模型仓库的Files and versions取得完整commit并填写两个revision，不能把未量化模型换成AWQ/FP8等版本：
+Actor可选择官方[9B](https://huggingface.co/Qwen/Qwen3.5-9B)、[27B](https://huggingface.co/Qwen/Qwen3.5-27B)或[35B-A3B](https://huggingface.co/Qwen/Qwen3.5-35B-A3B)，Judge为[Qwen3-30B-A3B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-30B-A3B-Instruct-2507)。下面以9B为例；先从模型仓库的Files and versions取得完整commit并填写两个revision，不能把未量化模型换成AWQ/FP8等版本。只做首次推理时仅下载Actor，Judge在评分前再下载：
 
 ```bash
 hf download Qwen/Qwen3.5-9B \
   --revision "${ACTOR_REVISION:?Set the full Actor commit}" --local-dir "$ACTOR_WEIGHTS"
-hf download Qwen/Qwen3-30B-A3B-Instruct-2507 \
-  --revision "${JUDGE_REVISION:?Set the full Judge commit}" --local-dir "$JUDGE_WEIGHTS"
 ```
 
 若开展新固定版本实验而不声称精确匹配历史权重，可以先用`HfApi().model_info('Qwen/Qwen3.5-9B').sha`和Judge对应repo解析当前commit，记录后下载；不要让重启时的`main`漂移。历史完整权重hash清单未随Git交付。离线服务器可在获准联网的环境下载完整目录与SHA清单，再按机构许可搬入；不需要把受限服务器开放给原作者。
@@ -69,7 +79,7 @@ hf download Qwen/Qwen3-30B-A3B-Instruct-2507 \
 Actor是项目自己的同步服务，native runner会自动启动并验证；**不要用普通 `vllm serve` 替代Actor**。
 Judge使用既有 `serve_ccqa_judge.sh`。两者不能占用相同GPU或端口。
 
-先设置可独占使用的GPU索引和端口。`ACTOR_GPU_IDS`、`JUDGE_GPU_IDS`使用逗号分隔的索引列表，数量不限于历史配置；
+先设置可独占使用的Actor GPU索引和端口。`ACTOR_GPU_IDS`、后续的`JUDGE_GPU_IDS`使用逗号分隔的索引列表，数量不限于历史配置；
 索引使用当前主机/容器`nvidia-smi --query-gpu=index,uuid --format=csv`报告的物理索引，且只能选择调度器授权的GPU。
 不要把`CUDA_VISIBLE_DEVICES`重映射后的逻辑0..N编号当作物理索引；服务启动器会设置子进程的可见设备。
 两组不能重叠。角色轮换需要Actor和Judge同时可用，但不规定固定总卡数或角色配额。
@@ -77,10 +87,8 @@ Judge使用既有 `serve_ccqa_judge.sh`。两者不能占用相同GPU或端口�
 
 ```bash
 : "${ACTOR_GPU_IDS:?Set available Actor GPU IDs, comma-separated}"
-: "${JUDGE_GPU_IDS:?Set available Judge GPU IDs, comma-separated}"
-export ACTOR_GPU_IDS JUDGE_GPU_IDS
+export ACTOR_GPU_IDS
 export ACTOR_BASE_PORT=8100
-export JUDGE_BASE_PORT=8200
 ```
 
 下面只生成本地配置，不调用模型。`.local/` 已被Git忽略：
@@ -95,19 +103,93 @@ runtime = yaml.safe_load(Path('configs/inference/modal_qwen35_9b_no_skill.yaml')
 runtime['models']['qwen3_5_9b_local']['model_name'] = os.environ['ACTOR_WEIGHTS']
 execution = yaml.safe_load(Path('configs/inference/execution/modal_h200x8_qwen35_9b.yaml').read_text())
 actor_gpus = [int(value) for value in os.environ['ACTOR_GPU_IDS'].split(',')]
-judge_gpus = [int(value) for value in os.environ['JUDGE_GPU_IDS'].split(',')]
-assert min(actor_gpus + judge_gpus) >= 0
-assert len(set(actor_gpus + judge_gpus)) == len(actor_gpus) + len(judge_gpus), 'GPU conflict'
+assert min(actor_gpus) >= 0 and len(set(actor_gpus)) == len(actor_gpus), 'Invalid Actor GPUs'
 actor_ports = list(range(int(os.environ['ACTOR_BASE_PORT']), int(os.environ['ACTOR_BASE_PORT']) + len(actor_gpus)))
-judge_ports = list(range(int(os.environ['JUDGE_BASE_PORT']), int(os.environ['JUDGE_BASE_PORT']) + len(judge_gpus)))
-assert not set(actor_ports) & set(judge_ports), 'Port conflict'
-assert min(actor_ports + judge_ports) > 1023 and max(actor_ports + judge_ports) < 65536
+assert min(actor_ports) > 1023 and max(actor_ports) < 65536
 prototype = execution['model_pools']['qwen3_5_9b_local']['replicas'][0]
 execution['model_pools']['qwen3_5_9b_local']['replicas'] = [
     {**prototype, 'gpus': [gpu], 'endpoint': f'http://127.0.0.1:{port}/v1'}
     for gpu, port in zip(actor_gpus, actor_ports)]
 Path('.local/actor-9b.yaml').write_text(yaml.safe_dump(runtime, sort_keys=False))
 Path('.local/execution-9b.yaml').write_text(yaml.safe_dump(execution, sort_keys=False))
+PY
+```
+
+### 2.1 先让一道自有视频问题跑通
+
+准备两段有权使用的短视频，用绝对路径传入，并把下面的问题改为确实需要比较这两段视频的问题。
+无需数据集、Judge或API密钥。演示只用配置中的第一个Actor副本：
+
+```bash
+python - <<'PY'
+from pathlib import Path
+import yaml
+execution = yaml.safe_load(Path('.local/execution-9b.yaml').read_text())
+execution['model_pools']['qwen3_5_9b_local']['replicas'] = execution['model_pools']['qwen3_5_9b_local']['replicas'][:1]
+Path('.local/demo-execution.yaml').write_text(yaml.safe_dump(execution, sort_keys=False))
+PY
+python demo.py --config .local/actor-9b.yaml \
+  --execution-config .local/demo-execution.yaml \
+  --video /absolute/path/to/first.mp4 --video /absolute/path/to/second.mp4 \
+  --question 'What happens in both videos, and what differs between them?' \
+  --output "$RUN_ROOT/first-demo"
+```
+
+使用新的output目录。成功后检查`first-demo/result.json`的`result.answer.answer`为非空，
+`result.action_history`和`result.trajectory`保留动作/观察过程；检查视频内容是否真正进入观察结果。
+看到答案只证明功能路径运行，不证明答案正确。
+`demo.py`不保存正式批量入口的完整调用审计，也未绑定整题副本租约，因此这里只给单副本演示。
+需要比较skill效果时使用下面的native入口，不把demo产物拼入正式成绩。
+
+### 2.2 数据准备后，检查十任务推理路径
+
+CrossVid预处理验收通过后，用正式批量入口每task运行1题，检查服务、媒体和结果保存：
+
+```bash
+python eval/agent_eval/run.py --config .local/actor-9b.yaml \
+  --execution-config .local/execution-9b.yaml \
+  --dataset-root "$DATA_ROOT" --benchmarks crossvid --limit 1 \
+  --inference-only --output "$RUN_ROOT/first-crossvid-inference"
+```
+
+`--limit 1`在CrossVid上是十task各1题，共10题；这是按文件顺序取样的接入检查，不是随机评测。
+预期`summary.json`为`inference_only: true, samples: 10, completed: 10`，
+每份`records/crossvid/<sample_id>/result.json`为`status: ok`、`scoring_status: skipped`，有非空`prediction`与`events`。
+`run_manifest.json`的completed状态本身不代替逐题成功检查。调用事件保留实际模型身份、输入哈希和token；
+要测试选卡/注入，还需用第4节的带库配置在独立输出目录运行并检查`skill_selection`事件。
+此命令不评分、不需要Judge；不要把它的summary当作准确率，也不能通过更改resume参数把它变成评分运行。
+换成正式评测前另建output目录。遇到解码错误先核对数据准备验收，服务错误则查看`.cache/mvagent/`内服务日志。
+
+### 2.3 做CCQA评分或rolewise前准备Judge
+
+此时再固定Judge版本、下载权重并填写`JUDGE_GPU_IDS`。已有完整同版本权重时跳过下载：
+
+```bash
+hf download Qwen/Qwen3-30B-A3B-Instruct-2507 \
+  --revision "${JUDGE_REVISION:?Set the full Judge commit}" --local-dir "$JUDGE_WEIGHTS"
+```
+
+以下仅生成端点清单，检查它与已有Actor配置不冲突：
+
+```bash
+: "${JUDGE_GPU_IDS:?Set available Judge GPU IDs, comma-separated}"
+export JUDGE_GPU_IDS
+export JUDGE_BASE_PORT=8200
+python - <<'PY'
+import os
+from pathlib import Path
+from urllib.parse import urlparse
+import yaml
+execution = yaml.safe_load(Path('.local/execution-9b.yaml').read_text())
+actors = execution['model_pools']['qwen3_5_9b_local']['replicas']
+actor_gpus = {gpu for replica in actors for gpu in replica['gpus']}
+actor_ports = {urlparse(replica['endpoint']).port for replica in actors}
+judge_gpus = [int(value) for value in os.environ['JUDGE_GPU_IDS'].split(',')]
+assert min(judge_gpus) >= 0 and len(set(judge_gpus)) == len(judge_gpus), 'Invalid Judge GPUs'
+assert not actor_gpus & set(judge_gpus), 'GPU conflict'
+judge_ports = list(range(int(os.environ['JUDGE_BASE_PORT']), int(os.environ['JUDGE_BASE_PORT']) + len(judge_gpus)))
+assert min(judge_ports) > 1023 and max(judge_ports) < 65536
+assert not actor_ports & set(judge_ports), 'Port conflict'
 Path('.local/judge-endpoints.txt').write_text(','.join(f'http://127.0.0.1:{port}/v1' for port in judge_ports))
 PY
 export JUDGE_ENDPOINTS="$(cat .local/judge-endpoints.txt)"
@@ -129,7 +211,9 @@ bash eval/agent_eval/serve_ccqa_judge.sh "$JUDGE_GPU_IDS" "$JUDGE_BASE_PORT"
 Actor接口只接受loopback；Actor客户端和模型服务须在同一主机/容器网络命名空间，不能直接改成跨服务器IP。
 若已有兼容服务，可直接提供实际execution和`JUDGE_ENDPOINTS`并跳过启动：Actor必须通过本项目profile/权重校验，
 Judge必须服务`Qwen3-30B-A3B-Instruct-2507`并采用官方配置。不要在同一Actor池上并行启动独立批处理器；
-资源数量变化应在新运行前配置，未完成run不能通过修改冻结execution热扩缩。
+rolewise的资源数量必须在新运行前配置，未完成rolewise不能修改冻结execution。
+独立native评估则允许中断后用相同输入/模型/评分配置加`--resume`，换GPU索引或副本数；每次execution会单独记录。
+它也不支持运行中热扩缩，且不能借resume切换模型、数值profile、硬件协议或题目清单。
 
 ## 3. 选择冻结开发划分
 
