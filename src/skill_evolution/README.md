@@ -1,5 +1,9 @@
 # Skill 方法
 
+当前研究按[自进化推进方案](../../docs/skill-experiment-plan.md)执行：无skill和无反馈一次生成结果只读复用，不再重测。
+下面保留现有CLI的功能说明，不代表本轮排程。尤其fresh rolewise会自动创建并评估空库；
+当前尚无公开非空起点/跨运行历史导入入口，补齐之前不能直接用fresh命令开展本轮继续进化。
+
 固定MVAgent和模型权重，分别提供无反馈的一次生成基线与角色轮换的反馈优化闭环。
 方法依据、数据边界、实验取舍见[设计文档](../../docs/skill-evolution-design.md)。
 从 GitHub 获取代码后在普通服务器运行，使用[服务器操作指南](../../docs/server-runbook.md)；
@@ -21,7 +25,7 @@ Python配置解析在`configs/`，实验YAML在仓库根`configs/skill_evolution
 公开轨迹投影参考`de28149`的算法无关思路，改为复用当前Global/Video Memory渲染器。
 旧adaptor/cluster/scope训练器未恢复，不作为本方法前提。
 
-## 一次生成
+## 一次生成（保留接口，本轮不运行）
 
 ```bash
 python scripts/generate_skills.py --role both --output-dir /runs/one-shot/new-run
@@ -32,9 +36,9 @@ python scripts/generate_skills.py --role both --output-dir /runs/one-shot/new-ru
 [生成说明](../../docs/llm-skill-generation.md)。现有DeepSeek冻结对比库见
 [`skill_sets/`](../mvagent/skills/skill_sets/README.md)，不是进化初始化。
 
-## 角色轮换优化
+## 角色轮换优化（现有接口，当前非空起点接续尚不可用）
 
-先准备独立的Actor服务与固定本地CCQA Judge，再运行：
+以下是原fresh接口的历史用法，会评估空库，**不用于本轮继续进化**。当前只运行方案中的固定非空库评测；非空父库和禁止回补保护需先实现。
 
 ```bash
 python scripts/evolve_skills.py \
@@ -65,7 +69,7 @@ python scripts/evolve_skills.py --output /runs/my-run/evolution --resume
 
 resume只接受输出目录，使用原冻结配置，拒绝被改写的源码或配置。完成的API响应和整库评估可复用；缺响应的中断API尝试不自动重复。所有拒绝、格式失败及候选保留。
 冻结记录包含数据、模型、库及服务的绝对路径；恢复没有路径重定位功能。迁移服务器时必须保全完整原目录和身份，
-否则建立新的实验，不修改manifest绕过检查。公开入口不支持指定初始库或导入历史空库缓存。
+缺少原件或身份不匹配时报告缺口，不改manifest、不自动fresh新建或回补空库/一次生成。公开入口不支持指定初始库或导入历史空库缓存。
 产物包含`manifest.json`、`frozen/`、`banks/`、`evaluations/`、`rounds/`、`judge_cache/`和`summary.json`。
 接受的库可能仍为空库；运行成功与准确率提高分别报告。Prompt中文镜像见
 [角色轮换Prompt](../../docs/skill-evolution-prompts.md)。

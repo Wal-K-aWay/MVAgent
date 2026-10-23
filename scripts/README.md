@@ -7,10 +7,11 @@
 | `prepare_crossvid_data.py` | 下载固定CrossVid版本、从历史补齐BU视频、核验并完成预处理 |
 | `prepare_cvbench_mvu_qas.py` | 将已下载的CVBench/MVU标注转换为评测输入并检查媒体引用 |
 | `prepare_crossvid_train_cal_gate_split.py` | 必要时新建十任务CrossVid Train/Cal/Gate；不是重建Lite2500 |
-| `generate_skills.py` | 不读题目和成绩，一次生成skill库 |
-| `evolve_skills.py` | 从空库开始角色轮换反馈优化 |
+| `generate_skills.py` | 一次生成历史接口；已有结果只读复用，本轮不再调用 |
+| `evolve_skills.py` | 现有fresh从空库开始；补齐非空起点与禁止回补保护前，不能用于当前继续进化 |
 
-[服务器手册](../docs/server-runbook.md)给出完整命令，[数据指南](../docs/data-preparation.md)给出下载和成功判据。
+当前排程以[自进化推进方案](../docs/skill-experiment-plan.md)为准，不再生成或评测无skill/无反馈一次生成条件。
+[服务器手册](../docs/server-runbook.md)给出非空父子库测量命令，[数据指南](../docs/data-preparation.md)给出下载和成功判据。
 批量评测、评分和结果导出直接使用[`eval/agent_eval/`](../eval/agent_eval/README.md)。
 
 CrossVid的续跑、媒体编码、对象标框和协议实现已收归[`eval/data_preparation/`](../eval/data_preparation/README.md)。

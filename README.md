@@ -7,16 +7,18 @@ MVAgent 接收一个问题和多个视频，由 **GlobalAgent** 管理全局取�
 这是面向新研究员的普通服务器交接版本，不依赖原作者的Modal账号、私有会话说明或远端控制器。
 新环境使用H20，GPU数量和Actor/Judge资源分配由接手者按实际资源配置；历史H100结果仅作为参考。
 
-先完成安装，再按运行手册做**自有视频单题演示 → 十任务小规模推理 → 已有库评估**。
+当前研究排程唯一入口是[skill自进化推进方案](docs/skill-experiment-plan.md)：**无skill和无反馈一次生成只读复用，不再生成或评测**，新硬件、缓存缺失和恢复场景也不例外。
+先完成安装，再按运行手册用非空进化父库476532做**自有视频单题演示 → 十任务小规模推理 → Train父子库机制测量**。
 单题演示不要求下载完整CrossVid，也不需要Judge或optimizer；研究历史可以在第一次成功运行后阅读。
 
 | 从哪里开始 | 内容 |
 |---|---|
 | 1. [新服务器运行手册](docs/server-runbook.md) | 安装、模型与资源配置、首次运行及成功判据，再进入批量研究 |
 | 2. [数据下载与预处理](docs/data-preparation.md) | 做benchmark前阅读：CrossVid历史缺失文件恢复、一键预处理、CVBench/MVU-Eval布局 |
-| 3. [研究交接](docs/research-handoff.md) | 做研究前阅读：架构、真实实现状态、实验结果、限制与未完成项 |
-| 4. [研究资源目录](src/mvagent/skills/skill_sets/research-20261022/README.md) | 16份原字节skill快照、用途与SHA；不自动启用 |
-| 5. [历史固定基线复现](docs/baseline-reproduction.md) | 原H100基线的完整推理与离线评分流程 |
+| 3. [研究推进方案](docs/skill-experiment-plan.md) | 当前目标、实验顺序、停止规则与待完善的进化能力 |
+| 4. [研究交接](docs/research-handoff.md) | 架构、真实实现状态、已有结果、限制与未完成项 |
+| 5. [研究资源目录](src/mvagent/skills/skill_sets/research-20261022/README.md) | 16份原字节skill快照、用途与SHA；不自动启用 |
+| 历史参考：[固定基线协议](docs/baseline-reproduction.md) | 原H100流程留档，不是当前重跑指令 |
 
 全部文档按“当前操作、方法规范、历史证据”分类见[文档索引](docs/README.md)。
 
@@ -30,7 +32,7 @@ cd MVAgent
 git rev-parse HEAD
 ```
 
-记录实际commit。本次整合通过[PR #4](https://github.com/Wal-K-aWay/MVAgent/pull/4)采用普通Merge commit，保留已有研究提交、公开结果报告与移植修正；旧分支、Release和已完成实验不删除。
+记录实际commit。交接、入口精简与研究方案通过[PR #4](https://github.com/Wal-K-aWay/MVAgent/pull/4)、[PR #5](https://github.com/Wal-K-aWay/MVAgent/pull/5)、[PR #6](https://github.com/Wal-K-aWay/MVAgent/pull/6)整合，采用普通Merge commit保留原提交；旧分支、Release和已完成实验不删除。
 源码压缩包不含Release中的结果附件，结果下载见下文。新运行使用新的输出目录。
 
 ## Installation
@@ -89,8 +91,8 @@ CVBench和MVU-Eval的准备也在该指南中。后续skill优化只使用CrossV
 | `src/models/` | API客户端、本地同步模型服务、模型池与调用审计 |
 | `src/skill_evolution/configs/` | 搜索与优化模型配置解析 |
 | `src/skill_evolution/infra/` | 库快照、编辑、角色轨迹、反馈格式、调用留存 |
-| `src/skill_evolution/algorithms/one_shot/` | 不读取问答样例、轨迹或成绩的一次生成 |
-| `src/skill_evolution/algorithms/rolewise/` | 从空库开始的单角色单卡编辑、Train反馈、Cal/Gate整库验收 |
+| `src/skill_evolution/algorithms/one_shot/` | 一次生成基线实现，保留但不再运行 |
+| `src/skill_evolution/algorithms/rolewise/` | 现有空库起点闭环；非空继续进化与禁止回补保护待补，当前不能fresh启动 |
 | `eval/` | 数据契约、官方评分、完整rollout与评估协调；`src/`不依赖评测包 |
 | `scripts/generate_skills.py`、`scripts/evolve_skills.py` | 一次生成与反馈优化公开入口 |
 | `tests/`、`docs/` | 回归检查、运行说明、协议与实验结论 |
@@ -102,7 +104,8 @@ Global整题、Video单次请求沿用首次选择。完整边界见[运行时�
 
 默认rolewise仍使用旧轨迹表示；新事件formatter已用于诊断，但未接入默认循环。
 跨轮失败经验、候选池、任意换目录resume均未实现。不要把已保存的改进设想当作现有算法。
-[运行手册](docs/server-runbook.md)分别给出固定历史库评估、新的一次生成和新rolewise实验，不要求重新生成历史卡。
+[运行手册](docs/server-runbook.md)给出非空父库接入与分区评估。先按研究方案测试476532父库及1275c1/229e74机制候选，
+继续进化CLI需先补非空起点和禁止回补保护；保留一次生成和旧rolewise接口不代表本轮允许运行。
 
 ## 已有结果与复核边界
 
@@ -122,3 +125,5 @@ Global整题、Video单次请求沿用首次选择。完整边界见[运行时�
 核对附件SHA256。新研究的完整raw/Judge缓存/优化器请求仍留原Modal volume，未随这次源码交接发布；
 当前库和split可以直接用于新实验，但不能仅凭它们重建全部旧运行或直接`--resume`。
 本仓库不包含模型权重、视频、凭据、私人AGENTS/会话笔记。更多目录与历史来源见[仓库说明](docs/repository.md)。
+
+后续开发按[Skill自进化研究推进方案](docs/skill-experiment-plan.md)推进：只读复用无skill与一次生成结果，通过基础机制实验决定反馈、编辑和连续进化功能的完善，不重复基线或铺开模型/卡片组合。
