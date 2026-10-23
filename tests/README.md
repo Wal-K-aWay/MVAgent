@@ -1,5 +1,8 @@
 # Runtime regression checks
 
+`python tests/test_crossvid_download.py` checks the offline CrossVid historical-media
+inventory and size/SHA validation with tiny fixtures; it does not download data or encode media.
+
 These checks protect supported MVAgent runtime behavior. Historical experiments
 and the removed E2E runner are not part of this directory.
 
@@ -11,6 +14,7 @@ PYTHONPATH=src python tests/test_model_pool.py
 PYTHONPATH=src python tests/test_model_token_audit.py
 PYTHONPATH=src python tests/test_prefix_cache_usage.py
 PYTHONPATH=src python tests/test_agent_finalize.py
+python tests/test_crossvid_split.py
 PYTHONPATH=src python tests/test_short_video.py
 PYTHONPATH=src python tests/test_one_shot_skills.py
 PYTHONPATH=src:. python tests/test_skill_evolution.py
@@ -40,6 +44,8 @@ truncated output, refusal to overwrite prior runs, merged banks, source snapshot
 It uses a model double and does not call an API.
 The evaluation utility checks cover transitive source isolation, atomic-write failure
 preservation, and closed-form official scores after the module relocation.
+The standard-library split check covers all ten CrossVid tasks, deterministic selection,
+source-group isolation, excluded IDs, invalid quotas, insufficient candidates and overwrite refusal.
 
 The evaluation snapshot check loads a synthetic closed-form sample, scores it,
 changes the live workspace, verifies resume still uses the frozen evaluation code,

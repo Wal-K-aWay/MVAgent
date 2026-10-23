@@ -5,6 +5,8 @@
 
 ## 固定评测方案
 
+下表记录历史H100参考协议。新H20研究服务器不固定GPU总数或Actor/Judge配额，按[服务器手册](../../docs/server-runbook.md)配置实际资源；变更硬件后保留独立运行身份，不声称已验证跨硬件等价。
+
 Qwen3.5 的 MVAgent 评测使用下表；推理实现以
 [`sync_server.py`](../../src/models/vlm/local/sync_server.py) 为准。
 
@@ -49,7 +51,7 @@ Global 使用简洁角色 System，VideoAgent 保持原 instruction 边界；历
 
 ## 配置入口
 
-执行文件名中的 `h200` 是历史命名；GPU 型号由 Modal 申请参数决定，固定评测显式申请 `H100!:8`。
+执行文件名中的 `modal_`/`h200` 和八副本布局是历史模板，不依赖Modal。普通服务器在本地副本中调整GPU索引、端口和副本数；历史参考硬件为H100。
 
 | 文件 | 用途 |
 |---|---|

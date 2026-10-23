@@ -1,5 +1,7 @@
 # Skill 反馈组织与分角色迭代实验
 
+> 迁移更新：2026-10-22当地日期（10-23 UTC）通过恢复的Volume只读接口核实，六个Video臂均已完成80/40/176，连同Global共3552评分题次；十二库均不满足Cal/Gate同时严格增益。此次只核保存的分区身份、分数和N，未独立重核Video原始rollout或配对区间。下文05:33/05:42状态保留为历史，完整Video表见“Video完成状态恢复”。新服务器接续请读[当前研究交接](research-handoff.md)。
+
 本轮承接[输入审查](skill-optimizer-input-audit-20261022.md)和[上一轮交接](skill-research-handoff-20261022.md)。用户要求把新分析保存到GitHub，并继续实际实验。本文随完整测量更新；计划、格式检查和模型成功产出均不算准确率实验完成。
 
 ## 研究依据
@@ -43,7 +45,7 @@ noop、重复库和返回空库均保留为提案结果，不免费补提案，�
 
 ## Video阶段预声明：固定Global，比较两种反馈表示与一次生成
 
-本阶段已通过实际输入prepare，六次独立生成均产出有效新库；截至05:33 UTC，六个Video评估节点均已提交，四臂完成Train/Cal，尚无完整296题臂的成绩。05:42 UTC起监控入口连接超时，更晚状态未确认，详见下文。始终固定Global父库`4765323a…`及其原有文本，Video从空库出发，不依据本轮Global的中途成绩换伙伴。
+本阶段通过实际输入prepare，六次独立生成均产出有效新库；05:33 UTC的旧快照只有四臂完整Train/Cal，05:42起监控入口失联。本次迁移恢复后核实六臂均已有完整296题成绩，详见下文。始终固定Global父库`4765323a…`及其原有文本，Video从空库出发，不依据本轮Global的中途成绩换伙伴。
 
 两个反馈条件使用原正式`003-video/proposal-01`的八个Train题与同一批本地请求：父库4765与先前Video试验库`68cfb31b426d9d123d00df141d7d9185f0fa7ea6bc70336663f02f7f312d6819`。先按原采样`attempt=1`重建并核对旧请求，再在相同题目、相同本地请求位置使用修正后的角色公开投影。两组都保留`request_feedback/error`，不向优化器提供Global原题、伙伴卡片正文、其他Video私有轨迹或GT；局部配对仍要求instruction、视频与先前Memory匹配。
 
@@ -155,9 +157,9 @@ CPU `ap-Iusg33aj5zWvNnXiYyYKPa`读取父4765与前一Video试验68cfb各80题的
 
 独立分支`codex/skill-feedback-20261022`，方法源码快照`1e1147eddff43807bac835f172d3dd3684c2dee5`，源码包SHA256 `e63837b3debdec2d0d07205c9ba03f436995da0b38066f8c43dfd9f37a10424b`。Modal CPU已通过compileall及17个测试文件，包含新反馈格式、Memory回归与Prompt契约；与旧Actor/模型/原生评测的142个文件逐字一致。
 
-输入准备位于`/runs/devbox/skill_feedback_20261022/preparation-full-events/`。六个Global格式/direct候选全部完成80/40/176，共1776个新增评分题次；它们仍只覆盖同296道不同开发题。最近一次成功核验节点与分区状态为**2026-10-22 05:33 UTC**：完整Global节点已释放，六个Video格式/direct节点当时运行，共48张H100，未超过64张总上限。新增Video可靠性库、Global委派库及固定两库400题确认这四臂当时尚未启动。
+输入准备位于`/runs/devbox/skill_feedback_20261022/preparation-full-events/`。六个Global格式/direct候选全部完成80/40/176，共1776个新增评分题次；它们仍只覆盖同296道不同开发题。**2026-10-22 05:33 UTC历史快照**中，完整Global节点已释放，六个Video格式/direct节点当时运行，共48张H100，未超过64张总上限。本次迁移读取保存完成状态后确认六个Video也各完成296题；十二臂共3552题次。新增Video可靠性库、Global委派库及固定两库400题确认四臂从未提交，没有对应测量。
 
-05:42 UTC起，`modal-gpu`目标在SSH banner阶段超时，05:50独立检查也未能连接。因此下列Video数值是05:33快照，不能确认更晚的完成量、GPU占用或后台是否仍在运行；连接失败本身也不证明实验失败。当前阻塞是监控与调度入口不可达，恢复后首先核对现有六节点和已落盘分区，再按实际容量继续已声明的追加四臂。
+05:42 UTC起，`modal-gpu`目标曾在SSH banner阶段超时，05:50独立检查也未能连接。当时只能报告05:33快照，不能确认后续完成量或后台状态。迁移期间已恢复只读访问并取得保存成绩；不再将旧连接失败当作当前实验未完成的证据。Modal GPU不再用于后续工作，追加四臂须在新服务器按冻结身份另行准备。
 
 | 条件 | Train80官方macro | Cal40官方macro | Gate176官方macro |
 |---|---:|---:|---:|
@@ -206,7 +208,27 @@ CPU `ap-Iusg33aj5zWvNnXiYyYKPa`读取父4765与前一Video试验68cfb各80题的
 
 现有源码还限定了skill能依赖什么信息：Global首次Selector只收到问题、视频ID/时长及候选`when_to_use`，尚无观察证据；Video每次请求开始时Actor可能已有本视频Memory，检索与stage可利用该状态，但Selector LLM实际Prompt只包含instruction与候选，并不包含Memory。task范围的选择缓存包含`none`，Global整题、Video单次请求内都沿用首次结果，stage变化不会触发换卡。因此未来才出现的冲突或低可信观察不宜成为唯一`when_to_use`前提，执行时的检查与分支应写入`strategy`。这是[既有卡片规范](../src/skill_evolution/skill_specification.md)和当前运行时约束的再次应用，不是本轮发现的新bug，也尚未证明是本轮分数下降的原因。实现依据为[Global选卡入口](../src/mvagent/agents/global_agent/agent.py)、[Video选卡入口](../src/mvagent/agents/video_agent/agent.py)、[选择缓存](../src/mvagent/skills/selection.py)及[Selector输入](../src/mvagent/skills/prompts.py)。
 
-以下是05:33 UTC已经完整评分的Video分区；没有把未完成分区的partial raw计入成绩。
+### Video完成状态恢复
+
+迁移时经Volume只读接口读取六臂保存的`driver_status.json`，核对每个分区身份、官方分数和样本数；全部为Train80/Cal40/Gate176完整完成。没有启动GPU、重跑模型或新增Judge。新增核实1776个Video评分题次，与Global1776合计3552；所有条件仍复用同296道不同开发题。
+
+| Video条件 | Train80官方macro | Cal40官方macro | Gate176官方macro |
+|---|---:|---:|---:|
+| 固定父库4765（复用） | 27.7885% | 35.0000% | 35.0869% |
+| events / rep0 | 27.1044% | 32.9134% | 38.3445% |
+| events / rep1 | 43.3814% | 30.0000% | 35.6488% |
+| legacy / rep0 | 24.0385% | 32.5000% | 34.0500% |
+| legacy / rep1 | 28.1635% | 32.5000% | 36.1487% |
+| direct / rep0 | 28.6351% | 30.2143% | 30.4477% |
+| direct / rep1 | 27.4038% | 37.0833% | 32.3242% |
+
+六个Video候选均未同时严格超过父Cal与Gate，十二个Global/Video候选合计0次新接受。events rep0在Gate有+3.2576pp，但Cal较低；direct rep1有Cal正差但Gate较低。不能据任何单分区追认接受，也不能仅由点估计给出显著性或局部因果结论。
+
+本次核验等级是**保存的分区完成记录与成绩**。尚未独立重核1776份Video raw、完整Judge身份与请求、或生成Video配对和来源组区间；Global此前已有的全raw/SHA核验不能替代这些Video检查。接续先补只读分析，不因旧日志状态重复推理已完成的六臂。
+
+### 历史05:33快照
+
+以下保留05:33 UTC当时已经完整评分的Video分区，不作为最新完成量；当时没有把未完成分区的partial raw计入成绩。
 
 | Video条件 | Train80官方macro | Cal40官方macro | 当时Gate176状态 |
 |---|---:|---:|---|
@@ -215,9 +237,9 @@ CPU `ap-Iusg33aj5zWvNnXiYyYKPa`读取父4765与前一Video试验68cfb各80题的
 | legacy / rep0 | 约24.0385% | 32.5000% | 尚未完整 |
 | direct / rep0 | 约28.6351% | 约30.2143% | 尚未完整 |
 
-另外的legacy rep1、direct rep1当时尚无完整Train分区。四臂合计480个已完成分区评分题次，加Global1776共**2256题次**；这不是2256道独立题，也不代表十二个格式/direct臂已完成。events rep1的高Train、低Cal提示跨样本表现不稳定，但不能仅凭这一差距断定其原因是过拟合、样本分布或某种提示机制；需要完整Gate及已声明配对分析才能进一步描述。
+另外的legacy rep1、direct rep1当时尚无完整Train分区。该历史快照四臂合计480个已完成分区评分题次，加Global1776共**2256题次**；不是2256道独立题，也不代表当时已经核实十二个格式/direct臂完成。events rep1的高Train、低Cal提示跨样本表现不稳定，但不能仅凭这一差距断定其原因是过拟合、样本分布或某种提示机制；最新完整Gate已列于上表，配对分析仍待完成。
 
-目前可以保留三条研究判断：提高可选中率不等于净收益；完整反馈的组织效果与“保留证据可靠性”“传递委派依赖”等操作性假设是不同问题，后两条不能混入格式对照解释；Train上的改善需要其他开发分区检查，单个高分不能代替正式接受。现有负结果不支持继续把措辞改写自动当作有效进化，也不足以否定所有skill机制。后续先完成已提交六个Video与已声明追加分支，不因中途数值增加未经声明的重复。
+目前可以保留三条研究判断：提高可选中率不等于净收益；完整反馈的组织效果与“保留证据可靠性”“传递委派依赖”等操作性假设是不同问题，后两条不能混入格式对照解释；Train上的改善需要其他开发分区检查，单个高分不能代替正式接受。现有负结果不支持继续把措辞改写自动当作有效进化，也不足以否定所有skill机制。后续先补六个Video的只读配对分析，再在新服务器安排已声明追加分支，不因中途数值增加未经声明的重复。
 
 无反馈编辑rep0的noop因hypothesis为空记格式失败，rep1为有效noop；均保留父库，不免费补提案、不记问答零分。Video六个提案全部生成成功，每张新库保留Global逐字不变；生成成功本身不计新增评分。
 

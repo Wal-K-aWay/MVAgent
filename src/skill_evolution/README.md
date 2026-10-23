@@ -2,6 +2,8 @@
 
 固定MVAgent和模型权重，分别提供无反馈的一次生成基线与角色轮换的反馈优化闭环。
 方法依据、数据边界、实验取舍见[设计文档](../../docs/skill-evolution-design.md)。
+从 GitHub 获取代码后在普通服务器运行，使用[服务器操作指南](../../docs/server-runbook.md)；
+不需要 Modal SDK、原作者的私有控制器或会话目录。
 
 ```text
 skill_evolution/
@@ -52,11 +54,18 @@ CVBench/MVU不进入优化。入口先冻结源码/评测代码/配置，再从�
 取Train例子前先筛出含目标角色轨迹的题；完全没有该角色经验时记录跳过并继续其他角色。
 Cal/Gate只向算法返回总分及身份，不向优化器提供逐题数据；视频局部反馈不冒充局部正确性标签。
 
+**默认闭环的实际状态：** `optimizer.py` 仍调用 `infra.trajectory.examples()` 的首尾截断表示。
+`infra.feedback.format_feedback()` 已有实现和回归测试，但目前只用于反馈组织诊断，尚未接入默认闭环；
+其对照结果见[反馈实验](../../docs/skill-feedback-iteration-20261022.md)。同轮后一个候选可读取前一候选的
+Train反馈，跨轮失败经验尚未累计；默认2轮表示Global一次、Video一次，而非各自迭代两轮。
+
 ```bash
 python scripts/evolve_skills.py --output /runs/my-run/evolution --resume
 ```
 
 resume只接受输出目录，使用原冻结配置，拒绝被改写的源码或配置。完成的API响应和整库评估可复用；缺响应的中断API尝试不自动重复。所有拒绝、格式失败及候选保留。
+冻结记录包含数据、模型、库及服务的绝对路径；恢复没有路径重定位功能。迁移服务器时必须保全完整原目录和身份，
+否则建立新的实验，不修改manifest绕过检查。公开入口不支持指定初始库或导入历史空库缓存。
 产物包含`manifest.json`、`frozen/`、`banks/`、`evaluations/`、`rounds/`、`judge_cache/`和`summary.json`。
 接受的库可能仍为空库；运行成功与准确率提高分别报告。Prompt中文镜像见
 [角色轮换Prompt](../../docs/skill-evolution-prompts.md)。

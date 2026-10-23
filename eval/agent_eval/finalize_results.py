@@ -15,6 +15,8 @@ from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
 
+import yaml
+
 from score_crossvid_ccqa import REPORT_NAME
 
 CVBENCH_TASKS_PATH = (
@@ -195,11 +197,16 @@ def _markdown(output_dir: Path) -> str:
         (v.strip() for v in re.findall(r"max_video_frames_per_request:\s*(\d+)", config_text)),
         "—",
     )
-    skills_off = "enabled: false" in config_text
+    agents = (yaml.safe_load(config_text) or {}).get('agents', {})
+    skill_states = {role: agents.get(role, {}).get('skill', {}).get('enabled')
+                    for role in ('global_agent', 'video_agent')}
+    skill_label = ('均禁用（no-skill）' if all(value is False for value in skill_states.values())
+                   else '；'.join(f"{role}: " + ('启用' if value is True else '禁用' if value is False else '未记录')
+                                  for role, value in skill_states.items()))
 
     lines: list[str] = []
     title_model = Path(model_name).name if model_name != "—" else "model"
-    lines.append(f"# {title_model} MVAgent No-Skill 三 Benchmark 结果")
+    lines.append(f"# {title_model} MVAgent Benchmark 结果")
     lines.append("")
     lines.append("## 测试配置")
     lines.append("")
@@ -207,7 +214,7 @@ def _markdown(output_dir: Path) -> str:
     lines.append("|---|---|")
     lines.append(f"| 模型 | {model_name} |")
     lines.append("| Agent 系统 | MVAgent（GlobalAgent / VideoAgent Planner / Observer 同一模型） |")
-    lines.append(f"| Skill | {'均禁用（no-skill）' if skills_off else '见 input_config.yaml'} |")
+    lines.append(f"| Skill | {skill_label} |")
     lines.append(f"| 视觉帧容量 | 每次视觉请求最多 {frames} 帧 |")
     prepared = {}
     events = output_dir / "execution_events.jsonl"

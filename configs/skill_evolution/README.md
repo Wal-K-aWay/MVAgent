@@ -2,7 +2,7 @@
 
 - `llm_generation.yaml`：一次生成的模型参数；当前为DeepSeek-Flash、`model_type: api_llm`、thinking/high，
   凭据为`DEEPSEEK_API_KEY`环境变量。也支持原有`api_vlm`配置；不新增客户端。
-  `max_retries: 1` 表示一次尝试，入口拒绝改为自动重试。
+  `max_retries: 1` 表示首次请求后最多一次瞬时错误重试；入口固定该设置，不能称为严格单次HTTP尝试。
 - `splits/`：保留已有冻结划分与 CrossVid 干净池；一次生成不读取这些数据。
 
 ```bash
@@ -18,3 +18,4 @@ python scripts/generate_skills.py \
 `evolution.yaml`配置新角色轮换闭环的轮数、候选数、角色顺序和Train例子预算；Python校验在`src/skill_evolution/configs/`。
 入口与冻结/恢复约定见[方法说明](../../src/skill_evolution/README.md)。旧训练配方和训练器未恢复。
 详细协议见 [LLM 生成说明](../../docs/llm-skill-generation.md)。
+普通服务器的Actor/Judge部署、完整十任务新split与rolewise命令见[服务器指南](../../docs/server-runbook.md)。

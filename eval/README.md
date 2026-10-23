@@ -4,6 +4,8 @@
 `agent_eval/` runs MVAgent on locally supplied CVBench, MVU-Eval and CrossVid data. See the
 [root walkthrough](../README.md) for CrossVid preprocessing, fixed inference and
 CCQA judging, and [the runner guide](agent_eval/README.md) for all CLI options.
+For a fresh server, the [data acquisition and preparation guide](../docs/data-preparation.md)
+provides official download sources, pinned revisions, directory layouts and known media issues.
 
 | Entry | Purpose |
 |---|---|
