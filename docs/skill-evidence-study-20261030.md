@@ -118,6 +118,38 @@ Selector只看到`when_to_use`而看不到`strategy`，因此同输入下三种�
 
 ## 远端资产与状态
 
+### 首个新父子对照：完成，净收益接近零
+
+恢复节点于19:09 UTC完整完成，controller exit0并释放8H100。CPU `ap-XGmCfcgzO9ukST5LCUsZhK` 完成80份raw逐SHA核验、官方加权总分复算及真实注入检查。
+产物为新卷`skill_evidence_20261030/first-pair-analysis-20261030-191102/`，含分析脚本、全部输入hash及汇总；没有新Judge或修改原分。
+
+| 新Train40条件 | 有效评分题次 | 官方总分 |
+|---|---:|---:|
+| 空库 | 40 | 39.45055% |
+| 候选区别取证，段落版，自然选择 | 40 | 39.64286% |
+| 配对差 | 40个不同题的配对 | **+0.19231pp** |
+
+逐题 **1改善 / 2退步 / 37同分**。NC的一个改善贡献总分+2.50pp，两个CCQA退步合计−2.30769pp；连续分和点评价权重使净题数与净总分不同。
+这是小Train开发信号，**不能称为稳定有效、Cal接受或泛化提升**。还没有比较本程序的三种排版，也没有测试其他七个程序。
+
+- 自然选中17/40题，23题none；none的23个终答全部与空库相同。
+- 选中后的40次Global决策请求确实含策略；17题取证参数变化、8题动作名序列变化、10题终答变化。变化本身不证明证据更真实。
+- Global决策调用109→106；analyze42→41、watch27→25；全部记录模型响应508→527（包含新增Selector开销）。
+- 1035个实际Actor/Selector响应全部为`qwen3_5_9b_local`；缓存计数完整且cached_tokens全0。80个成功raw的`attempt`原值均为0，不将原值自行解释成累计尝试成本。
+- 实际视觉传输为video_url：153→145个视频请求、190→179个video项目，image_url均0。不能据此声称零视频帧；逐请求解码帧数未由这份分析器测量。
+
+### 新发现：实际视频路径限制了FPS干预的含义
+
+已在运行中的7个Actor进程只读核对vLLM0.19.1、Transformers4.57.6与真实环境，未修改服务。
+`ApiVLMClient.chat_on_videos`发送video_url和fps，不调用前述图片编码函数；**517×292图片探针不能代表本轮视频实际输入尺寸**。
+
+安装库`vllm/multimodal/media/video.py:42–72`默认`num_frames=32`；默认OpenCV loader在`vllm/multimodal/video.py:358–388`取32、源帧数、duration×fps的较小值。
+7个Actor均没有VLLM_VIDEO环境覆盖，默认后端opencv。当前watch最多4视频，解码层上限因此比外层512计划更严格，通常至多128帧；Qwen后处理与temporal padding仍须按真实请求重放核对。
+**提高请求fps不一定增加实际帧数**，故不能将fps字段增加直接计为更密的有效取证。缩短目标窗口、改观察问题等仍需整题结果和实际采样检查。
+
+权重`video_preprocessor_config.json`的shortest_edge4096/longest_edge25165824用于视频总像素预算；安装库`transformers/models/qwen3_vl/video_processing_qwen3_vl.py`按时间×高×宽及32倍数resize，未施加最长边448。
+当前尚未报告模型后处理的实际H/W；拟只对已有Train请求作CPU媒体重放，不加载Actor、不生成回答，不改在途或历史配置。
+
 - 历史卷 `wxu-evolve-agent-runs-20261006` 的 inode 已达499614/500000（99.9%）；本轮不删旧 raw、评分、Judge、卡库或冻结源码。
 - 新研究卷 `wxu-evolve-agent-runs-20261030` 保存本轮结果，历史卷后续只读。首个聚合产物：`skill_evidence_20261030/baseline_comparison/summary.json`，包含分析脚本、自检和输入SHA，不含新推理。
 - 输入 SHA：9B `4ea9c503490970b2d64c744010db966926355ad407f1b0ebe4fdc12f387e8b1a`；27B `889bc349cf41bd55efc9d45822237703f50ee2e828cae81861bfda6f3cbb9b1e`；35B `63f8ecbbbaa65ff61ba569ed7e80b385c47676be68706642b4f49b038df05432`。
@@ -146,5 +178,6 @@ CPU `ap-TiTdJDivoBTJvQxyKlpCiX` 已完成修正后的自检与真实分配，冻
 该节点已由控制器释放，退出137是收尾终止结果；不能将0样本当成Skill负收益，也不能继续报告其运行中。
 已修复私有启动器的环境继承；CPU `ap-ZD6VP0saUnKwDchdOAtqNE` 在实际devbox镜像上跑通40题`_prepare_output`新建及resume，0 Actor/Judge调用。
 恢复尝试保留原Runtime、数据、库和7+1配置；原失败状态、日志和source脚本保留，恢复状态另存`node0/driver_status_attempt2.json`，控制文件在`attempt2_envfix/`。
-当前已完成：历史聚合、24库机械验收、新面板冻结；新 Skill 有效评分样本0。首个自然E2E尚待完成。
+当前已完成：历史聚合与Train80原件重审、24库机械验收、新面板冻结、首80个新有效评分题次（40个不同题）及完整配对。8H100已释放。
+当前无运行中GPU；下一步检查首对照的入口适用性并扩大其他程序测量。后续启动条件、步骤、排版与充分覆盖仍未完成，整体研究目标继续进行。
 完整模型回答、媒体、权重和生成结果不进入Git或Lightsail；本机保留源码、Markdown与私有控制脚本。研究目标尚未完成。
