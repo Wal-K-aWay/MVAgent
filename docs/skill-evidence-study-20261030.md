@@ -80,6 +80,30 @@ MVAgent 在这些同模型大多数格更高，但 RSI27 的 MVU 更高；AgentC
 
 ## 手写机制与测试顺序
 
+### 只读重审历史合法Train轨迹
+
+CPU `ap-DW9TD3g8Sn2YeVaKCkqOzx` 完成旧9B无skill Train80的80份raw SHA核验，**没有读取Cal/Gate，也没有新增推理或Judge**。
+原始根为历史卷`devbox/manual_skill_diagnostics_20261021/nineb/node0/evaluations/1dea07ba6d17ff67eb714db06082a162f76012a28d2c8ecc5ad832ab33f1c184/train/`；
+新审读产物在新卷`skill_evidence_20261030/historical_train_audit/`，保留脚本、原件hash和6个按原清单顺序取的Global公开摘录，没有按成绩挑例。
+
+| 可观察行为 | 数量与分母 | 可支持的解释 |
+|---|---:|---|
+| Global analyze / watch / answer | 88 / 36 / 80次 | 存在多轮和联合观看，但调用本身不是有效证据证明 |
+| Global强制终答 | 2/80题 | 这批多数题主动终答；不能把主要缺口一概归于步数耗尽 |
+| Video调用 | 239次 | 与题数分开计 |
+| observe成功 / error | 259 / 15次，共274次 | 不将工具失败当视觉证据 |
+| 同一request完全相同observe参数重复 | 32次，涉及12/239个request | 需要审读是否有新增信息；重复不自动等于无效 |
+| request无新增observe、复用此前观察 | 18/239次 | 合法Memory复用，不是缺少观察的失败 |
+| finish缺少同视频累计可用观察 | 0/236次finish | 不支持“每次调用都必须重看”的通用规则 |
+
+两个公开证据链示例不依赖视觉GT：
+
+- 一题要求某条件在三个视频均成立；第一份报告并未支持该条件，Global仍在终答理由中声称三者共同满足。它暴露的是**报告到量词结论之间的支持缺口**，不据此判断原视频事实。
+- 另一题的一个Video反复返回“达到步数上限且没有观察”；Global重复同一委派后，将该未知视频当作可排除项，并称现有证据足够。它暴露**失败后的行动恢复与未知项处理**，不把失败本身当作否定观察。
+
+字面时间检查只覆盖9个含显式时间表达的Video instruction，其中7次observe比较未发现数字从`what`遗漏；这是狭窄负证据，不能据此判定语义、时间对应或边界正确，也不能默认“重复更多时间字样”就是主要修复。
+整题分数不作为每份Video报告的正确性标签；本轮尚未用局部视觉GT证明观察、报告或Global哪一层是主因。
+
 第一批为 4 Global / 4 Video 新编程序，每个程序 3 种排版，共24个非空单卡整库，详见[英文库与索引](../src/mvagent/skills/skill_sets/manual-study-20261030/README.md)、[完整中文镜像](manual-study-skills-zh.md)。
 每种排版固定相同的 `meta`、`when_to_use`、操作句和句序，只改变连接、编号、小标题；这种构造仍会改变 token 与注意力，不保证执行输出相同。
 Selector只看到`when_to_use`而看不到`strategy`，因此同输入下三种正文排版不能直接改变它的偏好；排版测试测的是Actor执行效用。Video后续instruction变化引起的选卡变化须另行归因。
