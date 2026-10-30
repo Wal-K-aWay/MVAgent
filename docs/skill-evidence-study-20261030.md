@@ -179,5 +179,13 @@ CPU `ap-TiTdJDivoBTJvQxyKlpCiX` 已完成修正后的自检与真实分配，冻
 已修复私有启动器的环境继承；CPU `ap-ZD6VP0saUnKwDchdOAtqNE` 在实际devbox镜像上跑通40题`_prepare_output`新建及resume，0 Actor/Judge调用。
 恢复尝试保留原Runtime、数据、库和7+1配置；原失败状态、日志和source脚本保留，恢复状态另存`node0/driver_status_attempt2.json`，控制文件在`attempt2_envfix/`。
 当前已完成：历史聚合与Train80原件重审、24库机械验收、新面板冻结、首80个新有效评分题次（40个不同题）及完整配对。8H100已释放。
-当前无运行中GPU；下一步检查首对照的入口适用性并扩大其他程序测量。后续启动条件、步骤、排版与充分覆盖仍未完成，整体研究目标继续进行。
+进一步只读核验3个有分差Train的Global公开输入/终答：两个退步输入明确为open-ended比较、没有Options列表，仅有Video A/B源标签；唯一改善输入有显式A/B/C/D选项并要求单字母。
+该观察定位到一个具体入口适用性错误，不依据视觉GT判断过程真假。新入口只改`when_to_use`，明确要求问题有带标签的候选答案列表，区分视频标签和答案选项；meta和全部strategy逐字不变。
+新库SHA `35fbe7b62f2fb0ba9dd1e20915289f46b7e5f4669f81816cdb68cd26e7f49b77`，见[谱系](../src/mvagent/skills/skill_sets/manual-study-20261030/entry_refinement.json)及[中文镜像](manual-study-skills-zh.md)。新when尚无精度结果。
+
+下一批预声明：冻结Train轮换前120个不同题，3批各40，每批空库＋8个原段落程序＋1个新入口，共最多1200评估题次。
+其中首80严格按身份与rawSHA复用，计划新增最多1120；CPU `ap-2fMCvejIZPHGNxRqsD2qHh` 已直接调用现有Evaluator的缓存分支验证80复用、0新rollout/0Judge，并校验新卡仅when不同。
+第一批先核两缓存，再测新when，随后其余7个程序；后两批10库均自然评估，不按Train高低筛。伙伴角色固定空库，不查询Cal/Gate。
+单节点8H100，最多4小时，2小时后停止派发新40题单元、保留收尾；未完成标unfinished，不填零分。120题有历史接触及来源相关，不称统计独立。
+后续启动条件、步骤、排版与充分覆盖仍未完成，整体研究目标继续进行。
 完整模型回答、媒体、权重和生成结果不进入Git或Lightsail；本机保留源码、Markdown与私有控制脚本。研究目标尚未完成。

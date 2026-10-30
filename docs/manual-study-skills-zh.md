@@ -241,3 +241,19 @@ instruction 要求细粒度动作细节、短暂局部事件，或依赖可执�
 Train 依据：docs/skill-exploration-results.md: Train local-video invalid observe at 0.92 seconds (all compared arms scored zero; no attributed new score loss)；docs/skill-research-handoff-20261022.md: 5.4 Video invalid observe description。
 
 英文库：[paragraph](../src/mvagent/skills/skill_sets/manual-study-20261030/1ccaf9f469aa727f310bd6e5fbde9bb084ba52ab6a1d9138075aa5148d089888.json)、[numbered](../src/mvagent/skills/skill_sets/manual-study-20261030/271050b5f087248275009451148ca31a59c61bcfbd0067b5804a5bce3a3a6641.json)、[headings](../src/mvagent/skills/skill_sets/manual-study-20261030/861c76dc1763dc6347f227dcd5f679d96b7c088da7cc27e05eaed471545b698e.json)。
+
+## Train 修订：候选答案列表须明确存在（未测试）
+
+英文权威新库：[35fbe7b62f2fb0ba9dd1e20915289f46b7e5f4669f81816cdb68cd26e7f49b77](../src/mvagent/skills/skill_sets/manual-study-20261030/35fbe7b62f2fb0ba9dd1e20915289f46b7e5f4669f81816cdb68cd26e7f49b77.json)。父库为 `21266c1682095f496c3951c769471728dddeccac935c4035a5a4fa76bad66d5e`，对应第 2 张 `global_option_discrimination` 的 paragraph 排版。
+
+### 新 when_to_use 完整中文镜像
+
+仅当问题明确提供带标签的候选答案列表，并要求从该列表中选择答案，且能够通过视频中的可见事实或关系区分这些候选时使用。围绕这些候选答案之间的区别获取中立证据。输入视频列表、源视频标签、对象标记或比较两个视频本身，都不构成答案选项列表。不要用于开放式描述、解释，或没有明确候选答案列表的比较问题。
+
+### strategy 与 meta
+
+新库 `meta` 与父库完全相同；`strategy` 逐字节等于父库的 paragraph 正文，完整中文镜像仍为本文件第 2 节的全部 6 个操作句，没有增加或删除执行条件。本次仅将必需的“明确答案选项列表且要求从中选择”前提写入入口，排除源视频标签等近邻误解。
+
+### Train 依据与状态
+
+只审读首批发生变化的 3 个 Train Global 公开问题输入及终答；其中可见开放式比较没有答案列表，另有带标签候选列表并要求选择的问题。该观察支持检验入口条件，尚未证明改写能改善最终准确率。本候选未测试，没有读取确认分区案例用于修订；离线谱系与证据范围保存在 `entry_refinement.json`。原 24 库及 `manifest.json` 不变，本修订不计为第 9 个独立机制。
