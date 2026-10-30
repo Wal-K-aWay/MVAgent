@@ -187,5 +187,8 @@ CPU `ap-TiTdJDivoBTJvQxyKlpCiX` 已完成修正后的自检与真实分配，冻
 其中首80严格按身份与rawSHA复用，计划新增最多1120；CPU `ap-2fMCvejIZPHGNxRqsD2qHh` 已直接调用现有Evaluator的缓存分支验证80复用、0新rollout/0Judge，并校验新卡仅when不同。
 第一批先核两缓存，再测新when，随后其余7个程序；后两批10库均自然评估，不按Train高低筛。伙伴角色固定空库，不查询Cal/Gate。
 单节点8H100，最多4小时，2小时后停止派发新40题单元、保留收尾；未完成标unfinished，不填零分。120题有历史接触及来源相关，不称统计独立。
+本批已于19:26 UTC提交，节点`sb-ixcudMa83Y9DvDLj6ePJkO`，19:43实际阶段为加载Judge；7个Actor约225秒就绪，实际模型、profile与缓存关闭已核验。新入口和其余机制仍待完整评分，不将服务就绪计作有效样本。
+状态写入新卷`skill_evidence_20261030/phase2/driver_status.json`；只有完整40题的`evaluation.json`计入机制比较，半成前缀另报进度。
+CPU媒体重放尚未完成：日志写入时`_safe_event`将data URL脱敏为SHA和长度，不能把记录里的对象当作Base64解码。原生解码器默认值的源码证据仍成立，但实际tensor尺寸及temporal padding没有据此得到验证。
 后续启动条件、步骤、排版与充分覆盖仍未完成，整体研究目标继续进行。
 完整模型回答、媒体、权重和生成结果不进入Git或Lightsail；本机保留源码、Markdown与私有控制脚本。研究目标尚未完成。
