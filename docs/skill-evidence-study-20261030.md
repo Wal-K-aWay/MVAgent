@@ -136,5 +136,15 @@ CPU `ap-TiTdJDivoBTJvQxyKlpCiX` 已完成修正后的自检与真实分配，冻
 自然选卡，伙伴角色为空，不查询Cal/Gate；最大4小时分配（含启动与收尾，最多32GPU·小时），首次父子单元完成立即分析。
 候选文件SHA `21266c1682095f496c3951c769471728dddeccac935c4035a5a4fa76bad66d5e`；冻结Runtime代码67a6d15，卡片来源54159c5。
 每库仅1张卡，未触发embedding检索，不把未参与运行的embedding模型更换解释为收益。
+首Train40与旧296清单有2个题号交集（其中旧Train1题），与旧365题号无交集；不能称为40个历史未接触题。
+旧Train80原manifest的Runtime snapshot SHA为`d1686258737d5649926128d898cb6863f10e04a945d4bfdd8451cdff3a9affca`，本轮冻结树为`e6fc095e8b62db776684058ca89195b4b613da35ac8995900829aaa08647b591`。
+未建立两者完整可复用身份，因此不导入或伪造旧缓存；本次是新合同允许的新开发分区初始参照，不是三基准旧主表回补。
+首请求app `ap-JpU84Q3eIfHW8zZvU9JlrF`、sandbox `sb-OGA6ZOLwUO45onXrrP9Ppw` 已创建，18:27 UTC仍无容器任务，`poll=None`且主控制器存活，未得到新rollout。
+节点获取阶段预算15分钟；若仍未启动，先确认终止该排队请求，再缩至4H100保留同一80题及单副本协议，另记尝试，不并发重复提交。
+18:29:26 UTC核对时原8卡已获得task，因此取消分支没有执行、4卡方案没有提交。7个Actor约236秒启动成功，实际profile、BF16、seed0、关闭prefix/MM cache和7个独立H100身份均已核验，Judge也成功就绪。
+首尝试随后在原生CLI导入阶段失败：私有启动器未将`PYTHONPATH`传给评测子进程，报`ModuleNotFoundError: models`，没有进入问题推理。
+该节点已由控制器释放，退出137是收尾终止结果；不能将0样本当成Skill负收益，也不能继续报告其运行中。
+已修复私有启动器的环境继承；CPU `ap-ZD6VP0saUnKwDchdOAtqNE` 在实际devbox镜像上跑通40题`_prepare_output`新建及resume，0 Actor/Judge调用。
+恢复尝试保留原Runtime、数据、库和7+1配置；原失败状态、日志和source脚本保留，恢复状态另存`node0/driver_status_attempt2.json`，控制文件在`attempt2_envfix/`。
 当前已完成：历史聚合、24库机械验收、新面板冻结；新 Skill 有效评分样本0。首个自然E2E尚待完成。
 完整模型回答、媒体、权重和生成结果不进入Git或Lightsail；本机保留源码、Markdown与私有控制脚本。研究目标尚未完成。
