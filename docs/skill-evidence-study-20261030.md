@@ -82,6 +82,7 @@ MVAgent 在这些同模型大多数格更高，但 RSI27 的 MVU 更高；AgentC
 
 第一批为 4 Global / 4 Video 新编程序，每个程序 3 种排版，共24个非空单卡整库，详见[英文库与索引](../src/mvagent/skills/skill_sets/manual-study-20261030/README.md)、[完整中文镜像](manual-study-skills-zh.md)。
 每种排版固定相同的 `meta`、`when_to_use`、操作句和句序，只改变连接、编号、小标题；这种构造仍会改变 token 与注意力，不保证执行输出相同。
+Selector只看到`when_to_use`而看不到`strategy`，因此同输入下三种正文排版不能直接改变它的偏好；排版测试测的是Actor执行效用。Video后续instruction变化引起的选卡变化须另行归因。
 它们不作为自动进化种子；人工诊断与后续正式空库进化谱系分开记录。
 
 先测新合法 Train 的空库和单个候选自然 rollout，产出第一份完整父子对照，再扩大程序与样本覆盖。
@@ -99,5 +100,17 @@ MVAgent 在这些同模型大多数格更高，但 RSI27 的 MVU 更高；AgentC
 - 数据容量检查CPU `ap-WCVmH3XZ3bwyua3NwaqcHG` 完成：9015−2500=6515；PI151题/22来源组、NC887题/18来源组，是分区容量约束。这里只是声明来源键的连通组，不把它当作完整实体来源真值。
 - 首次聚合脚本通过自检，但旧文件缺 `task_population` 导致正式统计停止；已改为直接从冻结全量题集推导分层权重后完成。原件未改，无Actor或Judge重跑。
 
-当前已完成：上述历史聚合、24库编写；新 Skill 有效评分样本0。新数据冻结、运行时卡片校验和首个自然E2E尚待完成。
+CPU `ap-c9Yd3AMpqoAnlM7EkarfWN` 已验证24库的runtime parser、渲染、字节SHA及同句同序构造；实际预处理函数的1600×900图片得到517×292，面积上限151200像素，没有最长边448硬截断。该CPU证据尚不替代模型实际请求审计。
+首个来源分配未填满PI16题、NC14题，未写可运行manifest；改为先分配最大剩余来源组，保留首次不足审计，未按分数改题或放宽隔离。
+CPU `ap-TiTdJDivoBTJvQxyKlpCiX` 已完成修正后的自检与真实分配，冻结 Train2000 / Cal400 / Gate400：
+`prepared_v2/manifest.json` SHA `7bcdaae229e6c540f221d0bff5ef6d52727ee78a640a0b8bab3482b39fa0f69e`；
+首Train40 SHA `14037e3378243d04c86fc76dabe8b3fff6a7dec8d93d0681afea184efd3f67d8`。
+三个分区在声明视频/UAV来源键的连通组上互斥；其中与Lite来源共享题数为Train1665、Cal292、Gate294。
+完整2800题中1902/560题分别与旧296/365面板共享来源；两数可重叠。这里是**历史来源有接触的开发条件**，不是对所有历史或潜在实体关联的来源外确认。
+
+首个GPU单元预声明：单节点8H100、仅新Train40；空库40＋`global_option_discrimination`段落版40，共最多80题次、40不同题。
+自然选卡，伙伴角色为空，不查询Cal/Gate；最大4小时分配（含启动与收尾，最多32GPU·小时），首次父子单元完成立即分析。
+候选文件SHA `21266c1682095f496c3951c769471728dddeccac935c4035a5a4fa76bad66d5e`；冻结Runtime代码67a6d15，卡片来源54159c5。
+每库仅1张卡，未触发embedding检索，不把未参与运行的embedding模型更换解释为收益。
+当前已完成：历史聚合、24库机械验收、新面板冻结；新 Skill 有效评分样本0。首个自然E2E尚待完成。
 完整模型回答、媒体、权重和生成结果不进入Git或Lightsail；本机保留源码、Markdown与私有控制脚本。研究目标尚未完成。
