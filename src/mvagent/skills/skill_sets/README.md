@@ -11,6 +11,8 @@ SHA256；同一库可包含 Global 和 Video 卡，Runtime 按 role/stage 过滤
 
 ## 当前库
 
+新增[2026-10-30手写研究资源](manual-study-20261030/README.md)：8个机制、24个排版快照，尚无本轮准确率证据，不自动加载或作为自动进化种子。
+
 另有[研究用16份独立快照](research-20261022/README.md)，供接续父库、强一次生成、格式对照及未测机制候选；它们不替换默认配置。
 
 [`deepseek-flash-20261021/7da609f63fda7c4fb1c446b477fc5663b15c9d77487784a12fcbd27b8d52b049.json`](deepseek-flash-20261021/7da609f63fda7c4fb1c446b477fc5663b15c9d77487784a12fcbd27b8d52b049.json)

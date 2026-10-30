@@ -7,7 +7,7 @@ MVAgent 接收一个问题和多个视频，由 **GlobalAgent** 管理全局取�
 这是面向新研究员的普通服务器交接版本，不依赖原作者的Modal账号、私有会话说明或远端控制器。
 新环境使用H20，GPU数量和Actor/Judge资源分配由接手者按实际资源配置；历史H100结果仅作为参考。
 
-当前研究排程唯一入口是[skill自进化推进方案](docs/skill-experiment-plan.md)：**无skill和无反馈一次生成只读复用，不再生成或评测**，新硬件、缓存缺失和恢复场景也不例外。
+最新研究入口是[2026-10-30系统对比与手写Skill实验](docs/skill-evidence-study-20261030.md)：新合同允许新开发分区的空库起点，取代下方旧H20研究排程与非空父库接续限制；三基准旧无skill主表和一次生成结果继续只读复用。
 先完成安装，再按运行手册用非空进化父库476532做**自有视频单题演示 → 十任务小规模推理 → Train父子库机制测量**。
 单题演示不要求下载完整CrossVid，也不需要Judge或optimizer；研究历史可以在第一次成功运行后阅读。
 
@@ -15,7 +15,7 @@ MVAgent 接收一个问题和多个视频，由 **GlobalAgent** 管理全局取�
 |---|---|
 | 1. [新服务器运行手册](docs/server-runbook.md) | 安装、模型与资源配置、首次运行及成功判据，再进入批量研究 |
 | 2. [数据下载与预处理](docs/data-preparation.md) | 做benchmark前阅读：CrossVid历史缺失文件恢复、一键预处理、CVBench/MVU-Eval布局 |
-| 3. [研究推进方案](docs/skill-experiment-plan.md) | 当前目标、实验顺序、停止规则与待完善的进化能力 |
+| 3. [最新研究](docs/skill-evidence-study-20261030.md) | 最终历史系统对比、手写机制与本轮实测状态；[旧方案](docs/skill-experiment-plan.md)保留历史范围 |
 | 4. [研究交接](docs/research-handoff.md) | 架构、真实实现状态、已有结果、限制与未完成项 |
 | 5. [研究资源目录](src/mvagent/skills/skill_sets/research-20261022/README.md) | 16份原字节skill快照、用途与SHA；不自动启用 |
 | 历史参考：[固定基线协议](docs/baseline-reproduction.md) | 原H100流程留档，不是当前重跑指令 |
@@ -126,4 +126,4 @@ Global整题、Video单次请求沿用首次选择。完整边界见[运行时�
 当前库和split可以直接用于新实验，但不能仅凭它们重建全部旧运行或直接`--resume`。
 本仓库不包含模型权重、视频、凭据、私人AGENTS/会话笔记。更多目录与历史来源见[仓库说明](docs/repository.md)。
 
-后续开发按[Skill自进化研究推进方案](docs/skill-experiment-plan.md)推进：只读复用无skill与一次生成结果，通过基础机制实验决定反馈、编辑和连续进化功能的完善，不重复基线或铺开模型/卡片组合。
+当前按[2026-10-30研究记录](docs/skill-evidence-study-20261030.md)推进，先分析历史轨迹并测试手写Skill；不把旧接口或历史计划当作新实验已实现的证据。

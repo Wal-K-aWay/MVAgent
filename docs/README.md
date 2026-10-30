@@ -1,8 +1,8 @@
 # 文档导航
 
 当前代码面向普通GPU服务器；历史H100/Modal实验说明不是新机资源配置要求。
-研究排程唯一入口是[自进化推进方案](skill-experiment-plan.md)：无skill和无反馈一次生成只读复用，不重新生成或评测。
-先按当前操作文档用非空父库接入，再根据要修改的部分阅读方法规范。带日期的报告用于追溯证据，不用作当前作业状态。
+最新研究为[2026-10-30系统对比与手写实验](skill-evidence-study-20261030.md)，其新合同允许新开发分区的空库起点，取代此前非空父库接续与H20研究限制。
+[10月22日方案](skill-experiment-plan.md)及非空父库手册保留其历史适用范围；三基准旧基线与一次生成结果继续只读复用，不重跑主表。带日期的报告不等于当前作业状态。
 
 ## 当前操作
 
@@ -10,7 +10,7 @@
 |---|---|
 | 第一次安装和运行 | [服务器运行手册](server-runbook.md)：非空父库单题演示、十任务检查、Train/Cal/Gate分区评估 |
 | 下载和处理数据 | [数据准备](data-preparation.md)：CrossVid当前版本与缺失历史媒体、验收、CVBench/MVU |
-| 决定下一步实验与开发 | [自进化推进方案](skill-experiment-plan.md)：当前排程与约束，结果决定后续投入 |
+| 决定下一步实验与开发 | [系统对比与手写实验](skill-evidence-study-20261030.md)：最新合同、已测结果与待测边界 |
 | 查已有事实与限制 | [研究交接](research-handoff.md)：已实现/未实现、完整结果与原件边界 |
 | 寻找代码入口 | [仓库分层](repository.md)、[工具目录](../scripts/README.md)、[评测目录](../eval/README.md) |
 | 选一个已有库或split | [库目录](../src/mvagent/skills/skill_sets/research-20261022/README.md)、[清单目录](../configs/skill_evolution/splits/README.md) |
@@ -47,4 +47,4 @@
 | 手工卡片与中文镜像 | [Global](manual-global-skills-zh.md)、[Video](manual-video-skills-zh.md)、[watch-first](manual-watch-first-skills-zh.md)、[时间锚点](manual-global-temporal-single-skill.md)、[终答控制](manual-global-terminal-skill.md)、[Video边界](manual-video-scope-skill.md) |
 
 Git包含代码、配置、精选库与报告；Release包含已经公开的精简结果包。
-完整历史研究rollout、Judge缓存和optimizer请求并未全部迁入GitHub。新机可创建合法的非空父子库测量，不能仅凭Git clone恢复任意旧run，也不能因恢复失败fresh启动空库。
+完整历史研究rollout、Judge缓存和optimizer请求并未全部迁入GitHub，不能仅凭Git clone恢复任意旧run。新实验是否允许空库以当次研究合同为准，不因旧run恢复失败自行补测。

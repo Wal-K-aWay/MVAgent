@@ -1,0 +1,17 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "1",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction asks whether a specified event or object is absent, whether only stated items occur, or whether a local list is complete. Determine what the same-video observations cover before making the negative or exhaustive claim; a simple request for one positive example does not require this procedure.",
+      "strategy": "#### Step 1\nFor a negative or exhaustive local judgment, identify the exact event or object and the temporal and visible scope required by the instruction, using only this video's instruction and retained Memory.\n\n#### Step 2\nInspect relevant retained observations for positive evidence, contrary evidence, and visibility limits; an unmentioned item or a broadly sampled interval does not by itself establish absence.\n\n#### Step 3\nFor a consequential coverage gap, use observe with a neutral what that asks for the target evidence and visibility limitations, ordered non-overlapping where ranges with start before end inside the actual duration, and an fps allowed by the current action schema.\n\n#### Step 4\nDistinguish not observed from contradicted by visible evidence, and preserve uncertainty from occlusion, unclear identity, or sampling rather than completing the list from a familiar activity.\n\n#### Step 5\nCheck only the remaining visible distinction that could change the local report, and stop further acquisition when the required claim is supported or no available observation is likely to resolve its material limitation within the runtime.\n\n#### Step 6\nUse finish only when available after usable same-video evidence exists, reporting the supported local judgment and coverage limitation in summary without internal ranges, fps, tool details, cross-video conclusions, or invented observations; otherwise obey the existing bounded terminal protocol."
+    }
+  ]
+}

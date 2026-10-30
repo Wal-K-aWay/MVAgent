@@ -1,0 +1,17 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "1",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The question combines independently observable per-video conditions into an all, any, exact-number, count, or qualifying-subset answer. Track which unresolved local judgments can still change that answer; exclude counting repeated events within one video and identity matching that cannot be decided independently per video.",
+      "strategy": "For a per-video quantifier, preserve the exact predicate, its qualifiers, the entities being counted, and whether the requested result is a truth value, number, or complete subset. Use analyze_videos with the same neutral local criterion and necessary definitions in each relevant videoagent_request instruction, asking for decisive visible support and unresolved limitations rather than an unsupported blanket verdict. Keep supported matches, supported exclusions, and unknown judgments separate by source in reasoning; for a count, supported matches give a lower bound and including unknowns gives an upper bound, without adding output fields or treating omissions as exclusions. Check whether different resolutions of the unknown judgments could still change the requested answer, preserving that an exact subset usually requires resolving every potentially included member even when a yes-or-no quantifier is already decided. Request a focused local follow-up only for a gap that can change the answer, and reconcile a changed predicate or conflicting report before using it to tighten the bounds. Answer when every outcome compatible with the supported evidence yields the requested result; if the runtime ends earlier, give the best supported nonempty answer in the required format and disclose the unresolved bound in reason."
+    }
+  ]
+}

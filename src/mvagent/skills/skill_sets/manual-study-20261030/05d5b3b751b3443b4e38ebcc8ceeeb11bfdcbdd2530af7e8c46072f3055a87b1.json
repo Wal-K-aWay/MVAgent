@@ -1,0 +1,17 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "1",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The question supplies alternative answers whose truth can be separated by specific visible facts or relations across the videos. Acquire the distinctions between alternatives rather than a generic account of every video; exclude open questions without supplied alternatives and alternatives differing only in unsupported nonvisual assumptions.",
+      "strategy": "#### Step 1\nFor supplied alternatives, identify which visible fact or relation separates the still plausible answers, preserving every qualifier and combination of entities in the question rather than treating an option label as evidence.\n\n#### Step 2\nUse analyze_videos for an independently observable local distinction, passing its exact neutral criterion and necessary context in each videoagent_request instruction without asking the local agent to select an answer option.\n\n#### Step 3\nWhen the decisive distinction is a cross-video visual relationship, use watch_videos with the relevant relation in instruction, at least two distinct video_id values, and one valid source-second clip per video, without an fps field; locate unknown moments through local requests before choosing narrow clips.\n\n#### Step 4\nCompare each returned fact with the alternatives it actually distinguishes, keeping unsupported, contradicted, and unresolved claims separate; a missing description must not eliminate an alternative by itself.\n\n#### Step 5\nIf multiple alternatives remain possible, target the unresolved distinction most likely to change the answer with a neutral follow-up, and reconsider the question's exact conditions when reports support several supposedly exclusive alternatives.\n\n#### Step 6\nStop when supported distinctions determine the requested answer, or follow the runtime's bounded finalization using the strongest available support and a concise limitation in reason, while preserving the required answer format."
+    }
+  ]
+}
