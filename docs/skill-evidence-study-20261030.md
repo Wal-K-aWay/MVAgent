@@ -1,6 +1,6 @@
 # 无 Skill MVAgent 对比与手写 Skill 研究（2026-10-30）
 
-本轮先做历史逐题配对分析与手写机制实验，为后续自动迭代提供依据。**研究进行中，尚未得到本轮新 Skill 的准确率结果。**
+本轮先做历史逐题配对分析与手写机制实验，为后续自动迭代提供依据。**研究进行中，已有小规模Train增损，完整机制、排版和步骤覆盖尚未完成，也没有Cal/Gate确认。**
 本报告的系统对比属于隔离的评测分析，不向 Skill、optimizer、Meta 经验或检索索引传递评测题目、逐题反馈、轨迹及其诊断。
 手写卡片仅依据历史合法 Train 的公开缺口重新编写，具体来源与已知继承关系见[资源目录](../src/mvagent/skills/skill_sets/manual-study-20261030/README.md)。
 
@@ -62,7 +62,7 @@ Cross 含连续分，改善题数减退步题数不能直接转换成总分差�
 
 ### 与其他 Agent 的系统参照
 
-以下数值只读引述原发布统计，尚未在本轮重建这些方法的逐题配对，不混入上述重新核算计数。
+以下为原发布统计；其后另列本轮已完成的五组逐题配对。保留方法各自的预算、工具及基础设施失败口径，不能把原表视作同一计算预算的架构比较。
 
 | 方法 / 骨干 | CV997 | MVU1824 | Cross2500 |
 |---|---:|---:|---:|
@@ -77,6 +77,20 @@ Cross 含连续分，改善题数减退步题数不能直接转换成总分差�
 MVAgent 在这些同模型大多数格更高，但 RSI27 的 MVU 更高；AgentCVR 的 Cross 高于 MVAgent9B，骨干不同。
 工具、预算、音频、模型训练和基础设施失败口径有差别，不能据此宣称架构本身全面更优。
 来源：[MVAgent](https://github.com/Wal-K-aWay/MVAgent/releases/tag/mvagent-results-20261019)、[Video-RSI](https://github.com/Wal-K-aWay/MVAgent/releases/tag/video-rsi-results-20261020)、[LensWalk](https://github.com/Wal-K-aWay/MVAgent/releases/tag/lenswalk-results-20261019)、[AgentCVR](https://github.com/Wal-K-aWay/MVAgent/releases/tag/agentcvr-results-20261018)。
+
+CPU `ap-hrqpE1rFQuha4LuGlcoT9a` 已按保留索引逐流核验7组×5文件的大小、SHA与行数，复用原239条CCQA缓存，0新Actor/Judge。五组通过发布总分、当前官方闭题评分及完整5321题ID配对；产物为新卷`skill_evidence_20261030/other-agent-comparison-20261030-200829/`。这是历史结果分析，不是新增独立测量。
+
+| MVAgent − 同骨干方法（pp） | CV997 | MVU1824 | Cross2500 | Cross已记录Agent秒：MVAgent / 对方 |
+|---|---:|---:|---:|---:|
+| LensWalk9B | +8.22 | +14.20 | +10.23 | 66.30 / 193.94 |
+| LensWalk27B | +8.43 | +21.38 | +14.81 | 126.84 / 302.64 |
+| Video-RSI9B | +6.52 | +3.89 | +5.81 | 66.30 / 157.91 |
+| Video-RSI27B | +2.31 | −0.77 | +4.92 | 126.84 / 384.67 |
+| Video-RSI35B | +5.12 | +2.85 | +7.80 | 130.43 / 417.65 |
+
+比较对象会改变强弱结论：相对这五组，CV多视频时间推理均为正（+12.16至+25.68pp），Cross MSR/PSS/CC/NC也均为正；但相对三种Video-RSI，MVU Comparison/KIR/RAG与Cross PEA均为负。相对Lens9B/27B，Cross CCQA为−6.27/−5.28pp、FSA为−15.88/−6.23pp。因而前面FSA相对E2E的优势不能外推为相对其他Agent的普遍优势；这些都是系统描述，不能回流卡片或Meta设计。
+排除对方明确标记的工程失败后，五组CV/Cross差仍为正；RSI27的MVU差从−0.77变为−1.84pp。该敏感性改变了题目子集，不是新的全量成绩或因果分解。秒数不含加载、Judge和视频准备，也不是总墙钟/重试成本；例如外部方法Cross视频准备均秒另约154–160，不能把表中Agent秒当完整等成本评测。
+两组保留未对齐：Lens35B有1条已存闭题分与当前CPU评分不一致；AgentCVR按当前CPU评分器得到CV56.97091%、Cross34.95377%，不同于原发布56.87/37.20，MVU仍44.02412%。旧代码确有CV映射、Cross答案parser及终态计分规则差异，完整差异归因另核；不替换原发布分，也不冒称已完成统一口径下这两组的能力配对。
 
 ## 手写机制与测试顺序
 
@@ -226,4 +240,20 @@ numbered对paragraph为1改善/3退步/36同分，−0.12908pp，探索95%题分
 后续启动条件、步骤、排版与充分覆盖仍未完成，整体研究目标继续进行。
 步骤写法另预登记8个compact候选：[谱系与资源](../src/mvagent/skills/skill_sets/manual-study-20261030/step_refinement.json)、[完整中文镜像](manual-compact-skills-zh.md)。它们仅改strategy，继承原meta/when，以paragraph保留核心程序及边界，缩减重复工具字段说明；原strategy193–224词，新129–149词。长度与步骤展开共同变化，不作为纯排版对照或完全语义等价改写。
 全部8个子库在相同前120题逐批自然评估，最多960新题次；所有对照直接复用同身份空库/原paragraph。CPU `ap-eVMNo2RbjArmR9pBCGSWKO` 已通过原生parser/render/word计数、SHA、仅strategy变更与120题计划检查，0 Actor/Judge/GPU；描述文件SHA `4c27e4ad09e8920faafe7a02012190b69377199f9671afe0c5ea09e6cb6721e5`，资源已存新卷`cards/`，`compact/preflight.json`为prepared_not_submitted。待现有节点释放并核资源上限后再分配，预算为单8H100、3小时新单元派发/4小时分配，未完记缺测。目前未提交，不按已测Train分数筛掉任何子库。
+单卡试验尚未测库内竞争与两角色耦合，另冻结3个八卡组合：原8paragraph、仅替换G2新when、原when的8compact。所有执行文字均按来源复制，只按机制顺序把引用ID唯一重编号1–8；每角色4候选，不触发embedding。来源与中文映射见[组合说明](manual-combined-skills-zh.md)及[谱系](../src/mvagent/skills/skill_sets/manual-study-20261030/combination_manifest.json)。三库全测同120题，最多360新题次，预备单8H100、2小时派发/3小时分配；尚未原生parser验收或提交。它们不是单卡内容干预，也不作为正式空库进化的种子。
+
+### 手工整库确认约定（Cal/Gate尚未执行）
+
+最初单卡资源从一开始就是Train机制诊断，不追认为自动搜索提案或接受结果；其排版、入口和步骤归纳保留Train范围。另冻结的三份完整双角色库A/B/C是本手工阶段的确认候选，**三者全部进入完整Cal400**，不根据Train成绩筛选，也不把确认结果用于改写卡片或Meta。
+
+| 本手工包 | 最大问题rollout题次 |
+|---|---:|
+| 33单卡诊断＋3整库＋共享空库，各同120题 | 4440 |
+| 三整库＋空库，各完整Cal400 | 1600 |
+| 条件性Gate：唯一冻结库＋空库，各400 | 800 |
+| 总计上限 | **6840** |
+
+上述题次含首80的严格缓存复用，实际新派发扣除已成功结果；历史系统重分析和CPU媒体重放不新增模型回答。不同条件重复同题不算新增独立样本。这个手工包不是8轮自动进化的执行，optimizer API仍0；题次上限没有超出研究文件8560题次的预算量级。
+Cal仅以完整官方总分选择：A/B/C最高者必须严格高于空库才保留，同分候选按冻结A→B→C顺序唯一选定。若无严格提升，保留空库，不为生成结果重复运行Gate。选定后冻结唯一库，再比较其与同协议空库的完整Gate；失败不换候选试Gate、不按Gate错题改卡。报告配对不确定性和来源限制，微小正差不称稳定泛化；目前没有确认通过。
+Cal节点准备采用两组8H100，各负责固定两个400题单元；维持总占用不超过16，启动前核所有已知节点已释放及当前本项目占用，未知占用直接停止分配。原预算、自然none、固定模型/媒体/评分与结果留Modal规则保持。
 完整模型回答、媒体、权重和生成结果不进入Git或Lightsail；本机保留源码、Markdown与私有控制脚本。研究目标尚未完成。
