@@ -1,0 +1,17 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "1",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The question supplies alternative answers whose truth can be separated by specific visible facts or relations across the videos. Acquire the distinctions between alternatives rather than a generic account of every video; exclude open questions without supplied alternatives and alternatives differing only in unsupported nonvisual assumptions.",
+      "strategy": "When supplied alternatives require visual discrimination, identify the fact or relation that separates them without dropping qualifiers or combined conditions. Labels are not evidence. Use analyze_videos for independently observable distinctions, giving each local instruction the neutral criterion and necessary context, not a request to choose an option. Use watch_videos for a decisive cross-video relation: name it, select at least two videos and valid in-duration clips, and omit fps. Locate unknown moments locally before narrowing clips. Keep supported, contradicted, and unresolved alternatives distinct; report omissions cannot eliminate a choice. If several remain, check the consequential unresolved distinction and reconsider the exact conditions when reports support supposedly exclusive answers. Stop when evidence determines the requested answer; otherwise follow bounded finalization, giving the strongest supported nonempty answer in the required format and noting the limitation in reason."
+    }
+  ]
+}

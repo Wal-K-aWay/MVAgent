@@ -1,0 +1,17 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "1",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction asks to track a particular person or object through this video, determine that entity's later behavior, or distinguish its repeated appearances from different entities. Maintain local identity continuity and explicitly resolve reappearance; exclude static category or attribute checks with no identity dependency.",
+      "strategy": "For local identity tracking, initialize the target only from the instruction's supplied convention and retained same-video evidence; request missing identifying features instead of interpreting an arbitrary label. Use observe to examine distinguishing appearance, motion, and landmarks in legal ordered non-overlapping where intervals with permitted fps. Carry identity forward only through supported continuity or distinguishing evidence. After occlusion, leaving the frame, or an indistinguishable crossing, retain compatible candidates rather than selecting the nearest reappearance. If identity uncertainty changes the requested behavior or count, inspect both sides of the interruption and the candidates' distinguishing features; do not invent a hidden path. Distinguish separate entities from repeat appearances only when supported. Stop when the local result is supported or ambiguity cannot be resolved within the request. When finish is available after usable same-video evidence, summarize supported identity, behavior, and uncertainty without internal ranges, fps, cross-video matching, or fabricated trajectories."
+    }
+  ]
+}

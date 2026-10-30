@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "study_id": "manual-compact-study-20261030",
+  "status": "untested",
+  "authorship": "Codex-authored strategy compression of all original eight Train-based mechanisms; no optimizer API generation.",
+  "changed_fields": [
+    "strategy"
+  ],
+  "format": "paragraph",
+  "mechanism_count": 8,
+  "bank_count": 8,
+  "word_target_scope": "100–160 strategy words; inherited when_to_use is unchanged and combined words are reported separately.",
+  "interpretation": "Joint diagnostic of execution-step granularity and text length; not a pure format intervention or a claim of complete semantic equivalence.",
+  "parent_manifest_sha256": "a21d542fcf4bbf8c04ccedc622ae8dd5eb1dc705cac4e506d90b66694a36883c",
+  "data_boundary": "Only original eight Train-based card procedures and their recorded Train design basis; no final benchmark comparisons, Gate diagnostics, GT or scoring points used.",
+  "planned_test": {
+    "all_candidates": true,
+    "different_Train_questions": 120,
+    "maximum_new_rollouts": 960,
+    "submitted": false
+  },
+  "mechanisms": [
+    {
+      "key": "global_dependency_closure",
+      "role": "global",
+      "parent_bank_sha256": "a01f8b5e80aa73c4f5f8d74f6b3a87021fd4561b250b1144147d31f8be0c9619",
+      "changed_fields": [
+        "strategy"
+      ],
+      "bank": {
+        "path": "3d763c9eeb3ed6ababe9007259e207718357fc53df39bde67b429bc731c1ac13.json",
+        "sha256": "3d763c9eeb3ed6ababe9007259e207718357fc53df39bde67b429bc731c1ac13",
+        "bytes": 1526
+      },
+      "parent_strategy_words": 220,
+      "strategy_words": 141,
+      "combined_words": 186,
+      "compression_difference": "Merge reference initialization and reuse, retain the sequential dependency and conditional joint check, and remove repeated request-field signatures.",
+      "counterexample": "Already supplied or adequately established anchors should be reused; independent requests should remain parallelizable.",
+      "train_basis": [
+        "docs/skill-feedback-iteration-20261022.md: Global委派的约定与依赖诊断 (Train public view)"
+      ],
+      "status": "untested"
+    },
+    {
+      "key": "global_option_discrimination",
+      "role": "global",
+      "parent_bank_sha256": "21266c1682095f496c3951c769471728dddeccac935c4035a5a4fa76bad66d5e",
+      "changed_fields": [
+        "strategy"
+      ],
+      "bank": {
+        "path": "f6dbd4c7a020c1e877ef85f712ea0b0feda2cd1d8dcd6fc6c265de2d1ea79adb.json",
+        "sha256": "f6dbd4c7a020c1e877ef85f712ea0b0feda2cd1d8dcd6fc6c265de2d1ea79adb",
+        "bytes": 1595
+      },
+      "parent_strategy_words": 196,
+      "strategy_words": 134,
+      "combined_words": 180,
+      "compression_difference": "Combine option qualification, local acquisition and remaining-choice checks; keep the original when unchanged rather than adopting the separate entry refinement.",
+      "counterexample": "A candidate containing several required conditions cannot be established by inspecting only one convenient difference.",
+      "train_basis": [
+        "docs/skill-exploration-results.md: 已观察到的传递问题 (Train public reports support multiple nominally exclusive alternatives)",
+        "docs/manual-global-skills-zh.md: 设计依据与可检验预期 (Train public-view criteria drift)"
+      ],
+      "status": "untested"
+    },
+    {
+      "key": "global_identity_candidates",
+      "role": "global",
+      "parent_bank_sha256": "b08090d7d125fd18eeafb0b7c372e64d34afbd0d124db6181837735822bd1436",
+      "changed_fields": [
+        "strategy"
+      ],
+      "bank": {
+        "path": "ea5d6c86faf4e2ecf05bfa1b788389c7f5f05c89143e2fbc0ed85c9f50ff7356.json",
+        "sha256": "ea5d6c86faf4e2ecf05bfa1b788389c7f5f05c89143e2fbc0ed85c9f50ff7356",
+        "bytes": 1638
+      },
+      "parent_strategy_words": 203,
+      "strategy_words": 137,
+      "combined_words": 185,
+      "compression_difference": "Merge candidate retention and feature checks, compress acquisition signatures, and retain initialization, elimination and unresolved-identity boundaries.",
+      "counterexample": "Category similarity questions need no physical-identity search; no correct candidate is guaranteed to be visible in every source.",
+      "train_basis": [
+        "docs/skill-feedback-iteration-20261022.md: Global委派的约定与依赖诊断 (Train view-specific object conventions)"
+      ],
+      "status": "untested"
+    },
+    {
+      "key": "global_quantifier_bounds",
+      "role": "global",
+      "parent_bank_sha256": "7434f8397ebc70bdcf0c6a105698e4e1d7872b876fd98f738d686d87d3c08f9d",
+      "changed_fields": [
+        "strategy"
+      ],
+      "bank": {
+        "path": "4f465281d95f7811cf18285cfa3f05fba6cbe95698bc38c76a3c44aeb5f95cd5.json",
+        "sha256": "4f465281d95f7811cf18285cfa3f05fba6cbe95698bc38c76a3c44aeb5f95cd5",
+        "bytes": 1479
+      },
+      "parent_strategy_words": 193,
+      "strategy_words": 129,
+      "combined_words": 172,
+      "compression_difference": "Merge predicate setup, count bounds and answer-dependent stopping; retain the exact-subset exception and conflict reconciliation.",
+      "counterexample": "A resolved yes-or-no question does not imply that an exact count or complete membership list is resolved.",
+      "train_basis": [
+        "docs/manual-global-skills-zh.md: 设计依据与可检验预期 (Train quantifier and predicate drift)",
+        "docs/manual-skill-results.md: Global简短库的已有轨迹核对 (Train unknown treated as exclusion)"
+      ],
+      "status": "untested"
+    },
+    {
+      "key": "video_negative_coverage",
+      "role": "video",
+      "parent_bank_sha256": "886af9a3e61a6d48c2cf06b6d8e97957df7586246d212fbdf753564d740cbd56",
+      "changed_fields": [
+        "strategy"
+      ],
+      "bank": {
+        "path": "c730c3d50cc923478071e6624e568bddc27588919748de42d98309497699de3e.json",
+        "sha256": "c730c3d50cc923478071e6624e568bddc27588919748de42d98309497699de3e",
+        "bytes": 1557
+      },
+      "parent_strategy_words": 198,
+      "strategy_words": 138,
+      "combined_words": 186,
+      "compression_difference": "Combine coverage review and negative-evidence distinctions, shorten observe/finish signatures, and preserve local-only evidence and uncertainty.",
+      "counterexample": "A positive example can resolve an existence question without exhaustive coverage; sparse observation cannot certify universal absence.",
+      "train_basis": [
+        "docs/manual-video-skills-zh.md: Train局部轨迹中的多判据与笼统结论缺口",
+        "docs/skill-exploration-results.md: 已观察到的传递问题 (Train evidence scope narrowing)"
+      ],
+      "status": "untested"
+    },
+    {
+      "key": "video_boundary_bracketing",
+      "role": "video",
+      "parent_bank_sha256": "3e46018cb2341818e3f4231d58c151809d427a706841cf3e35238e88f6adee30",
+      "changed_fields": [
+        "strategy"
+      ],
+      "bank": {
+        "path": "1d1eb682ea080fd7a9de9d8f015619deba515b10b819b6b47b40db71c795ecdd.json",
+        "sha256": "1d1eb682ea080fd7a9de9d8f015619deba515b10b819b6b47b40db71c795ecdd",
+        "bytes": 1509
+      },
+      "parent_strategy_words": 216,
+      "strategy_words": 142,
+      "combined_words": 181,
+      "compression_difference": "Merge endpoint setup and observation planning, retain both flanks and anchor rejection, and compress temporal report instructions.",
+      "counterexample": "A boundary outside the supplied visible material may remain unknown; coarse event order should not trigger unnecessary endpoint refinement.",
+      "train_basis": [
+        "docs/manual-video-skills-zh.md: Train时间要求未传入观察及终点缺失",
+        "docs/skill-exploration-results.md: 已观察到的传递问题 (Train crop edges used as event endpoints)"
+      ],
+      "status": "untested"
+    },
+    {
+      "key": "video_occlusion_identity",
+      "role": "video",
+      "parent_bank_sha256": "bc0c8bcb27056899178445dd8c307f5ac62620e391054e5c2e7f7ec1169931b4",
+      "changed_fields": [
+        "strategy"
+      ],
+      "bank": {
+        "path": "d4445ad2e10e19111a2b543ca96b48f4a381a6cd5cc48a071ed0aea653099003.json",
+        "sha256": "d4445ad2e10e19111a2b543ca96b48f4a381a6cd5cc48a071ed0aea653099003",
+        "bytes": 1699
+      },
+      "parent_strategy_words": 207,
+      "strategy_words": 146,
+      "combined_words": 190,
+      "compression_difference": "Merge target setup and reidentification, shorten observation signatures, and preserve ambiguity across occlusion and local report boundaries.",
+      "counterexample": "A static attribute can be answered without continuous tracking; complete disappearance can leave identity genuinely unresolved.",
+      "train_basis": [
+        "docs/skill-feedback-iteration-20261022.md: Train身份约定传递诊断为相关线索，未证明局部遮挡错误频率"
+      ],
+      "status": "untested"
+    },
+    {
+      "key": "video_observe_recovery",
+      "role": "video",
+      "parent_bank_sha256": "1ccaf9f469aa727f310bd6e5fbde9bb084ba52ab6a1d9138075aa5148d089888",
+      "changed_fields": [
+        "strategy"
+      ],
+      "bank": {
+        "path": "d3132336c3660dd08c821df83dc65406d77dc418550abb786185114ad3440a0e.json",
+        "sha256": "d3132336c3660dd08c821df83dc65406d77dc418550abb786185114ad3440a0e",
+        "bytes": 1641
+      },
+      "parent_strategy_words": 224,
+      "strategy_words": 149,
+      "combined_words": 192,
+      "compression_difference": "Merge valid planning and feedback correction, retain the uninformative-success branch and terminal limits, and remove repeated field explanations.",
+      "counterexample": "Successful and sufficient observations require no recovery; unsupported infrastructure explanations must not replace evidence.",
+      "train_basis": [
+        "docs/skill-exploration-results.md: Train local-video invalid observe at 0.92 seconds (all compared arms scored zero; no attributed new score loss)",
+        "docs/skill-research-handoff-20261022.md: 5.4 Video invalid observe description"
+      ],
+      "status": "untested"
+    }
+  ]
+}

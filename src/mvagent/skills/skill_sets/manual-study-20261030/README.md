@@ -48,3 +48,11 @@ Video Selector 的入口不依赖隐藏 Memory 或未来报错；工具恢复遵
 新库：[35fbe7b62f2fb0ba9dd1e20915289f46b7e5f4669f81816cdb68cd26e7f49b77](35fbe7b62f2fb0ba9dd1e20915289f46b7e5f4669f81816cdb68cd26e7f49b77.json)，父库：[21266c1682095f496c3951c769471728dddeccac935c4035a5a4fa76bad66d5e](21266c1682095f496c3951c769471728dddeccac935c4035a5a4fa76bad66d5e.json)。新库的 `meta` 与 paragraph `strategy` 逐字保持父库，未改写执行步骤、Actor 或 Selector。离线关系见 [entry_refinement.json](entry_refinement.json)，其中状态保留建库时未测试记录，实测见研究记录。首40题对原入口2改善/0退步，但选中率17→20/40；没有稳定收益结论。原 8 机制／24 排版文件及 `manifest.json` 保持原样。
 
 本次只从 Train 的 Global 公开问题输入和终答审读得到入口假设，不使用 Cal/Gate 或冻结评测案例。这是单独的启用条件修订，不是新增机制或新增排版；后续分数与原入口应在同协议、同题下比较。
+
+## Compact 执行候选（未测试）
+
+另写8个paragraph短执行版，strategy由原193–224词压缩到129–149词；每个子库只改strategy，meta和when_to_use逐字继承原paragraph父库，G2不混入新when。完整资源、父子SHA、字数、压缩差别及反例见[step_refinement.json](step_refinement.json)，[完整中文镜像](../../../../../docs/manual-compact-skills-zh.md)。
+
+保留前提、核心程序、未知/失败分支、停止条件与角色边界，压缩重复的工具字段说明。这同时改变步骤展开程度与文字长度，不是纯排版，也不声称完全语义等价。全部8个子库均计划在同120个Train题自然评估，最多960新增题次；没有按当前Train分数选卡，目前未提交、未测试。
+
+加上这8个执行修订，本目录共33个非空单卡快照（24排版+1入口+8执行），仍只有8个基础机制。初始manifest与全部旧快照保持原样；默认运行不自动加载这些库。

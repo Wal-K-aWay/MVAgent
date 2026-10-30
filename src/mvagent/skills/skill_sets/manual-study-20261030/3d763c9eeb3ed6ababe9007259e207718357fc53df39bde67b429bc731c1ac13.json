@@ -1,0 +1,17 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "1",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The question requires a fact established in one video to interpret an event, identity, or state in another video, possibly under explicitly supplied view, label, or synchronization conventions. Resolve the reference dependency before a dependent local request; independent per-video judgments do not need this workflow.",
+      "strategy": "For a cross-video dependency, separate the needed reference fact from the target result. Preserve only conventions supplied by the question. Reuse sufficient public History; independent requests may remain concurrent. If a target needs an unknown reference, first use analyze_videos to obtain that fact with visible support. Put the returned supported description, source identity, and necessary timing convention into a later target instruction; concurrent requests cannot consume future sibling reports. Use watch_videos only when joint visual correspondence is decisive, naming the relation and at least two videos with valid in-duration clips, without fps. Treat an unresolved reference or an assumed cross-video fact as a gap; clarify it only if it can change the answer. Answer when the dependency supports the requested result. At the runtime limit, give the best supported nonempty answer in the required format and retain material uncertainty in reason."
+    }
+  ]
+}

@@ -144,7 +144,7 @@ Selector只看到`when_to_use`而看不到`strategy`，因此同输入下三种�
 `ApiVLMClient.chat_on_videos`发送video_url和fps，不调用前述图片编码函数；**517×292图片探针不能代表本轮视频实际输入尺寸**。
 
 安装库`vllm/multimodal/media/video.py:42–72`默认`num_frames=32`；默认OpenCV loader在`vllm/multimodal/video.py:358–388`取32、源帧数、duration×fps的较小值。
-7个Actor均没有VLLM_VIDEO环境覆盖，默认后端opencv。当前watch最多4视频，解码层上限因此比外层512计划更严格，通常至多128帧；Qwen后处理与temporal padding仍须按真实请求重放核对。
+7个Actor均没有VLLM_VIDEO环境覆盖，默认后端opencv。当前watch最多4视频，解码层上限因此比外层512计划更严格，通常至多128帧；Qwen后处理与temporal padding由下面的原请求重放另行核对。
 **提高请求fps不一定增加实际帧数**，故不能将fps字段增加直接计为更密的有效取证。缩短目标窗口、改观察问题等仍需整题结果和实际采样检查。
 
 权重`video_preprocessor_config.json`的shortest_edge4096/longest_edge25165824用于视频总像素预算；安装库`transformers/models/qwen3_vl/video_processing_qwen3_vl.py`按时间×高×宽及32倍数resize，未施加最长边448。
@@ -203,8 +203,14 @@ CPU `ap-zqQGGWJrSFGzbyUv6hbvN8` 通过自检、120份raw逐SHA、完整运行/�
 | 只改when，strategy/meta不变 | 41.95055% | +2.50000pp |
 
 新when对原入口为2改善/0退步/38同分，+2.30769pp；对空库为1改善/0退步/39同分，+2.50pp。题内分层配对bootstrap（seed0，1000次）的探索区间分别为[0,5.00]和[0,7.50]pp。40题中35个声明来源组，但PI仅1组；来源组bootstrap只有554/1000次包含全部十任务，因此不报告有误导性的来源区间。
-新入口自然选中20/40，原入口17/40；**把必要前提写得更明确不保证选中率单调下降**。新入口确实注入51次Global决策；相对原入口8题取证参数变化、3题动作序列变化、4题终答变化。具体选卡转移与同请求响应差异仍在核对，不能将全部变化直接归因于排除两个已知误选。
+新入口自然选中20/40，原入口17/40；**把必要前提写得更明确不保证选中率单调下降**。新入口确实注入51次Global决策；相对原入口8题取证参数变化、3题动作序列变化、4题终答变化。具体路由与同请求响应核对如下，不能将全部变化仅归为排除两个已知误选。
+后续CPU `ap-rd3buMV7nL2xHoeFSVXVC8` 核实：旧→新有6题none→selected、3题selected→none、14题仍selected、17题仍none。9个路由变化输入中，新增6题都有显式候选答案列表，退出3题为无列表开放比较。共同14个selected和17个none的取证参数与终答全部一致；两条件86个相同Global Actor请求body SHA对应的响应文本均一致。参数/答案变化均落在路由改变的9题内，支持本次入口通过路由起作用的解释，仍不等于已证明局部视觉取证正确或所有适用性错误均已修复。
 这是从同一Train40诊断后修订再测的结果，不是未接触数据的确认。小样本、适应性选择、区间含0及来源覆盖限制都保留；不称Cal接受、稳定提升或自动进化成功。
+
+### 首个程序与等句排版对照：保留负结果
+
+CPU `ap-AOGlmHzDyTJC8AcgNVpmii` 完成首个匹配排版单元核验，产物`formats-analysis-20261030-200748/`。同Train40的依赖闭合paragraph为32.43678%，numbered为32.30769%，空库39.45055%。paragraph对空库2改善/5退步，−7.01377pp；numbered对空库0改善/4退步，−7.14286pp。
+numbered对paragraph为1改善/3退步/36同分，−0.12908pp，探索95%题分层区间[−7.62908,7.38889]pp；不能据此判断排版优劣。两者40个完整Selector输入全部相同、选卡全部相同（11题选中、29题none），但10题取证参数、8题动作序列、6题终答变化。这是正文执行差异，不是Selector对排版的偏好。该程序首测负向，不筛掉预定其他排版或程序；其适用性与执行原因仍需合法Train轨迹诊断。
 
 下一批预声明：冻结Train轮换前120个不同题，3批各40，每批空库＋8个原段落程序＋1个新入口，共最多1200评估题次。
 其中首80严格按身份与rawSHA复用，计划新增最多1120；CPU `ap-2fMCvejIZPHGNxRqsD2qHh` 已直接调用现有Evaluator的缓存分支验证80复用、0新rollout/0Judge，并校验新卡仅when不同。
@@ -218,4 +224,6 @@ CPU `ap-zqQGGWJrSFGzbyUv6hbvN8` 通过自检、120份raw逐SHA、完整运行/�
 排版节点使用独立`format/batch0..2`结果与Judge缓存，避免并行改写相同文件；split内容、Runtime、源码、执行设置与研究身份保持原样。每批固定先全部numbered，再全部headings，不按Train得分挑程序。仅在同机制、同题、同入口的完整共同单元上比较，伙伴为空。
 排版CPU `ap-XwBEkTyD7z0NexWwAyvyyq` 已核48个单元的样本顺序、库与评估身份，0 Actor/Judge调用。节点于19:50 UTC启动，`sb-z8nM7ciTzCmTCRW4ekjhXz`，与机制节点合计16H100；截至19:55加载Judge。计划4小时新单元派发窗口、6小时分配上限；已完成参考若仍缺测则明确保留missing，不据此前缀宣称完整比较。它是用户要求的手工开发诊断，尚无排版优劣结论。
 后续启动条件、步骤、排版与充分覆盖仍未完成，整体研究目标继续进行。
+步骤写法另预登记8个compact候选：[谱系与资源](../src/mvagent/skills/skill_sets/manual-study-20261030/step_refinement.json)、[完整中文镜像](manual-compact-skills-zh.md)。它们仅改strategy，继承原meta/when，以paragraph保留核心程序及边界，缩减重复工具字段说明；原strategy193–224词，新129–149词。长度与步骤展开共同变化，不作为纯排版对照或完全语义等价改写。
+全部8个子库在相同前120题逐批自然评估，最多960新题次；所有对照直接复用同身份空库/原paragraph。CPU `ap-eVMNo2RbjArmR9pBCGSWKO` 已通过原生parser/render/word计数、SHA、仅strategy变更与120题计划检查，0 Actor/Judge/GPU；描述文件SHA `4c27e4ad09e8920faafe7a02012190b69377199f9671afe0c5ea09e6cb6721e5`，资源已存新卷`cards/`，`compact/preflight.json`为prepared_not_submitted。待现有节点释放并核资源上限后再分配，预算为单8H100、3小时新单元派发/4小时分配，未完记缺测。目前未提交，不按已测Train分数筛掉任何子库。
 完整模型回答、媒体、权重和生成结果不进入Git或Lightsail；本机保留源码、Markdown与私有控制脚本。研究目标尚未完成。

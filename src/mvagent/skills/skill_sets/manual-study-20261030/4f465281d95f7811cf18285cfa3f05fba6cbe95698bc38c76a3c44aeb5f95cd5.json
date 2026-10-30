@@ -1,0 +1,17 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "1",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The question combines independently observable per-video conditions into an all, any, exact-number, count, or qualifying-subset answer. Track which unresolved local judgments can still change that answer; exclude counting repeated events within one video and identity matching that cannot be decided independently per video.",
+      "strategy": "For independent per-video conditions, preserve the predicate, qualifiers, counted entity, and whether the result is a truth value, exact count, or complete subset. Use analyze_videos with the same neutral criterion and needed definitions, asking each source for visible support and limitations. Keep supported matches, exclusions, and unknowns separate. Matches bound a count below; including unknowns bounds it above. Omission is not exclusion. Check whether resolving unknowns could change the requested result; an exact subset may need every potential member resolved after a yes-or-no result is settled. Follow up only on consequential gaps, reconciling changed predicates or conflicting reports before tightening bounds. Answer when all evidence-compatible outcomes agree. If the runtime ends sooner, give the best supported nonempty answer in the requested format and state the remaining bound in reason."
+    }
+  ]
+}
