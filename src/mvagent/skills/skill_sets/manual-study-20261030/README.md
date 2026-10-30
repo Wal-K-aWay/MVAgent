@@ -1,6 +1,6 @@
 # 手写 Skill 机制与排版研究资源（2026-10-30）
 
-**状态：部分开发测量。** 首批为8个机制（4 Global、4 Video）的24个排版快照，另有1个入口修订。仅候选区别取证的段落版完成首Train40，与空库差+0.19231pp，不能称为有效提升；其余排版、机制和新入口尚待测。完整结果见[研究记录](../../../../../docs/skill-evidence-study-20261030.md)。
+**状态：部分开发测量。** 首批为8个机制（4 Global、4 Video）的24个排版快照，另有1个入口修订。候选区别取证的段落版及when-only修订各完成首Train40，相对空库分别+0.19231/+2.50pp；后者使用了同批Train诊断，不能称为稳定提升或独立确认。其余机制与排版正在测量，完整结果见[研究记录](../../../../../docs/skill-evidence-study-20261030.md)。
 本批由 Codex 手工编写（不是人类领域专家独立卡片），英文操作句重新撰写，没有复制旧卡或调用 optimizer API；仅将历史合法 Train 公开轨迹中的缺口作为假设线索，未移植历史卡作为本轮种子。
 正式研究仍从两个空库开始；这些资源须显式选择，默认不会加载，也不改变 Actor、Selector、工具、基础 Prompt、索引或评分。
 
@@ -41,10 +41,10 @@ Video Selector 的入口不依赖隐藏 Memory 或未来报错；工具恢复遵
 
 [完整中文镜像](../../../../../docs/manual-study-skills-zh.md)逐卡保留入口与全部操作句。
 
-## Train 入口收窄候选（未测试）
+## Train 入口收窄候选（完成首40题）
 
 首批 Train 公开输入审读发现：开放式比较问题中的源视频标签可能被当成候选答案，使候选区别卡在没有答案列表时被选中。新候选只改 `when_to_use`，要求明确带标签的候选答案列表，且问题要求从中选择；视频列表、源视频标签和对象标记不算答案列表。
 
-新库：[35fbe7b62f2fb0ba9dd1e20915289f46b7e5f4669f81816cdb68cd26e7f49b77](35fbe7b62f2fb0ba9dd1e20915289f46b7e5f4669f81816cdb68cd26e7f49b77.json)，父库：[21266c1682095f496c3951c769471728dddeccac935c4035a5a4fa76bad66d5e](21266c1682095f496c3951c769471728dddeccac935c4035a5a4fa76bad66d5e.json)。新库的 `meta` 与 paragraph `strategy` 逐字保持父库，未改写执行步骤、Actor 或 Selector。离线关系见 [entry_refinement.json](entry_refinement.json)。本候选未测试，没有有效性或稳定收益结论；原 8 机制／24 排版文件及 `manifest.json` 保持原样。
+新库：[35fbe7b62f2fb0ba9dd1e20915289f46b7e5f4669f81816cdb68cd26e7f49b77](35fbe7b62f2fb0ba9dd1e20915289f46b7e5f4669f81816cdb68cd26e7f49b77.json)，父库：[21266c1682095f496c3951c769471728dddeccac935c4035a5a4fa76bad66d5e](21266c1682095f496c3951c769471728dddeccac935c4035a5a4fa76bad66d5e.json)。新库的 `meta` 与 paragraph `strategy` 逐字保持父库，未改写执行步骤、Actor 或 Selector。离线关系见 [entry_refinement.json](entry_refinement.json)，其中状态保留建库时未测试记录，实测见研究记录。首40题对原入口2改善/0退步，但选中率17→20/40；没有稳定收益结论。原 8 机制／24 排版文件及 `manifest.json` 保持原样。
 
 本次只从 Train 的 Global 公开问题输入和终答审读得到入口假设，不使用 Cal/Gate 或冻结评测案例。这是单独的启用条件修订，不是新增机制或新增排版；后续分数与原入口应在同协议、同题下比较。

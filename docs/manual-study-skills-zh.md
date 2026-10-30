@@ -1,7 +1,7 @@
 # 手写机制卡完整中文镜像（2026-10-30）
 
 英文权威资源位于 [manual-study-20261030](../src/mvagent/skills/skill_sets/manual-study-20261030/README.md)，逐文件身份见其 `manifest.json`。
-**本批全部未测试。** 由 Codex 手工编写，不是人类领域专家独立卡片，未调用 optimizer API。8 个机制、每个机制 3 种排版，共 24 个单卡非空整库，不是 24 个独立策略，也不作为本轮自动进化的历史种子。
+**状态：部分Train开发测量，持续结果见[研究记录](skill-evidence-study-20261030.md)。** 由 Codex 手工编写，不是人类领域专家独立卡片，未调用 optimizer API。8 个机制、每个机制 3 种排版，共 24 个单卡非空整库，不是 24 个独立策略，也不作为本轮自动进化的历史种子。
 每个库只有一张 `meta={id:"1",role:对应角色,stages:["initial","evidence"]}` 的卡。
 同一机制各排版的英文入口、meta、操作句及顺序完全相同：paragraph 以空格连接操作句；numbered 每句前增加 `N. ` 并换行；headings 每句前增加 `#### Step N`。
 以下编号仅用于逐句对照，不代表所有英文 variant 都是编号正文；标题标记的差异没有新增操作语义，但会改变 token。
@@ -12,7 +12,7 @@ Global／Video 权限不扩大，工具、观察预算及有界终结协议不�
 
 ## 1. 跨视频依赖闭合（`global_dependency_closure`）
 
-角色：`global`。状态：未测试。
+角色：`global`。
 
 ### when_to_use 完整镜像
 
@@ -41,7 +41,7 @@ Train 依据：docs/skill-feedback-iteration-20261022.md: Global委派的约定�
 
 ## 2. 候选答案区别驱动取证（`global_option_discrimination`）
 
-角色：`global`。状态：未测试。
+角色：`global`。
 
 ### when_to_use 完整镜像
 
@@ -70,7 +70,7 @@ Train 依据：docs/skill-exploration-results.md: 已观察到的传递问题 (T
 
 ## 3. 跨视角身份候选消歧（`global_identity_candidates`）
 
-角色：`global`。状态：未测试。
+角色：`global`。
 
 ### when_to_use 完整镜像
 
@@ -99,7 +99,7 @@ Train 依据：docs/skill-feedback-iteration-20261022.md: Global委派的约定�
 
 ## 4. 量词答案上下界与停止（`global_quantifier_bounds`）
 
-角色：`global`。状态：未测试。
+角色：`global`。
 
 ### when_to_use 完整镜像
 
@@ -128,7 +128,7 @@ Train 依据：docs/manual-global-skills-zh.md: 设计依据与可检验预期 (
 
 ## 5. 否定判断与覆盖证据（`video_negative_coverage`）
 
-角色：`video`。状态：未测试。
+角色：`video`。
 
 ### when_to_use 完整镜像
 
@@ -157,7 +157,7 @@ Train 依据：docs/manual-video-skills-zh.md: Train局部轨迹中的多判据�
 
 ## 6. 事件边界双侧状态夹逼（`video_boundary_bracketing`）
 
-角色：`video`。状态：未测试。
+角色：`video`。
 
 ### when_to_use 完整镜像
 
@@ -186,7 +186,7 @@ Train 依据：docs/manual-video-skills-zh.md: Train时间要求未传入观察�
 
 ## 7. 遮挡后身份重新确认（`video_occlusion_identity`）
 
-角色：`video`。状态：未测试。
+角色：`video`。
 
 ### when_to_use 完整镜像
 
@@ -215,7 +215,7 @@ Train 依据：docs/skill-feedback-iteration-20261022.md: Train身份约定传�
 
 ## 8. 观察工具反馈驱动恢复（`video_observe_recovery`）
 
-角色：`video`。状态：未测试。
+角色：`video`。
 
 ### when_to_use 完整镜像
 
@@ -242,7 +242,7 @@ Train 依据：docs/skill-exploration-results.md: Train local-video invalid obse
 
 英文库：[paragraph](../src/mvagent/skills/skill_sets/manual-study-20261030/1ccaf9f469aa727f310bd6e5fbde9bb084ba52ab6a1d9138075aa5148d089888.json)、[numbered](../src/mvagent/skills/skill_sets/manual-study-20261030/271050b5f087248275009451148ca31a59c61bcfbd0067b5804a5bce3a3a6641.json)、[headings](../src/mvagent/skills/skill_sets/manual-study-20261030/861c76dc1763dc6347f227dcd5f679d96b7c088da7cc27e05eaed471545b698e.json)。
 
-## Train 修订：候选答案列表须明确存在（未测试）
+## Train 修订：候选答案列表须明确存在（完成首40题）
 
 英文权威新库：[35fbe7b62f2fb0ba9dd1e20915289f46b7e5f4669f81816cdb68cd26e7f49b77](../src/mvagent/skills/skill_sets/manual-study-20261030/35fbe7b62f2fb0ba9dd1e20915289f46b7e5f4669f81816cdb68cd26e7f49b77.json)。父库为 `21266c1682095f496c3951c769471728dddeccac935c4035a5a4fa76bad66d5e`，对应第 2 张 `global_option_discrimination` 的 paragraph 排版。
 
@@ -256,4 +256,4 @@ Train 依据：docs/skill-exploration-results.md: Train local-video invalid obse
 
 ### Train 依据与状态
 
-只审读首批发生变化的 3 个 Train Global 公开问题输入及终答；其中可见开放式比较没有答案列表，另有带标签候选列表并要求选择的问题。该观察支持检验入口条件，尚未证明改写能改善最终准确率。本候选未测试，没有读取确认分区案例用于修订；离线谱系与证据范围保存在 `entry_refinement.json`。原 24 库及 `manifest.json` 不变，本修订不计为第 9 个独立机制。
+只审读首批发生变化的 3 个 Train Global 公开问题输入及终答；其中可见开放式比较没有答案列表，另有带标签候选列表并要求选择的问题。该观察支持检验入口条件。首Train40修订后41.95055%，较原入口+2.30769pp、较空库+2.50pp；这是同批诊断后的开发测量，不能称稳定或独立确认。自然选中17→20/40，并非减少选择即可解释；没有读取确认分区案例用于修订；离线谱系与证据范围保存在 `entry_refinement.json`。原 24 库及 `manifest.json` 不变，本修订不计为第 9 个独立机制。

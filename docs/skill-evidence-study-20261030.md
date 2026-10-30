@@ -148,7 +148,16 @@ Selector只看到`when_to_use`而看不到`strategy`，因此同输入下三种�
 **提高请求fps不一定增加实际帧数**，故不能将fps字段增加直接计为更密的有效取证。缩短目标窗口、改观察问题等仍需整题结果和实际采样检查。
 
 权重`video_preprocessor_config.json`的shortest_edge4096/longest_edge25165824用于视频总像素预算；安装库`transformers/models/qwen3_vl/video_processing_qwen3_vl.py`按时间×高×宽及32倍数resize，未施加最长边448。
-当前尚未报告模型后处理的实际H/W；拟只对已有Train请求作CPU媒体重放，不加载Actor、不生成回答，不改在途或历史配置。
+CPU `ap-tyDPnTBT0SmRVuyocAwoXj` 已对首个单视频及首个联合视频Train请求完成原生重放。使用同冻结裁剪/编码函数重建，3个data URL的SHA/长度和2个完整HTTP请求SHA全部与原记录一致后，才调用同版本MediaConnector和视频processor；没有加载Actor、生成回答或改变配置。
+
+| 原请求内的视频项目 | 解码帧×高×宽 | Qwen处理后含padding的帧×高×宽 |
+|---|---|---|
+| 单视频 | 32×270×480 | 32×256×480 |
+| 联合第1视频 | 21×720×1280 | 22×704×1280 |
+| 联合第2视频 | 32×1080×1920 | 32×640×1152 |
+
+联合第1项目原计划27帧，OpenCV跳过6个不可读帧，实际21帧后补至偶数22；padding不是新增独立证据。它们是原请求字节一致的CPU处理重放，不能冒称所有在途请求均记录了tensor尺寸或所有视频均可完整解码。
+这些尺寸验证了本次样例没有额外448最长边限制，也显示512外层预算不等于实际输入512帧。产物在新卷`skill_evidence_20261030/video_rebuild_cpu/`，summary SHA `bbeae96c465c8e56fc250a93a89e50828aa622a155c95d413a9229927f380bed`。
 
 - 历史卷 `wxu-evolve-agent-runs-20261006` 的 inode 已达499614/500000（99.9%）；本轮不删旧 raw、评分、Judge、卡库或冻结源码。
 - 新研究卷 `wxu-evolve-agent-runs-20261030` 保存本轮结果，历史卷后续只读。首个聚合产物：`skill_evidence_20261030/baseline_comparison/summary.json`，包含分析脚本、自检和输入SHA，不含新推理。
@@ -181,18 +190,32 @@ CPU `ap-TiTdJDivoBTJvQxyKlpCiX` 已完成修正后的自检与真实分配，冻
 当前已完成：历史聚合与Train80原件重审、24库机械验收、新面板冻结、首80个新有效评分题次（40个不同题）及完整配对。8H100已释放。
 进一步只读核验3个有分差Train的Global公开输入/终答：两个退步输入明确为open-ended比较、没有Options列表，仅有Video A/B源标签；唯一改善输入有显式A/B/C/D选项并要求单字母。
 该观察定位到一个具体入口适用性错误，不依据视觉GT判断过程真假。新入口只改`when_to_use`，明确要求问题有带标签的候选答案列表，区分视频标签和答案选项；meta和全部strategy逐字不变。
-新库SHA `35fbe7b62f2fb0ba9dd1e20915289f46b7e5f4669f81816cdb68cd26e7f49b77`，见[谱系](../src/mvagent/skills/skill_sets/manual-study-20261030/entry_refinement.json)及[中文镜像](manual-study-skills-zh.md)。新when尚无精度结果。
+新库SHA `35fbe7b62f2fb0ba9dd1e20915289f46b7e5f4669f81816cdb68cd26e7f49b77`，见[谱系](../src/mvagent/skills/skill_sets/manual-study-20261030/entry_refinement.json)及[中文镜像](manual-study-skills-zh.md)。首Train40结果如下，其他覆盖仍待测。
+
+### when-only修订：首40题开发信号
+
+CPU `ap-zqQGGWJrSFGzbyUv6hbvN8` 通过自检、120份raw逐SHA、完整运行/评分身份及官方分复算；结果为新卷`skill_evidence_20261030/phase2-analysis-20261030-195314/`。
+
+| 同一Train40条件 | 官方总分 | 相对空库 |
+|---|---:|---:|
+| 空库（复用） | 39.45055% | — |
+| 原G2 paragraph（复用） | 39.64286% | +0.19231pp |
+| 只改when，strategy/meta不变 | 41.95055% | +2.50000pp |
+
+新when对原入口为2改善/0退步/38同分，+2.30769pp；对空库为1改善/0退步/39同分，+2.50pp。题内分层配对bootstrap（seed0，1000次）的探索区间分别为[0,5.00]和[0,7.50]pp。40题中35个声明来源组，但PI仅1组；来源组bootstrap只有554/1000次包含全部十任务，因此不报告有误导性的来源区间。
+新入口自然选中20/40，原入口17/40；**把必要前提写得更明确不保证选中率单调下降**。新入口确实注入51次Global决策；相对原入口8题取证参数变化、3题动作序列变化、4题终答变化。具体选卡转移与同请求响应差异仍在核对，不能将全部变化直接归因于排除两个已知误选。
+这是从同一Train40诊断后修订再测的结果，不是未接触数据的确认。小样本、适应性选择、区间含0及来源覆盖限制都保留；不称Cal接受、稳定提升或自动进化成功。
 
 下一批预声明：冻结Train轮换前120个不同题，3批各40，每批空库＋8个原段落程序＋1个新入口，共最多1200评估题次。
 其中首80严格按身份与rawSHA复用，计划新增最多1120；CPU `ap-2fMCvejIZPHGNxRqsD2qHh` 已直接调用现有Evaluator的缓存分支验证80复用、0新rollout/0Judge，并校验新卡仅when不同。
 第一批先核两缓存，再测新when，随后其余7个程序；后两批10库均自然评估，不按Train高低筛。伙伴角色固定空库，不查询Cal/Gate。
 单节点8H100，最多4小时，2小时后停止派发新40题单元、保留收尾；未完成标unfinished，不填零分。120题有历史接触及来源相关，不称统计独立。
-本批已于19:26 UTC提交，节点`sb-ixcudMa83Y9DvDLj6ePJkO`，19:43实际阶段为加载Judge；7个Actor约225秒就绪，实际模型、profile与缓存关闭已核验。新入口和其余机制仍待完整评分，不将服务就绪计作有效样本。
+本批已于19:26 UTC提交，节点`sb-ixcudMa83Y9DvDLj6ePJkO`；7个Actor约225秒就绪，实际模型、profile与缓存关闭已核验。19:51新入口40题完整评分，开始跨视频依赖程序；截至该单元共有120有效评分题次、40不同题，不能把题次称为独立样本。
 状态写入新卷`skill_evidence_20261030/phase2/driver_status.json`；只有完整40题的`evaluation.json`计入机制比较，半成前缀另报进度。
-CPU媒体重放尚未完成：日志写入时`_safe_event`将data URL脱敏为SHA和长度，不能把记录里的对象当作Base64解码。原生解码器默认值的源码证据仍成立，但实际tensor尺寸及temporal padding没有据此得到验证。
+直接媒体重放的两个早期探针失败：先误读旧失败状态，后发现`_safe_event`把data URL脱敏为SHA和长度，不能把对象当Base64。后续按冻结函数重建并通过URL与完整请求双重SHA门禁后完成上表CPU处理；早期失败产物保留，不用猜测路径替代原请求。
 排版诊断先冻结范围：沿用前120个Train题及原24库，3批分别评估空库与8机制×3排版，共3000评估题次；所有已完成且身份一致的结果直接复用，部分raw继续恢复，不重跑首80。新when修订单独分析，不混入等句排版比较。
 19:48 UTC按实测吞吐调整执行依赖：当前新入口40题在约4分钟得到22份raw，原2小时派发窗口可能不能完成机制矩阵，逐节点串行也会延后排版数据。由同一主执行者准备独立8H100排版节点，只运行全部numbered与headings，共1920新增题次；empty/paragraph仍只读复用机制节点，不重新提交。两个节点、各自Judge及待分配资源合计最多16H100，符合当前日间上限；分配前核已知节点和所有本项目GPU app，拒绝未知占用。
 排版节点使用独立`format/batch0..2`结果与Judge缓存，避免并行改写相同文件；split内容、Runtime、源码、执行设置与研究身份保持原样。每批固定先全部numbered，再全部headings，不按Train得分挑程序。仅在同机制、同题、同入口的完整共同单元上比较，伙伴为空。
-该排版节点尚未提交，计划4小时新单元派发窗口、6小时分配上限；已完成参考若仍缺测则明确保留missing，不据此前缀宣称完整比较。它是用户要求的手工开发诊断，尚无排版优劣结论。
+排版CPU `ap-XwBEkTyD7z0NexWwAyvyyq` 已核48个单元的样本顺序、库与评估身份，0 Actor/Judge调用。节点于19:50 UTC启动，`sb-z8nM7ciTzCmTCRW4ekjhXz`，与机制节点合计16H100；截至19:55加载Judge。计划4小时新单元派发窗口、6小时分配上限；已完成参考若仍缺测则明确保留missing，不据此前缀宣称完整比较。它是用户要求的手工开发诊断，尚无排版优劣结论。
 后续启动条件、步骤、排版与充分覆盖仍未完成，整体研究目标继续进行。
 完整模型回答、媒体、权重和生成结果不进入Git或Lightsail；本机保留源码、Markdown与私有控制脚本。研究目标尚未完成。
