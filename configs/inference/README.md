@@ -59,6 +59,7 @@ Global 使用简洁角色 System，VideoAgent 保持原 instruction 边界；历
 | `execution/modal_h200x8.yaml` | 35B 八卡执行池：每卡一个完整副本（TP=1），本机端点 8100–8107，每副本并发 1 |
 | `modal_qwen35_9b_no_skill.yaml`、`modal_qwen35_27b_no_skill.yaml` | 9B、27B 无 Skill 基线；除模型名、权重路径外与 35B 使用相同推理设置 |
 | `execution/modal_h200x8_qwen35_9b.yaml`、`execution/modal_h200x8_qwen35_27b.yaml` | 对应模型的八卡执行池：每卡一个副本（TP=1），每副本并发 1 |
+| `qwen38_27b_no_skill.yaml`、`execution/h100x8_qwen38_27b.yaml` | Qwen3.8-27B 无 Skill 八卡配置；下载、兼容性和实测状态见[本轮评测说明](../../docs/qwen38-27b-evaluation.md) |
 
 模型池只接受本机 `127.0.0.1` 端点，并会校验本机 vLLM 进程与 GPU 绑定，因此运行时与
 vLLM 必须在同一个容器内。在节点内运行：
