@@ -51,3 +51,12 @@ EOS 已有可用 H100/Torch 环境，但包版本与冻结 profile 不同；在�
 ReasoningBank 的描述/正文分离、ACE 的增量更新、GEPA 的局部修改/完整程序评价、SkillOpt 的编辑历史和 Video-RSI 的激活日志仅提供方法假设，不证明本系统短卡或多卡已经有效。参考：[ReasoningBank](https://arxiv.org/html/2509.25140v1)、[ACE](https://arxiv.org/html/2510.04618v1)、[GEPA](https://arxiv.org/html/2507.19457v2)、[SkillOpt](https://github.com/microsoft/SkillOpt/blob/main/docs/guide/training-loop.md)、[Video-RSI policy](https://github.com/bingjunluo/Video-RSI/blob/main/solver_full_workspace/skill_policy.py)。
 
 最后冻结同一套卡片与规则，再对 CrossVid Lite2500、CVBench、MVU-Eval 及35B/27B迁移做独立评估。三个基准分别对同骨干、同协议无Skill参照报告收益，不以平均值掩盖退化；未测到、旧协议不可比或只有9B证据的范围必须明确标注。跨基准增益仍是目标，当前未得到证明。
+
+## 部署证据（2026-11-03）
+
+- 固定官方 QA revision 的十份标注共9015题已取得；原始 manifest 和 Train 轮换 SHA 均与10月冻结清单逐字节匹配。首批40题的两套 revision 定向媒体下载已完整返回，其他80题另行续传。
+- 9B Actor 固定为官方 commit `c202236235762e1c871ad0ccb60c8ee5ba337b9a`；固定 Judge 为 `0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe`。对应4/16个权重分片完整；尚不据此推断与历史 Modal 权重同身份。
+- 独立环境在 EOS H100 上通过187包依赖检查、源码编译、8个评测回归测试、CUDA小矩阵计算及三帧真实解码。回归中的分数来自合成/mock数据，不计入研究测量。
+- Decord 0.6.0 的[官方 Linux wheel](https://pypi.org/pypi/decord/0.6.0/json)文件名为 `py3-none`，内部标签却是 `cp36-cp36m`。核验官方归档和原生库 SHA 后，仅纠正 WHEEL/RECORD 标签；原生库字节未变，随后完整依赖检查与实际解码通过。保留原 metadata 与修复回执。
+- 9B 单次合成视频请求在固定 sync profile 上通过模型身份、输入/token哈希与非零 forward 审计，prefix cached tokens 为0。其英文回复描述画面由近黑转为较亮灰色。首轮因启动 PATH 遗漏 `ninja` 失败，失败证据保留，修正启动环境后通过；没有替换模型、backend 或基础Prompt。
+- 实际研究任务已提交首批空库与八卡 C 的80题次对照，代码冻结于 `8ff374d`。此记录时仍在原生局部媒体预处理，**没有已验证的真实整题分数**；自动优化、Cal、Gate和跨基准迁移均未开始。部署可运行不代表多卡或短卡已有效。
