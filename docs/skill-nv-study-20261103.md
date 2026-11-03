@@ -50,6 +50,8 @@ EOS 已有可用 H100/Torch 环境，但包版本与冻结 profile 不同；在�
 
 ReasoningBank 的描述/正文分离、ACE 的增量更新、GEPA 的局部修改/完整程序评价、SkillOpt 的编辑历史和 Video-RSI 的激活日志仅提供方法假设，不证明本系统短卡或多卡已经有效。参考：[ReasoningBank](https://arxiv.org/html/2509.25140v1)、[ACE](https://arxiv.org/html/2510.04618v1)、[GEPA](https://arxiv.org/html/2507.19457v2)、[SkillOpt](https://github.com/microsoft/SkillOpt/blob/main/docs/guide/training-loop.md)、[Video-RSI policy](https://github.com/bingjunluo/Video-RSI/blob/main/solver_full_workspace/skill_policy.py)。
 
+[MASPO](https://proceedings.mlr.press/v306/wang26ew.html)把局部合规与下游效用分开评价，适合提醒我们检查Video报告是否保留Global作答所需的区别；本项目仍固定伙伴、保持角色信息边界，并以整库官方评分接受，不能用局部自评分替代。[HarnessPro](https://arxiv.org/html/2610.26770v1)要求轨迹诊断附文件与事件证据，再由规划器提出改动；可借鉴这一证据链。它同时修改harness、使用合成测试及性能/成本选择，与本项目冻结Runtime、固定官方评分、只优化准确率的合同不同。两者均不直接证明问题到卡片的运行时路由有效，也不构成本轮引入束搜索或Pareto目标的证据。
+
 最后冻结同一套卡片与规则，再对 CrossVid Lite2500、CVBench、MVU-Eval 及35B/27B迁移做独立评估。三个基准分别对同骨干、同协议无Skill参照报告收益，不以平均值掩盖退化；未测到、旧协议不可比或只有9B证据的范围必须明确标注。跨基准增益仍是目标，当前未得到证明。
 
 ## 部署证据（2026-11-03）
