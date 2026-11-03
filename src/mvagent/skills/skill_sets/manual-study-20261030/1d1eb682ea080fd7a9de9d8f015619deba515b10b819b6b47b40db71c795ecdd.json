@@ -1,0 +1,17 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "1",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction requires this video's event start, finish, duration interval, or a boundary-sensitive order. Establish the event and use surrounding state changes to bound the requested endpoints; exclude general descriptions and coarse ordering that do not need boundary localization.",
+      "strategy": "For an event boundary, preserve the action and object conditions, needed endpoints, and supported same-video anchors. If the event is not established, use observe to identify it and relevant state changes, with legal ordered non-overlapping where intervals and permitted fps. Bound a start using the preceding non-event state and event onset; bound a finish using continuation and the following changed or completed state. A first sampled appearance or crop edge is not itself a boundary. Inspect the unsupported flank of a credible anchor with surrounding context; widen when identity or the anchor is doubtful rather than repeatedly refining it. Keep offscreen or ambiguous endpoints unresolved. Stop when the instruction's temporal distinction is supported. When finish is available after usable same-video evidence, summarize supported source-video times, precision, and missing boundaries without internal ranges or fps; obey runtime limits rather than inventing an interval."
+    }
+  ]
+}

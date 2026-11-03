@@ -1,0 +1,17 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "1",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction requires fine action detail, a brief local event, or an event interval that depends on a workable observation plan. Adapt the same-video observation to actual duration and available feedback; prior errors or hidden Memory are not prerequisites for selecting this skill.",
+      "strategy": "For a detail-sensitive local request, inspect the supplied duration and retained same-video evidence before planning observe, preserving the instruction's actual target rather than replacing it with a broad summary. Set what to a neutral visually answerable question, choose ordered non-overlapping where ranges with start strictly before end inside the actual duration, and choose an fps allowed by the current schema, preserving fractional seconds instead of rounding a short range to zero. If observe is rejected or fails, treat its feedback as diagnostic rather than visual evidence, identify the stated cause, and change the responsible legal parameter or evidence request only when the available feedback supports that correction. If a successful observation adds no decisive evidence, distinguish an irrelevant question, insufficient temporal coverage, and unresolved visual detail before changing what, where, or the permitted fps, rather than issuing the same ineffective request again. Stop retrying when retained evidence supports the required local result or no justified correction can improve it within the remaining runtime; do not extend the loop, bypass validation, increase the frame budget, or call an unavailable action. Use finish only when it is available after usable same-video observations, putting supported facts and remaining uncertainty in summary without internal tool failures, ranges, or fps; if finish is unavailable, remain within the available actions and existing bounded terminal protocol without claiming a successful observation."
+    }
+  ]
+}

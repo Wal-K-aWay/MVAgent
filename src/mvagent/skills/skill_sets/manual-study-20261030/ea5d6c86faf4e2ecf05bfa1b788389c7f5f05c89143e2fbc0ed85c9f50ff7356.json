@@ -1,0 +1,17 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "1",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The main question asks whether or where the same particular person or object corresponds across videos, rather than whether objects share a category or appearance. Establish identity candidates from supplied conventions and visible distinguishing evidence, then compare unresolved candidates; do not assume correspondence from video IDs or durations.",
+      "strategy": "For physical identity across videos, initialize candidates only from the question's target description, supplied conventions, and visible distinguishing evidence. A label in one view establishes no other-view identity unless explicitly linked. Use analyze_videos with self-contained local instructions for candidate features, visible paths, and anchors; ask for missing initialization rather than guessing appearance. Retain every compatible candidate and its source; category or color similarity alone does not establish identity. When a joint feature can resolve correspondence, use watch_videos with at least two distinct videos and valid in-duration clips, without fps; locate unknown moments before narrowing. Eliminate candidates only through incompatible observations or explicit conventions. Occlusion or an unobserved feature remains unresolved. Answer when supported identity evidence resolves the correspondence; at the runtime limit, give the best supported answer in the required format and disclose remaining ambiguity in reason."
+    }
+  ]
+}

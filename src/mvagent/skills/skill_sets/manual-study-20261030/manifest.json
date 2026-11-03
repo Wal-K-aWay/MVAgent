@@ -1,0 +1,372 @@
+{
+  "schema_version": 1,
+  "study_id": "manual-study-20261030",
+  "status": "untested",
+  "authorship": "Codex-authored fresh English text for manual mechanism diagnostics, without optimizer API generation or copying historical card text; not independent human-expert cards.",
+  "variants": [
+    "paragraph",
+    "numbered",
+    "headings"
+  ],
+  "mechanism_count": 8,
+  "bank_count": 24,
+  "mechanisms": [
+    {
+      "key": "global_dependency_closure",
+      "role": "global",
+      "meta": {
+        "id": "1",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The question requires a fact established in one video to interpret an event, identity, or state in another video, possibly under explicitly supplied view, label, or synchronization conventions. Resolve the reference dependency before a dependent local request; independent per-video judgments do not need this workflow.",
+      "strategy_sentences": [
+        "For a cross-video dependency, separate the reference fact to establish from the target result, and preserve any view, label, timing, or synchronization convention explicitly supplied by the current question without inventing a correspondence.",
+        "Reuse sufficient facts in public History; if a target instruction needs a reference fact that is still unknown, first use analyze_videos with a videoagent_request naming the reference video_id and a neutral instruction that asks for that fact and its visible support.",
+        "After the reference report returns, place only its relevant supported description, source identity, and necessary timing convention into the target videoagent_request instruction, together with the unresolved local question; concurrent requests cannot use each other's future reports.",
+        "If correspondence remains decisive and genuinely requires joint visual evidence, use watch_videos with an instruction naming the selected video IDs and relation, at least two distinct video_id values, and one clip with start before end inside each video's duration, without an fps field.",
+        "Treat an unresolved reference or a report that assumes an unprovided cross-video fact as a remaining gap rather than evidence, and request a focused clarification only when it can change the answer.",
+        "When the dependency and requested result are supported, answer in the question's required format; at the runtime limit, submit the best supported nonempty answer and retain material uncertainty in reason without inventing the missing reference."
+      ],
+      "hypothesis": "Closing explicit evidence dependencies reduces instructions that require a local agent to guess unseen cross-video facts.",
+      "train_basis": [
+        "docs/skill-feedback-iteration-20261022.md: Global委派的约定与依赖诊断 (Train public view)"
+      ],
+      "historical_overlap": "Related to the unmeasured historical delegation candidate and temporal reference transfer; newly written, with dependency closure as the explicit hypothesis.",
+      "counterexample": "Already supplied or adequately established anchors should be reused; independent requests should remain parallelizable.",
+      "variants": {
+        "paragraph": {
+          "path": "a01f8b5e80aa73c4f5f8d74f6b3a87021fd4561b250b1144147d31f8be0c9619.json",
+          "sha256": "a01f8b5e80aa73c4f5f8d74f6b3a87021fd4561b250b1144147d31f8be0c9619",
+          "bytes": 2091
+        },
+        "numbered": {
+          "path": "c57521951888662030c358068f042f2eef494a6703f96a8e955dbc1b0df93446.json",
+          "sha256": "c57521951888662030c358068f042f2eef494a6703f96a8e955dbc1b0df93446",
+          "bytes": 2114
+        },
+        "headings": {
+          "path": "c051891d459bef0cd00ce6379d71160c8751ef1830d6c0ad555550e9ec103c7c.json",
+          "sha256": "c051891d459bef0cd00ce6379d71160c8751ef1830d6c0ad555550e9ec103c7c",
+          "bytes": 2184
+        }
+      }
+    },
+    {
+      "key": "global_option_discrimination",
+      "role": "global",
+      "meta": {
+        "id": "1",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The question supplies alternative answers whose truth can be separated by specific visible facts or relations across the videos. Acquire the distinctions between alternatives rather than a generic account of every video; exclude open questions without supplied alternatives and alternatives differing only in unsupported nonvisual assumptions.",
+      "strategy_sentences": [
+        "For supplied alternatives, identify which visible fact or relation separates the still plausible answers, preserving every qualifier and combination of entities in the question rather than treating an option label as evidence.",
+        "Use analyze_videos for an independently observable local distinction, passing its exact neutral criterion and necessary context in each videoagent_request instruction without asking the local agent to select an answer option.",
+        "When the decisive distinction is a cross-video visual relationship, use watch_videos with the relevant relation in instruction, at least two distinct video_id values, and one valid source-second clip per video, without an fps field; locate unknown moments through local requests before choosing narrow clips.",
+        "Compare each returned fact with the alternatives it actually distinguishes, keeping unsupported, contradicted, and unresolved claims separate; a missing description must not eliminate an alternative by itself.",
+        "If multiple alternatives remain possible, target the unresolved distinction most likely to change the answer with a neutral follow-up, and reconsider the question's exact conditions when reports support several supposedly exclusive alternatives.",
+        "Stop when supported distinctions determine the requested answer, or follow the runtime's bounded finalization using the strongest available support and a concise limitation in reason, while preserving the required answer format."
+      ],
+      "hypothesis": "Neutral acquisition of answer-discriminating facts avoids generic summaries and premature option-level verdicts.",
+      "train_basis": [
+        "docs/skill-exploration-results.md: 已观察到的传递问题 (Train public reports support multiple nominally exclusive alternatives)",
+        "docs/manual-global-skills-zh.md: 设计依据与可检验预期 (Train public-view criteria drift)"
+      ],
+      "historical_overlap": "Related to shared-predicate checking, but organized around differences among supplied alternatives rather than one predicate repeated across videos.",
+      "counterexample": "A candidate containing several required conditions cannot be established by inspecting only one convenient difference.",
+      "variants": {
+        "paragraph": {
+          "path": "21266c1682095f496c3951c769471728dddeccac935c4035a5a4fa76bad66d5e.json",
+          "sha256": "21266c1682095f496c3951c769471728dddeccac935c4035a5a4fa76bad66d5e",
+          "bytes": 2034
+        },
+        "numbered": {
+          "path": "6255eeb992dc1f23a56ca843ba38aa5e702b33f98b48edbcb72cda4ec0730710.json",
+          "sha256": "6255eeb992dc1f23a56ca843ba38aa5e702b33f98b48edbcb72cda4ec0730710",
+          "bytes": 2057
+        },
+        "headings": {
+          "path": "05d5b3b751b3443b4e38ebcc8ceeeb11bfdcbdd2530af7e8c46072f3055a87b1.json",
+          "sha256": "05d5b3b751b3443b4e38ebcc8ceeeb11bfdcbdd2530af7e8c46072f3055a87b1",
+          "bytes": 2127
+        }
+      }
+    },
+    {
+      "key": "global_identity_candidates",
+      "role": "global",
+      "meta": {
+        "id": "1",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The main question asks whether or where the same particular person or object corresponds across videos, rather than whether objects share a category or appearance. Establish identity candidates from supplied conventions and visible distinguishing evidence, then compare unresolved candidates; do not assume correspondence from video IDs or durations.",
+      "strategy_sentences": [
+        "For identity correspondence, extract only the question's supplied target description and label or view conventions; a label in one view does not initialize the same label in another unless the question explicitly establishes that mapping.",
+        "Use analyze_videos with self-contained local instructions to obtain candidate descriptions, distinguishing features, visible paths, and relevant anchors in each source, asking for missing initialization evidence instead of guessing the target's appearance.",
+        "Keep all candidates compatible with the supported evidence and retain their source identities in reasoning; category or color similarity alone does not establish the same physical entity.",
+        "If joint comparison can resolve a distinguishing feature, use watch_videos with an instruction naming the candidates and feature, at least two distinct video_id values, and one in-duration clip per video with start before end and no fps field, using known anchors or first locating the relevant moments.",
+        "Eliminate a candidate only using an actual incompatible observation or an explicit convention, and leave occlusion or an unobserved feature unresolved rather than converting it into a mismatch.",
+        "Answer once supported identity evidence resolves the requested correspondence; if ambiguity survives the runtime limit, give the best supported answer in the required format and state the identity limitation in reason without inventing a match."
+      ],
+      "hypothesis": "Maintaining compatible identity candidates makes cross-view comparison depend on discriminating evidence rather than label or appearance guesses.",
+      "train_basis": [
+        "docs/skill-feedback-iteration-20261022.md: Global委派的约定与依赖诊断 (Train view-specific object conventions)"
+      ],
+      "historical_overlap": "Related to joint comparison and convention transfer; the candidate-preservation and elimination procedure was not separately established by the historical tests.",
+      "counterexample": "Category similarity questions need no physical-identity search; no correct candidate is guaranteed to be visible in every source.",
+      "variants": {
+        "paragraph": {
+          "path": "b08090d7d125fd18eeafb0b7c372e64d34afbd0d124db6181837735822bd1436.json",
+          "sha256": "b08090d7d125fd18eeafb0b7c372e64d34afbd0d124db6181837735822bd1436",
+          "bytes": 2021
+        },
+        "numbered": {
+          "path": "bb6f6f04cdc5c42b9662458740b3d4b3a2d2e11c357835c71ae76b5706be50c1.json",
+          "sha256": "bb6f6f04cdc5c42b9662458740b3d4b3a2d2e11c357835c71ae76b5706be50c1",
+          "bytes": 2044
+        },
+        "headings": {
+          "path": "6d298d3fdf16eaa9756fe2756e43cb5dff3e399863db1908dc40341d5be4f0ed.json",
+          "sha256": "6d298d3fdf16eaa9756fe2756e43cb5dff3e399863db1908dc40341d5be4f0ed",
+          "bytes": 2114
+        }
+      }
+    },
+    {
+      "key": "global_quantifier_bounds",
+      "role": "global",
+      "meta": {
+        "id": "1",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The question combines independently observable per-video conditions into an all, any, exact-number, count, or qualifying-subset answer. Track which unresolved local judgments can still change that answer; exclude counting repeated events within one video and identity matching that cannot be decided independently per video.",
+      "strategy_sentences": [
+        "For a per-video quantifier, preserve the exact predicate, its qualifiers, the entities being counted, and whether the requested result is a truth value, number, or complete subset.",
+        "Use analyze_videos with the same neutral local criterion and necessary definitions in each relevant videoagent_request instruction, asking for decisive visible support and unresolved limitations rather than an unsupported blanket verdict.",
+        "Keep supported matches, supported exclusions, and unknown judgments separate by source in reasoning; for a count, supported matches give a lower bound and including unknowns gives an upper bound, without adding output fields or treating omissions as exclusions.",
+        "Check whether different resolutions of the unknown judgments could still change the requested answer, preserving that an exact subset usually requires resolving every potentially included member even when a yes-or-no quantifier is already decided.",
+        "Request a focused local follow-up only for a gap that can change the answer, and reconcile a changed predicate or conflicting report before using it to tighten the bounds.",
+        "Answer when every outcome compatible with the supported evidence yields the requested result; if the runtime ends earlier, give the best supported nonempty answer in the required format and disclose the unresolved bound in reason."
+      ],
+      "hypothesis": "Answer bounds focus follow-ups on consequential unknowns and support stopping without demanding complete evidence for an already decided quantifier.",
+      "train_basis": [
+        "docs/manual-global-skills-zh.md: 设计依据与可检验预期 (Train quantifier and predicate drift)",
+        "docs/manual-skill-results.md: Global简短库的已有轨迹核对 (Train unknown treated as exclusion)"
+      ],
+      "historical_overlap": "Builds on shared-predicate semantics but introduces explicit answer bounds and answer-dependent stopping, not a cost or step-count acceptance objective.",
+      "counterexample": "A resolved yes-or-no question does not imply that an exact count or complete membership list is resolved.",
+      "variants": {
+        "paragraph": {
+          "path": "7434f8397ebc70bdcf0c6a105698e4e1d7872b876fd98f738d686d87d3c08f9d.json",
+          "sha256": "7434f8397ebc70bdcf0c6a105698e4e1d7872b876fd98f738d686d87d3c08f9d",
+          "bytes": 1901
+        },
+        "numbered": {
+          "path": "3e7cf263204f1d412a86bffe89ebc633c04970bb9abbae030550ceaf49542b80.json",
+          "sha256": "3e7cf263204f1d412a86bffe89ebc633c04970bb9abbae030550ceaf49542b80",
+          "bytes": 1924
+        },
+        "headings": {
+          "path": "b2bdabccc161b9a3bf6f080e6fb4ed61a80c903b88fabfd91a32d00979d636ee.json",
+          "sha256": "b2bdabccc161b9a3bf6f080e6fb4ed61a80c903b88fabfd91a32d00979d636ee",
+          "bytes": 1994
+        }
+      }
+    },
+    {
+      "key": "video_negative_coverage",
+      "role": "video",
+      "meta": {
+        "id": "1",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction asks whether a specified event or object is absent, whether only stated items occur, or whether a local list is complete. Determine what the same-video observations cover before making the negative or exhaustive claim; a simple request for one positive example does not require this procedure.",
+      "strategy_sentences": [
+        "For a negative or exhaustive local judgment, identify the exact event or object and the temporal and visible scope required by the instruction, using only this video's instruction and retained Memory.",
+        "Inspect relevant retained observations for positive evidence, contrary evidence, and visibility limits; an unmentioned item or a broadly sampled interval does not by itself establish absence.",
+        "For a consequential coverage gap, use observe with a neutral what that asks for the target evidence and visibility limitations, ordered non-overlapping where ranges with start before end inside the actual duration, and an fps allowed by the current action schema.",
+        "Distinguish not observed from contradicted by visible evidence, and preserve uncertainty from occlusion, unclear identity, or sampling rather than completing the list from a familiar activity.",
+        "Check only the remaining visible distinction that could change the local report, and stop further acquisition when the required claim is supported or no available observation is likely to resolve its material limitation within the runtime.",
+        "Use finish only when available after usable same-video evidence exists, reporting the supported local judgment and coverage limitation in summary without internal ranges, fps, tool details, cross-video conclusions, or invented observations; otherwise obey the existing bounded terminal protocol."
+      ],
+      "hypothesis": "Making coverage relevant to negative claims prevents omitted descriptions from becoming certain absence or complete-list conclusions.",
+      "train_basis": [
+        "docs/manual-video-skills-zh.md: Train局部轨迹中的多判据与笼统结论缺口",
+        "docs/skill-exploration-results.md: 已观察到的传递问题 (Train evidence scope narrowing)"
+      ],
+      "historical_overlap": "Narrows the earlier criterion-evidence warning about omission versus absence into a coverage procedure; this concept is not claimed as wholly new.",
+      "counterexample": "A positive example can resolve an existence question without exhaustive coverage; sparse observation cannot certify universal absence.",
+      "variants": {
+        "paragraph": {
+          "path": "886af9a3e61a6d48c2cf06b6d8e97957df7586246d212fbdf753564d740cbd56.json",
+          "sha256": "886af9a3e61a6d48c2cf06b6d8e97957df7586246d212fbdf753564d740cbd56",
+          "bytes": 1938
+        },
+        "numbered": {
+          "path": "7c7d61c23dc76da6bbae6aa8a6c466740e438a82ed048ffddbd4b118b2baf651.json",
+          "sha256": "7c7d61c23dc76da6bbae6aa8a6c466740e438a82ed048ffddbd4b118b2baf651",
+          "bytes": 1961
+        },
+        "headings": {
+          "path": "d6779ab6c568630ab844ccb040c5e000ae67d11456224bf8a8dbfcbf4971067b.json",
+          "sha256": "d6779ab6c568630ab844ccb040c5e000ae67d11456224bf8a8dbfcbf4971067b",
+          "bytes": 2031
+        }
+      }
+    },
+    {
+      "key": "video_boundary_bracketing",
+      "role": "video",
+      "meta": {
+        "id": "1",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction requires this video's event start, finish, duration interval, or a boundary-sensitive order. Establish the event and use surrounding state changes to bound the requested endpoints; exclude general descriptions and coarse ordering that do not need boundary localization.",
+      "strategy_sentences": [
+        "For a requested event boundary, preserve the exact action and object conditions, identify which endpoints the instruction actually needs, and reuse only anchors supported by same-video Memory.",
+        "If the event is not established, first use observe with a what asking for its visible identity and relevant state transitions, legal ordered non-overlapping where ranges inside the duration, and an allowed fps suitable for the requested detail.",
+        "For an unresolved start, seek evidence of the preceding non-event state and the event beginning; for an unresolved finish, seek evidence of the event continuing and the following completed or changed state, without treating a sampled first appearance or crop edge as the boundary.",
+        "Focus another observe on the unsupported side of a credible anchor while retaining enough surrounding context; widen the search when the event identity or anchor itself is doubtful instead of repeatedly refining the same unverified location.",
+        "Keep a missing flank or endpoint unresolved when the event begins before the visible material, continues after it, or remains ambiguous, and stop refining once the instruction's required temporal distinction is supported.",
+        "When finish is available after usable same-video evidence, report the supported source-video event times, endpoint precision, and missing boundary in summary without internal observation ranges or fps, and obey the existing runtime limit rather than inventing a complete interval."
+      ],
+      "hypothesis": "Flanking state evidence improves endpoint grounding and prevents repeated refinement around an unsupported anchor.",
+      "train_basis": [
+        "docs/manual-video-skills-zh.md: Train时间要求未传入观察及终点缺失",
+        "docs/skill-exploration-results.md: 已观察到的传递问题 (Train crop edges used as event endpoints)"
+      ],
+      "historical_overlap": "Related to event-boundaries and temporal-anchor cards, but explicitly tests two-sided state bracketing and anchor rejection; not a novel concept claim.",
+      "counterexample": "A boundary outside the supplied visible material may remain unknown; coarse event order should not trigger unnecessary endpoint refinement.",
+      "variants": {
+        "paragraph": {
+          "path": "3e46018cb2341818e3f4231d58c151809d427a706841cf3e35238e88f6adee30.json",
+          "sha256": "3e46018cb2341818e3f4231d58c151809d427a706841cf3e35238e88f6adee30",
+          "bytes": 1992
+        },
+        "numbered": {
+          "path": "ae5b224dd497e1e78749b91cd090a0ad6eb69125bade55de1e528c48189560d2.json",
+          "sha256": "ae5b224dd497e1e78749b91cd090a0ad6eb69125bade55de1e528c48189560d2",
+          "bytes": 2015
+        },
+        "headings": {
+          "path": "e524cf72dd595f7c858e629fb66c725332677abcd08309a9ae9b2c932eec7747.json",
+          "sha256": "e524cf72dd595f7c858e629fb66c725332677abcd08309a9ae9b2c932eec7747",
+          "bytes": 2085
+        }
+      }
+    },
+    {
+      "key": "video_occlusion_identity",
+      "role": "video",
+      "meta": {
+        "id": "1",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction asks to track a particular person or object through this video, determine that entity's later behavior, or distinguish its repeated appearances from different entities. Maintain local identity continuity and explicitly resolve reappearance; exclude static category or attribute checks with no identity dependency.",
+      "strategy_sentences": [
+        "For a local tracking request, initialize the target only from the current instruction's explicit convention and retained same-video evidence, asking for missing visible identification rather than assigning an identity from an arbitrary label.",
+        "Use observe with a what asking for the target's distinguishing visible features, motion, and nearby landmarks, valid ordered non-overlapping where ranges inside the actual duration, and an fps permitted by the action schema.",
+        "Carry an identity forward only while supported by visible continuity or distinguishing evidence; after occlusion, leaving the frame, or an indistinguishable crossing, retain compatible local candidates instead of assuming the nearest reappearance is the target.",
+        "If the unresolved identity can change the requested behavior or count, inspect evidence on both sides of the interruption and ask what distinguishes the returning candidates, without filling the hidden path from a usual motion pattern.",
+        "Keep distinct entities separate from repeat appearances only when the retained evidence supports that distinction, and stop when the identity-dependent result is supported or the remaining ambiguity cannot be resolved within the bounded request.",
+        "When finish is available after usable same-video evidence, summarize the supported local identity, relevant behavior, and any unresolved reidentification without internal ranges, fps, cross-video matching claims, or a fabricated trajectory, and preserve the runtime's terminal behavior."
+      ],
+      "hypothesis": "Explicit reidentification avoids transferring later behavior or counts to an entity selected only by appearance or proximity.",
+      "train_basis": [
+        "docs/skill-feedback-iteration-20261022.md: Train身份约定传递诊断为相关线索，未证明局部遮挡错误频率"
+      ],
+      "historical_overlap": "A new local procedure hypothesis adjacent to historical identity/convention concerns; no historical local tracking benefit is claimed.",
+      "counterexample": "A static attribute can be answered without continuous tracking; complete disappearance can leave identity genuinely unresolved.",
+      "variants": {
+        "paragraph": {
+          "path": "bc0c8bcb27056899178445dd8c307f5ac62620e391054e5c2e7f7ec1169931b4.json",
+          "sha256": "bc0c8bcb27056899178445dd8c307f5ac62620e391054e5c2e7f7ec1169931b4",
+          "bytes": 2071
+        },
+        "numbered": {
+          "path": "d5ff269276d009c36a75933b306064fbc81a9f685720895262e5d46d221cad42.json",
+          "sha256": "d5ff269276d009c36a75933b306064fbc81a9f685720895262e5d46d221cad42",
+          "bytes": 2094
+        },
+        "headings": {
+          "path": "721129e2b06000b0f52c23b84a001a69904c1da0fca54f244291f8e01efa491b.json",
+          "sha256": "721129e2b06000b0f52c23b84a001a69904c1da0fca54f244291f8e01efa491b",
+          "bytes": 2164
+        }
+      }
+    },
+    {
+      "key": "video_observe_recovery",
+      "role": "video",
+      "meta": {
+        "id": "1",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction requires fine action detail, a brief local event, or an event interval that depends on a workable observation plan. Adapt the same-video observation to actual duration and available feedback; prior errors or hidden Memory are not prerequisites for selecting this skill.",
+      "strategy_sentences": [
+        "For a detail-sensitive local request, inspect the supplied duration and retained same-video evidence before planning observe, preserving the instruction's actual target rather than replacing it with a broad summary.",
+        "Set what to a neutral visually answerable question, choose ordered non-overlapping where ranges with start strictly before end inside the actual duration, and choose an fps allowed by the current schema, preserving fractional seconds instead of rounding a short range to zero.",
+        "If observe is rejected or fails, treat its feedback as diagnostic rather than visual evidence, identify the stated cause, and change the responsible legal parameter or evidence request only when the available feedback supports that correction.",
+        "If a successful observation adds no decisive evidence, distinguish an irrelevant question, insufficient temporal coverage, and unresolved visual detail before changing what, where, or the permitted fps, rather than issuing the same ineffective request again.",
+        "Stop retrying when retained evidence supports the required local result or no justified correction can improve it within the remaining runtime; do not extend the loop, bypass validation, increase the frame budget, or call an unavailable action.",
+        "Use finish only when it is available after usable same-video observations, putting supported facts and remaining uncertainty in summary without internal tool failures, ranges, or fps; if finish is unavailable, remain within the available actions and existing bounded terminal protocol without claiming a successful observation."
+      ],
+      "hypothesis": "Feedback-specific changes prevent repeated invalid or uninformative observations without modifying the tool or loop contract.",
+      "train_basis": [
+        "docs/skill-exploration-results.md: Train local-video invalid observe at 0.92 seconds (all compared arms scored zero; no attributed new score loss)",
+        "docs/skill-research-handoff-20261022.md: 5.4 Video invalid observe description"
+      ],
+      "historical_overlap": "Targets an observed Train execution failure with a newly authored recovery procedure; historical cards did not separately establish its utility.",
+      "counterexample": "Successful and sufficient observations require no recovery; unsupported infrastructure explanations must not replace evidence.",
+      "variants": {
+        "paragraph": {
+          "path": "1ccaf9f469aa727f310bd6e5fbde9bb084ba52ab6a1d9138075aa5148d089888.json",
+          "sha256": "1ccaf9f469aa727f310bd6e5fbde9bb084ba52ab6a1d9138075aa5148d089888",
+          "bytes": 2097
+        },
+        "numbered": {
+          "path": "271050b5f087248275009451148ca31a59c61bcfbd0067b5804a5bce3a3a6641.json",
+          "sha256": "271050b5f087248275009451148ca31a59c61bcfbd0067b5804a5bce3a3a6641",
+          "bytes": 2120
+        },
+        "headings": {
+          "path": "861c76dc1763dc6347f227dcd5f679d96b7c088da7cc27e05eaed471545b698e.json",
+          "sha256": "861c76dc1763dc6347f227dcd5f679d96b7c088da7cc27e05eaed471545b698e",
+          "bytes": 2190
+        }
+      }
+    }
+  ]
+}

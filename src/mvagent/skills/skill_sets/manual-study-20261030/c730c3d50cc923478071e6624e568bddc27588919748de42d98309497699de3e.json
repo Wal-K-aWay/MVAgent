@@ -1,0 +1,17 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "1",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction asks whether a specified event or object is absent, whether only stated items occur, or whether a local list is complete. Determine what the same-video observations cover before making the negative or exhaustive claim; a simple request for one positive example does not require this procedure.",
+      "strategy": "For a negative or exhaustive judgment, use only this video's instruction and retained Memory to define the target and required visible and temporal scope. Review positive evidence, contradictions, and coverage limits; an omitted item or broad sampling does not prove absence. If a consequential gap remains, use observe with a neutral what about the target and visibility, legal ordered non-overlapping where intervals within the duration, and a permitted fps. Keep non-observation distinct from contrary evidence, preserving uncertainty from occlusion, identity, or sampling rather than completing a familiar activity. Stop acquisition when the claim is supported or available observations cannot resolve its material limitation within the runtime. When finish is available after usable same-video evidence, summarize the supported judgment and coverage limit without internal tools, ranges, fps, or cross-video conclusions. Otherwise follow the bounded terminal protocol without inventing observations."
+    }
+  ]
+}

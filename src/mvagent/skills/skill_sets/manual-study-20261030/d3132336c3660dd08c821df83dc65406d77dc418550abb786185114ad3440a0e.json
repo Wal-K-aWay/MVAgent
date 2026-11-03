@@ -1,0 +1,17 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "1",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction requires fine action detail, a brief local event, or an event interval that depends on a workable observation plan. Adapt the same-video observation to actual duration and available feedback; prior errors or hidden Memory are not prerequisites for selecting this skill.",
+      "strategy": "For a detail-sensitive local request, preserve its actual target and inspect duration and retained same-video evidence before observe. Ask a neutral visually answerable what, use legal ordered non-overlapping where intervals with start before end inside the duration, preserve fractional seconds, and choose permitted fps. Treat rejection or failure feedback as diagnostics, not observations; change only the responsible parameter or evidence request when feedback supports the correction. After an uninformative success, distinguish an irrelevant question, inadequate coverage, and unresolved detail before changing what, where, or fps. Do not repeat an unchanged ineffective request. Stop when evidence supports the local result or no justified correction remains within the runtime. Never extend the loop, bypass validation, increase frame budget, or invoke unavailable actions. Use finish only when available after usable same-video evidence, summarizing supported facts and uncertainty without internal failures, ranges, or fps; otherwise obey bounded terminal behavior without claiming observation success."
+    }
+  ]
+}

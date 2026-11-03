@@ -1,0 +1,17 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "1",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction asks to track a particular person or object through this video, determine that entity's later behavior, or distinguish its repeated appearances from different entities. Maintain local identity continuity and explicitly resolve reappearance; exclude static category or attribute checks with no identity dependency.",
+      "strategy": "For a local tracking request, initialize the target only from the current instruction's explicit convention and retained same-video evidence, asking for missing visible identification rather than assigning an identity from an arbitrary label. Use observe with a what asking for the target's distinguishing visible features, motion, and nearby landmarks, valid ordered non-overlapping where ranges inside the actual duration, and an fps permitted by the action schema. Carry an identity forward only while supported by visible continuity or distinguishing evidence; after occlusion, leaving the frame, or an indistinguishable crossing, retain compatible local candidates instead of assuming the nearest reappearance is the target. If the unresolved identity can change the requested behavior or count, inspect evidence on both sides of the interruption and ask what distinguishes the returning candidates, without filling the hidden path from a usual motion pattern. Keep distinct entities separate from repeat appearances only when the retained evidence supports that distinction, and stop when the identity-dependent result is supported or the remaining ambiguity cannot be resolved within the bounded request. When finish is available after usable same-video evidence, summarize the supported local identity, relevant behavior, and any unresolved reidentification without internal ranges, fps, cross-video matching claims, or a fabricated trajectory, and preserve the runtime's terminal behavior."
+    }
+  ]
+}

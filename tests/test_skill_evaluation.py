@@ -1,7 +1,7 @@
 """Whole-bank evaluator metrics, raw-before-score and Judge failure behavior."""
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock,patch
 import json,tempfile,unittest
 from eval.skill_eval.evaluator import LibraryEvaluator,CROSSVID_TASKS,assignment_groups,evaluation_variant,MANUAL_GLOBAL_MODE
 from mvagent.skills.bank import SkillBank
@@ -10,7 +10,7 @@ from skill_evolution.infra.banks import freeze_bank
 
 
 class EvaluatorTest(unittest.TestCase):
-    def setup_fixture(self, folder):
+    def setup_fixture(self, folder, *, active_partitions=None, train_only_metadata=False):
         root=Path(folder); records={}; members=[]
         (root/'crossvid').mkdir()
         (root/'crossvid/qa.jsonl').write_text('synthetic metadata')
@@ -25,10 +25,17 @@ class EvaluatorTest(unittest.TestCase):
         write_json(root/'split.json',{'version':2,'dataset':'synthetic','seed':0,'samples':members})
         write_json(root/'execution.json',{})
         runtime={'agents':{'global_agent':{},'video_agent':{}}}
-        with patch('eval.skill_eval.evaluator.load_multibench_records',return_value=records), \
+        if train_only_metadata:
+            records={row['sample_id']:records[row['sample_id']] for row in members if row['split']=='train'}
+        def load_records(_, ids):
+            if set(ids)-records.keys():
+                raise FileNotFoundError('Held metadata unavailable')
+            return {sid:records[sid] for sid in ids}
+        with patch('eval.skill_eval.evaluator.load_multibench_records',side_effect=load_records), \
              patch('eval.skill_eval.evaluator.LocalJudge',return_value=SimpleNamespace(identity={'model':'test'})):
             evaluator=LibraryEvaluator(output=root,runtime=runtime,execution=root/'execution.json',
-                split_path=root/'split.json',dataset_root=root,endpoints=['unused'],identity='test')
+                split_path=root/'split.json',dataset_root=root,endpoints=['unused'],identity='test',
+                active_partitions=active_partitions)
         return root,evaluator,freeze_bank(SkillBank(()),root/'banks')
 
     @staticmethod
@@ -73,6 +80,37 @@ class EvaluatorTest(unittest.TestCase):
             directory=root/'evaluations'/bank.sha256/'cal'
             self.assertTrue((directory/'rollouts/records/crossvid/crossvid:CCQA:2/result.json').exists())
             self.assertFalse((directory/'evaluation.json').exists())
+
+    def test_train_only_loads_no_held_metadata_and_preserves_identity(self):
+        with tempfile.TemporaryDirectory() as full_folder, tempfile.TemporaryDirectory() as train_folder:
+            _,default,_=self.setup_fixture(full_folder)
+            root,evaluator,bank=self.setup_fixture(train_folder,active_partitions=('train',),train_only_metadata=True)
+            self.assertEqual(set(evaluator.records),set(evaluator.ids['train']))
+            self.assertTrue(evaluator.ids['cal'] and evaluator.ids['gate'])
+            self.assertEqual(evaluator.identity,default.identity)
+            self.assertEqual({record.task_population for record in evaluator.records.values()},{100})
+            with patch('eval.skill_eval.evaluator.subprocess.run',side_effect=self.native_run), \
+                 patch('eval.skill_eval.evaluator._score_one',side_effect=lambda _,cache,task,attempts:{'status':'ok','score':task['point_count'] if task['id'].endswith(':0') else 2*task['point_count']}):
+                result=evaluator(bank,'train')
+            self.assertEqual(result.samples,20)
+            self.assertAlmostEqual(result.score,(9*0.5+5/8)/10)
+
+    def test_unprepared_partition_rejected_before_bank_runner_or_judge(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root,evaluator,_=self.setup_fixture(folder,active_partitions=('train',),train_only_metadata=True)
+            bank=SimpleNamespace(load=Mock())
+            with patch.object(evaluator,'_run_native') as native, \
+                 patch('eval.skill_eval.evaluator._score_one') as judge:
+                for partition in ('cal','gate','unknown'):
+                    with self.assertRaisesRegex(ValueError,'was not prepared'):
+                        evaluator(bank,partition)
+                bank.load.assert_not_called(); native.assert_not_called(); judge.assert_not_called()
+            self.assertFalse((root/'evaluations').exists())
+
+    def test_default_requires_held_metadata(self):
+        with tempfile.TemporaryDirectory() as folder:
+            with self.assertRaisesRegex(FileNotFoundError,'Held metadata unavailable'):
+                self.setup_fixture(folder,train_only_metadata=True)
 
     def test_native_resume_invokes_frozen_runner(self):
         with tempfile.TemporaryDirectory() as folder:

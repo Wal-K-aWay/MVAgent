@@ -1,0 +1,584 @@
+{
+  "schema_version": 1,
+  "study_id": "manual-combination-study-20261030",
+  "status": "untested",
+  "authorship": "Combination and deterministic ID renumbering only; no new when_to_use or strategy text.",
+  "mechanism_order": [
+    "global_dependency_closure",
+    "global_option_discrimination",
+    "global_identity_candidates",
+    "global_quantifier_bounds",
+    "video_negative_coverage",
+    "video_boundary_bracketing",
+    "video_occlusion_identity",
+    "video_observe_recovery"
+  ],
+  "bank_count": 3,
+  "role_counts_per_bank": {
+    "global": 4,
+    "video": 4
+  },
+  "maximum_candidates_per_role_stage": 4,
+  "retrieval_note": "Each role has four eligible cards; current full-catalog path does not invoke embedding retrieval.",
+  "planned_test": {
+    "all_three_banks": true,
+    "different_Train_questions": 120,
+    "maximum_new_rollouts": 360,
+    "submitted": false
+  },
+  "information_boundary": "No question scores, final comparisons, Cal/Gate/Test records, GT or scoring points read; all source libraries included without score-based selection.",
+  "interpretation": "Multi-card competition, both-role coupling and reference-ID renumbering differ from single-card tests; combinations are not single-card content interventions.",
+  "evolution_initialization": "Automatic evolution still starts from two empty schema-valid banks; these authored combinations are diagnostic resources, never seeds.",
+  "source_files": {
+    "manifest.json": {
+      "sha256": "a21d542fcf4bbf8c04ccedc622ae8dd5eb1dc705cac4e506d90b66694a36883c",
+      "bytes": 28944
+    },
+    "entry_refinement.json": {
+      "sha256": "86081b570f1c0f85d3d0dc99f9d4528db83c6289829ba3f3f430c5b430f214f5",
+      "bytes": 1073
+    },
+    "step_refinement.json": {
+      "sha256": "4c27e4ad09e8920faafe7a02012190b69377199f9671afe0c5ea09e6cb6721e5",
+      "bytes": 10085
+    },
+    "a01f8b5e80aa73c4f5f8d74f6b3a87021fd4561b250b1144147d31f8be0c9619.json": {
+      "sha256": "a01f8b5e80aa73c4f5f8d74f6b3a87021fd4561b250b1144147d31f8be0c9619",
+      "bytes": 2091
+    },
+    "3d763c9eeb3ed6ababe9007259e207718357fc53df39bde67b429bc731c1ac13.json": {
+      "sha256": "3d763c9eeb3ed6ababe9007259e207718357fc53df39bde67b429bc731c1ac13",
+      "bytes": 1526
+    },
+    "21266c1682095f496c3951c769471728dddeccac935c4035a5a4fa76bad66d5e.json": {
+      "sha256": "21266c1682095f496c3951c769471728dddeccac935c4035a5a4fa76bad66d5e",
+      "bytes": 2034
+    },
+    "35fbe7b62f2fb0ba9dd1e20915289f46b7e5f4669f81816cdb68cd26e7f49b77.json": {
+      "sha256": "35fbe7b62f2fb0ba9dd1e20915289f46b7e5f4669f81816cdb68cd26e7f49b77",
+      "bytes": 2232
+    },
+    "f6dbd4c7a020c1e877ef85f712ea0b0feda2cd1d8dcd6fc6c265de2d1ea79adb.json": {
+      "sha256": "f6dbd4c7a020c1e877ef85f712ea0b0feda2cd1d8dcd6fc6c265de2d1ea79adb",
+      "bytes": 1595
+    },
+    "b08090d7d125fd18eeafb0b7c372e64d34afbd0d124db6181837735822bd1436.json": {
+      "sha256": "b08090d7d125fd18eeafb0b7c372e64d34afbd0d124db6181837735822bd1436",
+      "bytes": 2021
+    },
+    "ea5d6c86faf4e2ecf05bfa1b788389c7f5f05c89143e2fbc0ed85c9f50ff7356.json": {
+      "sha256": "ea5d6c86faf4e2ecf05bfa1b788389c7f5f05c89143e2fbc0ed85c9f50ff7356",
+      "bytes": 1638
+    },
+    "7434f8397ebc70bdcf0c6a105698e4e1d7872b876fd98f738d686d87d3c08f9d.json": {
+      "sha256": "7434f8397ebc70bdcf0c6a105698e4e1d7872b876fd98f738d686d87d3c08f9d",
+      "bytes": 1901
+    },
+    "4f465281d95f7811cf18285cfa3f05fba6cbe95698bc38c76a3c44aeb5f95cd5.json": {
+      "sha256": "4f465281d95f7811cf18285cfa3f05fba6cbe95698bc38c76a3c44aeb5f95cd5",
+      "bytes": 1479
+    },
+    "886af9a3e61a6d48c2cf06b6d8e97957df7586246d212fbdf753564d740cbd56.json": {
+      "sha256": "886af9a3e61a6d48c2cf06b6d8e97957df7586246d212fbdf753564d740cbd56",
+      "bytes": 1938
+    },
+    "c730c3d50cc923478071e6624e568bddc27588919748de42d98309497699de3e.json": {
+      "sha256": "c730c3d50cc923478071e6624e568bddc27588919748de42d98309497699de3e",
+      "bytes": 1557
+    },
+    "3e46018cb2341818e3f4231d58c151809d427a706841cf3e35238e88f6adee30.json": {
+      "sha256": "3e46018cb2341818e3f4231d58c151809d427a706841cf3e35238e88f6adee30",
+      "bytes": 1992
+    },
+    "1d1eb682ea080fd7a9de9d8f015619deba515b10b819b6b47b40db71c795ecdd.json": {
+      "sha256": "1d1eb682ea080fd7a9de9d8f015619deba515b10b819b6b47b40db71c795ecdd",
+      "bytes": 1509
+    },
+    "bc0c8bcb27056899178445dd8c307f5ac62620e391054e5c2e7f7ec1169931b4.json": {
+      "sha256": "bc0c8bcb27056899178445dd8c307f5ac62620e391054e5c2e7f7ec1169931b4",
+      "bytes": 2071
+    },
+    "d4445ad2e10e19111a2b543ca96b48f4a381a6cd5cc48a071ed0aea653099003.json": {
+      "sha256": "d4445ad2e10e19111a2b543ca96b48f4a381a6cd5cc48a071ed0aea653099003",
+      "bytes": 1699
+    },
+    "1ccaf9f469aa727f310bd6e5fbde9bb084ba52ab6a1d9138075aa5148d089888.json": {
+      "sha256": "1ccaf9f469aa727f310bd6e5fbde9bb084ba52ab6a1d9138075aa5148d089888",
+      "bytes": 2097
+    },
+    "d3132336c3660dd08c821df83dc65406d77dc418550abb786185114ad3440a0e.json": {
+      "sha256": "d3132336c3660dd08c821df83dc65406d77dc418550abb786185114ad3440a0e",
+      "bytes": 1641
+    }
+  },
+  "libraries": [
+    {
+      "key": "A",
+      "bank": {
+        "path": "4b2c92c1035c9314c5abea4b221f7c386154d08ae91fcacad3eefe40e32bd4d0.json",
+        "sha256": "4b2c92c1035c9314c5abea4b221f7c386154d08ae91fcacad3eefe40e32bd4d0",
+        "bytes": 15837
+      },
+      "source_cards": [
+        {
+          "key": "global_dependency_closure",
+          "new_id": "1",
+          "source_id": "1",
+          "role": "global",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "a01f8b5e80aa73c4f5f8d74f6b3a87021fd4561b250b1144147d31f8be0c9619.json",
+            "sha256": "a01f8b5e80aa73c4f5f8d74f6b3a87021fd4561b250b1144147d31f8be0c9619",
+            "bytes": 2091
+          },
+          "when_to_use_sha256": "166192884b9cf7f815508965700e205a0c26cceca43499d4f1d9c1ffe481236e",
+          "strategy_sha256": "26a676ce56384b9b95d296ca0859f6910deabc00854f23c1cc5cd860a718f713",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        },
+        {
+          "key": "global_option_discrimination",
+          "new_id": "2",
+          "source_id": "1",
+          "role": "global",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "21266c1682095f496c3951c769471728dddeccac935c4035a5a4fa76bad66d5e.json",
+            "sha256": "21266c1682095f496c3951c769471728dddeccac935c4035a5a4fa76bad66d5e",
+            "bytes": 2034
+          },
+          "when_to_use_sha256": "ed647a9107e9c50aecfe3d16d992494d1544632d147729e9f73b4276554bec3c",
+          "strategy_sha256": "7929212d2fda3530abc166eac1603fdfcf56c148c59a7150d8007bf1bc7dd7a5",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        },
+        {
+          "key": "global_identity_candidates",
+          "new_id": "3",
+          "source_id": "1",
+          "role": "global",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "b08090d7d125fd18eeafb0b7c372e64d34afbd0d124db6181837735822bd1436.json",
+            "sha256": "b08090d7d125fd18eeafb0b7c372e64d34afbd0d124db6181837735822bd1436",
+            "bytes": 2021
+          },
+          "when_to_use_sha256": "8ac32c6c7c0e97911f24c10511e4272a3da68a8f59aea988dd7655fb4629882d",
+          "strategy_sha256": "e31fbf8ee86488efbced07144ddd51660e5b9bf1e1f6fc1423c0ef70b93a195e",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        },
+        {
+          "key": "global_quantifier_bounds",
+          "new_id": "4",
+          "source_id": "1",
+          "role": "global",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "7434f8397ebc70bdcf0c6a105698e4e1d7872b876fd98f738d686d87d3c08f9d.json",
+            "sha256": "7434f8397ebc70bdcf0c6a105698e4e1d7872b876fd98f738d686d87d3c08f9d",
+            "bytes": 1901
+          },
+          "when_to_use_sha256": "1f97630e2137f50054d5aa5772c0fce5cec52ef258c90e41ba84d853971cbff9",
+          "strategy_sha256": "a3f1dbf9cad08425f6f32b449734038f31e30092bee9018b3520f1a6c1c4163a",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        },
+        {
+          "key": "video_negative_coverage",
+          "new_id": "5",
+          "source_id": "1",
+          "role": "video",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "886af9a3e61a6d48c2cf06b6d8e97957df7586246d212fbdf753564d740cbd56.json",
+            "sha256": "886af9a3e61a6d48c2cf06b6d8e97957df7586246d212fbdf753564d740cbd56",
+            "bytes": 1938
+          },
+          "when_to_use_sha256": "6fa07e2441515993e3baa79c6ad93c0367419a0e41d855d18a7691a86954a8fd",
+          "strategy_sha256": "9ec821e535fa4dbb761ce702a54d2fbaec2b20cd972dddd09b929279d068290b",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        },
+        {
+          "key": "video_boundary_bracketing",
+          "new_id": "6",
+          "source_id": "1",
+          "role": "video",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "3e46018cb2341818e3f4231d58c151809d427a706841cf3e35238e88f6adee30.json",
+            "sha256": "3e46018cb2341818e3f4231d58c151809d427a706841cf3e35238e88f6adee30",
+            "bytes": 1992
+          },
+          "when_to_use_sha256": "513418dfdf0c5c089984ffced2fabd9e91ab66d81da7dc6e0d17c1884f08e58d",
+          "strategy_sha256": "fd4d83460a6436d1fe5c3b80e5832fef8a8198dc649410f19919597e24de80c4",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        },
+        {
+          "key": "video_occlusion_identity",
+          "new_id": "7",
+          "source_id": "1",
+          "role": "video",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "bc0c8bcb27056899178445dd8c307f5ac62620e391054e5c2e7f7ec1169931b4.json",
+            "sha256": "bc0c8bcb27056899178445dd8c307f5ac62620e391054e5c2e7f7ec1169931b4",
+            "bytes": 2071
+          },
+          "when_to_use_sha256": "e655180c5e7bb24d703ffbc6d2a3c9201e9d339f781e806ea42d8188521b9488",
+          "strategy_sha256": "69a8338ed1095c71c95b68bec8af3d3001038e36e7e06c7c3e0315fcdecdcd43",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        },
+        {
+          "key": "video_observe_recovery",
+          "new_id": "8",
+          "source_id": "1",
+          "role": "video",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "1ccaf9f469aa727f310bd6e5fbde9bb084ba52ab6a1d9138075aa5148d089888.json",
+            "sha256": "1ccaf9f469aa727f310bd6e5fbde9bb084ba52ab6a1d9138075aa5148d089888",
+            "bytes": 2097
+          },
+          "when_to_use_sha256": "7e8239103cc90192e7c087bc3a9e1099ee6bc6944f656e251438be84fccfd332",
+          "strategy_sha256": "50910dd242dd78304ebc3f05183f7c65a8d21f12c5d56a1b777b139d9ae3211a",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        }
+      ],
+      "status": "untested",
+      "composition": "All original eight paragraph mechanisms"
+    },
+    {
+      "key": "B",
+      "bank": {
+        "path": "bcbc63302b1f1c634cc27a77e68525db30a307d9c574d78d49e5998aa4a65f74.json",
+        "sha256": "bcbc63302b1f1c634cc27a77e68525db30a307d9c574d78d49e5998aa4a65f74",
+        "bytes": 16035
+      },
+      "source_cards": [
+        {
+          "key": "global_dependency_closure",
+          "new_id": "1",
+          "source_id": "1",
+          "role": "global",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "a01f8b5e80aa73c4f5f8d74f6b3a87021fd4561b250b1144147d31f8be0c9619.json",
+            "sha256": "a01f8b5e80aa73c4f5f8d74f6b3a87021fd4561b250b1144147d31f8be0c9619",
+            "bytes": 2091
+          },
+          "when_to_use_sha256": "166192884b9cf7f815508965700e205a0c26cceca43499d4f1d9c1ffe481236e",
+          "strategy_sha256": "26a676ce56384b9b95d296ca0859f6910deabc00854f23c1cc5cd860a718f713",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        },
+        {
+          "key": "global_option_discrimination",
+          "new_id": "2",
+          "source_id": "1",
+          "role": "global",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "35fbe7b62f2fb0ba9dd1e20915289f46b7e5f4669f81816cdb68cd26e7f49b77.json",
+            "sha256": "35fbe7b62f2fb0ba9dd1e20915289f46b7e5f4669f81816cdb68cd26e7f49b77",
+            "bytes": 2232
+          },
+          "when_to_use_sha256": "0dc74c3e722dee041504184f0be0ce233ca3a388a2e1939159a967fe3419eeee",
+          "strategy_sha256": "7929212d2fda3530abc166eac1603fdfcf56c148c59a7150d8007bf1bc7dd7a5",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        },
+        {
+          "key": "global_identity_candidates",
+          "new_id": "3",
+          "source_id": "1",
+          "role": "global",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "b08090d7d125fd18eeafb0b7c372e64d34afbd0d124db6181837735822bd1436.json",
+            "sha256": "b08090d7d125fd18eeafb0b7c372e64d34afbd0d124db6181837735822bd1436",
+            "bytes": 2021
+          },
+          "when_to_use_sha256": "8ac32c6c7c0e97911f24c10511e4272a3da68a8f59aea988dd7655fb4629882d",
+          "strategy_sha256": "e31fbf8ee86488efbced07144ddd51660e5b9bf1e1f6fc1423c0ef70b93a195e",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        },
+        {
+          "key": "global_quantifier_bounds",
+          "new_id": "4",
+          "source_id": "1",
+          "role": "global",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "7434f8397ebc70bdcf0c6a105698e4e1d7872b876fd98f738d686d87d3c08f9d.json",
+            "sha256": "7434f8397ebc70bdcf0c6a105698e4e1d7872b876fd98f738d686d87d3c08f9d",
+            "bytes": 1901
+          },
+          "when_to_use_sha256": "1f97630e2137f50054d5aa5772c0fce5cec52ef258c90e41ba84d853971cbff9",
+          "strategy_sha256": "a3f1dbf9cad08425f6f32b449734038f31e30092bee9018b3520f1a6c1c4163a",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        },
+        {
+          "key": "video_negative_coverage",
+          "new_id": "5",
+          "source_id": "1",
+          "role": "video",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "886af9a3e61a6d48c2cf06b6d8e97957df7586246d212fbdf753564d740cbd56.json",
+            "sha256": "886af9a3e61a6d48c2cf06b6d8e97957df7586246d212fbdf753564d740cbd56",
+            "bytes": 1938
+          },
+          "when_to_use_sha256": "6fa07e2441515993e3baa79c6ad93c0367419a0e41d855d18a7691a86954a8fd",
+          "strategy_sha256": "9ec821e535fa4dbb761ce702a54d2fbaec2b20cd972dddd09b929279d068290b",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        },
+        {
+          "key": "video_boundary_bracketing",
+          "new_id": "6",
+          "source_id": "1",
+          "role": "video",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "3e46018cb2341818e3f4231d58c151809d427a706841cf3e35238e88f6adee30.json",
+            "sha256": "3e46018cb2341818e3f4231d58c151809d427a706841cf3e35238e88f6adee30",
+            "bytes": 1992
+          },
+          "when_to_use_sha256": "513418dfdf0c5c089984ffced2fabd9e91ab66d81da7dc6e0d17c1884f08e58d",
+          "strategy_sha256": "fd4d83460a6436d1fe5c3b80e5832fef8a8198dc649410f19919597e24de80c4",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        },
+        {
+          "key": "video_occlusion_identity",
+          "new_id": "7",
+          "source_id": "1",
+          "role": "video",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "bc0c8bcb27056899178445dd8c307f5ac62620e391054e5c2e7f7ec1169931b4.json",
+            "sha256": "bc0c8bcb27056899178445dd8c307f5ac62620e391054e5c2e7f7ec1169931b4",
+            "bytes": 2071
+          },
+          "when_to_use_sha256": "e655180c5e7bb24d703ffbc6d2a3c9201e9d339f781e806ea42d8188521b9488",
+          "strategy_sha256": "69a8338ed1095c71c95b68bec8af3d3001038e36e7e06c7c3e0315fcdecdcd43",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        },
+        {
+          "key": "video_observe_recovery",
+          "new_id": "8",
+          "source_id": "1",
+          "role": "video",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "1ccaf9f469aa727f310bd6e5fbde9bb084ba52ab6a1d9138075aa5148d089888.json",
+            "sha256": "1ccaf9f469aa727f310bd6e5fbde9bb084ba52ab6a1d9138075aa5148d089888",
+            "bytes": 2097
+          },
+          "when_to_use_sha256": "7e8239103cc90192e7c087bc3a9e1099ee6bc6944f656e251438be84fccfd332",
+          "strategy_sha256": "50910dd242dd78304ebc3f05183f7c65a8d21f12c5d56a1b777b139d9ae3211a",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        }
+      ],
+      "status": "untested",
+      "composition": "A with only original G2 when replaced by the 35fbe7 entry refinement"
+    },
+    {
+      "key": "C",
+      "bank": {
+        "path": "49ce3f8a3f622b8d876681a7e6b8bf0d56a19d812dcc034afb3ded39c5f56aa2.json",
+        "sha256": "49ce3f8a3f622b8d876681a7e6b8bf0d56a19d812dcc034afb3ded39c5f56aa2",
+        "bytes": 12336
+      },
+      "source_cards": [
+        {
+          "key": "global_dependency_closure",
+          "new_id": "1",
+          "source_id": "1",
+          "role": "global",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "3d763c9eeb3ed6ababe9007259e207718357fc53df39bde67b429bc731c1ac13.json",
+            "sha256": "3d763c9eeb3ed6ababe9007259e207718357fc53df39bde67b429bc731c1ac13",
+            "bytes": 1526
+          },
+          "when_to_use_sha256": "166192884b9cf7f815508965700e205a0c26cceca43499d4f1d9c1ffe481236e",
+          "strategy_sha256": "b577ac6681f11d6f6bc5d122175e673a2d7b10c3794c10cd049f4396ef152cab",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        },
+        {
+          "key": "global_option_discrimination",
+          "new_id": "2",
+          "source_id": "1",
+          "role": "global",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "f6dbd4c7a020c1e877ef85f712ea0b0feda2cd1d8dcd6fc6c265de2d1ea79adb.json",
+            "sha256": "f6dbd4c7a020c1e877ef85f712ea0b0feda2cd1d8dcd6fc6c265de2d1ea79adb",
+            "bytes": 1595
+          },
+          "when_to_use_sha256": "ed647a9107e9c50aecfe3d16d992494d1544632d147729e9f73b4276554bec3c",
+          "strategy_sha256": "228c27cd0914fe78a32c28ccbabbf345d50722c45eb092346043a6e91a1f9823",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        },
+        {
+          "key": "global_identity_candidates",
+          "new_id": "3",
+          "source_id": "1",
+          "role": "global",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "ea5d6c86faf4e2ecf05bfa1b788389c7f5f05c89143e2fbc0ed85c9f50ff7356.json",
+            "sha256": "ea5d6c86faf4e2ecf05bfa1b788389c7f5f05c89143e2fbc0ed85c9f50ff7356",
+            "bytes": 1638
+          },
+          "when_to_use_sha256": "8ac32c6c7c0e97911f24c10511e4272a3da68a8f59aea988dd7655fb4629882d",
+          "strategy_sha256": "f72f2e573d8a4dd43f9694ac948e7549586dbb343a5764eda9a24c2a50d75d56",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        },
+        {
+          "key": "global_quantifier_bounds",
+          "new_id": "4",
+          "source_id": "1",
+          "role": "global",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "4f465281d95f7811cf18285cfa3f05fba6cbe95698bc38c76a3c44aeb5f95cd5.json",
+            "sha256": "4f465281d95f7811cf18285cfa3f05fba6cbe95698bc38c76a3c44aeb5f95cd5",
+            "bytes": 1479
+          },
+          "when_to_use_sha256": "1f97630e2137f50054d5aa5772c0fce5cec52ef258c90e41ba84d853971cbff9",
+          "strategy_sha256": "cc49ac1d240698a020838aae50c208405b96f0cd46df9398e77891100819abf0",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        },
+        {
+          "key": "video_negative_coverage",
+          "new_id": "5",
+          "source_id": "1",
+          "role": "video",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "c730c3d50cc923478071e6624e568bddc27588919748de42d98309497699de3e.json",
+            "sha256": "c730c3d50cc923478071e6624e568bddc27588919748de42d98309497699de3e",
+            "bytes": 1557
+          },
+          "when_to_use_sha256": "6fa07e2441515993e3baa79c6ad93c0367419a0e41d855d18a7691a86954a8fd",
+          "strategy_sha256": "2827e8b56d13d65f4a1452880f549833bc2e733c791b02b007d59d2b80de43e1",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        },
+        {
+          "key": "video_boundary_bracketing",
+          "new_id": "6",
+          "source_id": "1",
+          "role": "video",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "1d1eb682ea080fd7a9de9d8f015619deba515b10b819b6b47b40db71c795ecdd.json",
+            "sha256": "1d1eb682ea080fd7a9de9d8f015619deba515b10b819b6b47b40db71c795ecdd",
+            "bytes": 1509
+          },
+          "when_to_use_sha256": "513418dfdf0c5c089984ffced2fabd9e91ab66d81da7dc6e0d17c1884f08e58d",
+          "strategy_sha256": "fffa2824192cb03448a5dbf792d5c15f75a3d021c098c189e25dc5c1df9b23da",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        },
+        {
+          "key": "video_occlusion_identity",
+          "new_id": "7",
+          "source_id": "1",
+          "role": "video",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "d4445ad2e10e19111a2b543ca96b48f4a381a6cd5cc48a071ed0aea653099003.json",
+            "sha256": "d4445ad2e10e19111a2b543ca96b48f4a381a6cd5cc48a071ed0aea653099003",
+            "bytes": 1699
+          },
+          "when_to_use_sha256": "e655180c5e7bb24d703ffbc6d2a3c9201e9d339f781e806ea42d8188521b9488",
+          "strategy_sha256": "c50ee0d2d5361af33a06b307d982a26f55b49bb3aa30683aba729049a4992f48",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        },
+        {
+          "key": "video_observe_recovery",
+          "new_id": "8",
+          "source_id": "1",
+          "role": "video",
+          "stages": [
+            "initial",
+            "evidence"
+          ],
+          "source_bank": {
+            "path": "d3132336c3660dd08c821df83dc65406d77dc418550abb786185114ad3440a0e.json",
+            "sha256": "d3132336c3660dd08c821df83dc65406d77dc418550abb786185114ad3440a0e",
+            "bytes": 1641
+          },
+          "when_to_use_sha256": "7e8239103cc90192e7c087bc3a9e1099ee6bc6944f656e251438be84fccfd332",
+          "strategy_sha256": "78edd916e36d1304b03922229787419fc7af52febecaf646b0d7b2aaa6eeef9e",
+          "only_combination_edit": "meta.id assigned by original mechanism order; all other card fields copied verbatim"
+        }
+      ],
+      "status": "untested",
+      "composition": "All eight compact strategies with original when"
+    }
+  ]
+}

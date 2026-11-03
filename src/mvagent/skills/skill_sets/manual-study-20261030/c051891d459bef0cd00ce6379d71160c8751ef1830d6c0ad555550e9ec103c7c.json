@@ -1,0 +1,17 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "1",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The question requires a fact established in one video to interpret an event, identity, or state in another video, possibly under explicitly supplied view, label, or synchronization conventions. Resolve the reference dependency before a dependent local request; independent per-video judgments do not need this workflow.",
+      "strategy": "#### Step 1\nFor a cross-video dependency, separate the reference fact to establish from the target result, and preserve any view, label, timing, or synchronization convention explicitly supplied by the current question without inventing a correspondence.\n\n#### Step 2\nReuse sufficient facts in public History; if a target instruction needs a reference fact that is still unknown, first use analyze_videos with a videoagent_request naming the reference video_id and a neutral instruction that asks for that fact and its visible support.\n\n#### Step 3\nAfter the reference report returns, place only its relevant supported description, source identity, and necessary timing convention into the target videoagent_request instruction, together with the unresolved local question; concurrent requests cannot use each other's future reports.\n\n#### Step 4\nIf correspondence remains decisive and genuinely requires joint visual evidence, use watch_videos with an instruction naming the selected video IDs and relation, at least two distinct video_id values, and one clip with start before end inside each video's duration, without an fps field.\n\n#### Step 5\nTreat an unresolved reference or a report that assumes an unprovided cross-video fact as a remaining gap rather than evidence, and request a focused clarification only when it can change the answer.\n\n#### Step 6\nWhen the dependency and requested result are supported, answer in the question's required format; at the runtime limit, submit the best supported nonempty answer and retain material uncertainty in reason without inventing the missing reference."
+    }
+  ]
+}

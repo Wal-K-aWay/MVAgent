@@ -1,0 +1,21 @@
+{
+  "parent_bank_sha256": "21266c1682095f496c3951c769471728dddeccac935c4035a5a4fa76bad66d5e",
+  "changed_fields": [
+    "when_to_use"
+  ],
+  "bank": {
+    "path": "35fbe7b62f2fb0ba9dd1e20915289f46b7e5f4669f81816cdb68cd26e7f49b77.json",
+    "sha256": "35fbe7b62f2fb0ba9dd1e20915289f46b7e5f4669f81816cdb68cd26e7f49b77",
+    "bytes": 2232
+  },
+  "hypothesis": "Requiring an explicit answer-choice list avoids confusing source-video labels with candidate answers while preserving the parent evidence procedure.",
+  "status": "untested",
+  "train_evidence_scope": {
+    "partition": "train",
+    "role_view": "Global public input and terminal answer only",
+    "reviewed_changed_questions": 3,
+    "observed_pattern": "Two reviewed changed inputs explicitly requested open-ended comparisons without an answer-choice list; another supplied a labeled answer-choice list and requested a choice.",
+    "restricted_evidence_used": false,
+    "intervention": "Only the activation description changes; no domain facts, answers, sample IDs, task codes, or scores enter the card."
+  }
+}

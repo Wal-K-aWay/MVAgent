@@ -46,7 +46,8 @@ def _pin_json(path, payload):
 
 
 class LibraryEvaluator:
-    def __init__(self, *, output, runtime, execution, split_path, dataset_root, endpoints, identity):
+    def __init__(self, *, output, runtime, execution, split_path, dataset_root, endpoints, identity,
+                 active_partitions=None):
         self.output, self.runtime = Path(output), runtime
         self.execution, self.dataset_root = Path(execution), Path(dataset_root)
         split = DataSplitManifest.from_json(split_path)
@@ -56,9 +57,15 @@ class LibraryEvaluator:
         ids = tuple(s for values in self.ids.values() for s in values)
         if len(set(ids)) != len(ids) or not all(self.ids.values()):
             raise ValueError('Train/Cal/Gate must be nonempty and disjoint')
+        # Readiness limits loading/calls without changing the frozen split or cache identity.
+        active = tuple(self.ids) if active_partitions is None else tuple(active_partitions)
+        if not active or len(set(active)) != len(active) or any(part not in self.ids for part in active):
+            raise ValueError('active_partitions must name unique train/cal/gate partitions')
+        self.active_partitions = frozenset(active)
+        ids = tuple(s for part, values in self.ids.items() if part in self.active_partitions for s in values)
         self.records = load_multibench_records(self.dataset_root, ids)
         for part, sample_ids in self.ids.items():
-            if {self.records[s].native_task for s in sample_ids} != CROSSVID_TASKS:
+            if part in self.active_partitions and {self.records[s].native_task for s in sample_ids} != CROSSVID_TASKS:
                 raise ValueError(f'{part} must cover all ten CrossVid tasks')
         self.aggregator = HierarchicalScoreAggregator(
             dataset_of={s:r.dataset for s,r in self.records.items()},
@@ -72,6 +79,8 @@ class LibraryEvaluator:
         self.runner = Path(__file__).resolve().parents[1] / 'agent_eval/run.py'
 
     def __call__(self, bank, partition, *, forced_card=None, global_assignments=None):
+        if partition not in self.active_partitions:
+            raise ValueError(f'Partition {partition!r} was not prepared in active_partitions')
         loaded_bank = bank.load()
         ids = self.ids[partition]
         if forced_card is not None:

@@ -1,0 +1,17 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "1",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction requires this video's event start, finish, duration interval, or a boundary-sensitive order. Establish the event and use surrounding state changes to bound the requested endpoints; exclude general descriptions and coarse ordering that do not need boundary localization.",
+      "strategy": "#### Step 1\nFor a requested event boundary, preserve the exact action and object conditions, identify which endpoints the instruction actually needs, and reuse only anchors supported by same-video Memory.\n\n#### Step 2\nIf the event is not established, first use observe with a what asking for its visible identity and relevant state transitions, legal ordered non-overlapping where ranges inside the duration, and an allowed fps suitable for the requested detail.\n\n#### Step 3\nFor an unresolved start, seek evidence of the preceding non-event state and the event beginning; for an unresolved finish, seek evidence of the event continuing and the following completed or changed state, without treating a sampled first appearance or crop edge as the boundary.\n\n#### Step 4\nFocus another observe on the unsupported side of a credible anchor while retaining enough surrounding context; widen the search when the event identity or anchor itself is doubtful instead of repeatedly refining the same unverified location.\n\n#### Step 5\nKeep a missing flank or endpoint unresolved when the event begins before the visible material, continues after it, or remains ambiguous, and stop refining once the instruction's required temporal distinction is supported.\n\n#### Step 6\nWhen finish is available after usable same-video evidence, report the supported source-video event times, endpoint precision, and missing boundary in summary without internal observation ranges or fps, and obey the existing runtime limit rather than inventing a complete interval."
+    }
+  ]
+}
