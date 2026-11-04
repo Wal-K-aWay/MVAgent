@@ -85,7 +85,7 @@ def _optimizer_client(path, *, runtime, execution_path, output):
     from skill_evolution.configs.models import load_client, validate_model_settings
     from models.utils import is_loopback_host
 
-    config, _ = validate_model_settings(yaml.safe_load(Path(path).read_text()))
+    config, _, transport = validate_model_settings(yaml.safe_load(Path(path).read_text()))
     local = (config.model_type == 'api_vlm' and str(config.provider or '').strip() == 'openai_compatible'
              and is_loopback_host(urlparse(config.api_base or '').hostname))
     if not local:
@@ -98,12 +98,21 @@ def _optimizer_client(path, *, runtime, execution_path, output):
 
     name = config.model_name
     execution = ExecutionConfig.from_yaml(execution_path)
+    endpoint = canonical_endpoint(config.api_base)
+    if transport == 'standalone':
+        if name in runtime.get('models', {}):
+            raise ValueError('Standalone optimizer must not reuse a runtime model name')
+        configured = {replica['endpoint'] for pool in execution.model_pools.values()
+                      for replica in pool.get('replicas', [])}
+        if endpoint in configured:
+            raise ValueError('Standalone optimizer must not reuse a runtime model pool endpoint')
+        yield load_client(path)
+        return
     if runtime.get('models', {}).get(name, {}).get('type') != 'local_vllm':
         raise ValueError('Local optimizer model_name must name a local_vllm runtime model')
     referenced = {ref.model_type for _, _, ref in MVAgentConfig.from_dict(runtime).model_roles()}
     if name not in referenced:
         raise ValueError('Local optimizer must reuse a model pool referenced by the runtime roles')
-    endpoint = canonical_endpoint(config.api_base)
     replicas = execution.model_pools.get(name, {}).get('replicas', [])
     if endpoint not in {replica['endpoint'] for replica in replicas}:
         raise ValueError('Local optimizer api_base must belong to its configured model pool')

@@ -48,7 +48,10 @@ def generate(client, runtime: dict, roles: list[str], output: Path, max_cards: i
     # Keep the exact source and contract beside the response, including failed runs.
     snapshot = ensure_source_snapshot(output / "source").parent
     write(output / "runtime_contract.json", runtime)
-    write(output / "generation_config.json", asdict(client.cfg))
+    model_settings = asdict(client.cfg)
+    if getattr(client, 'local_transport', None) is not None:
+        model_settings['local_transport'] = client.local_transport
+    write(output / "generation_config.json", model_settings)
     write(output / "source_manifest.json", {
         "commit": os.environ.get("MVAGENT_SOURCE_COMMIT"),
         "files": {str(path.relative_to(snapshot.parent)): file_fingerprint(path)

@@ -95,12 +95,24 @@ temperature=0、top_p=1、最多4096输出token；固定 `qwen35-bf16-flashinfer
 
 本地调用复用已有grammar、seed=0、实际token和输入哈希记录；服务身份留在 `optimizer_pools.json`，
 逐次请求仍在 `rounds/*/proposal-*/events.jsonl`。退出仅清理父进程的池注册，不停止服务。
-商业API路径不准备本地池。本接入仅覆盖角色轮换入口，不扩展一次生成入口。
+商业API路径不准备本地池。上述共享Actor池的接入仅覆盖角色轮换入口，不扩展一次生成入口。
+
+独立部署的optimizer使用
+[`qwen35_local_optimizer.yaml`](../../configs/skill_evolution/qwen35_local_optimizer.yaml)中的
+`local_transport: standalone`，显式连接`127.0.0.1:8340`上的OpenAI兼容HTTP服务。
+该模式不准备、注册或清理Actor池；角色轮换入口拒绝复用runtime模型名或execution中任一池端点，
+共享客户端也拒绝已注册的同名/同端点池。未知模式及非loopback端点直接报错，不自动换路径。
+省略该字段时保留上述共享池校验，不能以改模型名绕过绑定。
+独立服务的GPU分配、启动、权重身份和thinking配置由调用者负责；不向Actor固定服务添加thinking参数。
+正式入口尚未完成真实服务验收，不能因本模式存在就启动会回补空库的fresh rolewise。
+
+一次生成入口也可解析该独立HTTP配置，并在既有`generation_config.json`中保存传输选择；
+本次只新增mock回归覆盖，不重新生成已经排除的无反馈实验。
 
 配置仍遵循现有 `max_retries: 1` 校验；现有API VLM和API LLM客户端都将它解释为首次请求后最多一次瞬时错误重试，
 因此不能称为严格单次HTTP尝试。本次不改变其语义；正常成功请求只调用一次，缺响应的中断提案仍不自动重放。
 远端无模型契约测试为 `PYTHONPATH=src:. python tests/test_local_optimizer.py`；真实提案还需独立验证，
-这些接入检查不代表skill收益。
+这些接入检查不代表skill收益。独立模式的远端契约测试与正式客户端冒烟仍待验证；本机只做语法和diff检查。
 
 ## 手工设计的对照卡片
 

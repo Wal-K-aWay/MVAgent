@@ -4,6 +4,10 @@
   凭据为`DEEPSEEK_API_KEY`环境变量。也支持原有`api_vlm`配置；不新增客户端。
   `max_retries: 1` 表示首次请求后最多一次瞬时错误重试；入口固定该设置，不能称为严格单次HTTP尝试。
 - `splits/`：保留已有冻结划分与 CrossVid 干净池；一次生成不读取这些数据。
+- `local_optimizer.yaml`：角色轮换复用已验证的Actor池；保留其固定profile与身份校验。
+- `qwen35_local_optimizer.yaml`：`local_transport: standalone`连接独立本机8340服务，
+  不占用或清理Actor池；调用者负责服务部署、权重身份和thinking，不能复用runtime模型名或端点。
+  未指定该字段时不自动切换到独立模式。正式客户端的远端契约及真实调用仍待验证。
 
 ```bash
 python scripts/generate_skills.py \

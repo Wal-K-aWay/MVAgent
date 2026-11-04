@@ -1,6 +1,7 @@
 # Text-only optimizer over an independent local vLLM service; no cloud API.
 # Start Qwen3.5-35B-A3B with thinking enabled and a context covering input + 16384 output tokens.
 # The existing client uses HTTP locally; this is separate from the Actor's fixed sync endpoint.
+local_transport: standalone
 model_type: api_vlm
 provider: openai_compatible
 model_name: qwen35-local-optimizer

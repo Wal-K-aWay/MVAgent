@@ -1,5 +1,6 @@
 """Local optimizer transport contract; no model service, GPU or network calls."""
 from contextlib import nullcontext
+from io import BytesIO
 from pathlib import Path
 from types import SimpleNamespace
 import json
@@ -14,6 +15,7 @@ from models.execution import execution_scope
 from models.pool import Replica, get_pool, install_pools
 from models.vlm.api.providers.openai_compatible import OpenAICompatibleProvider
 from models.vlm.local.sync_server import validate_request
+from skill_evolution.configs.models import validate_model_settings
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL = 'qwen3_5_9b_local'
@@ -27,6 +29,7 @@ class LocalOptimizerTest(unittest.TestCase):
         self.addCleanup(install_pools, {})
         self.root = Path(self.temp.name)
         self.settings = yaml.safe_load((ROOT / 'configs/skill_evolution/local_optimizer.yaml').read_text())
+        self.standalone = yaml.safe_load((ROOT / 'configs/skill_evolution/qwen35_local_optimizer.yaml').read_text())
         self.path = self.root / 'optimizer.json'
         self.path.write_text(json.dumps(self.settings))
         self.execution = self.root / 'execution.json'
@@ -124,6 +127,58 @@ class LocalOptimizerTest(unittest.TestCase):
             with self.client():
                 raise RuntimeError('proposal failed')
         self.assertIsNone(get_pool(MODEL))
+
+    def test_standalone_http_preserves_actor_pools_on_success_and_failure(self):
+        self.path.write_text(json.dumps(self.standalone))
+        install_pools({MODEL: self.pool})
+        response = {'model': self.standalone['model_name'], 'usage': {},
+                    'choices': [{'message': {'reasoning': 'Thinking stays on the independent service.',
+                                            'content': '{}'}, 'finish_reason': 'stop'}]}
+        opener = Mock()
+        opener.open.return_value = BytesIO(json.dumps(response).encode())
+        events = []
+        with patch.dict(os.environ, MVAGENT_LOCAL_OPTIMIZER_KEY='standalone-test-secret'), \
+             patch('mvagent.batch.prepare_model_pools') as prepare, \
+             patch('urllib.request.build_opener', return_value=opener):
+            with self.client() as client, execution_scope(emit=events.append):
+                self.assertIsNone(client.provider.pool)
+                self.assertEqual(client.chat([{'role': 'user', 'content': 'Return JSON.'}],
+                    json_schema={'type': 'object'}, schema_name='optimizer_test'), '{}')
+            with self.assertRaisesRegex(RuntimeError, 'proposal failed'), self.client():
+                raise RuntimeError('proposal failed')
+            prepare.assert_not_called()
+        request = opener.open.call_args.args[0]
+        self.assertEqual(request.full_url, 'http://127.0.0.1:8340/v1/chat/completions')
+        payload = json.loads(request.data)
+        self.assertEqual((payload['model'], payload['temperature'], payload['top_p'], payload['max_tokens']),
+                         (self.standalone['model_name'], 1.0, 0.95, 16384))
+        self.assertIn('response_format', payload)
+        self.assertNotIn('structured_outputs', payload)
+        self.assertNotIn('seed', payload)
+        self.assertIs(get_pool(MODEL), self.pool)
+        self.pool.acquire.assert_not_called()
+        self.assertFalse((self.root / 'optimizer_pools.json').exists())
+        self.assertNotIn('standalone-test-secret', json.dumps(events))
+
+    def test_standalone_rejects_runtime_and_registered_pool_conflicts(self):
+        target = self.standalone['model_name']
+        for changes, registry in [({'model_name': MODEL}, {}), ({'api_base': ENDPOINT}, {}),
+                                  ({}, {target: self.pool})]:
+            with self.subTest(changes=changes, registered=bool(registry)):
+                self.path.write_text(json.dumps({**self.standalone, **changes}))
+                install_pools(registry)
+                with patch('mvagent.batch.prepare_model_pools') as prepare, \
+                     self.assertRaises(ValueError), self.client():
+                    pass
+                prepare.assert_not_called()
+                if registry:
+                    self.assertIs(get_pool(target), self.pool)
+
+    def test_standalone_setting_is_explicit_and_loopback_only(self):
+        for changes in [{'local_transport': value} for value in ('unknown', 'runtime_pool', False, None)] + [
+                {'api_base': 'https://api.example.com/v1'}, {'provider': 'bigmodel'}]:
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                validate_model_settings({**self.standalone, **changes})
 
 
 if __name__ == '__main__':

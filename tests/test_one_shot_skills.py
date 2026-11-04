@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from mvagent.utils.io import file_fingerprint
 from models.execution import emit_event
@@ -74,6 +74,32 @@ class OneShotTests(unittest.TestCase):
         value["skills"][0]["strategy"] = "word " * 1201
         with self.assertRaises(ValueError):
             make_bank(value, "video", 8)
+
+    def test_standalone_cli_uses_local_http_and_retains_transport_setting(self):
+        response = {'model': 'qwen35-local-optimizer', 'usage': {}, 'choices': [
+            {'message': {'reasoning': 'Independent service reasoning.', 'content': FakeClient().chat([])},
+             'finish_reason': 'stop'}]}
+        opener = Mock()
+        opener.open.return_value = BytesIO(json.dumps(response).encode())
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / 'run'
+            with patch.dict('os.environ', MVAGENT_LOCAL_OPTIMIZER_KEY='standalone-test-secret'), \
+                 patch('sys.argv', ['generate_skills.py', '--config',
+                     'configs/skill_evolution/qwen35_local_optimizer.yaml', '--role', 'global',
+                     '--output-dir', str(output)]), \
+                 patch('urllib.request.build_opener', return_value=opener), \
+                 patch('mvagent.batch.prepare_model_pools') as prepare:
+                main()
+                prepare.assert_not_called()
+            opener.open.assert_called_once()
+            request = opener.open.call_args.args[0]
+            self.assertEqual(request.full_url, 'http://127.0.0.1:8340/v1/chat/completions')
+            self.assertEqual(json.loads(request.data)['model'], 'qwen35-local-optimizer')
+            saved = json.loads((output / 'generation_config.json').read_text())
+            self.assertEqual(saved['local_transport'], 'standalone')
+            self.assertEqual(json.loads((output / 'global/response.json').read_text())['raw_response'],
+                             FakeClient().chat([]))
+            self.assertNotIn('standalone-test-secret', (output / 'global/events.jsonl').read_text())
 
     def test_card_count_is_a_bound_and_extra_fields_are_rejected(self):
         card = json.loads(FakeClient().chat([]))["skills"][0]
