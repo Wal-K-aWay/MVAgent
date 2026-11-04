@@ -1,0 +1,14 @@
+# Text-only optimizer over an independent local vLLM service; no cloud API.
+# Start Qwen3.5-35B-A3B with thinking enabled and a context covering input + 16384 output tokens.
+# The existing client uses HTTP locally; this is separate from the Actor's fixed sync endpoint.
+model_type: api_vlm
+provider: openai_compatible
+model_name: qwen35-local-optimizer
+api_base: http://127.0.0.1:8340/v1
+# Set this to EMPTY inside the local service job; it is a nonsecret authentication placeholder.
+api_key: MVAGENT_LOCAL_OPTIMIZER_KEY
+temperature: 1.0
+top_p: 0.95
+max_tokens: 16384
+timeout_sec: 1200
+max_retries: 1
