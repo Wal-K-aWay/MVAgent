@@ -248,3 +248,13 @@ C−empty为**−0.26029140个百分点**，`strict_accept=false`。完整Gate�
 [冻结计划](../configs/skill_evolution/manual_procedure_20261104.json)SHA为`dddbff4a2f0aa82f36aa8ef71259880c0f3409fa92067e32a28626d118a04c29`。固定400道不同Train题，P/S各400、最多新增800题次；相同empty400只读复用。首P40/S40均包含在800内，只检验执行、路由与完整评分，随后不按前缀得分筛选或停止固定面板。主比较各版对empty，P/S差异只描述这四程序的布局影响；保留完整取证/退化及配对不确定性，不能外推所有skill风格的效用。
 
 首个80题次作业`6443746`已提交，复用冻结8ff Actor及原7 Actor+1 Judge、自然选卡/可none和完整官方评分；只读候选worker保持原字节，共享同节点服务避免重复起Judge。本包不查询Cal/Gate/Test，不重启旧无skill条件，不把手写卡作为自动种子；原Gate已经完成并拒绝，不可作为本包的新确认集。完整中文正文和完全虚构的换场景/标签/输入顺序反例见[镜像](manual-procedure-skills-zh.md)。
+
+EOS已有分配的计算节点已完成实际9B tokenizer测量：P四卡rendered token为554/599/446/512，S为580/625/472/538，逐卡多26；when为59/68/57/63且两版相同。统计未请求模型，未改变输入和冻结计划；同操作文字不等于同token或同模型行为。
+
+## 本地optimizer的合法Train反馈小测
+
+独立作业`6443729`在EOS完成，COMPLETED/0:0、4分01秒；两角色各读6个由现有工具投影的Train例子，seed0，各调用本地35B一次，另计服务readiness一次。真正发送的payload先保存，再检查无源题号、task元数据或GT字段；不加载Cal/Gate结果。两份原响应及thinking内容已保存，schema/新卡校验通过，无重采样、无新rollout、无候选部署。
+
+Global请求prompt9953/completion8502 token，Video为5748/5576，均正常stop；原HTTP SHA分别为`5b3ce52ce883bbbde431401810284753d74e07e27788da8bf9bc554157ae9f29`和`175d0ebb4121d427789c7e02795c946671ef7be00794b563a0ce2c4593046250`。服务启动133秒，实际thinking字段均非空，整个分配已结束。
+
+文本审阅仍不把这两稿视为可用写卡模板：Global将区间对应、排序与一般比较合进宽泛联合观看流程，没有清楚的证据停止条件；Video没有在正文完整重述作用范围，并无依据地固定最低1FPS。固定采样对长区间的帧容量兼容性属于风险，不是这次观察到的运行失败。两稿准确率、对Train失误的因果归因均未测，不能把机械通过称为有效skill，也不能用一次两稿质量概括本地模型总体能力。正式自进化仍未启动；手写P/S测试继续优先。

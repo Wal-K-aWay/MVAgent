@@ -9,7 +9,7 @@
 
 每个文件是schema_version3、四卡整库，meta与when_to_use逐字相同。P用空格连接intro、原步骤1–4、Evidence句、原步骤5；S仅增加Purpose/Procedure/Evidence/Stop标题、1–4编号及换行。Evidence是本包唯一相对原草案新增的操作句，在两版同句同位置；其余原文字逐字保留。操作文字和顺序相同不保证模型解释或输出相同。
 
-按项目word规则，S每卡比P多8词（4个标题词和4个数字），四卡共多32词。两版strategy每卡相差67字符/67 UTF-8字节；完整JSON字节数见计划。实际Actor tokenizer长度待远端已装环境测量，不能把字符、字节或词数称为token匹配；逐请求token仍按原runner记录。
+按项目word规则，S每卡比P多8词（4个标题词和4个数字），四卡共多32词。两版strategy每卡相差67字符/67 UTF-8字节；完整JSON字节数见计划。EOS实际9B tokenizer测得rendered正文每卡相差26token，明细见[中文说明](../../../../../docs/manual-procedure-skills-zh.md)；不能称为token匹配，逐请求token仍按原runner记录。冻结计划中的null保留建库时状态。
 
 固定原Train400成员与顺序不变，P/S各400新增、最多800；各版首40仅作执行/自然选卡诊断，仍包含于800内，随后固定完成余360，不按前缀成绩挑版本或停跑。已有匹配empty400只读复用，不补推理或Judge。Actor/Judge继续相同8ff冻结协议，7个9B Actor加1 Judge/8 H100，自然选一张或none，无强制注入、使用率配额或schema/runtime改动。本包不查询Cal/Gate/Test；原Gate已经确认并拒绝，不可复用。
 

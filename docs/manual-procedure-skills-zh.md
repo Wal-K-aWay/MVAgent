@@ -8,14 +8,16 @@ P：[完整英文库](../src/mvagent/skills/skill_sets/manual-procedure-20261104
 
 默认不加载本包。使用冻结8ff Actor与Judge、相同固定Train400、自然选卡且允许none；每版400新增、合计最多800，已有empty400只读复用。各版首40仅作执行/选卡诊断，随后完成固定余题，不按前缀分数挑版本或停跑。本包不查询Cal/Gate/Test；原Gate已用于此前确认并拒绝，不复用。
 
-主读数为S−empty与P−empty；S−P只解释这四程序在当前条件下的布局差别，不能推广成所有skill风格或库粒度的因果结论。标题和编号改变文本与token长度，不声称严格token匹配。词数按项目bank计数规则实测；下表字符与UTF-8字节仅统计strategy，实际Actor tokenizer长度待远端现有环境测量并随结果披露，不能从字数当作已测token数。
+主读数为S−empty与P−empty；S−P只解释这四程序在当前条件下的布局差别，不能推广成所有skill风格或库粒度的因果结论。标题和编号改变文本与token长度，不声称严格token匹配。词数按项目bank计数规则实测；下表字符与UTF-8字节仅统计strategy，token列来自EOS实际9B tokenizer对`card.render()`的测量，未添加special tokens，不含整次chat上下文。
 
 |卡/角色|P合计词数|S合计词数|P strategy字符/字节|S strategy字符/字节|实际Actor tokens|
 |---|---:|---:|---:|---:|---|
-|1/global|500|508|3096/3096|3163/3163|待远端测量|
-|2/global|558|566|3460/3460|3527/3527|待远端测量|
-|3/video|415|423|2499/2499|2566/2566|待远端测量|
-|4/video|470|478|2992/2992|3059/3059|待远端测量|
+|1/global|500|508|3096/3096|3163/3163|P554 / S580|
+|2/global|558|566|3460/3460|3527/3527|P599 / S625|
+|3/video|415|423|2499/2499|2566/2566|P446 / S472|
+|4/video|470|478|2992/2992|3059/3059|P512 / S538|
+
+每卡S比P多26个rendered token；两版when分别为59、68、57、63 token且逐卡相同。测量只加载实际冻结9B的Qwen2TokenizerFast，未请求Actor或Judge；tokenizer.json SHA为`5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42`，原统计留EOS `manual_procedure/token_lengths.json`。冻结计划里的null保留建库时状态，不改写原计划或库字节；逐请求实际token继续由runner记录。
 
 以下逐卡给出两版完整中文正文；英文动作名与字段名保持不变。
 
