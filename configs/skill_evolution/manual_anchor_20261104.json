@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "status": "frozen_inputs_unrun",
+  "frozen_at_utc": "2026-11-04T12:21:03+00:00",
+  "author": "Codex GPT-6-Astra handwritten narrow procedure; no optimizer generation",
+  "variant": "R",
+  "bank_sha256": "f2735c238a9b4845e72e04657122a63f5050935b3c240126c8c07f0446f7b007",
+  "bank_path": "src/mvagent/skills/skill_sets/manual-anchor-20261104/f2735c238a9b4845e72e04657122a63f5050935b3c240126c8c07f0446f7b007.json",
+  "bank_bytes": 4767,
+  "purpose": "Find whether an explicit source-event-to-target-state dependency procedure helps under natural selection on fixed Train400",
+  "actor_source_commit": "8ff374d6139dd8af2802f88695141306a4768e99",
+  "hypothesis": "For explicitly synchronized or time-mapped distinct videos, establishing a source event anchor before issuing its dependent target request reduces unsupported temporal handoffs and improves whole-library official score.",
+  "motivating_evidence": {
+    "scope": "Legal Train Global public history only; initial concurrent target requests used a not-yet-returned source event time, and another request supplied an unsupported candidate window.",
+    "stated_sync_prerequisite": "The relevant public questions explicitly provide synchronization; applicability is not inferred from IDs, equal duration or the word when.",
+    "authoritative_global_view_sha256": "39436c590b63c2d365b13295d7122ce70bc2a2456c5adcc9a132da0938f87bc2",
+    "quarantined_case_used": false,
+    "limit": "Instruction-dependency evidence, not verified local visual truth or prior proof that this new program works; exact case/event references remain in private review."
+  },
+  "panel": {
+    "fixed_source_plan": "configs/skill_evolution/manual_evidence_train400_20261104.json",
+    "fixed_source_plan_sha256": "a556837d6c449c62c273ee32e12ae9afc1ef91a868ea72d90e3d5ecb389b3224",
+    "remote_panel": "train400/panel.json",
+    "remote_panel_sha256": "122945a57d4b6362666a942d6e1188ec9ffc53859e2eccd0d66012ed2755d02c",
+    "remote_order": "train400/sample_ids.json",
+    "remote_order_sha256": "222351a12b92af616f668c74f155fbd99047a19cf59db868045d9624e4d3d1b5",
+    "original_manifest_sha256": "7bcdaae229e6c540f221d0bff5ef6d52727ee78a640a0b8bab3482b39fa0f69e",
+    "rotation_sha256": "53aa04724e07ee7692c220ca7f7a46396e5d78dd3bed8f36ae051bf6681f989d",
+    "rotation_slice": [
+      120,
+      520
+    ],
+    "sampling_seed": 0,
+    "distinct_Train_questions": 400,
+    "membership_order_unchanged": true,
+    "questions_per_task_actual": {
+      "BU": 41,
+      "CC": 41,
+      "CCQA": 41,
+      "FSA": 41,
+      "MOC": 41,
+      "MSR": 40,
+      "NC": 40,
+      "PEA": 40,
+      "PI": 35,
+      "PSS": 40
+    }
+  },
+  "conditions": [
+    "R"
+  ],
+  "new_rollouts_per_condition": 400,
+  "max_new_Train_rollouts": 400,
+  "execution_order": {
+    "first": "Run canonical first40 as execution and natural-selection diagnostic; these40 are included in400.",
+    "then": "Complete the fixed remaining360 regardless of prefix score; do not select, rewrite or stop the candidate from prefix results.",
+    "on_infrastructure_failure": "Preserve failed evidence, repair only the execution failure and resume missing units; never replace panel members or repeat successful results.",
+    "deadline": "Respect the original absolute study deadline; do not dispatch work beyond it, preserve unfinished units if time expires, and never call a prefix the full result."
+  },
+  "baseline": {
+    "condition": "empty",
+    "samples": 400,
+    "bank_sha256": "1dea07ba6d17ff67eb714db06082a162f76012a28d2c8ecc5ad832ab33f1c184",
+    "policy": "Read-only reuse of completed matching Train400 answers and original scores; no empty inference or Judge repeat."
+  },
+  "runtime": {
+    "actor": "Qwen3.5-9B",
+    "selector": "Same frozen 9B Actor",
+    "inference_seed": 0,
+    "temperature": 0,
+    "thinking": false,
+    "max_output_tokens": 2048,
+    "global_max_steps": 5,
+    "video_max_steps": 5,
+    "max_planned_frames_per_call": 512,
+    "additional_448_longest_side_limit": false,
+    "actors_per_node": 7,
+    "judge_gpus_per_node": 1,
+    "gpus_per_node": 8,
+    "hardware": "H100",
+    "numeric_profile": "qwen35-bf16-flashinfer-sync",
+    "precision": "BF16",
+    "tensor_parallel_size": 1,
+    "data_parallel_size_per_replica": 1,
+    "concurrency_per_replica": 1,
+    "sticky_question_routing": true,
+    "prefix_cache": false,
+    "mm_processor_cache": false,
+    "global_cards": 1,
+    "video_cards": 0,
+    "selection": "Natural Global one card or none; selected strategy retained per question. Video skill disabled because its bank is empty.",
+    "actor_and_judge_protocol": "Same frozen8ff Actor/eval source, weights, numeric/media/budget/official-score and fixed Qwen3-30B-A3B-Instruct-2507 Judge identities as completed Train400; no frozen implementation changes.",
+    "report_and_answer_schema": "Unchanged"
+  },
+  "primary_readout": "R minus reused empty official ten-task macro on all400, with actual CCQA point denominators.",
+  "secondary_readout": "R minus completed P is posthoc descriptive only: card content, scope, library competition and Video activation differ, so this is not a single-G2 causal revision.",
+  "mechanism_predictions": [
+    "For naturally selected eligible requests, dependent target lookup follows already supported source anchoring or an already completed joint result.",
+    "Supplied initialization and event qualifiers are preserved, and any target query uses a valid time mapped by the question's given correspondence.",
+    "Improved official score should be accompanied by a supported public event-to-target relation, not merely an unsupported answer guess."
+  ],
+  "falsifiers": [
+    "The procedure continues to issue dependent target requests before the source result or invents temporal windows.",
+    "The intended ordering is followed without a whole-library score benefit on the fixed panel.",
+    "Score repairs lack a repaired public evidence chain; those repairs do not establish the proposed mechanism."
+  ],
+  "statistics": "Reuse official pooled task/CCQA weighting and existing paired/source-group sensitivity with seed0; report improvements/regressions/ties, actual selection/injection and token logs. Do not average shard or route-group accuracies.",
+  "length_measurements": {
+    "when_words": 65,
+    "strategy_words": 608,
+    "combined_words": 673,
+    "bank_bytes": 4767,
+    "actor_token_count": null,
+    "token_matching_claimed": false
+  },
+  "scope_limits": [
+    "One narrow Global card is a finite isolation experiment for discovering composable programs, not a new single-card final objective or mandatory card count.",
+    "Train development with repeated use; no independent confirmation, general style superiority or cross-model/benchmark transfer claim.",
+    "Headings are a readability choice; S-P on the prior completed matrix did not establish a superior format.",
+    "None remains legal; usage rate, lower cost or fewer steps are not acceptance objectives.",
+    "Textual and synthetic counterexample checks do not establish execution, evidence truth or accuracy.",
+    "The quarantined public-review case is excluded from mechanism/proposal evidence but retained in official score totals; no private content is used."
+  ],
+  "new_Cal_queries": 0,
+  "new_Gate_queries": 0,
+  "new_Test_queries": 0,
+  "optimizer_calls": 0,
+  "formal_evolution": false,
+  "automatic_seed": false,
+  "prior_Gate": "Already used for the original candidate package and rejected; unavailable for this experiment.",
+  "max_project_H100": 64,
+  "gpu_cap_includes_allocated_idle": true,
+  "study_deadline_epoch": 1793813407,
+  "mirror": "docs/manual-anchor-skills-zh.md"
+}
