@@ -19,7 +19,6 @@
     520
   ],
   "distinct_Train_questions": 400,
-  "questions_per_task": 40,
   "existing_questions": 120,
   "additional_questions": 280,
   "conditions": [
@@ -78,5 +77,22 @@
     "Do not choose the added280 by scores or silently replace failed cases"
   ],
   "max_project_H100": 64,
-  "study_deadline_epoch": 1793813407
+  "study_deadline_epoch": 1793813407,
+  "questions_per_task_actual": {
+    "BU": 41,
+    "CC": 41,
+    "CCQA": 41,
+    "FSA": 41,
+    "MOC": 41,
+    "MSR": 40,
+    "NC": 40,
+    "PEA": 40,
+    "PI": 35,
+    "PSS": 40
+  },
+  "supersedes_pre_measurement_plan_sha256": "fd90f6da73e5073b90130f31858bfa5c61a85f0f0887752a7f94f4a39db0316b",
+  "metadata_correction_at_utc": "2026-11-04T07:04:51.402054+00:00",
+  "metadata_correction": "Actual frozen rotation has only23 PI rows after index240; keep exactly the originally selected400 members and order. Correct the equal40/task claim; no new280 inference or download started before this correction.",
+  "additional_shard_rule": "Keep per-task order in rotation[240:520]; distribute floor(task_count/7) to every shard, allocate each remaining item to the least-filled shard (tie lowest index) in fixed TASKS order; interleave each shard by TASKS. Exactly seven40-question shards, all ten tasks, no duplicate/drop/borrow.",
+  "original_contiguous_shard_failure": "Final original40 slice lacked PI; plan-only validation failed before any download/model/scoring. Preserve failed control bundle, change execution partition only, not panel membership."
 }
