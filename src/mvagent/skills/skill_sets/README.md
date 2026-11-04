@@ -13,6 +13,8 @@ SHA256；同一库可包含 Global 和 Video 卡，Runtime 按 role/stage 过滤
 
 另有[手工机制与多卡对照库](manual-study-20261030/README.md)，包含33个单卡快照及三个八卡组合；复制资源不代表多卡有效或已被进化接受。[NV研究入口](../../../../docs/skill-nv-study-20261103.md)记录其后续验证边界。
 
+[证据程序与布局D/E库](manual-study-20261104/README.md)是另列预算的手写Train诊断输入，仅改A的Global卡4正文；尚未测量，不追加原Cal候选，也不作为自动优化器种子。
+
 另有[研究用16份独立快照](research-20261022/README.md)，供接续父库、强一次生成、格式对照及未测机制候选；它们不替换默认配置。
 
 [`deepseek-flash-20261021/7da609f63fda7c4fb1c446b477fc5663b15c9d77487784a12fcbd27b8d52b049.json`](deepseek-flash-20261021/7da609f63fda7c4fb1c446b477fc5663b15c9d77487784a12fcbd27b8d52b049.json)

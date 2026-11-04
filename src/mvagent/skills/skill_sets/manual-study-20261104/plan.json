@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "status": "frozen_before_any_D_E_measurement",
+  "frozen_at_utc": "2026-11-04T06:22:29.657377+00:00",
+  "study": "manual-evidence-procedure-20261104",
+  "source_commit": "8ff374d6139dd8af2802f88695141306a4768e99",
+  "parent_bank_sha256": "4b2c92c1035c9314c5abea4b221f7c386154d08ae91fcacad3eefe40e32bd4d0",
+  "variants": {
+    "D": {
+      "sha256": "6f2c1e69b5d59ecae1634a58ffddd8e815c6a6bd59d8686ac0fceef121b11e01",
+      "path": "manual_revisions/banks/6f2c1e69b5d59ecae1634a58ffddd8e815c6a6bd59d8686ac0fceef121b11e01.json"
+    },
+    "E": {
+      "sha256": "cd8b865b465eb4f218172e3947552ee9d9d69e7792d4262f4fa396b8bb40f57b",
+      "path": "manual_revisions/banks/cd8b865b465eb4f218172e3947552ee9d9d69e7792d4262f4fa396b8bb40f57b.json"
+    }
+  },
+  "changed_field": "Global card 4 strategy only; D revised evidence program; E same nine sentences with numbering and linebreaks",
+  "all_other_cards_meta_and_when_equal_parent": true,
+  "partition": "train",
+  "panel": {
+    "rotation_sha256": "53aa04724e07ee7692c220ca7f7a46396e5d78dd3bed8f36ae051bf6681f989d",
+    "rotation_slice": [
+      120,
+      240
+    ],
+    "batches": [
+      0,
+      1,
+      2
+    ],
+    "different_Train_questions": 120
+  },
+  "new_rollout_budget": 240,
+  "conditions_per_question": [
+    "D",
+    "E"
+  ],
+  "reuse_only": {
+    "A": 120,
+    "empty": 120
+  },
+  "primary": "D minus A whole-library official macro",
+  "format_contrast": "E minus D, identical sentence content and order; numbering changes tokens",
+  "auxiliary": [
+    "E minus A",
+    "D minus empty",
+    "E minus empty"
+  ],
+  "selection_mode": "natural_one_or_none",
+  "inference_seed": 0,
+  "Cal_queries": 0,
+  "Gate_queries": 0,
+  "Test_queries": 0,
+  "optimizer_calls": 0,
+  "original_Cal_candidates_unchanged": [
+    "empty",
+    "C",
+    "A",
+    "B"
+  ],
+  "runtime_and_Judge": "Reuse pinned NV runtime, dataset, source and actual model identity; no successful baseline inference or scoring repeated",
+  "study_deadline_epoch": 1793813407,
+  "max_project_H100": 64,
+  "first_delivery": "Analyze first completed Train40 parent-versus-revision unit immediately; full120 and both variants still run regardless of prefix score",
+  "limits": [
+    "Reused Train development data; no independent or transfer claim",
+    "Manual assistant-authored cards, not automatic evolution or a permitted optimizer seed",
+    "No per-role local correctness inferred from whole-question score",
+    "No automatic D/E promotion into the original Cal/Gate package"
+  ]
+}
