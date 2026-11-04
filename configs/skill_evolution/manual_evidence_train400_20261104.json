@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "status": "frozen_before_new_Train280_scores",
+  "frozen_at_utc": "2026-11-04T06:53:15.135658+00:00",
+  "reason": "User requested a larger distinct-question panel to limit small-panel fluctuation",
+  "source_commit": "8ff374d6139dd8af2802f88695141306a4768e99",
+  "original_revision_plan_sha256": "81336bfc970b4692f0d1323b622081cc6fc2b6500f4fa29f5ae9325be41d8297",
+  "rotation_sha256": "53aa04724e07ee7692c220ca7f7a46396e5d78dd3bed8f36ae051bf6681f989d",
+  "rotation_slice": [
+    120,
+    520
+  ],
+  "existing_prefix_slice": [
+    120,
+    240
+  ],
+  "additional_slice": [
+    240,
+    520
+  ],
+  "distinct_Train_questions": 400,
+  "questions_per_task": 40,
+  "existing_questions": 120,
+  "additional_questions": 280,
+  "conditions": [
+    "empty",
+    "A",
+    "D",
+    "E"
+  ],
+  "bank_sha256": {
+    "empty": "1dea07ba6d17ff67eb714db06082a162f76012a28d2c8ecc5ad832ab33f1c184",
+    "A": "4b2c92c1035c9314c5abea4b221f7c386154d08ae91fcacad3eefe40e32bd4d0",
+    "D": "6f2c1e69b5d59ecae1634a58ffddd8e815c6a6bd59d8686ac0fceef121b11e01",
+    "E": "cd8b865b465eb4f218172e3947552ee9d9d69e7792d4262f4fa396b8bb40f57b"
+  },
+  "additional_rollout_budget": 1120,
+  "full_four_condition_Train400_rollouts": 1600,
+  "initial_120_results": "Retained and reused under their original identities; no successful inference or Judge response repeated",
+  "new_shards": [
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "rollouts_per_new_shard": 160,
+  "primary": "D minus A whole-library official macro on all400",
+  "format_contrast": "E minus D on all400",
+  "auxiliary": [
+    "E minus A",
+    "A minus empty",
+    "D minus empty",
+    "E minus empty"
+  ],
+  "selection_mode": "natural_one_or_none",
+  "inference_seed": 0,
+  "new_Cal_queries": 0,
+  "new_Gate_queries": 0,
+  "new_Test_queries": 0,
+  "optimizer_calls": 0,
+  "original_Cal_candidates_unchanged": [
+    "empty",
+    "C",
+    "A",
+    "B"
+  ],
+  "original_Cal_questions": 400,
+  "original_Gate_questions": 400,
+  "B_C_Train_scope": "120 only; do not report them as evaluated on the new400",
+  "statistics": "Recompute official ten-task macro and CCQA point denominators from all400, paired/source-group sensitivity with existing seed0 procedure; no averaging chunk scores",
+  "limits": [
+    "Train development panel, including the120 cases used for manual drafting; not independent confirmation",
+    "Distinct questions are not independent source groups; report source-group coverage and unavailable intervals",
+    "A degenerate zero-width empirical bootstrap interval is not proof of population equivalence",
+    "Do not choose the added280 by scores or silently replace failed cases"
+  ],
+  "max_project_H100": 64,
+  "study_deadline_epoch": 1793813407
+}
