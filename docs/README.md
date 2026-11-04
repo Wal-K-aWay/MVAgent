@@ -13,6 +13,7 @@
 | 下载和处理数据 | [数据准备](data-preparation.md)：CrossVid当前版本与缺失历史媒体、验收、CVBench/MVU |
 | 查阅10月交接排程 | [自进化推进方案](skill-experiment-plan.md)：历史约定及当时缺口 |
 | NV 集群手写多卡验证与后续进化 | [2026-11-03 接续方案](skill-nv-study-20261103.md)：数据、身份、预算和确认边界 |
+| 专门程序卡是否有效 | [原始文献证据](skill-procedure-evidence-20261104.md)、[Codex手写P/S全文](manual-procedure-skills-zh.md)：程序内容与布局分开检验 |
 | 查已有事实与限制 | [研究交接](research-handoff.md)：已实现/未实现、完整结果与原件边界 |
 | 寻找代码入口 | [仓库分层](repository.md)、[工具目录](../scripts/README.md)、[评测目录](../eval/README.md) |
 | 选一个已有库或split | [库目录](../src/mvagent/skills/skill_sets/research-20261022/README.md)、[清单目录](../configs/skill_evolution/splits/README.md) |

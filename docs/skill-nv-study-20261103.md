@@ -238,3 +238,13 @@ C−empty为**−0.26029140个百分点**，`strict_accept=false`。完整Gate�
 历史自动进化接受的[476532库](../src/mvagent/skills/skill_sets/research-20261022/4765323a0d13b5df3402a00b29fe242f0543dd6f82dc30377595e83668f2ad55.json)仍只有一张Global卡，入口同时覆盖跨视角对应、区间迁移、选项比较等情况，正文使用较长的共用四阶段流程。它尚不符合“多个专门程序分别成卡”的理想形态。此前[DeepSeek一次生成的14卡库](../src/mvagent/skills/skill_sets/deepseek-flash-20261021/7da609f63fda7c4fb1c446b477fc5663b15c9d77487784a12fcbd27b8d52b049.json)更接近明确范围、专门步骤及停止条件的写法；当前A–E为手写研究库，不能混称为自动进化成果。
 
 本地35B空反馈测试的联合观看草稿也没有证明这种专门化能力。当前仍不能声称自进化已稳定产出分工清楚、可针对性选择且有泛化收益的卡片库。独立35B客户端已能真实调用本地服务，但正式CLI对loopback优化器的既有Actor池绑定尚未接通这种独立部署；本次实测不代表正式闭环入口已经可用。
+
+## 按用户要求测试专门程序卡
+
+用户进一步明确要求调研这种写法是否有效，允许先测Codex手写样例。[原始文献核对](skill-procedure-evidence-20261104.md)覆盖ExpeL、AutoManual、Voyager、SkillOpt、GEPA和Video-RSI：已有程序性外部文本及相关经验检索的支持，但没有同内容自然语言多卡选一张对单文档的直接证据，也没有Purpose/Evidence/Stop标题本身的独立效用结论。单文档有效的结果仍应保留，不能预设多卡必优。
+
+新[手写P/S输入](../src/mvagent/skills/skill_sets/manual-procedure-20261104/README.md)包含逻辑组合、跨视角参照、局部事件边界、局部关系取证四方法，各角色两卡。P为连续段落，S分出Purpose、Procedure、Evidence、Stop；两版meta、when及操作文字/顺序相同，S每卡仅多8个格式词、67字符，token差异仍须实测，不能称为严格token匹配。它们不是用户指定的六类，也不是自动进化产物。
+
+[冻结计划](../configs/skill_evolution/manual_procedure_20261104.json)SHA为`dddbff4a2f0aa82f36aa8ef71259880c0f3409fa92067e32a28626d118a04c29`。固定400道不同Train题，P/S各400、最多新增800题次；相同empty400只读复用。首P40/S40均包含在800内，只检验执行、路由与完整评分，随后不按前缀得分筛选或停止固定面板。主比较各版对empty，P/S差异只描述这四程序的布局影响；保留完整取证/退化及配对不确定性，不能外推所有skill风格的效用。
+
+首个80题次作业`6443746`已提交，复用冻结8ff Actor及原7 Actor+1 Judge、自然选卡/可none和完整官方评分；只读候选worker保持原字节，共享同节点服务避免重复起Judge。本包不查询Cal/Gate/Test，不重启旧无skill条件，不把手写卡作为自动种子；原Gate已经完成并拒绝，不可作为本包的新确认集。完整中文正文和完全虚构的换场景/标签/输入顺序反例见[镜像](manual-procedure-skills-zh.md)。

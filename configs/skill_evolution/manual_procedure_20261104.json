@@ -1,0 +1,220 @@
+{
+  "version": 1,
+  "status": "frozen_inputs_unrun",
+  "frozen_at_utc": "2026-11-04T10:42:39.506327+00:00",
+  "author": "Codex handwritten procedures; deterministic formatting variants; no optimizer generation",
+  "purpose": "Measure these four self-contained procedures and their paragraph/structured layouts on fixed Train400",
+  "actor_source_commit": "8ff374d6139dd8af2802f88695141306a4768e99",
+  "source_draft_sha256": "25b08580f8c16ea0dd05d38e564ac08ffbb22c7d965bdbce0be44f10d9d6be10",
+  "banks": {
+    "P": {
+      "path": "src/mvagent/skills/skill_sets/manual-procedure-20261104/bec6d95693324819b306865b58e4370278a810f6346d0162e938b82284088779.json",
+      "sha256": "bec6d95693324819b306865b58e4370278a810f6346d0162e938b82284088779",
+      "bytes": 14354,
+      "cards": 4,
+      "global_cards": 2,
+      "video_cards": 2
+    },
+    "S": {
+      "path": "src/mvagent/skills/skill_sets/manual-procedure-20261104/87ae199ca2336f5686272b724d62765c566938811be86836b6e6b25439e080c5.json",
+      "sha256": "87ae199ca2336f5686272b724d62765c566938811be86836b6e6b25439e080c5",
+      "bytes": 14674,
+      "cards": 4,
+      "global_cards": 2,
+      "video_cards": 2
+    }
+  },
+  "variants": {
+    "P": {
+      "bank_sha256": "bec6d95693324819b306865b58e4370278a810f6346d0162e938b82284088779",
+      "bank_path": "src/mvagent/skills/skill_sets/manual-procedure-20261104/bec6d95693324819b306865b58e4370278a810f6346d0162e938b82284088779.json"
+    },
+    "S": {
+      "bank_sha256": "87ae199ca2336f5686272b724d62765c566938811be86836b6e6b25439e080c5",
+      "bank_path": "src/mvagent/skills/skill_sets/manual-procedure-20261104/87ae199ca2336f5686272b724d62765c566938811be86836b6e6b25439e080c5.json"
+    }
+  },
+  "format_invariant": "Same card order, meta and when_to_use; same operative text and order. S adds only Purpose/Procedure/Evidence/Stop headings, 1..4 markers and newlines.",
+  "content_change_from_private_draft": "Each original intro and steps1..5 remain verbatim. One Evidence sentence per card is inserted between original steps4 and5 in both variants. No tool-format compression.",
+  "length_measurements": [
+    {
+      "id": "1",
+      "role": "global",
+      "operative_text_sha256": "b8bbfac8f289ca0d57764013593e5626503affabd161d7d564dfba85c7364aa9",
+      "counts": {
+        "P": {
+          "text_words": 500,
+          "strategy_words": 452,
+          "strategy_characters": 3096,
+          "strategy_utf8_bytes": 3096,
+          "actor_token_count": null
+        },
+        "S": {
+          "text_words": 508,
+          "strategy_words": 460,
+          "strategy_characters": 3163,
+          "strategy_utf8_bytes": 3163,
+          "actor_token_count": null
+        }
+      },
+      "S_minus_P": {
+        "text_words": 8,
+        "strategy_characters": 67,
+        "strategy_utf8_bytes": 67
+      }
+    },
+    {
+      "id": "2",
+      "role": "global",
+      "operative_text_sha256": "fc2ebe1311252675f6b5f6c38eefcf617d9a9a6c6289dd4fc31a39fab34b62c5",
+      "counts": {
+        "P": {
+          "text_words": 558,
+          "strategy_words": 507,
+          "strategy_characters": 3460,
+          "strategy_utf8_bytes": 3460,
+          "actor_token_count": null
+        },
+        "S": {
+          "text_words": 566,
+          "strategy_words": 515,
+          "strategy_characters": 3527,
+          "strategy_utf8_bytes": 3527,
+          "actor_token_count": null
+        }
+      },
+      "S_minus_P": {
+        "text_words": 8,
+        "strategy_characters": 67,
+        "strategy_utf8_bytes": 67
+      }
+    },
+    {
+      "id": "3",
+      "role": "video",
+      "operative_text_sha256": "c349ee7b6a9d7df7172d694b032b11a3d9275014986af3688ee269d211dd0a79",
+      "counts": {
+        "P": {
+          "text_words": 415,
+          "strategy_words": 367,
+          "strategy_characters": 2499,
+          "strategy_utf8_bytes": 2499,
+          "actor_token_count": null
+        },
+        "S": {
+          "text_words": 423,
+          "strategy_words": 375,
+          "strategy_characters": 2566,
+          "strategy_utf8_bytes": 2566,
+          "actor_token_count": null
+        }
+      },
+      "S_minus_P": {
+        "text_words": 8,
+        "strategy_characters": 67,
+        "strategy_utf8_bytes": 67
+      }
+    },
+    {
+      "id": "4",
+      "role": "video",
+      "operative_text_sha256": "f389b04c122e703e87a79095a84de9a7a5cef62bec27b88dde1e8c0386e9a74a",
+      "counts": {
+        "P": {
+          "text_words": 470,
+          "strategy_words": 419,
+          "strategy_characters": 2992,
+          "strategy_utf8_bytes": 2992,
+          "actor_token_count": null
+        },
+        "S": {
+          "text_words": 478,
+          "strategy_words": 427,
+          "strategy_characters": 3059,
+          "strategy_utf8_bytes": 3059,
+          "actor_token_count": null
+        }
+      },
+      "S_minus_P": {
+        "text_words": 8,
+        "strategy_characters": 67,
+        "strategy_utf8_bytes": 67
+      }
+    }
+  ],
+  "token_measurement": {
+    "status": "pending_remote_actor_tokenizer",
+    "reason": "Local stdlib preparation has no tokenizer; no tokenizer/dependency installation is authorized here.",
+    "required_before_result_interpretation": "Record P/S when_to_use, strategy and rendered strategy token lengths with the frozen 9B Actor tokenizer. Actual per-request tokens remain recorded by the runner.",
+    "strict_token_matching_claimed": false
+  },
+  "panel": {
+    "fixed_source_plan": "configs/skill_evolution/manual_evidence_train400_20261104.json",
+    "fixed_source_plan_sha256": "a556837d6c449c62c273ee32e12ae9afc1ef91a868ea72d90e3d5ecb389b3224",
+    "remote_panel": "train400/panel.json",
+    "remote_order": "train400/sample_ids.json",
+    "original_manifest_sha256": "7bcdaae229e6c540f221d0bff5ef6d52727ee78a640a0b8bab3482b39fa0f69e",
+    "rotation_sha256": "53aa04724e07ee7692c220ca7f7a46396e5d78dd3bed8f36ae051bf6681f989d",
+    "rotation_slice": [
+      120,
+      520
+    ],
+    "sampling_seed": 0,
+    "distinct_Train_questions": 400,
+    "membership_order_unchanged": true
+  },
+  "conditions": [
+    "P",
+    "S"
+  ],
+  "new_rollouts_per_condition": 400,
+  "max_new_Train_rollouts": 800,
+  "execution_order": {
+    "first": "Run canonical first40 questions for both P and S as an execution/routing diagnostic; these80 rollouts are part of800.",
+    "then": "Complete the fixed remaining360 questions for each variant without selecting variants or stopping from prefix scores.",
+    "on_infrastructure_failure": "Preserve evidence, repair the execution failure, and resume missing units only; never replace panel members or repeat successful results."
+  },
+  "baseline": {
+    "condition": "empty",
+    "samples": 400,
+    "bank_sha256": "1dea07ba6d17ff67eb714db06082a162f76012a28d2c8ecc5ad832ab33f1c184",
+    "policy": "Read-only reuse of completed matching Train400 empty results; never regenerate or score an empty baseline."
+  },
+  "runtime": {
+    "actor": "Qwen3.5-9B",
+    "inference_seed": 0,
+    "actors_per_node": 7,
+    "judge_gpus_per_node": 1,
+    "gpus_per_node": 8,
+    "hardware": "H100",
+    "actor_and_judge_protocol": "Same frozen8ff source, numeric/media/budget/score contracts as completed Train400 baseline; verify actual identity, do not patch Actor.",
+    "selection": "Natural one card or none for each role; none remains legal; no forced injection or activation quota.",
+    "report_and_answer_schema": "Unchanged",
+    "global_cards": 2,
+    "video_cards": 2
+  },
+  "primary_readouts": [
+    "S minus reused empty on all400",
+    "P minus reused empty on all400"
+  ],
+  "secondary_readout": "S minus P on all400: layout difference for this fixed four-procedure library only.",
+  "statistics": "Use the existing official ten-task macro and CCQA point denominators over all400; retain paired regressions/repairs, source-group sensitivity and actual per-request tokens. Do not average shard scores.",
+  "scope_limits": [
+    "Train development measurement; handwritten text uses prior legal Train qualitative gaps, not an independent confirmation.",
+    "No conclusion about all skill writing styles, library granularity, arbitrary tasks or universal utility.",
+    "Same operative sentences do not guarantee identical model interpretation or outputs; heading/marker token overhead is not controlled away.",
+    "Two methods per role are this input design, not a prescribed taxonomy or future library quota.",
+    "Overlap is legal; selection may choose either applicable method or none. Activation is not accuracy.",
+    "No held cases used in applicability review; synthetic counterexamples are fictional, not empirical transfer evidence."
+  ],
+  "new_Cal_queries": 0,
+  "new_Gate_queries": 0,
+  "new_Test_queries": 0,
+  "optimizer_calls": 0,
+  "formal_evolution": false,
+  "automatic_seed": false,
+  "prior_Gate": "Already used for the prior ABC winner confirmation and rejected; unavailable to this package.",
+  "max_project_H100": 64,
+  "study_deadline_epoch": 1793813407,
+  "mirror": "docs/manual-procedure-skills-zh.md"
+}
