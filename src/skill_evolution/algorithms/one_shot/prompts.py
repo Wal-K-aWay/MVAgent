@@ -1,5 +1,6 @@
 """Generator instructions, role/action contracts and response schema."""
 from ...infra.role_contracts import architecture_for
+from ...infra.card_policy import PORTABILITY_RULES
 from mvagent.skills.bank import MAX_SKILL_WORDS, ROLES
 
 
@@ -69,7 +70,7 @@ Check that cards differ in method rather than only topic, wording or execution s
 Return only one JSON object whose sole key is skills. Each item must have exactly
 when_to_use and strategy; prerequisites, exclusions, checks and explanations must not
 be additional fields. Put execution prerequisites and exclusions inside strategy.
-""".strip()
+""".strip() + "\n\n" + PORTABILITY_RULES
 
 
 

@@ -5,6 +5,7 @@ from copy import deepcopy
 import hashlib,json
 from mvagent.skills.bank import SkillBank, next_skill_id, STAGES
 from mvagent.utils.io import write_json
+from .card_policy import require_portable_text
 
 
 @dataclass(frozen=True)
@@ -59,6 +60,7 @@ def apply_edit(bank, role, edit, max_cards):
     if operation == 'remove':
         del cards[target]
     else:
+        require_portable_text(edit['when_to_use'], edit['strategy'])
         cards[target] = {'meta': meta, 'when_to_use': edit['when_to_use'], 'strategy': edit['strategy']}
     result = SkillBank.from_dict({'schema_version': 3, 'skills': list(cards.values())})
     if sum(card.role == role for card in result.cards) > max_cards:

@@ -14,6 +14,7 @@ from mvagent.skills.bank import ROLES, STAGES, SkillBank
 from mvagent.utils.snapshot import ensure_source_snapshot
 
 from ...infra.llm import call_json
+from ...infra.card_policy import require_portable_text
 
 from .prompts import SELECTION_SCOPE, SYSTEM, build_prompt, schema
 
@@ -22,6 +23,8 @@ def make_bank(value: dict, role: str, max_cards: int, *, offset: int = 0) -> Ski
     if role not in ROLES:
         raise ValueError(f"Unknown skill role: {role}")
     validate_json_schema(value, schema(max_cards))
+    for card in value['skills']:
+        require_portable_text(card['when_to_use'], card['strategy'])
     return SkillBank.from_dict({"schema_version": 3, "skills": [
         {"meta": {"id": str(offset + i + 1), "role": role,
                   "stages": list(STAGES)}, **card}

@@ -1,8 +1,8 @@
-**MVAgent GlobalAgent Skill Specification**
+**MVAgent GlobalAgent and VideoAgent Skill Specification**
 
-Version: 1.1 · Reviewed: 2026-10-05 · Language: English
+Version: 1.1 · Reviewed: 2026-11-04 · Language: English
 
-This document defines how to write and review GlobalAgent Skills for multi-video question answering. It applies to both human-authored and automatically generated skills using MVAgent's three-field JSON format. A skill provides reusable guidance for acquiring, comparing, and combining evidence across videos to answer the current question.
+This document defines how to write and review GlobalAgent and VideoAgent Skills for multi-video question answering. It applies to both human-authored and automatically generated skills using MVAgent's three-field JSON format. A skill provides reusable guidance for acquiring or using evidence within its role's information boundary.
 
 **MUST** identifies a required authoring or runtime constraint. **SHOULD** identifies a recommended practice whose exceptions need a concrete justification. Only requirements explicitly described as parser or runtime checks are automatically enforced; semantic requirements need review and behavioral evaluation. This specification does not change the runtime or prescribe an evolution algorithm.
 
@@ -45,7 +45,7 @@ Runtime details: [Skills README](../mvagent/skills/README.md), [bank validation]
 |---|---|
 | `meta` | Exactly `id`, `role`, and `stages` |
 | `meta.id` | Unique within the bank; program-assigned sequential number for new cards; path-safe reference matching `[A-Za-z0-9_-]+` |
-| `meta.role` | MUST be `"global"` for a skill governed by this specification; the shared parser also supports Video skills |
+| `meta.role` | `"global"` or `"video"`; the procedure must respect that role's information boundary |
 | `meta.stages` | Nonempty array with no duplicates, drawn from `"initial"` and `"evidence"` |
 | `when_to_use` | Nonempty text; concise text |
 | `strategy` | Nonempty execution guidance |
@@ -64,6 +64,20 @@ A skill SHOULD own one distinguishable evidence workflow: a recurring problem st
 Suitable scopes include checking a shared predicate before applying a cross-video quantifier; ordering clips through observed state transitions; transferring a reference-event description to a target video; or comparing a particular visual feature through localized joint observation. These are possible scopes, not a mandatory taxonomy or prescribed number of skills.
 
 A skill MUST NOT route by benchmark names, task codes, sample IDs, answer keys, or memorized media identities. Conditions SHOULD describe observable input structure and evidence needs. Removing a dataset name is insufficient if the procedure still assumes that dataset's options, domain conventions, or video naming pattern.
+
+The target is a transferable library for CrossVid, MVU-Eval and CVBench, not a separate library or router for each benchmark. A specialized card need not apply to every benchmark or every question. Its scope must describe an evidence problem that remains meaningful when the scene, labels, input order or backbone changes. Keep selection of none legal.
+
+For every new or revised card, review the following before freezing it. Record the review and provenance outside the two runtime text fields; do not add schema fields or require another model call.
+
+| Review | Required property |
+|---|---|
+| Selection | Applicability is decidable from the role's supplied selection input; format alone does not substitute for an evidence procedure. Global can use the question and video IDs/durations; Video can use its current instruction, without hidden Memory, Global context or another video's evidence. |
+| Independent execution | Strategy repeats necessary scope and nearby exclusions because the Actor does not receive when_to_use. It specifies evidence-dependent branches, missing-evidence handling and a stopping condition within existing actions and budgets. |
+| Input conventions | Derive identities, option/label meanings, temporal anchors and ordering from current input. Do not assume synchronized cameras, marker meanings, motion, fixed video counts or numeric sampling recipes. |
+| Transfer counterexample | Use invented inputs with the same evidence need but different scenes, labels or input order, plus a nearby non-applicable input. An inapplicable temporal procedure need not activate on a static comparison. Do not inspect Cal, Gate or final Test cases to write these checks. |
+| Evaluation | Separate textual validity, correct selection, changed execution and answer accuracy. Freeze the library before final evaluation on all three benchmarks; neither a clean review nor CrossVid improvement establishes cross-benchmark benefit. |
+
+The shared generation and editing prompts include this transfer check. Their proposal validators reject obvious known benchmark names in new when_to_use/strategy text. This small check does not recognize all aliases, implicit conventions or memorized shortcuts; semantic review and behavioral evaluation remain necessary. Historical banks remain readable and running experiments keep their frozen source and cards.
 
 A skill SHOULD specify the default method and only the alternatives needed by its scope. Do not list every available action as equally appropriate. Do not require every question to follow the same action sequence, inspect every video again, or consume a fixed number of rounds.
 

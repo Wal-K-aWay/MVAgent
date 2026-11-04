@@ -1,6 +1,7 @@
 """Optimizer prompt and exact edit schema. Chinese mirror: docs/skill-evolution-prompts.md."""
 import json
 from ...infra.role_contracts import architecture_for
+from ...infra.card_policy import PORTABILITY_RULES
 from mvagent.skills.prompts import build_selector_system_prompt
 
 SYSTEM = '''Improve one role's reusable skill library for a frozen multi-video QA agent.
@@ -49,7 +50,7 @@ use an existing current-role ID. remove/noop use empty text fields. For add/revi
 return both full nonempty text fields. hypothesis briefly states the observed issue,
 a plausible alternative explanation and the behavior the edit should change. No
 extra fields, Markdown fences or commentary. Do not turn a hypothesis into a claimed
-causal fact merely because the terminal score changed.'''.strip()
+causal fact merely because the terminal score changed.'''.strip() + '\n\n' + PORTABILITY_RULES
 
 SCHEMA = {'type': 'object', 'additionalProperties': False,
           'required': ['operation', 'target_id', 'when_to_use', 'strategy', 'hypothesis'],

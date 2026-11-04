@@ -1,6 +1,6 @@
 # D/E 手写证据程序诊断：完整中文镜像
 
-已冻结为尚未测量的实验输入，未提交远端。英文 JSON 是运行时权威；本文件不注入 Actor。不是自动 optimizer 产物，不作为自动进化种子。
+英文 JSON 是运行时权威；本文件不注入 Actor。两库已在EOS完成固定Train120诊断，正在扩展至共同Train400面板；结果与局限见[研究记录](skill-nv-study-20261103.md)。不是自动 optimizer 产物，不作为自动进化种子。
 
 父库 A：`4b2c92c1035c9314c5abea4b221f7c386154d08ae91fcacad3eefe40e32bd4d0`。两个库均保留 4G4V 八卡，只改 Global 卡 `4` 的 `strategy`；`meta`、`when_to_use` 及其余七卡逐值不变。
 
