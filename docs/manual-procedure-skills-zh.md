@@ -1,6 +1,6 @@
 # 自包含程序卡及P/S排版对照中文镜像
 
-本包为Codex手写的2张Global、2张Video程序卡，当前未运行、未证明准确率收益。英文SHA命名JSON是运行时权威，本镜像不注入Actor。它不是自动optimizer产物或自动进化种子；四方法不是用户规定的六类或固定卡数配额。
+本包为Codex手写的2张Global、2张Video程序卡；建库时未运行，实测进展见[研究记录](skill-nv-study-20261103.md)，目前未证明稳定准确率收益。英文SHA命名JSON是运行时权威，本镜像不注入Actor。它不是自动optimizer产物或自动进化种子；四方法不是用户规定的六类或固定卡数配额。
 
 P把Purpose内容、原步骤1–4、Evidence句、原步骤5按此顺序用空格连接成连续段落。S在完全相同的文字前增加`#### Purpose`、`#### Procedure`、步骤编号1–4、`#### Evidence`、`#### Stop`及换行。原intro作为Purpose的程序适用说明，原step5作为Stop完整保留。两版meta、when_to_use、操作句与顺序相同；Evidence句也同句同位置。不压缩原草案的工具格式说明，不改变报告或答案schema。
 
