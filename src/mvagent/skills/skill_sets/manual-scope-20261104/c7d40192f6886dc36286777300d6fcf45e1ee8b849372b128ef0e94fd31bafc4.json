@@ -1,0 +1,101 @@
+{
+  "schema_version": 3,
+  "skills": [
+    {
+      "meta": {
+        "id": "1",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The question requires a fact established in one video to interpret an event, identity, or state in another video, possibly under explicitly supplied view, label, or synchronization conventions. Resolve the reference dependency before a dependent local request; independent per-video judgments do not need this workflow.",
+      "strategy": "For a cross-video dependency, separate the needed reference fact from the target result. Preserve only conventions supplied by the question. Reuse sufficient public History; independent requests may remain concurrent. If a target needs an unknown reference, first use analyze_videos to obtain that fact with visible support. Put the returned supported description, source identity, and necessary timing convention into a later target instruction; concurrent requests cannot consume future sibling reports. Use watch_videos only when joint visual correspondence is decisive, naming the relation and at least two videos with valid in-duration clips, without fps. Treat an unresolved reference or an assumed cross-video fact as a gap; clarify it only if it can change the answer. Answer when the dependency supports the requested result. At the runtime limit, give the best supported nonempty answer in the required format and retain material uncertainty in reason."
+    },
+    {
+      "meta": {
+        "id": "2",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The question supplies alternative answers whose truth can be separated by specific visible facts or relations across the videos. Acquire the distinctions between alternatives rather than a generic account of every video; exclude open questions without supplied alternatives and alternatives differing only in unsupported nonvisual assumptions.",
+      "strategy": "When supplied alternatives require visual discrimination, identify the fact or relation that separates them without dropping qualifiers or combined conditions. Labels are not evidence. Use analyze_videos for independently observable distinctions, giving each local instruction the neutral criterion and necessary context, not a request to choose an option. Use watch_videos for a decisive cross-video relation: name it, select at least two videos and valid in-duration clips, and omit fps. Locate unknown moments locally before narrowing clips. Keep supported, contradicted, and unresolved alternatives distinct; report omissions cannot eliminate a choice. If several remain, check the consequential unresolved distinction and reconsider the exact conditions when reports support supposedly exclusive answers. Stop when evidence determines the requested answer; otherwise follow bounded finalization, giving the strongest supported nonempty answer in the required format and noting the limitation in reason."
+    },
+    {
+      "meta": {
+        "id": "3",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The main question asks whether or where the same particular person or object corresponds across videos, rather than whether objects share a category or appearance. Establish identity candidates from supplied conventions and visible distinguishing evidence, then compare unresolved candidates; do not assume correspondence from video IDs or durations.",
+      "strategy": "For physical identity across videos, initialize candidates only from the question's target description, supplied conventions, and visible distinguishing evidence. A label in one view establishes no other-view identity unless explicitly linked. Use analyze_videos with self-contained local instructions for candidate features, visible paths, and anchors; ask for missing initialization rather than guessing appearance. Retain every compatible candidate and its source; category or color similarity alone does not establish identity. When a joint feature can resolve correspondence, use watch_videos with at least two distinct videos and valid in-duration clips, without fps; locate unknown moments before narrowing. Eliminate candidates only through incompatible observations or explicit conventions. Occlusion or an unobserved feature remains unresolved. Answer when supported identity evidence resolves the correspondence; at the runtime limit, give the best supported answer in the required format and disclose remaining ambiguity in reason."
+    },
+    {
+      "meta": {
+        "id": "4",
+        "role": "global",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The question combines independently observable per-video conditions into an all, any, exact-number, count, or qualifying-subset answer. Track which unresolved local judgments can still change that answer; exclude counting repeated events within one video and identity matching that cannot be decided independently per video.",
+      "strategy": "Apply this aggregation only when the requested answer combines conditions that can be checked independently in each relevant video. When the requested result counts repetitions within one video, or requires joint evidence to establish cross-view identity, continue with the ordinary evidence workflow and its existing actions instead of applying independent video votes. For independent per-video conditions, preserve the predicate, qualifiers, counted entity, and whether the result is a truth value, exact count, or complete subset. Use analyze_videos with the same neutral criterion and needed definitions, asking each source for visible support and limitations. Keep supported matches, exclusions, and unknowns separate. Matches bound a count below; including unknowns bounds it above. Omission is not exclusion. Check whether resolving unknowns could change the requested result; an exact subset may need every potential member resolved after a yes-or-no result is settled. Follow up only on consequential gaps, reconciling changed predicates or conflicting reports before tightening bounds. Answer when all evidence-compatible outcomes agree. If the runtime ends sooner, give the best supported nonempty answer in the requested format and state the remaining bound in reason."
+    },
+    {
+      "meta": {
+        "id": "5",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction asks whether a specified event or object is absent, whether only stated items occur, or whether a local list is complete. Determine what the same-video observations cover before making the negative or exhaustive claim; a simple request for one positive example does not require this procedure.",
+      "strategy": "For a negative or exhaustive judgment, use only this video's instruction and retained Memory to define the target and required visible and temporal scope. Review positive evidence, contradictions, and coverage limits; an omitted item or broad sampling does not prove absence. If a consequential gap remains, use observe with a neutral what about the target and visibility, legal ordered non-overlapping where intervals within the duration, and a permitted fps. Keep non-observation distinct from contrary evidence, preserving uncertainty from occlusion, identity, or sampling rather than completing a familiar activity. Stop acquisition when the claim is supported or available observations cannot resolve its material limitation within the runtime. When finish is available after usable same-video evidence, summarize the supported judgment and coverage limit without internal tools, ranges, fps, or cross-video conclusions. Otherwise follow the bounded terminal protocol without inventing observations."
+    },
+    {
+      "meta": {
+        "id": "6",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction requires this video's event start, finish, duration interval, or a boundary-sensitive order. Establish the event and use surrounding state changes to bound the requested endpoints; exclude general descriptions and coarse ordering that do not need boundary localization.",
+      "strategy": "For an event boundary, preserve the action and object conditions, needed endpoints, and supported same-video anchors. If the event is not established, use observe to identify it and relevant state changes, with legal ordered non-overlapping where intervals and permitted fps. Bound a start using the preceding non-event state and event onset; bound a finish using continuation and the following changed or completed state. A first sampled appearance or crop edge is not itself a boundary. Inspect the unsupported flank of a credible anchor with surrounding context; widen when identity or the anchor is doubtful rather than repeatedly refining it. Keep offscreen or ambiguous endpoints unresolved. Stop when the instruction's temporal distinction is supported. When finish is available after usable same-video evidence, summarize supported source-video times, precision, and missing boundaries without internal ranges or fps; obey runtime limits rather than inventing an interval."
+    },
+    {
+      "meta": {
+        "id": "7",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction asks to track a particular person or object through this video, determine that entity's later behavior, or distinguish its repeated appearances from different entities. Maintain local identity continuity and explicitly resolve reappearance; exclude static category or attribute checks with no identity dependency.",
+      "strategy": "For local identity tracking, initialize the target only from the instruction's supplied convention and retained same-video evidence; request missing identifying features instead of interpreting an arbitrary label. Use observe to examine distinguishing appearance, motion, and landmarks in legal ordered non-overlapping where intervals with permitted fps. Carry identity forward only through supported continuity or distinguishing evidence. After occlusion, leaving the frame, or an indistinguishable crossing, retain compatible candidates rather than selecting the nearest reappearance. If identity uncertainty changes the requested behavior or count, inspect both sides of the interruption and the candidates' distinguishing features; do not invent a hidden path. Distinguish separate entities from repeat appearances only when supported. Stop when the local result is supported or ambiguity cannot be resolved within the request. When finish is available after usable same-video evidence, summarize supported identity, behavior, and uncertainty without internal ranges, fps, cross-video matching, or fabricated trajectories."
+    },
+    {
+      "meta": {
+        "id": "8",
+        "role": "video",
+        "stages": [
+          "initial",
+          "evidence"
+        ]
+      },
+      "when_to_use": "The instruction requires fine action detail, a brief local event, or an event interval that depends on a workable observation plan. Adapt the same-video observation to actual duration and available feedback; prior errors or hidden Memory are not prerequisites for selecting this skill.",
+      "strategy": "For a detail-sensitive local request, preserve its actual target and inspect duration and retained same-video evidence before observe. Ask a neutral visually answerable what, use legal ordered non-overlapping where intervals with start before end inside the duration, preserve fractional seconds, and choose permitted fps. Treat rejection or failure feedback as diagnostics, not observations; change only the responsible parameter or evidence request when feedback supports the correction. After an uninformative success, distinguish an irrelevant question, inadequate coverage, and unresolved detail before changing what, where, or fps. Do not repeat an unchanged ineffective request. Stop when evidence supports the local result or no justified correction remains within the runtime. Never extend the loop, bypass validation, increase frame budget, or invoke unavailable actions. Use finish only when available after usable same-video evidence, summarizing supported facts and uncertainty without internal failures, ranges, or fps; otherwise obey bounded terminal behavior without claiming observation success."
+    }
+  ]
+}

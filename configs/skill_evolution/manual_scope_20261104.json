@@ -1,0 +1,51 @@
+{
+  "scope": "New Train-only normative scope diagnostic; not an added Cal or Gate candidate",
+  "parent_bank_sha256": "49ce3f8a3f622b8d876681a7e6b8bf0d56a19d812dcc034afb3ded39c5f56aa2",
+  "candidate_bank_sha256": "c7d40192f6886dc36286777300d6fcf45e1ee8b849372b128ef0e94fd31bafc4",
+  "candidate_name": "C_scope",
+  "changed_fields": [
+    "global card4 strategy only"
+  ],
+  "unchanged": "all meta/when_to_use and the other seven cards; no Actor/Selector/tool/budget changes",
+  "source_worker_commit": "8ff374d6139dd8af2802f88695141306a4768e99",
+  "manifest_sha256": "7bcdaae229e6c540f221d0bff5ef6d52727ee78a640a0b8bab3482b39fa0f69e",
+  "rotation_sha256": "53aa04724e07ee7692c220ca7f7a46396e5d78dd3bed8f36ae051bf6681f989d",
+  "Train400_audit_sha256": "3a500c83c0effdc0f00d6a59fa9723071e1f0bcde351a5ab1789e58eb302842b",
+  "panel_rotation_slice": [
+    120,
+    520
+  ],
+  "different_Train_questions": 400,
+  "new_rollouts_max": 400,
+  "first_unit_shards": [
+    0
+  ],
+  "remaining_shards": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "selection_mode": "natural",
+  "actor_seed": 0,
+  "new_sampling": "none; retain the frozen cohort and per-shard orders",
+  "references": {
+    "empty": "reuse all400 completed empty rollouts",
+    "C": "reuse original120 only; do not imply a matched C400 comparison"
+  },
+  "allowed_partitions": [
+    "train"
+  ],
+  "Cal_queries": 0,
+  "Gate_queries": 0,
+  "Test_queries": 0,
+  "optimizer_calls": 0,
+  "maximum_project_H100": 64,
+  "study_deadline_epoch": 1793813407,
+  "decision": "Report complete400 score versus saved empty; old120 overlap only for paired C comparison. No formal acceptance or automatic seed from this diagnostic. Original C Gate remains unchanged."
+}
