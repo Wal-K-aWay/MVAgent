@@ -84,6 +84,14 @@ PYTHONPATH=src python demo.py \
 一次自然 rollout 可能只使用一种视觉动作；应按实际调用日志分别确认 observe 和 watch_videos，
 不能从配置加载成功推断两者都已运行。
 
+2026-11-05 UTC 冒烟已在 NV EOS 的 H100 上完成（源码 `a9d7c1f`，job `6448601`）：
+单视频回答 `Red`（30.67 秒）；双视频回答红色与蓝色、不匹配（25.38 秒）。两次自然
+rollout 均通过 `analyze_videos` 取证，另执行一次原生 `watch_videos` 动作验证其视觉链路。
+实际日志共 10 次 GPT strict-schema 决策（Global 4、Video 6），全部收到匹配的 strict
+schema 回执；Qwen 27B 执行 3 次 observe、1 次 watch。无无效输出、修复或重试。
+21 项针对性检查和完整 `compileall` 通过；节点已释放。这仅验证两条合成视频 rollout
+及 watch 动作链路，benchmark 样本数为 0，不构成准确率或相对历史模型的增益结论。
+
 执行文件名中的 `modal_`/`h200` 和八副本布局是历史模板，不依赖Modal。普通服务器在本地副本中调整GPU索引、端口和副本数；历史参考硬件为H100。
 
 | 文件 | 用途 |

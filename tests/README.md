@@ -44,6 +44,11 @@ it requires no dataset, GPU or model calls.
 Passing these checks is not a new benchmark measurement or a guarantee of
 byte-identical outputs for arbitrary model inputs.
 
+The Responses check covers native strict schemas, action/parameter unions, complete
+local validation, refusal/incomplete/malformed responses, gateway schema confirmation,
+credential-free events, and GPT decision/Qwen vision routing. HTTP calls are mocked;
+real gateway and GPU smoke evidence is recorded in `configs/inference/README.md`.
+
 The one-shot generation check covers role/word limits, persistence of malformed or
 truncated output, refusal to overwrite prior runs, merged banks, source snapshots and redaction.
 It uses a model double and does not call an API.
