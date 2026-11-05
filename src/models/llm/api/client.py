@@ -128,6 +128,7 @@ from .providers.anthropic_compatible import (
     MiniMaxAnthropicLLMProvider,
 )
 from .providers.deepseek import DeepSeekProvider
+from .providers.openai_responses import OpenAIResponsesProvider
 
 
 register_api_llm_provider(
@@ -135,6 +136,7 @@ register_api_llm_provider(
     AnthropicCompatibleLLMProvider,
 )
 register_api_llm_provider("deepseek", DeepSeekProvider)
+register_api_llm_provider("openai_responses", OpenAIResponsesProvider)
 register_api_llm_provider("minimax_anthropic", MiniMaxAnthropicLLMProvider)
 
 

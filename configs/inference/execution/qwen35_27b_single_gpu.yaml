@@ -1,0 +1,13 @@
+question_workers: 1
+max_prepared_requests: 1
+question_timeout_sec: 3600
+question_retries: 0
+media_cache:
+  root: .cache/mvagent/media
+  max_bytes: 10737418240
+model_pools:
+  qwen3_5_27b_local:
+    replicas:
+    - gpus: [0]
+      endpoint: http://127.0.0.1:8100/v1
+      max_inflight: 1

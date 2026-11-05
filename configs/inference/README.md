@@ -51,6 +51,35 @@ Global 使用简洁角色 System，VideoAgent 保持原 instruction 边界；历
 
 ## 配置入口
 
+### GPT-6-sol 决策 + Qwen3.5-27B 视觉冒烟
+
+`gpt6_sol_qwen35_27b.yaml` 将 Global 决策（含终答）和 Video planner/finish 交给
+`gpt-6-sol`；Video observer 与 Global `watch_videos` 共用本地 Qwen3.5-27B。
+两角色 skill 关闭，步数/视觉/输出预算沿用原配置。这是独立混合模型实验，不能与历史
+纯 Qwen 结果直接归因为 skill 增益。
+
+设置 `MVAGENT_DECISION_API_KEY` 环境变量。默认连接官方 Responses API；使用兼容网关时，
+在私有配置副本中修改 `models.gpt6_sol.api_base`，按需设置 `http_headers`，密钥仍只引用
+环境变量，不将真实凭据写进配置。请求禁用响应存储，并记录实际响应模型与 token usage。
+当前 `reasoning_effort: none`、temperature 0；更改推理强度需另记实验身份。
+Responses 使用 JSON 模式加原完整 schema 提示，复用本地校验及一次修复；不改写 Agent
+动作 schema 为 OpenAI strict 子集。非 completed、拒绝或空响应作为调用错误报告。
+
+在有权重及完整项目环境的 GPU 节点运行：
+
+```bash
+PYTHONPATH=src python demo.py \
+  --config configs/inference/gpt6_sol_qwen35_27b.yaml \
+  --execution-config configs/inference/execution/qwen35_27b_single_gpu.yaml \
+  --video video_1=/path/to/first.mp4 --video video_2=/path/to/second.mp4 \
+  --question 'Compare the visible actions in these videos.' \
+  --output /path/to/new-smoke-output
+```
+
+单卡执行配置只加载一个 27B 副本；权重默认 `/weights/Qwen3.5-27B`，实际路径在私有配置中调整。
+一次自然 rollout 可能只使用一种视觉动作；应按实际调用日志分别确认 observe 和 watch_videos，
+不能从配置加载成功推断两者都已运行。
+
 执行文件名中的 `modal_`/`h200` 和八副本布局是历史模板，不依赖Modal。普通服务器在本地副本中调整GPU索引、端口和副本数；历史参考硬件为H100。
 
 | 文件 | 用途 |

@@ -7,10 +7,12 @@ from .anthropic_compatible import (
     MiniMaxAnthropicLLMProvider,
 )
 from .deepseek import DeepSeekProvider
+from .openai_responses import OpenAIResponsesProvider
 
 
 __all__ = [
     "AnthropicCompatibleLLMProvider",
     "DeepSeekProvider",
+    "OpenAIResponsesProvider",
     "MiniMaxAnthropicLLMProvider",
 ]

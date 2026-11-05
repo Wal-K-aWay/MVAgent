@@ -10,6 +10,7 @@ Run individual checks in the configured remote project environment:
 
 ```bash
 PYTHONPATH=src python tests/test_direct_answer.py
+PYTHONPATH=src python tests/test_openai_responses.py
 PYTHONPATH=src python tests/test_model_pool.py
 PYTHONPATH=src python tests/test_model_token_audit.py
 PYTHONPATH=src python tests/test_prefix_cache_usage.py

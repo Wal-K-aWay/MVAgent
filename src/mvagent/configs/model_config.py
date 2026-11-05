@@ -51,6 +51,7 @@ class ApiLLMConfig:
     model_name: str = ""
     api_base: Optional[str] = None
     api_key: Optional[str] = None
+    http_headers: dict[str, str] = field(default_factory=dict)
     enable_thinking: bool = False
     reasoning_effort: Optional[str] = None
     temperature: float = 0.2
@@ -266,6 +267,7 @@ class ApiLLMModelInstanceConfig(ModelInstanceConfig):
     provider: Optional[str] = None
     api_base: Optional[str] = None
     api_key: Optional[str] = None
+    http_headers: dict[str, str] = field(default_factory=dict)
     enable_thinking: Optional[bool] = None
     reasoning_effort: Optional[str] = None
     capabilities: ClassVar[frozenset[str]] = frozenset(
@@ -324,19 +326,32 @@ class ApiLLMModelInstanceConfig(ModelInstanceConfig):
                     f"{name} api_base must be an HTTP(S) endpoint."
                 )
         _validate_api_key(self.api_key, name)
+        if not isinstance(self.http_headers, dict) or any(
+            not isinstance(key, str) or not key.strip()
+            or not isinstance(value, str) or "\r" in key + value or "\n" in key + value
+            or key.lower() in {"authorization", "content-type", "host"}
+            for key, value in self.http_headers.items()
+        ):
+            raise ValueError(f"{name} http_headers must contain valid extra HTTP headers.")
+        if self.http_headers and provider != "openai_responses":
+            raise ValueError(f"{name} http_headers requires openai_responses.")
         if self.enable_thinking is not None and not isinstance(
             self.enable_thinking,
             bool,
         ):
             raise ValueError(f"{name} enable_thinking must be a boolean.")
         effort = str(self.reasoning_effort or "").strip()
-        if effort and provider != "deepseek":
+        if provider == "openai_responses" and self.enable_thinking is not None:
+            raise ValueError(f"{name} uses reasoning_effort instead of enable_thinking.")
+        if effort and provider not in {"deepseek", "openai_responses"}:
             raise ValueError(
-                f"{name} reasoning_effort is supported only for DeepSeek."
+                f"{name} reasoning_effort requires DeepSeek or openai_responses."
             )
-        if effort and effort not in {"low", "high", "max"}:
+        efforts = ({"none", "low", "medium", "high", "xhigh", "max"}
+                   if provider == "openai_responses" else {"low", "high", "max"})
+        if effort and effort not in efforts:
             raise ValueError(
-                f"{name} reasoning_effort must be low, high, or max."
+                f"{name} reasoning_effort must be one of {sorted(efforts)}."
             )
         if provider == "deepseek" and bool(self.enable_thinking) and (
             self.temperature is not None or self.top_p is not None
@@ -380,6 +395,7 @@ class ApiLLMModelInstanceConfig(ModelInstanceConfig):
             model_name=str(self.model_name or name),
             api_base=self.api_base,
             api_key=self.api_key,
+            http_headers=dict(self.http_headers),
             enable_thinking=bool(_pick(self.enable_thinking, False)),
             reasoning_effort=(
                 str(self.reasoning_effort)
