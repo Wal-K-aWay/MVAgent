@@ -92,6 +92,25 @@ schema 回执；Qwen 27B 执行 3 次 observe、1 次 watch。无无效输出、
 21 项针对性检查和完整 `compileall` 通过；节点已释放。这仅验证两条合成视频 rollout
 及 watch 动作链路，benchmark 样本数为 0，不构成准确率或相对历史模型的增益结论。
 
+### 混合模型的批量并行
+
+复用 `execution/modal_h200x8_qwen35_27b.yaml` 即可运行八个 27B 副本和最多八道并行问题；
+文件名是历史名称，在 NV 或普通服务器同样适用。若只用四卡，在执行配置副本中保留前四个
+replica，保持 `question_workers: auto`。每卡仍是 TP=1、`max_inflight: 1`，一题固定
+一个副本；单纯增加 `question_workers` 而不增加副本，仍会等待整题租约。
+同题的 VideoAgent 已由 `runtime.video_concurrency: 2` 并行执行规划，依赖上一轮结果的
+决策仍顺序运行。上述设置提高批量吞吐，不意味着单题时延会按副本数缩短，strict schema
+校验也不受影响。
+
+```bash
+PYTHONPATH=src python eval/agent_eval/run.py \
+  --config configs/inference/gpt6_sol_qwen35_27b.yaml \
+  --execution-config configs/inference/execution/modal_h200x8_qwen35_27b.yaml \
+  --dataset-root /assets --benchmarks crossvid \
+  --sample-ids-file /path/to/selected_ids.json \
+  --inference-only --output /path/to/new-parallel-output
+```
+
 执行文件名中的 `modal_`/`h200` 和八副本布局是历史模板，不依赖Modal。普通服务器在本地副本中调整GPU索引、端口和副本数；历史参考硬件为H100。
 
 | 文件 | 用途 |
