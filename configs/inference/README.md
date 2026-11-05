@@ -94,9 +94,10 @@ schema 回执；Qwen 27B 执行 3 次 observe、1 次 watch。无无效输出、
 
 ### 混合模型的批量并行
 
-复用 `execution/modal_h200x8_qwen35_27b.yaml` 即可运行八个 27B 副本和最多八道并行问题；
-文件名是历史名称，在 NV 或普通服务器同样适用。若只用四卡，在执行配置副本中保留前四个
-replica，保持 `question_workers: auto`。每卡仍是 TP=1、`max_inflight: 1`，一题固定
+`execution/qwen35_27b_two_gpu.yaml` 配置两个 27B 副本和两道并行问题。
+现有 `execution/modal_h200x8_qwen35_27b.yaml` 模板支持八个副本，但增加并发前须确认
+GPT 网关的请求额度；本次网关四题并发已实测触发 RPM 限流（HTTP 429），不能直接照搬八题并发。
+历史 `modal_` 文件名不限制运行平台，在 NV 或普通服务器同样适用。每卡仍是 TP=1、`max_inflight: 1`，一题固定
 一个副本；单纯增加 `question_workers` 而不增加副本，仍会等待整题租约。
 同题的 VideoAgent 已由 `runtime.video_concurrency: 2` 并行执行规划，依赖上一轮结果的
 决策仍顺序运行。上述设置提高批量吞吐，不意味着单题时延会按副本数缩短，strict schema
@@ -105,7 +106,7 @@ replica，保持 `question_workers: auto`。每卡仍是 TP=1、`max_inflight: 1
 ```bash
 PYTHONPATH=src python eval/agent_eval/run.py \
   --config configs/inference/gpt6_sol_qwen35_27b.yaml \
-  --execution-config configs/inference/execution/modal_h200x8_qwen35_27b.yaml \
+  --execution-config configs/inference/execution/qwen35_27b_two_gpu.yaml \
   --dataset-root /assets --benchmarks crossvid \
   --sample-ids-file /path/to/selected_ids.json \
   --inference-only --output /path/to/new-parallel-output
