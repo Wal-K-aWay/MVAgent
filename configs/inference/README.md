@@ -62,8 +62,12 @@ Global 使用简洁角色 System，VideoAgent 保持原 instruction 边界；历
 在私有配置副本中修改 `models.gpt6_sol.api_base`，按需设置 `http_headers`，密钥仍只引用
 环境变量，不将真实凭据写进配置。请求禁用响应存储，并记录实际响应模型与 token usage。
 当前 `reasoning_effort: none`、temperature 0；更改推理强度需另记实验身份。
-Responses 使用 JSON 模式加原完整 schema 提示，复用本地校验及一次修复；不改写 Agent
-动作 schema 为 OpenAI strict 子集。非 completed、拒绝或空响应作为调用错误报告。
+Responses 显式使用 `text.format.type: json_schema`、`strict: true`。传输层以 `result`
+包裹动作联合，保留 action 与对应 parameters 的绑定、视频 ID、数值及文本边界；返回后解包，
+Agent 接口不变。OpenAI 不支持的 `contains/maxContains` 视频去重约束仍由原完整 schema
+在本地校验及一次修复中执行。API 拒绝 schema 或返回违反传输 schema 的内容时直接报错，
+不退回 JSON 模式；非 completed、拒绝或空响应也作为调用错误报告。
+原生 schema 子集限制见 [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)。
 
 在有权重及完整项目环境的 GPU 节点运行：
 

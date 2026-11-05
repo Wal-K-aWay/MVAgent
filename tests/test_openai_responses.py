@@ -9,6 +9,8 @@ from urllib.error import HTTPError
 
 from models.execution import execution_scope
 from models.llm.api.client import ApiLLMClient, ApiLLMError
+from models.llm.api.providers.openai_responses import response_schema
+from models.utils import validate_json_schema
 from mvagent.configs import MVAgentConfig
 from mvagent.configs.model_config import ApiLLMConfig
 from mvagent.engine import MVAgentEngine
@@ -18,9 +20,10 @@ SCHEMA = {"type": "object", "required": ["ok"], "additionalProperties": False,
           "properties": {"ok": {"type": "boolean"}}}
 
 
-def response(text='{"ok":true}', **changes):
+def response(text='{"result":{"ok":true}}', *, format_schema=SCHEMA, **changes):
     return {"id": "response-test", "model": "gpt-6-sol", "status": "completed",
             "output": [{"type": "message", "content": [{"type": "output_text", "text": text}]}],
+            "text": {"format": {"type": "json_schema", "strict": True, "schema": response_schema(format_schema)}},
             "usage": {"input_tokens": 20, "output_tokens": 5, "total_tokens": 25,
                       "input_tokens_details": {"cached_tokens": 4}}, **changes}
 
@@ -43,7 +46,9 @@ class ResponsesTests(unittest.TestCase):
         self.assertEqual(request.full_url, "https://api.openai.com/v1/responses")
         payload = json.loads(request.data)
         self.assertEqual(payload["reasoning"], {"effort": "none"})
-        self.assertEqual(payload["text"]["format"], {"type": "json_object"})
+        self.assertEqual(payload["text"]["format"]["type"], "json_schema")
+        self.assertTrue(payload["text"]["format"]["strict"])
+        self.assertEqual(payload["text"]["format"]["schema"], response_schema(SCHEMA))
         self.assertFalse(payload["store"])
         self.assertEqual(payload["max_output_tokens"], 2048)
         self.assertIn("JSON Schema", payload["input"][0]["content"])
@@ -95,12 +100,59 @@ class ResponsesTests(unittest.TestCase):
             self.assertNotIn("test-secret", str(caught.exception))
             self.assertEqual(caught.exception.transient, status != 401)
 
-    def test_full_schema_rejects_valid_json_with_wrong_fields(self):
-        bodies = [BytesIO(json.dumps(response('{"wrong":true}')).encode()) for _ in range(2)]
+    def test_server_schema_violation_fails_without_downgrading(self):
+        with patch("urllib.request.urlopen", return_value=BytesIO(json.dumps(response('{"result":{"wrong":true}}')).encode())) as call, \
+             self.assertRaisesRegex(ApiLLMError, "violated its strict"):
+            ApiLLMClient(self.cfg).json_chat(
+                [{"role": "user", "content": "Confirm readiness."}], json_schema=SCHEMA)
+        self.assertEqual(call.call_count, 1)
+
+    def test_gateway_must_confirm_the_requested_strict_schema(self):
+        data = response()
+        data["text"] = {"format": {"type": "json_object"}}
+        with patch("urllib.request.urlopen", return_value=BytesIO(json.dumps(data).encode())), \
+             self.assertRaisesRegex(ApiLLMError, "did not confirm"):
+            ApiLLMClient(self.cfg).json_chat(
+                [{"role": "user", "content": "Confirm readiness."}], json_schema=SCHEMA)
+
+    def test_action_unions_keep_action_parameters_ids_and_bounds(self):
+        from mvagent.agents.global_agent.schema import build_global_decision_schema
+        from mvagent.agents.video_agent.schema import build_video_action_schema
+        global_schema = response_schema(build_global_decision_schema(
+            ["answer", "analyze_videos", "watch_videos"], video_ids=["a", "b"],
+            video_durations={"a": 3, "b": 4}))
+        valid = {"reason": "Inspect.", "action": "watch_videos", "parameters": {
+            "instruction": "Compare.", "videos": [{"video_id": "a", "clip": [0, 3]},
+                                                    {"video_id": "b", "clip": [0, 4]}]}}
+        validate_json_schema({"result": valid}, global_schema)
+        for change in ({"action": "answer"}, {"reason": " "},
+                       {"parameters": {"answer": "A"}}):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                validate_json_schema({"result": {**valid, **change}}, global_schema)
+        video_schema = response_schema(build_video_action_schema(
+            ["observe", "finish"], duration_sec=3, max_ranges=2))
+        action = {"action": "observe", "parameters": {"what": "Color?", "where": [[0, 3]], "fps": 1}}
+        validate_json_schema({"result": action}, video_schema)
+        for change in ({"where": [[0, 4]]}, {"fps": 0}, {"what": ""}):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                validate_json_schema({"result": {**action, "parameters": {**action["parameters"], **change}}}, video_schema)
+
+    def test_duplicate_video_check_is_retained_in_full_local_schema(self):
+        from mvagent.agents.global_agent.schema import build_global_decision_schema
+        schema = build_global_decision_schema(["analyze_videos"], video_ids=["a", "b"])
+        requests = [{"video_id": "a", "instruction": "Inspect."}] * 2
+        action = {"reason": "Inspect.", "action": "analyze_videos",
+                  "parameters": {"videoagent_request": requests}}
+        validate_json_schema({"result": action}, response_schema(schema))
+        with self.assertRaises(ValueError):
+            validate_json_schema(action, schema)
+        corrected = {**action, "parameters": {"videoagent_request": requests[:1]}}
+        bodies = [BytesIO(json.dumps(response(json.dumps({"result": value}), format_schema=schema)).encode())
+                  for value in (action, corrected)]
         with patch("urllib.request.urlopen", side_effect=bodies):
             result = ApiLLMClient(self.cfg).json_chat(
-                [{"role": "user", "content": "Confirm readiness."}], json_schema=SCHEMA)
-        self.assertEqual(result["status"], "invalid")
+                [{"role": "user", "content": "Inspect both videos."}], json_schema=schema)
+        self.assertEqual(result["value"], corrected)
 
     def test_mixed_config_reaches_actual_engine_roles(self):
         import tempfile
